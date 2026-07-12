@@ -71,9 +71,9 @@ namespace OsEngine.Robots.Rebalancers
 
             // 1 Общие настройки
 
-            _regime = CreateParameter("Regime", "On", new[] { "On", "Off"}, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off"}, "Base");
             _mainRebalancePeriodType = CreateParameter("Rebalance period", "Weekly", new[] { "Daily", "Weekly", "Monthly" }, "Base");
-            _mainRebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Monday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
+            _mainRebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Tuesday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
             _mainRebalanceTime = CreateParameterTimeOfDay("Main rebalance time", 10, 0, 0, 0, "Base");
 
             // 2 Настройки ребалансировки акций
@@ -83,9 +83,9 @@ namespace OsEngine.Robots.Rebalancers
             _stockRebalanceOn = CreateParameter("Stock rebalance on", true, "Stock");
             _stockMinRisingPercent = CreateParameter("Stock % grow", 48.0m, 0.0m, 100.0m, 1.0m, "Stock");
             _stockMomentumLookback = CreateParameter("Stock momentum lookback", 64, 10, 250, 10, "Stock");
-            _stockTopN = CreateParameter("Stock Top N", 10, 1, 20, 1, "Stock");
+            _stockTopN = CreateParameter("Stock Top N", 7, 1, 20, 1, "Stock");
             _stockMinMomentum = CreateParameter("Stock min momentum", 103.6m, 101.0m, 106.0m, 0.5m, "Stock");
-            _stockMaxInvestedPercent = CreateParameter("Stock max % deposit", 100.0m, 10.0m, 100.0m, 10.0m, "Stock");
+            _stockMaxInvestedPercent = CreateParameter("Stock max % deposit", 50.0m, 10.0m, 100.0m, 10.0m, "Stock");
             _stockKeltnerEmaPeriod = CreateParameter("Stock keltner EMA period", 515, 5, 100, 1, "Stock");
             _stockKeltnerAtrPeriod = CreateParameter("Stock keltner ATR period", 20, 5, 100, 1, "Stock");
             _stockKeltnerMultiplier = CreateParameter("Stock keltner multiplier", 3.0m, 0.5m, 5.0m, 0.1m, "Stock");
@@ -117,7 +117,7 @@ namespace OsEngine.Robots.Rebalancers
             _goldRebalanceOn = CreateParameter("Gold rebalance on", true, "Gold");
             _goldMomentumLookback = CreateParameter("Gold momentum lookback", 60, 10, 250, 10, "Gold");
             _goldMinMomentum = CreateParameter("Gold max momentum", 101.2m, 99.0m, 106.0m, 0.3m, "Gold");
-            _goldMaxInvestedPercent = CreateParameter("Gold max % deposit", 100.0m, 10.0m, 100.0m, 10.0m, "Gold");
+            _goldMaxInvestedPercent = CreateParameter("Gold max % deposit", 50.0m, 10.0m, 100.0m, 10.0m, "Gold");
             _goldKeltnerEmaPeriod = CreateParameter("Gold keltner EMA period", 615, 5, 100, 1, "Gold");
             _goldKeltnerAtrPeriod = CreateParameter("Gold keltner ATR period", 20, 5, 100, 1, "Gold");
             _goldKeltnerMultiplier = CreateParameter("Gold keltner multiplier", 1.4m, 0.5m, 5.0m, 0.1m, "Gold");
@@ -148,7 +148,7 @@ namespace OsEngine.Robots.Rebalancers
 
             _lqdtRebalanceOn = CreateParameter("LQDT rebalance on", true, "LQDT");
             _lqdtRebalanceTime = CreateParameterTimeOfDay("LQDT rebalance time", 11, 0, 0, 0, "LQDT");
-            _lqdtMaxInvestedPercent = CreateParameter("LQDT max % deposit", 99.0m, 10.0m, 100.0m, 10.0m, "LQDT");
+            _lqdtMaxInvestedPercent = CreateParameter("LQDT max % deposit", 49.0m, 10.0m, 100.0m, 10.0m, "LQDT");
 
             // 5 Подписки на события
 

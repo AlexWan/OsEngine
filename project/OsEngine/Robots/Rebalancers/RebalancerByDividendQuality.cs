@@ -64,13 +64,13 @@ namespace OsEngine.Robots.Rebalancers
 
         public RebalancerByDividendQuality(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            _regime = CreateParameter("Regime", "On", new[] { "On", "Off" }, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _rebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Monday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
             _rebalanceTime = CreateParameterTimeOfDay("Rebalance time", 10, 0, 0, 0, "Base");
             _lookaheadDays = CreateParameter("Lookahead days", 7, 1, 30, 1, "Base");
-            _minDividendPercent = CreateParameter("Min dividend %", 5.0m, 0.0m, 50.0m, 0.5m, "Base");
-            _maxLqdtDepositPercent = CreateParameter("Max LQDT deposit percent", 99.0m, 10.0m, 100.0m, 1.0m, "Base");
-            _maxStocksDepositPercent = CreateParameter("Max stocks deposit percent", 100.0m, 10.0m, 100.0m, 1.0m, "Base");
+            _minDividendPercent = CreateParameter("Min dividend %", 3.0m, 0.0m, 50.0m, 0.5m, "Base");
+            _maxLqdtDepositPercent = CreateParameter("Max LQDT deposit percent", 49.0m, 10.0m, 100.0m, 1.0m, "Base");
+            _maxStocksDepositPercent = CreateParameter("Max stocks deposit percent", 50.0m, 10.0m, 100.0m, 1.0m, "Base");
 
             _autoUpdateDividends = CreateParameter("Auto update dividends", "On", new[] { "On", "Off" }, "Update");
             _dividendsUpdateCheckTime = CreateParameterTimeOfDay("Dividends update check time", 8, 0, 0, 0, "Update");
