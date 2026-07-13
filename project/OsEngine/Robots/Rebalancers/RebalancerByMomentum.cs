@@ -7,12 +7,15 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
+using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 /* Description
 Робот ребалансирует капитал между акциями МосБиржи, золотом и LQDTMOEX по моментуму.
@@ -29,14 +32,14 @@ namespace OsEngine.Robots.Rebalancers
         private BotTabScreener _tabScreenerStocks;
         private BotTabSimple _tabLqdt;
         private BotTabSimple _tabGold;
-        
+
         private StrategyParameterString _regime;
         private StrategyParameterString _mainRebalancePeriodType;
         private StrategyParameterString _mainRebalanceDayOfWeek;
         private StrategyParameterTimeOfDay _mainRebalanceTime;
 
         private StrategyParameterBool _stockRebalanceOn;
-        
+
         private StrategyParameterInt _stockMomentumLookback;
         private StrategyParameterInt _stockTopN;
         private StrategyParameterDecimal _stockMinMomentum;
@@ -62,6 +65,9 @@ namespace OsEngine.Robots.Rebalancers
         private StrategyParameterInt _goldIcebergOrdersCount;
         private StrategyParameterInt _goldIcebergMsDistance;
 
+        private StrategyParameterButton _rebalanceNowButton;
+        private StrategyParameterButton _rebalanceLqdtNowButton;
+
         #endregion
 
         #region Constructor
@@ -71,24 +77,27 @@ namespace OsEngine.Robots.Rebalancers
 
             // 1 Общие настройки
 
-            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off"}, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _mainRebalancePeriodType = CreateParameter("Rebalance period", "Weekly", new[] { "Daily", "Weekly", "Monthly" }, "Base");
             _mainRebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Tuesday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
             _mainRebalanceTime = CreateParameterTimeOfDay("Main rebalance time", 10, 0, 0, 0, "Base");
+
+            _rebalanceNowButton = CreateParameterButton("Rebalance NOW", "Base");
+            _rebalanceNowButton.UserClickOnButtonEvent += RebalanceNowButton_UserClickOnButtonEvent;
 
             // 2 Настройки ребалансировки акций
 
             _tabScreenerStocks = TabCreate<BotTabScreener>();
 
             _stockRebalanceOn = CreateParameter("Stock rebalance on", true, "Stock");
-            _stockMinRisingPercent = CreateParameter("Stock % grow", 48.0m, 0.0m, 100.0m, 1.0m, "Stock");
-            _stockMomentumLookback = CreateParameter("Stock momentum lookback", 64, 10, 250, 10, "Stock");
-            _stockTopN = CreateParameter("Stock Top N", 7, 1, 20, 1, "Stock");
-            _stockMinMomentum = CreateParameter("Stock min momentum", 103.6m, 101.0m, 106.0m, 0.5m, "Stock");
+            _stockMinRisingPercent = CreateParameter("Stock % grow", 54.0m, 0.0m, 100.0m, 1.0m, "Stock");
+            _stockMomentumLookback = CreateParameter("Stock momentum lookback", 49, 10, 250, 10, "Stock");
+            _stockTopN = CreateParameter("Stock Top N", 10, 1, 20, 1, "Stock");
+            _stockMinMomentum = CreateParameter("Stock min momentum", 103.9m, 101.0m, 106.0m, 0.5m, "Stock");
             _stockMaxInvestedPercent = CreateParameter("Stock max % deposit", 50.0m, 10.0m, 100.0m, 10.0m, "Stock");
-            _stockKeltnerEmaPeriod = CreateParameter("Stock keltner EMA period", 515, 5, 100, 1, "Stock");
+            _stockKeltnerEmaPeriod = CreateParameter("Stock keltner EMA period", 375, 5, 100, 1, "Stock");
             _stockKeltnerAtrPeriod = CreateParameter("Stock keltner ATR period", 20, 5, 100, 1, "Stock");
-            _stockKeltnerMultiplier = CreateParameter("Stock keltner multiplier", 3.0m, 0.5m, 5.0m, 0.1m, "Stock");
+            _stockKeltnerMultiplier = CreateParameter("Stock keltner multiplier", 5.5m, 0.5m, 5.0m, 0.1m, "Stock");
             _stockIcebergOrdersCount = CreateParameter("Stock iceberg orders count", 1, 1, 50, 1, "Stock");
             _stockIcebergMsDistance = CreateParameter("Stock iceberg ms distance", 100, 1, 10000, 100, "Stock");
 
@@ -116,9 +125,9 @@ namespace OsEngine.Robots.Rebalancers
 
             _goldRebalanceOn = CreateParameter("Gold rebalance on", true, "Gold");
             _goldMomentumLookback = CreateParameter("Gold momentum lookback", 60, 10, 250, 10, "Gold");
-            _goldMinMomentum = CreateParameter("Gold max momentum", 101.2m, 99.0m, 106.0m, 0.3m, "Gold");
+            _goldMinMomentum = CreateParameter("Gold max momentum", 102.3m, 99.0m, 106.0m, 0.3m, "Gold");
             _goldMaxInvestedPercent = CreateParameter("Gold max % deposit", 50.0m, 10.0m, 100.0m, 10.0m, "Gold");
-            _goldKeltnerEmaPeriod = CreateParameter("Gold keltner EMA period", 615, 5, 100, 1, "Gold");
+            _goldKeltnerEmaPeriod = CreateParameter("Gold keltner EMA period", 640, 5, 100, 1, "Gold");
             _goldKeltnerAtrPeriod = CreateParameter("Gold keltner ATR period", 20, 5, 100, 1, "Gold");
             _goldKeltnerMultiplier = CreateParameter("Gold keltner multiplier", 1.4m, 0.5m, 5.0m, 0.1m, "Gold");
             _goldIcebergOrdersCount = CreateParameter("Gold iceberg orders count", 1, 1, 50, 1, "Gold");
@@ -149,6 +158,9 @@ namespace OsEngine.Robots.Rebalancers
             _lqdtRebalanceOn = CreateParameter("LQDT rebalance on", true, "LQDT");
             _lqdtRebalanceTime = CreateParameterTimeOfDay("LQDT rebalance time", 11, 0, 0, 0, "LQDT");
             _lqdtMaxInvestedPercent = CreateParameter("LQDT max % deposit", 49.0m, 10.0m, 100.0m, 10.0m, "LQDT");
+
+            _rebalanceLqdtNowButton = CreateParameterButton("Rebalance LQDT NOW", "LQDT");
+            _rebalanceLqdtNowButton.UserClickOnButtonEvent += RebalanceLqdtNowButton_UserClickOnButtonEvent;
 
             // 5 Подписки на события
 
@@ -278,18 +290,22 @@ namespace OsEngine.Robots.Rebalancers
 
         #endregion
 
-        #region Main entry logic
+        #region Events to entry logic
 
         private bool _optimizerEventSubscribed = false;
 
+        private DateTime _lastMainRebalanceDate = DateTime.MinValue;
+
+        private DateTime _lastLqdtRebalanceDate = DateTime.MinValue;
+
         private void _tabScreenerStocks_CandleFinishedEvent(List<Candle> candles, BotTabSimple source)
         {
-            if(source.Connector.ServerType != Market.ServerType.Optimizer)
+            if (source.Connector.ServerType != Market.ServerType.Optimizer)
             {
                 return;
             }
 
-            if(_optimizerEventSubscribed == true)
+            if (_optimizerEventSubscribed == true)
             {
                 return;
             }
@@ -298,7 +314,7 @@ namespace OsEngine.Robots.Rebalancers
 
             OptimizerServer server = source.Connector.MyServer as OptimizerServer;
 
-            server.EndNextMinuteWithCandlesEvent += Server_EndNextMinuteWithCandlesEvent; 
+            server.EndNextMinuteWithCandlesEvent += Server_EndNextMinuteWithCandlesEvent;
 
         }
 
@@ -309,12 +325,36 @@ namespace OsEngine.Robots.Rebalancers
 
         private void _tabScreener_CandlesSyncFinishedEvent(List<BotTabSimple> tabs)
         {
+            if (_regime.ValueString == "Off")
+            {
+                return;
+            }
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                Thread worker = new Thread(MainLogic);
+                worker.Start();
+            }
+            else
+            {
+                MainLogic();
+            }
+        }
+
+        #endregion
+
+        #region Main logic
+
+        private void MainLogic()
+        {
             try
             {
                 if (_regime.ValueString == "Off")
                 {
                     return;
                 }
+
+                List<BotTabSimple> tabs = _tabScreenerStocks.Tabs;
 
                 if (tabs == null
                     || tabs.Count == 0
@@ -333,80 +373,156 @@ namespace OsEngine.Robots.Rebalancers
                     return;
                 }
 
-                if (IsMainRebalanceTime(serverTime, lastCandle))
+                if (_lastMainRebalanceDate.Date != serverTime.Date
+                    && IsMainRebalanceTime(serverTime, lastCandle, tabs[0]))
                 {
-                    RebalancerPositionPackage stocksPoses = GetStocksToEntry();
-
-                    // 1 по акциям позиций быть не должно
-                    if (stocksPoses.TabsToEntry.Count == 0)
-                    {
-                        for (int i = 0; i < _tabScreenerStocks.Tabs.Count; i++)
-                        {
-                            BotTabSimple currentTab = _tabScreenerStocks.Tabs[i];
-
-                            List<Position> positions = currentTab.PositionsOpenAll;
-
-                            if (positions.Count == 0)
-                            {
-                                continue;
-                            }
-
-                            currentTab.CloseAtIcebergMarket(positions[0], positions[0].OpenVolume, _stockIcebergOrdersCount.ValueInt, _stockIcebergMsDistance.ValueInt);
-                        }
-
-                        if(NeedBuyGold() == true)
-                        {// 2 если по акциям позиций нет, то проверяем золото
-                            decimal capital = GetCurrentCapital();
-                            decimal maxInvested = capital * _goldMaxInvestedPercent.ValueDecimal / 100m;
-
-                            EntryInPositions(_tabGold, maxInvested, Side.Buy, _goldIcebergOrdersCount.ValueInt, _goldIcebergMsDistance.ValueInt);
-                        }
-                        else
-                        {
-                            TryCloseGoldPosition();
-                        }
-                    }
-                    else if(stocksPoses.TabsToEntry.Count != 0 
-                        && _tabScreenerStocks.PositionsOpenAll.Count == 0)
-                    {
-                        int multiplier = 0;
-
-                        if (stocksPoses.TabsToEntry.Count > 0)
-                        {
-                            multiplier++;
-                        }
-
-                        if (multiplier != 0)
-                        {
-                            stocksPoses.MoneyOnAllPositions /= multiplier;
-                        }
-
-                        if (stocksPoses.TabsToEntry.Count > 0)
-                        {
-                            stocksPoses.MoneyOnOnePosition = stocksPoses.MoneyOnAllPositions / stocksPoses.TabsToEntry.Count;
-                        }
-
-                        for (int i = 0; i < stocksPoses.TabsToEntry.Count; i++)
-                        {
-                            EntryInPositions(stocksPoses.TabsToEntry[i], stocksPoses.MoneyOnOnePosition, stocksPoses.Direction, _stockIcebergOrdersCount.ValueInt, _stockIcebergMsDistance.ValueInt);
-                        }
-                    }
-
-                    if(stocksPoses.TabsToEntry.Count != 0)
-                    {
-                        TryCloseGoldPosition();
-                    }
+                    _lastMainRebalanceDate = serverTime;
+                    ExecuteMainRebalance();
                 }
                 else if (_lqdtRebalanceOn.ValueBool
+                    && _lastLqdtRebalanceDate.Date != serverTime.Date
                     && IsLqdtRebalanceTime(serverTime, lastCandle))
                 {
-                    RebalanceLqdt();
+                    _lastLqdtRebalanceDate = serverTime;
+                    ExecuteLqdtRebalance(serverTime);
                     return;
                 }
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ExecuteMainRebalance()
+        {
+            try
+            {
+                _lastMainRebalanceDate = TimeServer;
+
+                SendNewLogMessage("Main rebalance started", LogMessageType.System);
+
+                RebalancerPositionPackage stocksPoses = GetStocksToEntry();
+
+                // 1 по акциям позиций быть не должно
+                if (stocksPoses.TabsToEntry.Count == 0)
+                {
+                    int countClosedPoses = 0;
+
+                    for (int i = 0; i < _tabScreenerStocks.Tabs.Count; i++)
+                    {
+                        BotTabSimple currentTab = _tabScreenerStocks.Tabs[i];
+
+                        if (currentTab.IsConnected == false
+                            || currentTab.IsReadyToTrade == false)
+                        {
+                            continue;
+                        }
+
+                        List<Position> positions = currentTab.PositionsOpenAll;
+
+                        if (positions.Count == 0)
+                        {
+                            continue;
+                        }
+                        countClosedPoses++;
+                        currentTab.CloseAtIcebergMarket(positions[0], positions[0].OpenVolume, _stockIcebergOrdersCount.ValueInt, _stockIcebergMsDistance.ValueInt);
+                    }
+
+                    if (countClosedPoses > 0
+                        && StartProgram == StartProgram.IsOsTrader)
+                    {
+                        // в реале. Если были сделки на закрытие позиций по акциям. То ждём пока обновится портфель.
+                        // это нужно, чтобы правильно определить позицию по золоту
+                        Thread.Sleep(30000);
+                    }
+
+                    if (NeedBuyGold() == true)
+                    {// 2 если по акциям позиций нет, то проверяем золото
+                        decimal capital = GetCurrentCapital();
+                        decimal targetMoney = capital * _goldMaxInvestedPercent.ValueDecimal / 100m;
+                        decimal freeMoney = GetFreeMoney();
+
+                        decimal moneyToUse = targetMoney;
+
+                        if (StartProgram == StartProgram.IsOsTrader)
+                        {
+                            moneyToUse = Math.Min(targetMoney, freeMoney);
+                        }
+
+                        if (moneyToUse > 0)
+                        {
+                            EntryInPositions(_tabGold, moneyToUse, Side.Buy, _goldIcebergOrdersCount.ValueInt, _goldIcebergMsDistance.ValueInt);
+                        }
+                        else
+                        {
+                            SendNewLogMessage("Not enough free money to buy gold", LogMessageType.System);
+                        }
+
+                        if (_tabGold.PositionsOpenAll.Count == 0)
+                        {
+
+                        }
+                    }
+                    else
+                    {
+                        TryCloseGoldPosition();
+                    }
+                }
+                else if (stocksPoses.TabsToEntry.Count != 0
+                    && _tabScreenerStocks.PositionsOpenAll.Count == 0)
+                {
+                    int multiplier = 0;
+
+                    if (stocksPoses.TabsToEntry.Count > 0)
+                    {
+                        multiplier++;
+                    }
+
+                    if (multiplier != 0)
+                    {
+                        stocksPoses.MoneyOnAllPositions /= multiplier;
+                    }
+
+                    if (stocksPoses.TabsToEntry.Count > 0)
+                    {
+                        stocksPoses.MoneyOnOnePosition = stocksPoses.MoneyOnAllPositions / stocksPoses.TabsToEntry.Count;
+                    }
+
+                    for (int i = 0; i < stocksPoses.TabsToEntry.Count; i++)
+                    {
+                        EntryInPositions(stocksPoses.TabsToEntry[i], stocksPoses.MoneyOnOnePosition, stocksPoses.Direction, _stockIcebergOrdersCount.ValueInt, _stockIcebergMsDistance.ValueInt);
+                    }
+                }
+
+                if (stocksPoses.TabsToEntry.Count != 0)
+                {
+                    TryCloseGoldPosition();
+                }
+
+                SendNewLogMessage("Main rebalance finished", LogMessageType.System);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage($"Main rebalance error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private void ExecuteLqdtRebalance(DateTime serverTime)
+        {
+            try
+            {
+                _lastLqdtRebalanceDate = serverTime;
+
+                SendNewLogMessage("LQDT rebalance started", LogMessageType.System);
+
+                RebalanceLqdt();
+
+                SendNewLogMessage("LQDT rebalance finished", LogMessageType.System);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage($"LQDT rebalance error: {error}", LogMessageType.Error);
             }
         }
 
@@ -463,19 +579,50 @@ namespace OsEngine.Robots.Rebalancers
             }
         }
 
-        private bool IsMainRebalanceTime(DateTime serverTime, Candle candle)
+        private bool IsMainRebalanceTime(DateTime serverTime, Candle candle, BotTabSimple tab)
         {
             if (candle == null)
             {
                 return false;
             }
 
-            if (candle.TimeStart.TimeOfDay.Hours != _mainRebalanceTime.Value.TimeSpan.Hours)
+            DateTime realTime = candle.TimeStart + tab.TimeFrameBuilder.TimeFrameTimeSpan;
+
+            if (realTime.TimeOfDay.Hours != _mainRebalanceTime.Value.TimeSpan.Hours
+               || realTime.TimeOfDay.Minutes != _mainRebalanceTime.Value.TimeSpan.Minutes)
             {
                 return false;
             }
 
             return IsRebalanceDay(serverTime);
+        }
+
+        private void RebalanceNowButton_UserClickOnButtonEvent()
+        {
+            try
+            {
+                SendNewLogMessage("Manual main rebalance requested", LogMessageType.System);
+
+                Thread worker = new Thread(ExecuteMainRebalance);
+                worker.Start();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage($"Manual main rebalance error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private void RebalanceLqdtNowButton_UserClickOnButtonEvent()
+        {
+            try
+            {
+                SendNewLogMessage("Manual LQDT rebalance requested", LogMessageType.System);
+                ExecuteLqdtRebalance(TimeServer);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage($"Manual LQDT rebalance error: {error}", LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -489,7 +636,10 @@ namespace OsEngine.Robots.Rebalancers
                 return false;
             }
 
-            if (candle.TimeStart.TimeOfDay.Hours != _lqdtRebalanceTime.Value.TimeSpan.Hours)
+            DateTime realTime = candle.TimeStart + _tabLqdt.TimeFrameBuilder.TimeFrameTimeSpan;
+
+            if (realTime.TimeOfDay.Hours != _lqdtRebalanceTime.Value.TimeSpan.Hours
+               || realTime.TimeOfDay.Minutes != _lqdtRebalanceTime.Value.TimeSpan.Minutes)
             {
                 return false;
             }
@@ -499,28 +649,28 @@ namespace OsEngine.Robots.Rebalancers
 
         private void RebalanceLqdt()
         {
-            decimal stockValue = GetCurrentStockValue();
-            bool isGoldBuyable = NeedBuyGold();
+            List<Position> stockPoses = _tabScreenerStocks.PositionsOpenAll;
+            List<Position> goldPoses = _tabGold.PositionsOpenAll;
 
-            if ((stockValue != 0 || isGoldBuyable == true)
+            if ((stockPoses.Count != 0 || goldPoses.Count != 0)
                 && _tabLqdt.PositionsOpenAll.Count == 0)
             {
                 return;
             }
-            else if((stockValue != 0 || isGoldBuyable == true)
+            else if ((stockPoses.Count != 0 || goldPoses.Count != 0)
                  && _tabLqdt.PositionsOpenAll.Count != 0)
             {
                 _tabLqdt.CloseAtMarket(_tabLqdt.PositionsOpenAll[0], _tabLqdt.PositionsOpenAll[0].OpenVolume);
                 return;
             }
-            else if(_tabLqdt.StartProgram == StartProgram.IsTester 
+            else if (_tabLqdt.StartProgram == StartProgram.IsTester
                 || _tabLqdt.StartProgram == StartProgram.IsOsOptimizer)
             {
-                 double daysToExpiration = (_tabLqdt.Security.Expiration - _tabLqdt.TimeServerCurrent).TotalDays;
+                double daysToExpiration = (_tabLqdt.Security.Expiration - _tabLqdt.TimeServerCurrent).TotalDays;
 
                 if (daysToExpiration <= 5)
                 {// выходим за пять дней до конца тестирования.
-                    if(_tabLqdt.PositionsOpenAll.Count != 0)
+                    if (_tabLqdt.PositionsOpenAll.Count != 0)
                     {
                         _tabLqdt.CloseAtMarket(_tabLqdt.PositionsOpenAll[0], _tabLqdt.PositionsOpenAll[0].OpenVolume);
                     }
@@ -540,61 +690,37 @@ namespace OsEngine.Robots.Rebalancers
             TryBuyLqdt();
         }
 
-        private decimal GetCurrentStockValue()
-        {
-            decimal value = 0m;
-            List<BotTabSimple> stockTabs = _tabScreenerStocks.Tabs;
-
-            for (int i = 0; i < stockTabs.Count; i++)
-            {
-                BotTabSimple tab = stockTabs[i];
-                List<Candle> candles = tab.CandlesAll;
-
-                if (candles == null || candles.Count == 0)
-                {
-                    continue;
-                }
-
-                decimal price = candles[candles.Count - 1].Close;
-                List<Position> positions = tab.PositionsOpenAll;
-
-                for (int j = 0; j < positions.Count; j++)
-                {
-                    if (positions[j].State == PositionStateType.Open)
-                    {
-                        value += positions[j].OpenVolume * price;
-                    }
-                }
-            }
-
-            return value;
-        }
-
         private void TryBuyLqdt()
         {
-            decimal capital = GetCurrentCapital();
-
-            capital = capital * (_lqdtMaxInvestedPercent.ValueDecimal / 100m);
-
-            if (capital <= 0)
-            {
-                return;
-            }
-
-            if (_tabLqdt == null 
-                || _tabLqdt.Security == null 
-                || _tabLqdt.CandlesAll == null 
+            if (_tabLqdt == null
+                || _tabLqdt.Security == null
+                || _tabLqdt.CandlesAll == null
                 || _tabLqdt.CandlesAll.Count == 0)
             {
                 return;
             }
 
-            if(_tabLqdt.PositionsOpenAll.Count > 0)
+            if (_tabLqdt.PositionsOpenAll.Count > 0)
             {
                 return;
             }
 
-            decimal volumeToBuy = CalculateVolumeForMoney(_tabLqdt, capital);
+            decimal targetMoney = GetCurrentCapital() * (_lqdtMaxInvestedPercent.ValueDecimal / 100m);
+            decimal freeMoney = GetFreeMoney();
+
+            decimal moneyToUse = targetMoney;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                moneyToUse = Math.Min(targetMoney, freeMoney);
+            }
+
+            if (moneyToUse <= 0)
+            {
+                return;
+            }
+
+            decimal volumeToBuy = CalculateVolumeForMoney(_tabLqdt, moneyToUse);
 
             if (volumeToBuy <= 0)
             {
@@ -602,6 +728,83 @@ namespace OsEngine.Robots.Rebalancers
             }
 
             _tabLqdt.BuyAtMarket(volumeToBuy);
+        }
+
+        private decimal GetFreeMoney()
+        {
+            try
+            {
+                if (_tabLqdt.Portfolio == null)
+                {
+                    return 0m;
+                }
+
+                if (_tabLqdt.Connector.MyServer.ServerType == ServerType.TInvest)
+                {
+                    List<PositionOnBoard> positions = _tabLqdt.Portfolio.GetPositionOnBoard();
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        if (positions[i].SecurityNameCode == "rub")
+                        {
+                            return positions[i].ValueCurrent;
+                        }
+                    }
+                }
+                else if (_tabLqdt.Connector.MyServer.ServerType == ServerType.Tester)
+                {
+                    decimal portfolioValue = _tabLqdt.Portfolio.ValueCurrent;
+                    decimal volumeToPositions = GetVolumeToPositions();
+                    return portfolioValue - volumeToPositions;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage("GetFreeMoney: " + ex.Message, LogMessageType.Error);
+            }
+
+            return 0m;
+        }
+
+        private decimal GetVolumeToPositions()
+        {
+            decimal volumeToPosition = 0m;
+
+            for (int i = 0; i < OsTraderMaster.Master.PanelsArray.Count; i++)
+            {
+                List<Position> positionsBot = OsTraderMaster.Master.PanelsArray[i].OpenPositions;
+
+                for (int j = 0; j < positionsBot.Count; j++)
+                {
+                    decimal margin = GetMarginSecurities(positionsBot[j].SecurityName, positionsBot[j].Direction);
+
+                    if (margin > 1)
+                    {
+                        volumeToPosition += positionsBot[j].OpenVolume * margin * positionsBot[j].Lots;
+                    }
+                    else if (margin <= 1 && _tabLqdt.Connector.MyServer.ServerType == ServerType.Tester)
+                    {
+                        volumeToPosition += positionsBot[j].OpenVolume * positionsBot[j].EntryPrice * positionsBot[j].Lots;
+                    }
+                }
+            }
+
+            return volumeToPosition;
+        }
+
+        private decimal GetMarginSecurities(string nameSecurity, Side side)
+        {
+            List<Security> securities = _tabLqdt.Connector.MyServer.Securities;
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                if (securities[i].Name == nameSecurity)
+                {
+                    return side == Side.Buy ? securities[i].MarginBuy : securities[i].MarginSell;
+                }
+            }
+
+            return 0m;
         }
 
         #endregion
@@ -626,37 +829,49 @@ namespace OsEngine.Robots.Rebalancers
             if (_stockRebalanceOn.ValueBool == true
                 && IsEnoughStocksAboveKeltnerCenter(stockTabs))
             {
+                List<StockCandidate> candidates = new List<StockCandidate>();
+
                 for (int i = 0; i < _tabScreenerStocks.Tabs.Count; i++)
                 {
-                    if (result.TabsToEntry.Count >= _stockTopN)
+                    BotTabSimple tab = _tabScreenerStocks.Tabs[i];
+
+                    Aindicator momentum = (Aindicator)tab.Indicators[1];
+
+                    if (momentum.DataSeries[0].Last < _stockMinMomentum.ValueDecimal)
                     {
-                        break;
+                        continue;
                     }
 
-                    Aindicator momentum = (Aindicator)_tabScreenerStocks.Tabs[i].Indicators[1];
+                    Aindicator keltner = (Aindicator)tab.Indicators[0];
 
-                    if (momentum.DataSeries[0].Last >= _stockMinMomentum.ValueDecimal)
+                    decimal upChannel = keltner.DataSeries[1].Last;
+                    decimal lastPrice = tab.CandlesAll[^1].Close;
+
+                    if (lastPrice < upChannel)
                     {
-
-                        Aindicator keltner = (Aindicator)_tabScreenerStocks.Tabs[i].Indicators[0];
-
-                        decimal upChannel = keltner.DataSeries[1].Last;
-
-                        decimal lastPrice = _tabScreenerStocks.Tabs[i].CandlesAll[^1].Close;
-
-                        if (lastPrice < upChannel)
-                        {
-                            continue;
-                        }
-
-                        result.TabsToEntry.Add(_tabScreenerStocks.Tabs[i]);
+                        continue;
                     }
+
+                    candidates.Add(new StockCandidate
+                    {
+                        Tab = tab,
+                        Momentum = momentum.DataSeries[0].Last
+                    });
+                }
+
+                // 2. Сортируем по убыванию моментума и берём топ-N
+
+                candidates.Sort((a, b) => b.Momentum.CompareTo(a.Momentum));
+
+                for (int i = 0; i < candidates.Count && i < _stockTopN.ValueInt; i++)
+                {
+                    result.TabsToEntry.Add(candidates[i].Tab);
                 }
             }
 
-            // 2 Считаем деньги на одну акцию
+            // 3 Считаем деньги на одну акцию
 
-            if(result.TabsToEntry.Count > 0)
+            if (result.TabsToEntry.Count > 0)
             {
                 decimal capital = GetCurrentCapital();
                 decimal maxInvested = capital * _stockMaxInvestedPercent.ValueDecimal / 100m;
@@ -676,7 +891,7 @@ namespace OsEngine.Robots.Rebalancers
                 Aindicator keltner = (Aindicator)tabs[i].Indicators[0];
                 decimal centerKeltnerChannel = keltner.DataSeries[3].Last;
 
-                if (tabs[i].CandlesAll == null 
+                if (tabs[i].CandlesAll == null
                     || tabs[i].CandlesAll.Count == 0)
                 {
                     continue;
@@ -737,7 +952,7 @@ namespace OsEngine.Robots.Rebalancers
 
             decimal lastPrice = _tabGold.CandlesAll[^1].Close;
 
-            if(lastPrice < upChannel)
+            if (lastPrice < upChannel)
             {
                 return false;
             }
@@ -753,7 +968,7 @@ namespace OsEngine.Robots.Rebalancers
                 return;
             }
 
-            if(_tabGold.IsConnected == false
+            if (_tabGold.IsConnected == false
                 || _tabGold.IsReadyToTrade == false)
             {
                 return;
@@ -765,6 +980,12 @@ namespace OsEngine.Robots.Rebalancers
         #endregion
 
         #region Position management
+
+        private class StockCandidate
+        {
+            public BotTabSimple Tab;
+            public decimal Momentum;
+        }
 
         private decimal GetOpenVolume(BotTabSimple tab)
         {

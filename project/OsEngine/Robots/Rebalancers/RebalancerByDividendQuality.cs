@@ -8,6 +8,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Optimizer;
+using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -15,7 +16,6 @@ using OsEngine.Wiki;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 /* Description
@@ -48,15 +48,12 @@ namespace OsEngine.Robots.Rebalancers
         private StrategyParameterTimeOfDay _dividendsUpdateCheckTime;
         private StrategyParameterInt _dividendsMaxAgeDays;
         private StrategyParameterButton _startUpdateDividendsButton;
+        private StrategyParameterButton _rebalanceNowButton;
 
         private DateTime _lastRebalanceDate = DateTime.MinValue;
         private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
 
         private bool _dividendsUpdating = false;
-        private readonly object _dividendsUpdateLock = new object();
-
-        private bool _rebalancePending = false;
-        private DateTime _rebalancePostponedUntil = DateTime.MinValue;
 
         #endregion
 
@@ -66,9 +63,9 @@ namespace OsEngine.Robots.Rebalancers
         {
             _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _rebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Monday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
-            _rebalanceTime = CreateParameterTimeOfDay("Rebalance time", 10, 0, 0, 0, "Base");
+            _rebalanceTime = CreateParameterTimeOfDay("Rebalance time", 11, 0, 0, 0, "Base");
             _lookaheadDays = CreateParameter("Lookahead days", 7, 1, 30, 1, "Base");
-            _minDividendPercent = CreateParameter("Min dividend %", 3.0m, 0.0m, 50.0m, 0.5m, "Base");
+            _minDividendPercent = CreateParameter("Min dividend %", 0.8m, 0.0m, 50.0m, 0.5m, "Base");
             _maxLqdtDepositPercent = CreateParameter("Max LQDT deposit percent", 49.0m, 10.0m, 100.0m, 1.0m, "Base");
             _maxStocksDepositPercent = CreateParameter("Max stocks deposit percent", 50.0m, 10.0m, 100.0m, 1.0m, "Base");
 
@@ -77,6 +74,9 @@ namespace OsEngine.Robots.Rebalancers
             _dividendsMaxAgeDays = CreateParameter("Dividends max age days", 5, 1, 30, 1, "Update");
             _startUpdateDividendsButton = CreateParameterButton("Start update dividends", "Update");
             _startUpdateDividendsButton.UserClickOnButtonEvent += StartUpdateDividendsButton_UserClickOnButtonEvent;
+
+            _rebalanceNowButton = CreateParameterButton("Rebalance NOW", "Base");
+            _rebalanceNowButton.UserClickOnButtonEvent += RebalanceNowButton_UserClickOnButtonEvent;
 
             _tabScreenerStocks = TabCreate<BotTabScreener>();
             _tabLqdt = TabCreate<BotTabSimple>();
@@ -156,16 +156,15 @@ namespace OsEngine.Robots.Rebalancers
                     return;
                 }
 
-                CheckDividendsUpdate(serverTime);
-
-                if (TryExecutePostponedRebalance(serverTime))
+                if(StartProgram == StartProgram.IsOsTrader)
                 {
-                    return;
+                    CheckDividendsUpdate(serverTime);
                 }
 
-                if (IsRebalanceTime(serverTime, lastCandle))
+                if (_lastRebalanceDate.Date != serverTime.Date
+                    && IsRebalanceTime(serverTime, lastCandle, tabs[0]))
                 {
-                    Rebalance();
+                    ExecuteRebalance(serverTime);
                 }
             }
             catch (Exception error)
@@ -196,13 +195,11 @@ namespace OsEngine.Robots.Rebalancers
                     return;
                 }
 
-                lock (_dividendsUpdateLock)
+
+                if (_dividendsUpdating)
                 {
-                    if (_dividendsUpdating)
-                    {
-                        SendNewLogMessage("Dividends update is already in progress", LogMessageType.System);
-                        return;
-                    }
+                    SendNewLogMessage("Dividends update is already in progress", LogMessageType.System);
+                    return;
                 }
 
                 SendNewLogMessage("Manual dividends update started", LogMessageType.System);
@@ -266,15 +263,12 @@ namespace OsEngine.Robots.Rebalancers
 
         private void StartDividendsUpdate()
         {
-            lock (_dividendsUpdateLock)
+            if (_dividendsUpdating)
             {
-                if (_dividendsUpdating)
-                {
-                    return;
-                }
-
-                _dividendsUpdating = true;
+                return;
             }
+
+            _dividendsUpdating = true;
 
             Task.Run(() =>
             {
@@ -288,11 +282,8 @@ namespace OsEngine.Robots.Rebalancers
                 }
                 finally
                 {
-                    lock (_dividendsUpdateLock)
-                    {
-                        _dividendsUpdating = false;
-                    }
 
+                    _dividendsUpdating = false;
                     SendNewLogMessage("Dividends update finished", LogMessageType.System);
                 }
             });
@@ -326,47 +317,17 @@ namespace OsEngine.Robots.Rebalancers
             return AppDomain.CurrentDomain.BaseDirectory + "Wiki\\Dividends";
         }
 
-        private bool TryExecutePostponedRebalance(DateTime serverTime)
-        {
-            if (!_rebalancePending)
-            {
-                return false;
-            }
-
-            lock (_dividendsUpdateLock)
-            {
-                if (!_dividendsUpdating)
-                {
-                    _rebalancePending = false;
-                    SendNewLogMessage("Postponed rebalance executed after dividends update", LogMessageType.System);
-                    Rebalance();
-                    return true;
-                }
-            }
-
-            if (serverTime > _rebalancePostponedUntil)
-            {
-                _rebalancePending = false;
-                SendNewLogMessage("Rebalance skipped: dividends update timeout", LogMessageType.Error);
-            }
-
-            return false;
-        }
-
         #endregion
 
         #region Rebalance logic
 
-        private void Rebalance()
+        private void ExecuteRebalance(DateTime serverTime)
         {
             try
             {
-                if (_lastRebalanceDate.Date == TimeServer.Date)
-                {
-                    return;
-                }
+                _lastRebalanceDate = serverTime;
 
-                _lastRebalanceDate = TimeServer;
+                SendNewLogMessage("Rebalance started", LogMessageType.System);
 
                 List<CandidateInfo> candidates = GetCandidates();
 
@@ -378,7 +339,17 @@ namespace OsEngine.Robots.Rebalancers
                     if (_tabLqdt.PositionsOpenAll.Count == 0)
                     {
                         decimal capital = GetCurrentCapital();
-                        decimal availableCapital = capital * _maxLqdtDepositPercent.ValueDecimal / 100m;
+                        decimal targetCapital = capital * _maxLqdtDepositPercent.ValueDecimal / 100m;
+
+                        decimal freeMoney = GetFreeMoney();
+
+                        decimal availableCapital = targetCapital;
+                        
+                        if(StartProgram == StartProgram.IsOsTrader)
+                        {
+                            availableCapital = Math.Min(targetCapital, freeMoney);
+                        }
+
                         EntryInPosition(_tabLqdt, availableCapital);
                     }
 
@@ -396,10 +367,25 @@ namespace OsEngine.Robots.Rebalancers
                 {
                     EntryInPosition(candidates[i].Tab, moneyOnOneStock);
                 }
+
+                SendNewLogMessage("Rebalance finished", LogMessageType.System);
             }
             catch (Exception error)
             {
                 SendNewLogMessage($"Rebalance error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private void RebalanceNowButton_UserClickOnButtonEvent()
+        {
+            try
+            {
+                SendNewLogMessage("Manual rebalance requested", LogMessageType.System);
+                ExecuteRebalance(TimeServer);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage($"Manual rebalance error: {error}", LogMessageType.Error);
             }
         }
 
@@ -552,19 +538,98 @@ namespace OsEngine.Robots.Rebalancers
             tab.BuyAtMarket(volumeToBuy);
         }
 
+        private decimal GetFreeMoney()
+        {
+            try
+            {
+                if (_tabLqdt.Portfolio == null)
+                {
+                    return 0m;
+                }
+
+                if (_tabLqdt.Connector.MyServer.ServerType == ServerType.TInvest)
+                {
+                    List<PositionOnBoard> positions = _tabLqdt.Portfolio.GetPositionOnBoard();
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        if (positions[i].SecurityNameCode == "rub")
+                        {
+                            return positions[i].ValueCurrent;
+                        }
+                    }
+                }
+                else if (_tabLqdt.Connector.MyServer.ServerType == ServerType.Tester)
+                {
+                    decimal portfolioValue = _tabLqdt.Portfolio.ValueCurrent;
+                    decimal volumeToPositions = GetVolumeToPositions();
+                    return portfolioValue - volumeToPositions;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage("GetFreeMoney: " + ex.Message, LogMessageType.Error);
+            }
+
+            return 0m;
+        }
+
+        private decimal GetVolumeToPositions()
+        {
+            decimal volumeToPosition = 0m;
+
+            for (int i = 0; i < OsTraderMaster.Master.PanelsArray.Count; i++)
+            {
+                List<Position> positionsBot = OsTraderMaster.Master.PanelsArray[i].OpenPositions;
+
+                for (int j = 0; j < positionsBot.Count; j++)
+                {
+                    decimal margin = GetMarginSecurities(positionsBot[j].SecurityName, positionsBot[j].Direction);
+
+                    if (margin > 1)
+                    {
+                        volumeToPosition += positionsBot[j].OpenVolume * margin * positionsBot[j].Lots;
+                    }
+                    else if (margin <= 1 && _tabLqdt.Connector.MyServer.ServerType == ServerType.Tester)
+                    {
+                        volumeToPosition += positionsBot[j].OpenVolume * positionsBot[j].EntryPrice * positionsBot[j].Lots;
+                    }
+                }
+            }
+
+            return volumeToPosition;
+        }
+
+        private decimal GetMarginSecurities(string nameSecurity, Side side)
+        {
+            List<Security> securities = _tabLqdt.Connector.MyServer.Securities;
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                if (securities[i].Name == nameSecurity)
+                {
+                    return side == Side.Buy ? securities[i].MarginBuy : securities[i].MarginSell;
+                }
+            }
+
+            return 0m;
+        }
+
         #endregion
 
         #region Helpers
 
-        private bool IsRebalanceTime(DateTime serverTime, Candle candle)
+        private bool IsRebalanceTime(DateTime serverTime, Candle candle, BotTabSimple tab)
         {
             if (candle == null)
             {
                 return false;
             }
 
-            if (candle.TimeStart.TimeOfDay.Hours != _rebalanceTime.Value.TimeSpan.Hours
-                || candle.TimeStart.TimeOfDay.Minutes != _rebalanceTime.Value.TimeSpan.Minutes)
+            DateTime realTime = candle.TimeStart + tab.TimeFrameBuilder.TimeFrameTimeSpan;
+
+            if (realTime.TimeOfDay.Hours != _rebalanceTime.Value.TimeSpan.Hours
+               || realTime.TimeOfDay.Minutes != _rebalanceTime.Value.TimeSpan.Minutes)
             {
                 return false;
             }
@@ -579,15 +644,10 @@ namespace OsEngine.Robots.Rebalancers
             if (StartProgram == StartProgram.IsOsTrader
                 && _autoUpdateDividends.ValueString == "On")
             {
-                lock (_dividendsUpdateLock)
+                if (_dividendsUpdating)
                 {
-                    if (_dividendsUpdating)
-                    {
-                        _rebalancePending = true;
-                        _rebalancePostponedUntil = serverTime.AddMinutes(10);
-                        SendNewLogMessage("Rebalance postponed: dividends update in progress", LogMessageType.System);
-                        return false;
-                    }
+                    SendNewLogMessage("Rebalance postponed: dividends update in progress", LogMessageType.System);
+                    return false;
                 }
             }
 
