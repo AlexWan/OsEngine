@@ -477,6 +477,16 @@ namespace OsEngine.Logging
                     // This is a normal situation for a persistent connection — just reconnect.
                     Thread.Sleep(5000);
                 }
+                catch (HttpRequestException)
+                {
+                    // VK closed the connection or network dropped — reconnect quietly.
+                    Thread.Sleep(5000);
+                }
+                catch (IOException)
+                {
+                    // Transport connection was forcibly closed by remote host — reconnect quietly.
+                    Thread.Sleep(5000);
+                }
                 catch (Exception error)
                 {
                     ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);

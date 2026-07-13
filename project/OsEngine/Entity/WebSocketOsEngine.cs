@@ -41,6 +41,16 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         public bool EmitOnPing = false;
 
+        public TimeSpan KeepAliveInterval
+        {
+            set { _client.Options.KeepAliveInterval = value; }
+        }
+
+        public TimeSpan KeepAliveTimeout
+        {
+            set { _client.Options.KeepAliveTimeout = value; }
+        }
+
         public void SetProxy(IWebProxy proxy)
         {
             if (proxy != null)
@@ -339,12 +349,8 @@ namespace OsEngine.Entity.WebSocketOsEngine
                             }
 
                             CloseEventArgs closeEventArgs = new CloseEventArgs();
-                            closeEventArgs.Code = result.CloseStatusDescription;
-
-                            if (result.CloseStatus != null)
-                            {
-                                closeEventArgs.Reason = result.CloseStatus.ToString();
-                            }
+                            closeEventArgs.Code = result.CloseStatus.ToString();
+                            closeEventArgs.Reason = result.CloseStatusDescription;
 
                             if (OnClose != null)
                             {

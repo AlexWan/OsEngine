@@ -3,8 +3,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
+using OsEngine.Market;
 using System.Windows;
 
 namespace OsEngine.Logging
@@ -13,7 +15,21 @@ namespace OsEngine.Logging
     {
         private static ServerTelegram _server;
 
-        private readonly HttpClient _httpClient;
+        private HttpClient _httpClient;
+
+        private string _httpClientLocker = "HttpClientLocker";
+
+        /// <summary>
+        /// Proxy type. None/Auto/Manual
+        /// - Тип прокси
+        /// </summary>
+        public string ProxyType;
+
+        /// <summary>
+        /// Proxy value for Manual regime
+        /// - Значение прокси для ручного режима
+        /// </summary>
+        public string Proxy;
 
         /// <summary>
         /// Last message Update Id
@@ -66,7 +82,7 @@ namespace OsEngine.Logging
         {
             Load();
 
-            _httpClient = new HttpClient();
+            InitHttpClient();
 
             //message queue parsing thread - поток разбора очереди сообщений
             Thread worker1 = new Thread(PullMessages);
@@ -99,19 +115,104 @@ namespace OsEngine.Logging
                     ""resize_keyboard"": true
                     }}";
 
-                if(!ProcessingCommand)
+                if (!ProcessingCommand)
                 {
                     replyKeyboardJson = @"{""keyboard"": [[]]}";
                 }
-            
+
                 messageText = CheckString(messageText);
                 string requestUrl = $"https://api.telegram.org/bot{BotToken}/sendMessage?chat_id={ChatId}" +
                                     $"&text={Uri.EscapeDataString(messageText)}" +
                                     $"&parse_mode=MarkdownV2" +
-                                    $"&reply_markup={Uri.EscapeDataString(replyKeyboardJson)}"; 
+                                    $"&reply_markup={Uri.EscapeDataString(replyKeyboardJson)}";
 
                 HttpResponseMessage response = _httpClient.GetAsync(requestUrl).Result;
                 string responseContent = response.Content.ReadAsStringAsync().Result;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Initialize HTTP client with actual proxy
+        /// - Инициализация HTTP клиента с актуальным прокси
+        /// </summary>
+        public void InitHttpClient()
+        {
+            try
+            {
+                lock (_httpClientLocker)
+                {
+                    WebProxy proxy = GetProxy();
+
+                    HttpClientHandler handler = new HttpClientHandler();
+
+                    if (proxy != null)
+                    {
+                        handler.Proxy = proxy;
+                        handler.UseProxy = true;
+                    }
+
+                    _httpClient = new HttpClient(handler);
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Get web proxy by current settings
+        /// - Получить веб-прокси по текущим настройкам
+        /// </summary>
+        private WebProxy GetProxy()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ProxyType)
+                    || ProxyType == "None")
+                {
+                    return null;
+                }
+
+                if (ProxyType == "Manual")
+                {
+                    if (string.IsNullOrEmpty(Proxy))
+                    {
+                        return null;
+                    }
+
+                    return ServerMaster.GetProxyManualRegime(Proxy);
+                }
+
+                if (ProxyType == "Auto")
+                {
+                    return ServerMaster.GetProxyAutoRegime(ServerType.TelegramNews, "ServerTelegram");
+                }
+
+                return null;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Apply proxy settings and recreate HTTP client
+        /// - Применить настройки прокси и пересоздать HTTP клиент
+        /// </summary>
+        public void ApplyProxySettings(string proxyType, string proxy)
+        {
+            try
+            {
+                ProxyType = proxyType;
+                Proxy = proxy;
+                InitHttpClient();
             }
             catch
             {
@@ -138,11 +239,11 @@ namespace OsEngine.Logging
                                                                         $"?offset={_lastUpdateId + 1}" +
                                                                         $"&timeout=2" +
                                                                         $"&allowed_updates=[\"message\"]").Result;
-                
+
                     string responseContent = response.Content.ReadAsStringAsync().Result;
-                
+
                     Response updates = JsonConvert.DeserializeAnonymousType(responseContent, new Response());
-                
+
                     if (updates.result == null)
                     {
                         continue;
@@ -150,15 +251,14 @@ namespace OsEngine.Logging
 
                     for (int i = 0; i < updates.result.Length; i++)
                     {
-                        if(updates.result[i].message != null)
+                        if (updates.result[i].message != null)
                         {
                             HandleCallbackQuery(updates.result[i].message);
                         }
-                    
+
                         _lastUpdateId = updates.result[i].update_id;
                     }
-                    
-                    
+
                 }
                 catch
                 {
@@ -183,7 +283,7 @@ namespace OsEngine.Logging
             {
                 return;
             }
-            
+
             switch (msg.text)
             {
                 case "StopAllBots":
@@ -208,12 +308,12 @@ namespace OsEngine.Logging
         private void PullMessages()
         {
             Thread.Sleep(500);
-            
+
             while (true)
             {
                 try
                 {
-                    if(MainWindow.ProccesIsWorked == false)
+                    if (MainWindow.ProccesIsWorked == false)
                     {
                         return;
                     }
@@ -234,7 +334,7 @@ namespace OsEngine.Logging
                         continue;
                     }
 
-                    if(!_messagesQueue.TryDequeue(out (string, LogMessage) msg)) 
+                    if (!_messagesQueue.TryDequeue(out (string, LogMessage) msg))
                         continue;
 
                     if (msg.Item2.Type == LogMessageType.Error)
@@ -263,7 +363,7 @@ namespace OsEngine.Logging
             {
                 TelegramCommandEvent?.Invoke(botName, cmd);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
@@ -287,7 +387,7 @@ namespace OsEngine.Logging
                     || symbols[i] == ')' || symbols[i] == '`' || symbols[i] == '~' || symbols[i] == '>' || symbols[i] == '#'
                     || symbols[i] == '+' || symbols[i] == '-' || symbols[i] == '=' || symbols[i] == '|'
                     || symbols[i] == '{' || symbols[i] == '}' || symbols[i] == '.' || symbols[i] == '!'
-                    || symbols[i] == '\\') 
+                    || symbols[i] == '\\')
                 {
                     newStr += "\\" + symbols[i];
                 }
@@ -311,7 +411,7 @@ namespace OsEngine.Logging
             {
                 return;
             }
-            
+
             _messagesQueue.Enqueue((nameBot, message));
         }
 
@@ -338,6 +438,18 @@ namespace OsEngine.Logging
                         ProcessingCommand = false;
                     }
 
+                    ProxyType = reader.ReadLine();
+                    if (string.IsNullOrEmpty(ProxyType))
+                    {
+                        ProxyType = "None";
+                    }
+
+                    Proxy = reader.ReadLine();
+                    if (Proxy == null)
+                    {
+                        Proxy = string.Empty;
+                    }
+
                     _isReady = true;
                 }
                 else
@@ -345,6 +457,8 @@ namespace OsEngine.Logging
                     BotToken = string.Empty;
                     ChatId = 0;
                     ProcessingCommand = false;
+                    ProxyType = "None";
+                    Proxy = string.Empty;
                     _isReady = false;
                 }
             }
@@ -366,8 +480,10 @@ namespace OsEngine.Logging
                 writer.WriteLine(BotToken);
                 writer.WriteLine(ChatId);
                 writer.WriteLine(ProcessingCommand);
+                writer.WriteLine(ProxyType);
+                writer.WriteLine(Proxy);
 
-                if(string.IsNullOrEmpty(BotToken) == false &&
+                if (string.IsNullOrEmpty(BotToken) == false &&
                     ChatId != 0)
                 {
                     _isReady = true;
@@ -389,7 +505,7 @@ namespace OsEngine.Logging
             ui.ShowDialog();
         }
     }
-    
+
     #region Helper
 
     public class Response
@@ -467,7 +583,7 @@ namespace OsEngine.Logging
         Off,
         On
     }
-    
+
     /// <summary>
     /// Commands sent to the bot
     /// - Посылаемые боту команды

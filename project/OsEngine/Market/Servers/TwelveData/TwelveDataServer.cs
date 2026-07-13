@@ -223,6 +223,14 @@ namespace OsEngine.Market.Servers.TwelveData
 
         private TimeZoneInfo _mskTimeZone;
 
+        private DateTime _lastTryReconnectWebSocket = DateTime.MinValue;
+
+        private bool _isReconnectingWebSocket = false;
+
+        private DateTime _lastWebSocketMessageTime = DateTime.UtcNow;
+
+        private int _reconnectAttempts = 0;
+
         private ConcurrentDictionary<string, string> _securityTimeZones = new ConcurrentDictionary<string, string>();
 
         private ConcurrentDictionary<string, TimeZoneInfo> _timeZoneInfoCache = new ConcurrentDictionary<string, TimeZoneInfo>();
@@ -774,11 +782,11 @@ namespace OsEngine.Market.Servers.TwelveData
 
             DateTime currentEndTime = endTime;
 
-            if (security.Exchange != "Commodities"
-                && security.Exchange != "Forex")
-            {
-                currentEndTime = SkipWeekends(endTime);
-            }
+            //if (security.Exchange != "Commodities"
+            //    && security.Exchange != "Forex")
+            //{
+            //    currentEndTime = SkipWeekends(endTime);
+            //}
 
             while (currentEndTime > startTime)
             {
@@ -853,7 +861,6 @@ namespace OsEngine.Market.Servers.TwelveData
             allCandles.Reverse();
 
             return allCandles;
-
         }
 
         private List<Candle> RequestCandleHistory(string securityName, string nameSecurity, string interval, string startDate, string endDate)
@@ -917,6 +924,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
+                    if (!response.Content.StartsWith("{\"code\":400,\"message\":\"No data is available on the specified dates. "))
+                    {
+                        SendLogMessage($"Candle history error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
+
                     return null;
                 }
             }
@@ -1059,6 +1071,8 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
 
                 webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.KeepAliveInterval = TimeSpan.FromSeconds(15);
+                webSocketPublicNew.KeepAliveTimeout = TimeSpan.FromSeconds(10);
                 webSocketPublicNew.OnOpen += WebSocketPublic_Opened;
                 webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
@@ -1106,6 +1120,156 @@ namespace OsEngine.Market.Servers.TwelveData
             }
         }
 
+        private bool TryReconnectWebSocket()
+        {
+            try
+            {
+                if (_isReconnectingWebSocket)
+                {
+                    return false;
+                }
+
+                if (_lastTryReconnectWebSocket != DateTime.MinValue
+                    && _lastTryReconnectWebSocket.AddSeconds(30) > DateTime.Now)
+                {
+                    return false;
+                }
+
+                _isReconnectingWebSocket = true;
+                _lastTryReconnectWebSocket = DateTime.Now;
+                _reconnectAttempts = 0;
+
+                SendLogMessage("TwelveData WebSocket reconnect cycle started", LogMessageType.System);
+
+                DeleteWebSocketConnection();
+
+                Thread.Sleep(5000);
+
+                for (int attempt = 1; attempt <= 3; attempt++)
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        _isReconnectingWebSocket = false;
+                        return false;
+                    }
+
+                    if (attempt > 1)
+                    {
+                        SendLogMessage($"TwelveData WebSocket reconnect waiting 10000ms", LogMessageType.System);
+                        Thread.Sleep(10000);
+                    }
+                    else
+                    {
+                        SendLogMessage($"TwelveData WebSocket reconnect attempt {attempt}/3", LogMessageType.System);
+                    }
+
+                    if (TryReconnectWebSocketSingleAttempt())
+                    {
+                        _reconnectAttempts = 0;
+                        _isReconnectingWebSocket = false;
+                        SendLogMessage("TwelveData WebSocket reconnect success", LogMessageType.System);
+                        return true;
+                    }
+
+                    _reconnectAttempts++;
+                }
+
+                SendLogMessage("TwelveData WebSocket reconnect failed after maximum attempts", LogMessageType.Error);
+                _isReconnectingWebSocket = false;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("TwelveData WebSocket reconnect error: " + ex.ToString(), LogMessageType.Error);
+                _isReconnectingWebSocket = false;
+                return false;
+            }
+        }
+
+        private bool TryReconnectWebSocketSingleAttempt()
+        {
+            WebSocket newSocket = null;
+
+            try
+            {
+                newSocket = CreateNewPublicSocket();
+
+                if (newSocket == null)
+                {
+                    return false;
+                }
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(15);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        return false;
+                    }
+
+                    Thread.Sleep(500);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    return false;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return false;
+                }
+
+                _webSocketPublic.Add(newSocket);
+
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    string symbol = GetTwelveDataSymbol(_subscribedSecurities[i]);
+
+                    if (string.IsNullOrEmpty(symbol))
+                    {
+                        continue;
+                    }
+
+                    newSocket.SendAsync($"{{\"action\":\"subscribe\",\"params\":{{\"symbols\":\"{symbol}\"}}}}");
+                    Thread.Sleep(50);
+                }
+
+                _lastWebSocketMessageTime = DateTime.UtcNow;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("TwelveData WebSocket reconnect attempt error: " + ex.ToString(), LogMessageType.Error);
+                return false;
+            }
+            finally
+            {
+                if (newSocket != null && !_webSocketPublic.Contains(newSocket))
+                {
+                    try
+                    {
+                        newSocket.OnOpen -= WebSocketPublic_Opened;
+                        newSocket.OnClose -= WebSocketPublic_Closed;
+                        newSocket.OnMessage -= WebSocketPublic_MessageReceived;
+                        newSocket.OnError -= WebSocketPublic_Error;
+                        newSocket.Dispose();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region 7 WebSocket events
@@ -1123,6 +1287,7 @@ namespace OsEngine.Market.Servers.TwelveData
                         ConnectEvent();
                     }
 
+                    _lastWebSocketMessageTime = DateTime.UtcNow;
                     SendLogMessage("TwelveData WebSocket connection open", LogMessageType.System);
                 }
             }
@@ -1136,10 +1301,19 @@ namespace OsEngine.Market.Servers.TwelveData
         {
             try
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
+                    return;
+                }
+
+                if (TryReconnectWebSocket() == false)
+                {
+                    string closeCode = e != null ? e.Code : "";
+                    string closeReason = e != null ? e.Reason : "";
+
                     string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
                     message += OsLocalization.Market.Message102;
+                    message += $"\nTwelveData WebSocket closed. Code: {closeCode}, Reason: {closeReason}";
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -1165,6 +1339,8 @@ namespace OsEngine.Market.Servers.TwelveData
                 {
                     return;
                 }
+
+                _lastWebSocketMessageTime = DateTime.UtcNow;
 
                 if (e.Data.Length == 4)
                 { // pong message
@@ -1201,6 +1377,10 @@ namespace OsEngine.Market.Servers.TwelveData
                     {
                         // ignore
                     }
+                    else if (message.Contains("521"))
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.System);
+                    }
                     else
                     {
                         SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
@@ -1235,18 +1415,47 @@ namespace OsEngine.Market.Servers.TwelveData
                         continue;
                     }
 
+                    bool anyOpen = false;
+
                     for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
                         WebSocket webSocketPublic = _webSocketPublic[i];
 
                         if (webSocketPublic != null
-                            && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            && webSocketPublic.ReadyState == WebSocketState.Open)
                         {
+                            anyOpen = true;
                             webSocketPublic.SendAsync("{\"action\":\"heartbeat\"}");
                         }
-                        else
+                    }
+
+                    bool needReconnect = false;
+
+                    if (_webSocketPublic.Count > 0 && !anyOpen)
+                    {
+                        needReconnect = true;
+                        SendLogMessage("TwelveData WebSocket not open. Try reconnect", LogMessageType.System);
+                    }
+
+                    if (_subscribedSecurities.Count > 0
+                        && _lastWebSocketMessageTime.AddMinutes(3) < DateTime.UtcNow)
+                    {
+                        needReconnect = true;
+                        SendLogMessage("TwelveData WebSocket no messages for 3 minutes. Try reconnect", LogMessageType.System);
+                    }
+
+                    if (needReconnect)
+                    {
+                        if (TryReconnectWebSocket() == false)
                         {
-                            Disconnect();
+                            if (_isReconnectingWebSocket == false)
+                            {
+                                Disconnect();
+                            }
+                            else
+                            {
+                                SendLogMessage("TwelveData WebSocket reconnect already in progress", LogMessageType.System);
+                            }
                         }
                     }
                 }
