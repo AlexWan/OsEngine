@@ -292,9 +292,9 @@ namespace OsEngine.Market
 
         public static void RealStarted()
         {
-            if (ServerMasterActivateInTesterRegimeEvent != null)
+            if (ServerMasterActivateInRealRegimeEvent != null)
             {
-                ServerMasterActivateInTesterRegimeEvent();
+                ServerMasterActivateInRealRegimeEvent();
             }
         }
 
