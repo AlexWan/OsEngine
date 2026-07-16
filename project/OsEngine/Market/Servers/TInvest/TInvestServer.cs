@@ -47,7 +47,7 @@ namespace OsEngine.Market.Servers.TInvest
             ServerParameterBool useStock = CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             ServerParameterBool useFutures = CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             ServerParameterBool useOptions = CreateParameterBoolean(OsLocalization.Market.UseOptions, false); // с некоторого времени торговля опционами не доступна по API Т-Инвестиций
-            ServerParameterBool useOther = CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+            ServerParameterBool useOther = CreateParameterBoolean(OsLocalization.Market.UseOther, true);
             useStock.ValueChange += UseSector_ValueChange;
             useFutures.ValueChange += UseSector_ValueChange;
             useOptions.ValueChange += UseSector_ValueChange;

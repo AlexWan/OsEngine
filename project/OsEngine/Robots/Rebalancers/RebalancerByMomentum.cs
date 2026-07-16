@@ -952,6 +952,12 @@ namespace OsEngine.Robots.Rebalancers
 
             decimal lastPrice = _tabGold.CandlesAll[^1].Close;
 
+            if (lastPrice == 0
+             || upChannel == 0)
+            {
+                return false;
+            }
+
             if (lastPrice < upChannel)
             {
                 return false;
