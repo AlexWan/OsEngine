@@ -308,6 +308,8 @@ namespace OsEngine.Market
 
         public static event Action ServerMasterActivateInTesterRegimeEvent;
 
+        public static event Action ServerMasterActivateInRealRegimeEvent;
+
         public static event Action ServerMasterActivateInOptimizerRegimeEvent;
 
         #endregion
