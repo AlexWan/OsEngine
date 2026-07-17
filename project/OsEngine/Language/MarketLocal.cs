@@ -1852,6 +1852,10 @@ namespace OsEngine.Language
             "Eng:Token_" +
             "Ru:Token_");
 
+        public string ServerParamTokenDescription => OsLocalization.ConvertToLocString(
+            "Eng:Access token for T-Invest API. Issued in the T-Invest personal account in the API section. Full access token is required for trading._" +
+            "Ru:Токен доступа к API Т-Инвест. Выдаётся в личном кабинете Т-Инвест в разделе API. Для торговли нужен токен с полным доступом._");
+
         public string Memo => OsLocalization.ConvertToLocString(
             "Eng:Memo_" +
             "Ru:Memo_");
@@ -1960,6 +1964,22 @@ namespace OsEngine.Language
             "Eng:Other_" +
             "Ru:Другое_");
 
+        public string UseStockDescription => OsLocalization.ConvertToLocString(
+            "Eng:Load stocks into the securities list and allow trading them._" +
+            "Ru:Загружать акции в список бумаг и разрешить торговлю ими._");
+
+        public string UseFuturesDescription => OsLocalization.ConvertToLocString(
+            "Eng:Load futures into the securities list and allow trading them._" +
+            "Ru:Загружать фьючерсы в список бумаг и разрешить торговлю ими._");
+
+        public string UseOptionsDescription => OsLocalization.ConvertToLocString(
+            "Eng:Load options into the securities list and allow trading them. Currently options trading is not available via T-Invest API._" +
+            "Ru:Загружать опционы в список бумаг и разрешить торговлю ими. В настоящее время торговля опционами через API Т-Инвест недоступна._");
+
+        public string UseOtherDescription => OsLocalization.ConvertToLocString(
+            "Eng:Load bonds, ETFs and indicative instruments into the securities list and allow trading them._" +
+            "Ru:Загружать облигации, ETF и индикативные инструменты в список бумаг и разрешить торговлю ими._");
+
         public string FullLogConnector => OsLocalization.ConvertToLocString(
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
@@ -1991,6 +2011,18 @@ namespace OsEngine.Language
         public string IgnoreMorningAuctionTrades => OsLocalization.ConvertToLocString(
             "Eng:Ignore morning auction trades_" +
             "Ru:Игнорировать сделки утреннего аукциона_");
+
+        public string IgnoreMorningAuctionTradesDescription => OsLocalization.ConvertToLocString(
+            "Eng:When enabled, ignores trades before 7.00 MSK (stocks) and 9.00 MSK (futures), the morning opening auction prints. They often gap from the previous close and create false signals in candles built from the trade feed._" +
+            "Ru:Если включено, игнорируются сделки до 7.00 МСК (акции) и до 9.00 МСК (фьючерсы), принты утреннего аукциона открытия. Они часто идут с гэпом относительно закрытия и дают ложные сигналы в свечах, построенных по ленте сделок._");
+
+        public string FilterOutDealerData => OsLocalization.ConvertToLocString(
+            "Eng:Filter out T-Invest dealer (OTC) data_" +
+            "Ru:Отфильтровать дилерские (внебирж.) данные Т-Инвест_");
+
+        public string FilterOutDealerDataDescription => OsLocalization.ConvertToLocString(
+            "Eng:When enabled, the connector excludes data from T-Invest internal liquidity (dealer quotes and trades, including broker-initiated weekend trading). Candles, trade feed, order book and last prices come from the exchange only. MOEX-initiated weekend sessions are kept. Disable if you trade via T-Invest internal liquidity and need this data._" +
+            "Ru:Если включено, коннектор отсекает данные внутренней ликвидности Т-Инвест (дилерские котировки и сделки, включая инициированные брокером торги выходного дня). Свечи, лента сделок, стакан и последние цены берутся только с биржи. Выходные сессии, инициированные MOEX, сохраняются. Выключите, если торгуете через внутреннюю ликвидность Т-Инвест и эти данные вам нужны._");
 
         public string AuthorizationCode => OsLocalization.ConvertToLocString(
             "Eng:Authorization code_" +

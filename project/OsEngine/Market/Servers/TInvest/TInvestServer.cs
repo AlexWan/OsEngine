@@ -42,19 +42,27 @@ namespace OsEngine.Market.Servers.TInvest
             TInvestServerRealization realization = new TInvestServerRealization();
             ServerRealization = realization;
 
-            CreateParameterPassword(OsLocalization.Market.ServerParamToken, "");
+            ServerParameterPassword token = CreateParameterPassword(OsLocalization.Market.ServerParamToken, "");
+            token.Comment = OsLocalization.Market.ServerParamTokenDescription;
 
             ServerParameterBool useStock = CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             ServerParameterBool useFutures = CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             ServerParameterBool useOptions = CreateParameterBoolean(OsLocalization.Market.UseOptions, false); // с некоторого времени торговля опционами не доступна по API Т-Инвестиций
             ServerParameterBool useOther = CreateParameterBoolean(OsLocalization.Market.UseOther, true);
+            useStock.Comment = OsLocalization.Market.UseStockDescription;
+            useFutures.Comment = OsLocalization.Market.UseFuturesDescription;
+            useOptions.Comment = OsLocalization.Market.UseOptionsDescription;
+            useOther.Comment = OsLocalization.Market.UseOtherDescription;
             useStock.ValueChange += UseSector_ValueChange;
             useFutures.ValueChange += UseSector_ValueChange;
             useOptions.ValueChange += UseSector_ValueChange;
             useOther.ValueChange += UseSector_ValueChange;
 
-            CreateParameterBoolean("Filter out T-Invest dealer (OTC) data", true);
-            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
+            ServerParameterBool filterOutDealerData = CreateParameterBoolean(OsLocalization.Market.FilterOutDealerData, true);
+            filterOutDealerData.Comment = OsLocalization.Market.FilterOutDealerDataDescription;
+
+            ServerParameterBool ignoreMorningAuction = CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
+            ignoreMorningAuction.Comment = OsLocalization.Market.IgnoreMorningAuctionTradesDescription;
         }
 
         private void UseSector_ValueChange()

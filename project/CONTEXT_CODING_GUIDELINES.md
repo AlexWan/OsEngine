@@ -637,4 +637,29 @@ int i = 0; // индекс начинается с нуля, т.к. первая
 
 ---
 
+## 9. Локализация (OsLocalization)
+
+### 9.1. Запрещённые символы в строках `ConvertToLocString`
+
+Локализованные строки задаются в формате `"Eng:..._Ru:..._"`. Парсер `OsLocalization.ConvertToLocString` разбивает строку по `_` на сегменты, а сегмент — по `:` на язык и текст. Поэтому внутри текста **запрещены символы `:` и `_`**: двоеточие обрежет текст до первого вхождения, подчёркивание разорвёт сегмент. Обрезка происходит молча, без ошибок. Вместо `:` используй точку или тире, время пиши через точку (`7.00`, а не `7:00`).
+
+```csharp
+// Плохо — текст обрежется до "Eng:When enabled, see the docs"
+"Eng:When enabled, see the docs: candles and trades are filtered._"
+
+// Хорошо
+"Eng:When enabled, see the docs. Candles and trades are filtered._"
+```
+
+### 9.2. Описания параметров серверов
+
+Параметру сервера можно задать пояснение через свойство `Comment` — в UI появляется кнопка «?» с диалогом. Текст тоже идёт через `OsLocalization` (с ограничением из 9.1).
+
+```csharp
+ServerParameterBool useStock = CreateParameterBoolean(OsLocalization.Market.UseStock, true);
+useStock.Comment = OsLocalization.Market.UseStockDescription;
+```
+
+---
+
 *Файл `CONTEXT_CODING_GUIDELINES.md` содержит базовые правила разработки кодовой базы OsEngine. При изменении архитектуры, появлении новых паттернов или обнаружении устоявшихся практик в коде документ следует обновлять.*
