@@ -53,8 +53,7 @@ namespace OsEngine.Market.Servers.TInvest
             useOptions.ValueChange += UseSector_ValueChange;
             useOther.ValueChange += UseSector_ValueChange;
 
-            CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
-            CreateParameterBoolean("Filter out dealer trades", false);
+            CreateParameterBoolean("Filter out T-Invest dealer (OTC) data", true);
             CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
         }
 
@@ -121,9 +120,8 @@ namespace OsEngine.Market.Servers.TInvest
                 SendLogMessage(OsLocalization.Market.Label284, LogMessageType.System);
 
                 _accessToken = ((ServerParameterPassword)ServerParameters[0]).Value;
-                _filterOutNonMarketData = ((ServerParameterBool)ServerParameters[5]).Value;
-                _filterOutDealerTrades = ((ServerParameterBool)ServerParameters[6]).Value;
-                _ignoreMorningAuctionTrades = ((ServerParameterBool)ServerParameters[7]).Value;
+                _filterOutDealerData = ((ServerParameterBool)ServerParameters[5]).Value;
+                _ignoreMorningAuctionTrades = ((ServerParameterBool)ServerParameters[6]).Value;
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
@@ -472,8 +470,7 @@ namespace OsEngine.Market.Servers.TInvest
         private bool _useOptions = false;
         private bool _useOther = false;
 
-        private bool _filterOutNonMarketData; // отфльтровать кухню выходного дня
-        private bool _filterOutDealerTrades; // отфльтровать кухонные сделки (дилерские, внутренние)
+        private bool _filterOutDealerData; // отфильтровать данные дилера (внутренняя ликвидность Т-Инвест, торги выходного дня)
         private bool _ignoreMorningAuctionTrades; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
         private string _accessToken;
 
@@ -1628,6 +1625,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             GetLastPricesRequest request = new GetLastPricesRequest();
             request.InstrumentId.Add(tickerId);
+            request.LastPriceType = _filterOutDealerData ? LastPriceType.LastPriceExchange : LastPriceType.LastPriceUnspecified;
 
             GetLastPricesResponse response = _marketDataServiceClient.GetLastPrices(request, _gRpcMetadata);
 
@@ -1827,9 +1825,9 @@ namespace OsEngine.Market.Servers.TInvest
                     getCandlesRequest.From = from;
                     getCandlesRequest.To = to;
                     getCandlesRequest.Interval = requestedCandleInterval;
-                    getCandlesRequest.CandleSourceType = _filterOutNonMarketData
-                        ? GetCandlesRequest.Types.CandleSource.Exchange
-                        : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
+                    // всегда запрашиваем все свечи: дилерские свечи выходного дня
+                    // отбрасываем на клиенте по их тегу источника (см. ConvertToOsEngineCandles)
+                    getCandlesRequest.CandleSourceType = GetCandlesRequest.Types.CandleSource.IncludeWeekend;
 
                     candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
                 }
@@ -1970,6 +1968,14 @@ namespace OsEngine.Market.Servers.TInvest
             for (int i = 0; i < response.Candles.Count; i++)
             {
                 HistoricCandle histCandle = response.Candles[i];
+
+                // дилерские свечи торгов выходного дня отбрасываем при включённом фильтре;
+                // биржевые свечи выходных сессий MOEX (тег Exchange) остаются
+                if (_filterOutDealerData
+                    && histCandle.CandleSource == CandleSource.DealerWeekend)
+                {
+                    continue;
+                }
 
                 Candle candle = new Candle();
 
@@ -2654,7 +2660,7 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 SubscriptionAction = SubscriptionAction.Subscribe,
                                 Instruments = { tradeInstrument },
-                                TradeSource = _filterOutDealerTrades
+                                TradeSource = _filterOutDealerData
                                     ? TradeSourceType.TradeSourceExchange
                                     : TradeSourceType.TradeSourceAll,
                                 WithOpenInterest = true
@@ -2674,7 +2680,7 @@ namespace OsEngine.Market.Servers.TInvest
                             orderBookInstrument.InstrumentId = security.NameId;
                             orderBookInstrument.Depth = 10;
                             orderBookInstrument.OrderBookType =
-                                _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
+                                _filterOutDealerData ? OrderBookType.Exchange : OrderBookType.All;
 
                             SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest
                             { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
@@ -3022,7 +3028,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     Thread.Sleep(500);
 
-                    if (_filterOutNonMarketData)
+                    if (_filterOutDealerData)
                     {
                         if (_pollSubscribedSecurities.Count == 0)
                         {
@@ -3082,7 +3088,8 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 priceResp = _marketDataServiceClient.GetLastPrices(new GetLastPricesRequest
                 {
-                    InstrumentId = { instrumentIds }
+                    InstrumentId = { instrumentIds },
+                    LastPriceType = _filterOutDealerData ? LastPriceType.LastPriceExchange : LastPriceType.LastPriceUnspecified
                 }, _gRpcMetadata);
             }
             catch (RpcException ex)
