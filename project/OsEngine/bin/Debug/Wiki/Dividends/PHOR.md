@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | PHOR |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/PHOR/dividend/ |
 
 ## Historical Dividends
@@ -51,7 +51,7 @@
 | 2024 | 19.12.2024 | 126 | 2.2 |
 | 2024 | 06.06.2025 | 87 | 1.4 |
 | 2025 | 03.07.2025 | 201 | 3.3 |
-| 2025 | 30.09.2025 | 273 | 5.5 |
+| 2025 | 30.09.2025 | 273 | 6.2 |
 
 ## Future Registry Close Dates
 

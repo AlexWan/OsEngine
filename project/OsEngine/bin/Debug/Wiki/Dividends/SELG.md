@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | SELG |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/SELG/dividend/ |
 
 ## Historical Dividends

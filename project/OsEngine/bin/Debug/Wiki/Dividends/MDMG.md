@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | MDMG |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/MDMG/dividend/ |
 
 ## Historical Dividends
@@ -27,9 +27,9 @@
 | 2024 | 28.11.2024 | 20 | 2.3 |
 | 2024 | 16.05.2025 | 22 | 2.2 |
 | 2025 | 17.10.2025 | 42 | 3.3 |
+| 2025 | 13.07.2026 | 47 | 3.9 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 13.07.2026 | 47 | 3.9 |

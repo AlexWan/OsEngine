@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | RTKM |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/RTKM/dividend/ |
 
 ## Historical Dividends
@@ -32,4 +32,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 17.07.2026 | 2.71 | 6.4 |
+| 2025 | 17.07.2026 | 2.71 | 7.3 |

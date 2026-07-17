@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | LNZL |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/LNZL/dividend/ |
 
 ## Historical Dividends

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | ABRD |
-| LastUpdated | 10.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/ABRD/dividend/ |
 
 ## Historical Dividends

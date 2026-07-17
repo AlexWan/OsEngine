@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | GEMA |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/GEMA/dividend/ |
 
 ## Historical Dividends
@@ -30,7 +30,7 @@
 | 2024 | 13.06.2025 | 2.4 | 2.0 |
 | 2025 | 26.09.2025 | 5 | 4.0 |
 | 2025 | 29.12.2025 | 3 | 2.5 |
-| 2025 | 12.06.2026 | 2.8 | 2.6 |
+| 2025 | 12.06.2026 | 2.8 | 2.8 |
 
 ## Future Registry Close Dates
 

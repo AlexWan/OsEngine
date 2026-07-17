@@ -23,17 +23,44 @@ public class SmartLabParser : IDisposable
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
     }
 
-    public List<WikiDividend> ParseDividends(string ticker)
+    public List<WikiDividend> ParseDividends(string ticker, out string sourceUrl)
     {
-        string url = $"https://smart-lab.ru/q/{ticker}/dividend/";
+        string url = BuildUrl(ticker);
         string html = DownloadHtml(url);
+        List<WikiDividend> dividends = ParseDividendRows(html, ticker);
+
+        // preferred shares (SBERP, TATNP, ...) have no full-fledged page on Smart-Lab
+        // (404 or an error page without a dividends table):
+        // their rows live in the dividends table of the base stock page
+        if (dividends.Count == 0
+            && TryGetBaseTicker(ticker, out string baseTicker))
+        {
+            string baseUrl = BuildUrl(baseTicker);
+            string baseHtml = DownloadHtml(baseUrl);
+            List<WikiDividend> baseDividends = ParseDividendRows(baseHtml, ticker);
+
+            if (baseDividends.Count > 0)
+            {
+                Console.WriteLine($"[SmartLab] {ticker}: no own dividends, using base page of {baseTicker}");
+                url = baseUrl;
+                dividends = baseDividends;
+            }
+        }
+
+        sourceUrl = url;
+        Thread.Sleep(_requestDelayMs);
+        return dividends;
+    }
+
+    private static List<WikiDividend> ParseDividendRows(string html, string ticker)
+    {
+        var dividends = new List<WikiDividend>();
 
         if (string.IsNullOrWhiteSpace(html))
         {
-            return new List<WikiDividend>();
+            return dividends;
         }
 
-        var dividends = new List<WikiDividend>();
         List<string> tables = ExtractTables(html, "financials dividends");
         DateTime today = DateTime.Today;
 
@@ -89,8 +116,26 @@ public class SmartLabParser : IDisposable
             }
         }
 
-        Thread.Sleep(_requestDelayMs);
         return MergeDuplicates(dividends);
+    }
+
+    private static string BuildUrl(string ticker)
+    {
+        return $"https://smart-lab.ru/q/{ticker}/dividend/";
+    }
+
+    private static bool TryGetBaseTicker(string ticker, out string baseTicker)
+    {
+        baseTicker = string.Empty;
+
+        if (ticker.Length > 1
+            && ticker.EndsWith("P", StringComparison.Ordinal))
+        {
+            baseTicker = ticker.Substring(0, ticker.Length - 1);
+            return true;
+        }
+
+        return false;
     }
 
     private string DownloadHtml(string url)

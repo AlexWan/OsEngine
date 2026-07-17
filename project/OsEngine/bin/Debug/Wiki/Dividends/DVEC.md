@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | DVEC |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/DVEC/dividend/ |
 
 ## Historical Dividends

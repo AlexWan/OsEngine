@@ -24,7 +24,7 @@ public static class WikiDividendsWriter
         }
     }
 
-    public static void SaveDividends(string osEnginePath, string security, List<WikiDividend> dividends)
+    public static void SaveDividends(string osEnginePath, string security, List<WikiDividend> dividends, string sourceUrl)
     {
         string? directory = Path.GetDirectoryName(osEnginePath);
 
@@ -47,7 +47,7 @@ public static class WikiDividendsWriter
         builder.AppendLine("|---|---|");
         builder.AppendLine($"| Security | {security} |");
         builder.AppendLine($"| LastUpdated | {DateTime.Now:dd.MM.yyyy} |");
-        builder.AppendLine($"| Source | https://smart-lab.ru/q/{security}/dividend/ |");
+        builder.AppendLine($"| Source | {sourceUrl} |");
         builder.AppendLine();
         builder.AppendLine("## Historical Dividends");
         builder.AppendLine();

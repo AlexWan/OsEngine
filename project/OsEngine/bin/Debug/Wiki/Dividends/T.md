@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | T |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/T/dividend/ |
 
 ## Historical Dividends
@@ -29,4 +29,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2026 | 07.08.2026 | 4.6 | 1.8 |
+| 2026 | 07.08.2026 | 4.6 | 2.0 |

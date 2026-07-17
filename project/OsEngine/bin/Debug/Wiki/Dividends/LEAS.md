@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | LEAS |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/LEAS/dividend/ |
 
 ## Historical Dividends

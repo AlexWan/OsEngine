@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | MOEX |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/MOEX/dividend/ |
 
 ## Historical Dividends
@@ -21,9 +21,9 @@
 | 2022 | 14.06.2023 | 4.84 | 3.8 |
 | 2023 | 13.06.2024 | 17.35 | 7.1 |
 | 2024 | 09.07.2025 | 26.11 | 13.7 |
+| 2025 | 08.07.2026 | 19.57 | 12.1 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 08.07.2026 | 19.57 | 12.1 |

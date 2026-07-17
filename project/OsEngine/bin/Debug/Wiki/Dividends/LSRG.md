@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | LSRG |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/LSRG/dividend/ |
 
 ## Historical Dividends
@@ -21,9 +21,9 @@
 | 2022 | 05.07.2023 | 78 | 9.8 |
 | 2023 | 30.04.2024 | 100 | 8.8 |
 | 2024 | 28.04.2025 | 78 | 8.9 |
+| 2025 | 10.07.2026 | 78 | 13.4 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 10.07.2026 | 78 | 13.5 |

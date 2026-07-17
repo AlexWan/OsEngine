@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | SNGS |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/SNGS/dividend/ |
 
 ## Historical Dividends
@@ -21,9 +21,9 @@
 | 2022 | 18.07.2023 | 0.8 | 2.7 |
 | 2023 | 17.07.2024 | 0.85 | 3.1 |
 | 2024 | 16.07.2025 | 0.9 | 3.9 |
+| 2025 | 15.07.2026 | 0.85 | 5.6 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 15.07.2026 | 0.85 | 5.3 |

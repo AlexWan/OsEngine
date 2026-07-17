@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | AFKS |
-| LastUpdated | 10.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/AFKS/dividend/ |
 
 ## Historical Dividends

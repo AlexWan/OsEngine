@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | OGKB |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/OGKB/dividend/ |
 
 ## Historical Dividends
@@ -19,7 +19,7 @@
 | 2020 | 30.06.2021 | 0.06 | 7.6 |
 | 2021 | 07.07.2022 | 0.0965536029864 | 14.4 |
 | 2022 | 06.07.2023 | 0.0580758473514 | 8.2 |
-| 2024 | 04.11.2025 | 0.0598167018 | 31.4 |
+| 2024 | 04.11.2025 | 0.0598167018 | 36.5 |
 
 ## Future Registry Close Dates
 

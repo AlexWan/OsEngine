@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | TATN |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/TATN/dividend/ |
 
 ## Historical Dividends
@@ -32,13 +32,13 @@
 | 2023 | 08.01.2024 | 35.17 | 4.9 |
 | 2023 | 08.07.2024 | 25.17 | 3.6 |
 | 2024 | 07.10.2024 | 38.2 | 5.8 |
-| 2024 | 07.01.2025 | 17.39 | 3.6 |
+| 2024 | 07.01.2025 | 17.39 | 4.2 |
 | 2024 | 30.05.2025 | 43.11 | 6.1 |
 | 2025 | 13.10.2025 | 14.35 | 2.4 |
 | 2025 | 08.01.2026 | 8.13 | 1.4 |
+| 2025 | 14.07.2026 | 11.61 | 2.4 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 14.07.2026 | 11.61 | 2.4 |

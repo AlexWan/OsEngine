@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | MTSS |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/MTSS/dividend/ |
 
 ## Historical Dividends
@@ -27,9 +27,9 @@
 | 2022 | 27.06.2023 | 34.29 | 9.9 |
 | 2023 | 15.07.2024 | 35 | 13.4 |
 | 2024 | 04.07.2025 | 35 | 15.4 |
+| 2025 | 08.07.2026 | 35 | 16.7 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 08.07.2026 | 35 | 16.7 |

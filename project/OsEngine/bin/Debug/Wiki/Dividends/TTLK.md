@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | TTLK |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/TTLK/dividend/ |
 
 ## Historical Dividends
@@ -20,7 +20,7 @@
 | 2021 | 16.05.2022 | 0.04285 | 6.4 |
 | 2022 | 14.04.2023 | 0.05085 | 7.6 |
 | 2023 | 24.05.2024 | 0.04887 | 4.8 |
-| 2024 | 09.05.2025 | 0.03775 | 7.4 |
+| 2024 | 09.05.2025 | 0.03775 | 7.8 |
 | 2025 | 04.05.2026 | 0.05725 | 7.8 |
 
 ## Future Registry Close Dates

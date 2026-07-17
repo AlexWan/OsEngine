@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | ROSN |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/ROSN/dividend/ |
 
 ## Historical Dividends
@@ -29,9 +29,9 @@
 | 2024 | 09.01.2025 | 36.47 | 7.6 |
 | 2024 | 17.07.2025 | 14.68 | 3.5 |
 | 2025 | 09.01.2026 | 11.56 | 2.9 |
+| 2025 | 08.07.2026 | 2.27 | 0.7 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 08.07.2026 | 2.27 | 0.7 |

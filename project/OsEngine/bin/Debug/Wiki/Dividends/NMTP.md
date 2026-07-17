@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | NMTP |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/NMTP/dividend/ |
 
 ## Historical Dividends
@@ -27,9 +27,9 @@
 | 2022 | 10.07.2023 | 0.798 | 8.3 |
 | 2023 | 09.07.2024 | 0.772 | 8.4 |
 | 2024 | 11.07.2025 | 0.9573 | 10.5 |
+| 2025 | 10.07.2026 | 1.1448 | 13.7 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 10.07.2026 | 1.1448 | 13.9 |

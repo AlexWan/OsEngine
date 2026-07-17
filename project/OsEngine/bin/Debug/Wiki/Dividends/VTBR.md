@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | VTBR |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/VTBR/dividend/ |
 
 ## Historical Dividends
@@ -23,4 +23,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 17.07.2026 | 9.71 | 15.0 |
+| 2025 | 17.07.2026 | 9.71 | 16.5 |

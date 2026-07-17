@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | SBER |
-| LastUpdated | 10.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/SBER/dividend/ |
 
 ## Historical Dividends
@@ -25,4 +25,4 @@
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2025 | 17.07.2026 | 37.64 | 12.9 |
+| 2025 | 17.07.2026 | 37.64 | 13.6 |

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | ASSB |
-| LastUpdated | 10.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/ASSB/dividend/ |
 
 ## Historical Dividends

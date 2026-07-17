@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | PLZL |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/PLZL/dividend/ |
 
 ## Historical Dividends
@@ -28,9 +28,9 @@
 | 2025 | 10.10.2025 | 70.85 | 3.1 |
 | 2025 | 19.12.2025 | 36 | 1.6 |
 | 2025 | 15.05.2026 | 56.8 | 2.7 |
+| 2026 | 10.07.2026 | 29.05 | 2.4 |
 
 ## Future Registry Close Dates
 
 | Year | RegistryCloseDate | DividendAmount | DividendYield |
 |---|---|---|---|
-| 2026 | 10.07.2026 | 29.05 | 2.1 |

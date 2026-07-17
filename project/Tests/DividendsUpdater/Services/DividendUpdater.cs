@@ -36,7 +36,7 @@ public class DividendUpdater
         {
             try
             {
-                List<WikiDividend> dividends = parser.ParseDividends(stock.Name);
+                List<WikiDividend> dividends = parser.ParseDividends(stock.Name, out string sourceUrl);
 
                 if (dividends.Count == 0)
                 {
@@ -45,7 +45,7 @@ public class DividendUpdater
                     continue;
                 }
 
-                WikiDividendsWriter.SaveDividends(_settings.OsEnginePath, stock.Name, dividends);
+                WikiDividendsWriter.SaveDividends(_settings.OsEnginePath, stock.Name, dividends, sourceUrl);
                 successCount++;
             }
             catch (Exception error)

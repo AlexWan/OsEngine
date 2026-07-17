@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | LVHK |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/LVHK/dividend/ |
 
 ## Historical Dividends
@@ -21,7 +21,7 @@
 | 2022 | 14.06.2023 | 0.378 | 1.7 |
 | 2023 | 14.12.2023 | 0.272 | 0.8 |
 | 2023 | 27.06.2024 | 0.9445 | 2.1 |
-| 2025 | 12.06.2026 | 0.189 | 1.1 |
+| 2025 | 12.06.2026 | 0.189 | 1.2 |
 
 ## Future Registry Close Dates
 

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Security | MISB |
-| LastUpdated | 08.07.2026 |
+| LastUpdated | 17.07.2026 |
 | Source | https://smart-lab.ru/q/MISB/dividend/ |
 
 ## Historical Dividends
@@ -21,6 +21,7 @@
 | 2022 | 18.05.2023 | 0.48849334 | 1.4 |
 | 2024 | 30.09.2024 | 1.5849056604 | 2.7 |
 | 2024 | 03.07.2025 | 3.28301887 | 6.5 |
+| 2025 | 17.06.2026 | 1.98415279 | 3.7 |
 
 ## Future Registry Close Dates
 
