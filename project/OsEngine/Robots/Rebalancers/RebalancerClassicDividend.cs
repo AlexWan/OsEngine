@@ -572,6 +572,14 @@ namespace OsEngine.Robots.Rebalancers
             {
                 BotTabSimple tab = tabs[i];
 
+                if (tab.IsConnected == false
+                    || tab.IsReadyToTrade == false
+                    || tab.CandlesAll == null
+                    || tab.PriceBestAsk == 0)
+                {
+                    continue;
+                }
+
                 if (tab == null || targetVolumes.ContainsKey(tab))
                 {
                     continue;
@@ -585,7 +593,11 @@ namespace OsEngine.Robots.Rebalancers
                 }
             }
 
-            if (_tabGold != null && !targetVolumes.ContainsKey(_tabGold))
+            if (_tabGold != null
+                && !targetVolumes.ContainsKey(_tabGold)
+                && _tabGold.IsReadyToTrade == true
+                && _tabGold.IsConnected == true
+                && _tabGold.PriceBestAsk != 0)
             {
                 List<Position> positions = _tabGold.PositionsOpenAll;
 
@@ -603,7 +615,11 @@ namespace OsEngine.Robots.Rebalancers
                 BotTabSimple tab = kvp.Key;
                 decimal targetVolume = kvp.Value;
 
-                if (tab == null || tab.Security == null || tab.CandlesAll == null || tab.CandlesAll.Count == 0)
+                if (tab == null
+                    || tab.Security == null
+                    || tab.CandlesAll == null
+                    || tab.CandlesAll.Count == 0
+                    || tab.IsReadyToTrade == false)
                 {
                     continue;
                 }
@@ -651,7 +667,10 @@ namespace OsEngine.Robots.Rebalancers
                 BotTabSimple tab = kvp.Key;
                 decimal targetVolume = kvp.Value;
 
-                if (tab == null || tab.Security == null)
+                if (tab == null
+                    || tab.Security == null
+                    || tab.IsReadyToTrade == false
+                    || tab.PriceBestAsk == 0)
                 {
                     continue;
                 }
