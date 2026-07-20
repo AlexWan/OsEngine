@@ -1380,41 +1380,47 @@ namespace OsEngine.Market.Servers.TraderNet
                 portfolio.ValueBegin = _portfolioValueBegin;
                 portfolio.ValueCurrent = _portfolioValueCurrent;
 
-                if (positions.acc.Count > 0)
+                if (positions.acc != null)
                 {
-                    for (int i = 0; i < positions.acc.Count; i++)
+                    if (positions.acc.Count > 0)
                     {
-                        PositionOnBoard pos = new PositionOnBoard();
-
-                        pos.PortfolioName = "TraderNet";
-                        pos.SecurityNameCode = positions.acc[i].curr;
-                        pos.ValueBlocked = 0;
-                        pos.ValueCurrent = positions.acc[i].s.ToDecimal();
-
-                        if (_portfolioIsStarted)
+                        for (int i = 0; i < positions.acc.Count; i++)
                         {
-                            pos.ValueBegin = pos.ValueCurrent;
-                            _portfolioIsStarted = false;
-                        }
+                            PositionOnBoard pos = new PositionOnBoard();
 
-                        portfolio.SetNewPosition(pos);
+                            pos.PortfolioName = "TraderNet";
+                            pos.SecurityNameCode = positions.acc[i].curr;
+                            pos.ValueBlocked = 0;
+                            pos.ValueCurrent = positions.acc[i].s.ToDecimal();
+
+                            if (_portfolioIsStarted)
+                            {
+                                pos.ValueBegin = pos.ValueCurrent;
+                                _portfolioIsStarted = false;
+                            }
+
+                            portfolio.SetNewPosition(pos);
+                        }
                     }
                 }
 
-                if (positions.pos.Count > 0)
+                if (positions.pos != null)
                 {
-                    for (int i = 0; i < positions.pos.Count; i++)
+                    if (positions.pos.Count > 0)
                     {
-                        decimal lot = GetLotSecurity(positions.pos[i].i);
-                        decimal volume = positions.pos[i].q.ToDecimal() / lot;
+                        for (int i = 0; i < positions.pos.Count; i++)
+                        {
+                            decimal lot = GetLotSecurity(positions.pos[i].i);
+                            decimal volume = positions.pos[i].q.ToDecimal() / lot;
 
-                        PositionOnBoard pos = new PositionOnBoard();
-                        pos.PortfolioName = "TraderNet";
-                        pos.SecurityNameCode = positions.pos[i].i;
-                        pos.ValueCurrent = volume;
-                        pos.ValueBlocked = 0;
+                            PositionOnBoard pos = new PositionOnBoard();
+                            pos.PortfolioName = "TraderNet";
+                            pos.SecurityNameCode = positions.pos[i].i;
+                            pos.ValueCurrent = volume;
+                            pos.ValueBlocked = 0;
 
-                        portfolio.SetNewPosition(pos);
+                            portfolio.SetNewPosition(pos);
+                        }
                     }
                 }
 
@@ -1431,9 +1437,17 @@ namespace OsEngine.Market.Servers.TraderNet
             try
             {
                 List<ResponseOrders> responseOrder = GetJsonString(message);
-
+                
                 for (int i = 0; i < responseOrder.Count; i++)
                 {
+                    if (responseOrder[i].stat == "0" ||
+                        responseOrder[i].stat == "-1" ||
+                        responseOrder[i].stat == "1" ||
+                        responseOrder[i].stat == "2")
+                    {
+                        continue;
+                    }
+
                     Order newOrder = ConvertResponseToOrder(responseOrder[i]);
 
                     MyOrderEvent?.Invoke(newOrder);
@@ -2073,7 +2087,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     stateType = OrderStateType.Pending;
                     break;
                 case ("12"):
-                    stateType = OrderStateType.Pending;
+                    stateType = OrderStateType.Partial;
                     break;
                 case ("20"):
                     stateType = OrderStateType.Partial;
@@ -2085,17 +2099,14 @@ namespace OsEngine.Market.Servers.TraderNet
                     stateType = OrderStateType.Cancel;
                     break;
                 case ("2"):
-                    stateType = OrderStateType.Cancel;
+                    stateType = OrderStateType.Pending;
                     break;
                 case ("30"):
                     stateType = OrderStateType.Cancel;
                     break;
                 case ("71"):
                     stateType = OrderStateType.Cancel;
-                    break;
-                case ("0"):
-                    stateType = OrderStateType.Fail;
-                    break;
+                    break;                
                 case ("70"):
                     stateType = OrderStateType.Fail;
                     break;
