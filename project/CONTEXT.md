@@ -9,7 +9,7 @@
 | **Платформа** | .NET 10 (`net10.0-windows`), WPF Desktop |
 | **Язык** | C# |
 | **Репозиторий** | https://github.com/AlexWan/OsEngine |
-| **Сборка** | `dotnet build OsEngine.sln` |
+| **Сборка** | `dotnet build OsEngine/OsEngine.csproj` (всё решение — `dotnet build OsEngine.sln`) |
 | **Исполняемый файл** | `OsEngine/bin/Debug/OsEngine.exe` |
 | **Стартер** | `OsEngine/bin/Debug/osEngineStarter.exe` |
 | **MCP** | `http://localhost:6500/api/v1/mcp` (по умолчанию выключено) |
@@ -56,7 +56,10 @@ OsEngine/
 ## Сборка и запуск
 
 ```bash
-# Сборка
+# Сборка основного проекта (обычный случай)
+dotnet build OsEngine/OsEngine.csproj
+
+# Полная сборка решения — только если тронуты Tests/* или перед релизом
 dotnet build OsEngine.sln
 
 # Корректный запуск (из папки exe)

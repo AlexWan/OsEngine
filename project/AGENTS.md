@@ -21,7 +21,11 @@
 # Завершить процесс, если запущен
 taskkill /F /IM OsEngine.exe
 
-# Сборка
+# Сборка основного проекта (обычный случай)
+dotnet build OsEngine/OsEngine.csproj
+
+# Полная сборка решения — только если тронуты Tests/*
+# (DividendsUpdater, McpTestStand и т.п.) или перед релизом
 dotnet build OsEngine.sln
 
 # Тестовый стенд MCP
@@ -74,7 +78,7 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ## Чек-лист перед ответом
 
 - [ ] Код записан в файловую систему.
-- [ ] `dotnet build OsEngine.sln` успешно.
+- [ ] Сборка успешна (`dotnet build OsEngine/OsEngine.csproj`; для `Tests/*` — `dotnet build OsEngine.sln`).
 - [ ] Релевантные тесты пройдены.
 - [ ] Документация обновлена при необходимости.
 - [ ] Git не мутировал без разрешения.

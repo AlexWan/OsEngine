@@ -268,6 +268,16 @@ namespace OsEngine.Robots.Dividends
                     return false;
                 }
 
+                if(recordDate.Date >= tab.TimeServerCurrent.Date)
+                {
+                    return false;
+                }
+
+                if((tab.TimeServerCurrent.Date - recordDate.Date).TotalDays < 1)
+                {
+                    return false;
+                }
+
                 DateTime minDate = referenceDate.AddDays(-_lookbackDays.ValueInt);
 
                 if (recordDate < minDate)
