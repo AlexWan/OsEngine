@@ -12,7 +12,6 @@ using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
-using System.Windows;
 
 namespace OsEngine.Logging
 {
@@ -35,16 +34,32 @@ namespace OsEngine.Logging
 
         #region Fields
 
-        private readonly HttpClient _httpClient;
-
-        private readonly Random _random = new Random();
-
-        private readonly object _userIdsLocker = new object();
+        private HttpClient _httpClient;
 
         /// <summary>
-        /// Last message Update Id (используется для Long Poll)
+        /// Base URL VK API (api.vk.ru — актуальный домен, api.vk.com в некоторых сетях не резолвится)
         /// </summary>
-        private long _lastUpdateId;
+        private string _apiBaseUrl = "https://api.vk.ru/method/";
+
+        private Random _random = new Random();
+
+        private string _userIdsLocker = "UserIdsLocker";
+
+        /// <summary>
+        /// Long Poll server URL (переиспользуется при реконнекте)
+        /// </summary>
+        private string _longPollServerUrl;
+
+        /// <summary>
+        /// Long Poll server key (переиспользуется при реконнекте)
+        /// </summary>
+        private string _longPollKey;
+
+        /// <summary>
+        /// Last Long Poll timestamp (сохраняется между реконнектами,
+        /// чтобы не обрабатывать уже полученные апдейты повторно)
+        /// </summary>
+        private long _lastUpdateTs;
 
         /// <summary>
         /// Access Token for VK API
@@ -64,7 +79,7 @@ namespace OsEngine.Logging
         /// <summary>
         /// Shows whether the server is ready to work
         /// </summary>
-        private static bool _isReady;
+        private bool _isReady;
 
         /// <summary>
         /// Queue of messages
@@ -222,6 +237,18 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// Disconnect VK server (до повторного включения через Save в окне настроек)
+        /// </summary>
+        public void Disconnect()
+        {
+            _isReady = false;
+
+            _messagesQueue.Clear();
+
+            ServerMaster.SendNewLogMessage("VK server disconnected by user", LogMessageType.System);
+        }
+
+        /// <summary>
         /// Parse user IDs from comma/space/semicolon separated string
         /// </summary>
         public List<long> ParseUserIds(string line)
@@ -249,6 +276,257 @@ namespace OsEngine.Logging
         }
 
         /// <summary>
+        /// Parse user IDs and screen names (короткие адреса вида durov или vk.com/durov),
+        /// screen names конвертируются в числовые ID через users.get
+        /// </summary>
+        public List<long> ParseAndResolveUserIds(string line, out List<string> unresolvedNames)
+        {
+            List<long> result = new List<long>();
+            List<string> screenNames = new List<string>();
+            unresolvedNames = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return result;
+            }
+
+            string[] parts = line.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i].Trim();
+
+                if (long.TryParse(part, out long id))
+                {
+                    if (!result.Contains(id))
+                    {
+                        result.Add(id);
+                    }
+                }
+                else
+                {
+                    string screenName = CleanScreenName(part);
+
+                    if (!string.IsNullOrEmpty(screenName)
+                        && !screenNames.Contains(screenName))
+                    {
+                        screenNames.Add(screenName);
+                    }
+                }
+            }
+
+            List<long> resolved = ResolveScreenNames(screenNames, out unresolvedNames);
+
+            for (int i = 0; i < resolved.Count; i++)
+            {
+                if (!result.Contains(resolved[i]))
+                {
+                    result.Add(resolved[i]);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Validate Access Token and user IDs via users.get
+        /// </summary>
+        public bool ValidateTokenAndUserIds(List<long> userIds, out string errorMessage)
+        {
+            errorMessage = null;
+
+            if (string.IsNullOrEmpty(AccessToken))
+            {
+                errorMessage = "Access Token is empty";
+                ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                return false;
+            }
+
+            if (userIds == null
+                || userIds.Count == 0)
+            {
+                errorMessage = "User IDs list is empty";
+                ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                return false;
+            }
+
+            try
+            {
+                string ids = string.Join(",", userIds);
+
+                string url = _apiBaseUrl + "users.get?" +
+                             $"user_ids={ids}" +
+                             $"&access_token={AccessToken}&v=5.131";
+
+                HttpResponseMessage response = _httpClient.GetAsync(url).GetAwaiter().GetResult();
+                string responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                dynamic parsed = JsonConvert.DeserializeObject(responseContent);
+
+                if (parsed?.error != null)
+                {
+                    errorMessage = $"VK API error {parsed.error.error_code}: {parsed.error.error_msg}";
+                    ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                    return false;
+                }
+
+                if (parsed?.response == null)
+                {
+                    errorMessage = $"VK API unexpected response: {responseContent}";
+                    ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                    return false;
+                }
+
+                List<long> found = new List<long>();
+
+                foreach (var user in parsed.response)
+                {
+                    found.Add((long)user.id);
+                }
+
+                List<long> missing = new List<long>();
+
+                for (int i = 0; i < userIds.Count; i++)
+                {
+                    if (!found.Contains(userIds[i]))
+                    {
+                        missing.Add(userIds[i]);
+                    }
+                }
+
+                if (missing.Count > 0)
+                {
+                    errorMessage = $"User IDs not found: {string.Join(", ", missing)}";
+                    ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception error)
+            {
+                errorMessage = error.Message;
+                ServerMaster.SendNewLogMessage($"VK validation failed: {errorMessage}", LogMessageType.Error);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Remove prefixes @, vk.com/, https://vk.com/ from screen name
+        /// </summary>
+        private string CleanScreenName(string name)
+        {
+            name = name.Trim();
+
+            if (name.StartsWith("@"))
+            {
+                name = name.Substring(1);
+            }
+
+            int vkComIndex = name.IndexOf("vk.com/", StringComparison.OrdinalIgnoreCase);
+
+            if (vkComIndex >= 0)
+            {
+                name = name.Substring(vkComIndex + "vk.com/".Length);
+            }
+
+            name = name.TrimEnd('/');
+
+            return name;
+        }
+
+        /// <summary>
+        /// Convert screen names to numeric user IDs via users.get
+        /// </summary>
+        private List<long> ResolveScreenNames(List<string> screenNames, out List<string> unresolvedNames)
+        {
+            List<long> result = new List<long>();
+            unresolvedNames = new List<string>();
+
+            if (screenNames == null
+                || screenNames.Count == 0)
+            {
+                return result;
+            }
+
+            if (string.IsNullOrEmpty(AccessToken))
+            {
+                unresolvedNames.AddRange(screenNames);
+
+                ServerMaster.SendNewLogMessage(
+                    "VK: can't resolve screen names, Access Token is empty",
+                    LogMessageType.Error);
+                return result;
+            }
+
+            try
+            {
+                string names = string.Join(",", screenNames);
+
+                string url = _apiBaseUrl + "users.get?" +
+                             $"user_ids={Uri.EscapeDataString(names)}" +
+                             $"&fields=screen_name" +
+                             $"&access_token={AccessToken}&v=5.131";
+
+                HttpResponseMessage response = _httpClient.GetAsync(url).GetAwaiter().GetResult();
+                string responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                dynamic parsed = JsonConvert.DeserializeObject(responseContent);
+
+                if (parsed?.response == null)
+                {
+                    unresolvedNames.AddRange(screenNames);
+
+                    ServerMaster.SendNewLogMessage(
+                        $"VK users.get failed for '{names}'. Response: {responseContent}",
+                        LogMessageType.Error);
+                    return result;
+                }
+
+                List<string> foundNames = new List<string>();
+
+                foreach (var user in parsed.response)
+                {
+                    long id = (long)user.id;
+
+                    if (!result.Contains(id))
+                    {
+                        result.Add(id);
+                    }
+
+                    string screenName = user.screen_name?.ToString();
+
+                    if (!string.IsNullOrEmpty(screenName))
+                    {
+                        foundNames.Add(screenName.ToLowerInvariant());
+                    }
+                }
+
+                for (int i = 0; i < screenNames.Count; i++)
+                {
+                    if (!foundNames.Contains(screenNames[i].ToLowerInvariant()))
+                    {
+                        unresolvedNames.Add(screenNames[i]);
+                    }
+                }
+
+                if (unresolvedNames.Count > 0)
+                {
+                    ServerMaster.SendNewLogMessage(
+                        $"VK: screen names not found: {string.Join(", ", unresolvedNames)}",
+                        LogMessageType.Error);
+                }
+            }
+            catch (Exception error)
+            {
+                unresolvedNames.AddRange(screenNames);
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Create command event
         /// </summary>
         public void ExecuteCommand(string botName, CommandVk cmd)
@@ -259,7 +537,7 @@ namespace OsEngine.Logging
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -303,7 +581,7 @@ namespace OsEngine.Logging
 
                 StringContent content = new StringContent(postData, System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                HttpResponseMessage response = _httpClient.PostAsync("https://api.vk.com/method/messages.send", content).Result;
+                HttpResponseMessage response = _httpClient.PostAsync(_apiBaseUrl + "messages.send", content).Result;
                 string responseContent = response.Content.ReadAsStringAsync().Result;
 
                 if (responseContent.Contains("\"error\""))
@@ -336,7 +614,7 @@ namespace OsEngine.Logging
 
                     StringContent content = new StringContent(postData, System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                    HttpResponseMessage response = _httpClient.PostAsync("https://api.vk.com/method/messages.send", content).Result;
+                    HttpResponseMessage response = _httpClient.PostAsync(_apiBaseUrl + "messages.send", content).Result;
                     string responseContent = response.Content.ReadAsStringAsync().Result;
 
                     if (responseContent.Contains("\"error\""))
@@ -401,36 +679,69 @@ namespace OsEngine.Logging
 
                 try
                 {
-                    string getLongPollServerUrl = $"https://api.vk.com/method/messages.getLongPollServer?" +
-                                                  $"access_token={AccessToken}" +
-                                                  $"&v=5.131";
-
-                    HttpResponseMessage response = _httpClient.GetAsync(getLongPollServerUrl).GetAwaiter().GetResult();
-                    string responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
-                    dynamic longPollServer = JsonConvert.DeserializeObject(responseContent);
-
-                    if (longPollServer?.response == null)
+                    if (string.IsNullOrEmpty(_longPollKey))
                     {
-                        Thread.Sleep(5000);
-                        continue;
+                        string getLongPollServerUrl = _apiBaseUrl + "messages.getLongPollServer?" +
+                                                      $"access_token={AccessToken}" +
+                                                      $"&v=5.131";
+
+                        HttpResponseMessage response = _httpClient.GetAsync(getLongPollServerUrl).GetAwaiter().GetResult();
+                        string responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        dynamic longPollServer = JsonConvert.DeserializeObject(responseContent);
+
+                        if (longPollServer?.response == null)
+                        {
+                            Thread.Sleep(5000);
+                            continue;
+                        }
+
+                        string server = longPollServer.response.server;
+                        _longPollKey = longPollServer.response.key;
+                        _lastUpdateTs = longPollServer.response.ts;
+                        _longPollServerUrl = server;
                     }
 
-                    string server = longPollServer.response.server;
-                    string key = longPollServer.response.key;
-                    long ts = longPollServer.response.ts;
+                    string serverUrl = _longPollServerUrl;
 
-                    if (!server.StartsWith("http://") && !server.StartsWith("https://"))
+                    if (!serverUrl.StartsWith("http://") && !serverUrl.StartsWith("https://"))
                     {
-                        server = "https://" + server;
+                        serverUrl = "https://" + serverUrl;
                     }
 
-                    string longPollUrl = $"{server}?act=a_check&key={key}&ts={ts}&wait=25&mode=2&version=3";
+                    string longPollUrl = $"{serverUrl}?act=a_check&key={_longPollKey}&ts={_lastUpdateTs}&wait=25&mode=2&version=3";
 
                     HttpResponseMessage longPollResponse = _httpClient.GetAsync(longPollUrl).GetAwaiter().GetResult();
                     string longPollContent = longPollResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
                     dynamic updates = JsonConvert.DeserializeObject(longPollContent);
+
+                    // Обработка ошибок Long Poll (https://dev.vk.com/ru/api/user-long-poll/getting-started)
+                    if (updates?.failed != null)
+                    {
+                        int failed = (int)updates.failed;
+
+                        if (failed == 1)
+                        {
+                            // История устарела — обновляем ts и продолжаем
+                            _lastUpdateTs = updates.ts;
+                            continue;
+                        }
+
+                        if (failed == 4)
+                        {
+                            // Недопустимый номер версии — перезапрос сервера не поможет
+                            ServerMaster.SendNewLogMessage(
+                                $"VK Long Poll: invalid version. Response: {longPollContent}",
+                                LogMessageType.Error);
+                            Thread.Sleep(60000);
+                            continue;
+                        }
+
+                        // failed == 2 (key expired) или 3 — перезапрашиваем сервер
+                        _longPollKey = null;
+                        continue;
+                    }
 
                     if (updates?.updates != null)
                     {
@@ -466,7 +777,7 @@ namespace OsEngine.Logging
 
                     if (updates?.ts != null)
                     {
-                        _lastUpdateId = updates.ts;
+                        _lastUpdateTs = updates.ts;
                     }
 
                     Thread.Sleep(500);
@@ -587,60 +898,6 @@ namespace OsEngine.Logging
     }
 
     #region Helper
-
-    public class VkLongPollServerResponse
-    {
-        public VkLongPollServer response { get; set; }
-    }
-
-    public class VkLongPollServer
-    {
-        public string key { get; set; }
-        public string server { get; set; }
-        public long ts { get; set; }
-    }
-
-    public class VkLongPollUpdates
-    {
-        public long ts { get; set; }
-        public List<VkLongPollUpdate> updates { get; set; }
-    }
-
-    public class VkLongPollUpdate
-    {
-        public int type { get; set; }
-        public object @object { get; set; }  // Может быть разным в зависимости от type
-
-        // Для type = 4 (новое сообщение)
-        public VkLongPollMessage message => GetMessage();
-
-        private VkLongPollMessage GetMessage()
-        {
-            if (type == 4 && @object != null)
-            {
-                var objDict = @object as Newtonsoft.Json.Linq.JObject;
-                if (objDict != null)
-                {
-                    var msg = objDict["message"]?.ToObject<VkLongPollMessage>();
-                    if (msg != null) return msg;
-
-                    // Альтернативный формат: некоторые версии API возвращают message напрямую
-                    return objDict.ToObject<VkLongPollMessage>();
-                }
-            }
-            return null;
-        }
-    }
-
-    public class VkLongPollMessage
-    {
-        public long id { get; set; }
-        public long date { get; set; }
-        public long from_id { get; set; }
-        public long peer_id { get; set; }
-        public string text { get; set; }
-        public int @out { get; set; }
-    }
 
     /// <summary>
     /// Commands sent to the bot
