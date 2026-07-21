@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -570,8 +570,8 @@ namespace OsEngine.Market.Servers
                         {
                             continue;
                         }
-                        row.Cells[i].Style.ForeColor = Color.FromArgb(255, 83, 0);
-                        row.Cells[i].Style.SelectionForeColor = Color.FromArgb(255, 83, 0);
+                        row.Cells[i].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
+                        row.Cells[i].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
                     }
                 }
                 else
@@ -582,7 +582,10 @@ namespace OsEngine.Market.Servers
                         {
                             continue;
                         }
-                        row.Cells[i].Style = _gridConnections.DefaultCellStyle;
+
+                        // клон: иначе все ячейки делят один объект стиля
+                        // и покраска выделенной строки протекает на всю таблицу
+                        row.Cells[i].Style = (DataGridViewCellStyle)_gridConnections.DefaultCellStyle.Clone();
                     }
                 }
             }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1482,8 +1482,8 @@ namespace OsEngine.Entity
                 }
                 else
                 {
-                    chartElement.NonTradePeriodStartTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF111217"));
-                    chartElement.NonTradePeriodEndTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF111217"));
+                    chartElement.NonTradePeriodStartTextBox.Background = Themes.ThemeManager.GetBrush("StandardBackgroundBrush");
+                    chartElement.NonTradePeriodEndTextBox.Background = Themes.ThemeManager.GetBrush("StandardBackgroundBrush");
                 }
             }
             catch

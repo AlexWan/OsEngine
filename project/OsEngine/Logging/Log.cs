@@ -1,4 +1,4 @@
-﻿/*
+/*
 *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
 *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -179,6 +179,44 @@ namespace OsEngine.Logging
             _grid.DoubleClick += _grid_DoubleClick;
             _grid.Click += _grid_Click;
             _grid.DataError += _grid_DataError;
+
+            Themes.ThemeManager.ThemeChangedEvent += Log_ThemeChangedEvent;
+        }
+
+        private void Log_ThemeChangedEvent()
+        {
+            try
+            {
+                if (_grid == null)
+                {
+                    return;
+                }
+
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(Log_ThemeChangedEvent));
+                    return;
+                }
+
+                DataGridFactory.ApplyTheme(_grid);
+
+                // строки, созданные до смены темы (в т.ч. пустая заглушка),
+                // могут держать старый стиль на уровне ячеек (клон из шаблона) —
+                // в Log кастомных цветов нет, перекрашиваем принудительно
+                for (int i = 0; i < _grid.Rows.Count; i++)
+                {
+                    _grid.Rows[i].DefaultCellStyle = _grid.DefaultCellStyle;
+
+                    for (int y = 0; y < _grid.Rows[i].Cells.Count; y++)
+                    {
+                        _grid.Rows[i].Cells[y].Style = _grid.DefaultCellStyle;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
@@ -322,6 +360,8 @@ namespace OsEngine.Logging
 
             if (_grid != null)
             {
+                Themes.ThemeManager.ThemeChangedEvent -= Log_ThemeChangedEvent;
+
                 _grid.DoubleClick -= _grid_DoubleClick;
                 _grid.DataError -= _grid_DataError;
                 _grid.Rows.Clear();
@@ -1051,6 +1091,31 @@ namespace OsEngine.Logging
             _gridErrorLog.Columns.Add(column);
 
             _gridErrorLog.DataError += _gridErrorLog_DataError;
+
+            Themes.ThemeManager.ThemeChangedEvent += Log_ThemeChangedEventStatic;
+        }
+
+        private static void Log_ThemeChangedEventStatic()
+        {
+            try
+            {
+                if (_gridErrorLog == null)
+                {
+                    return;
+                }
+
+                if (_gridErrorLog.InvokeRequired)
+                {
+                    _gridErrorLog.Invoke(new Action(Log_ThemeChangedEventStatic));
+                    return;
+                }
+
+                DataGridFactory.ApplyTheme(_gridErrorLog);
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private static void _gridErrorLog_DataError(object sender, DataGridViewDataErrorEventArgs e)

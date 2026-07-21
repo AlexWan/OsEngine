@@ -1,4 +1,4 @@
-﻿/*
+/*
 *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
 *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1189,14 +1189,14 @@ namespace OsEngine.Market.Connectors
                     {
                         for (int y = 0; y < _gridSecurities.ColumnCount; y++)
                         {
-                            _gridSecurities.Rows[rowInd].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                            _gridSecurities.Rows[rowInd].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
                         }
                     }
                     else
                     {
                         for (int y = 0; y < _gridSecurities.ColumnCount; y++)
                         {
-                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextInactiveColor");
                         }
                     }
                 }

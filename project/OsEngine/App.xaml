@@ -1825,7 +1825,7 @@
         <!-- Window CanResize -->
         <Style x:Key="WindowStyleCanResize" TargetType="{x:Type Window}">
             <Setter Property="WindowStyle" Value="None" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderThickness" Value="2" />
             <Setter Property="Background" Value="{DynamicResource WindowBackgroundGradientBrush}"/>
             <Setter Property="AllowsTransparency" Value="False" />
             <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
@@ -1857,8 +1857,8 @@
                             Width="Auto"
                             Height="Auto"
                             Background="{DynamicResource ControlBackgroundNormalLight}"
-                            BorderBrush="{DynamicResource WindowBorderBrush}"
-                            BorderThickness="1"
+                            BorderBrush="{DynamicResource WindowFrameBrush}"
+                            BorderThickness="2"
                             Padding="0">
                                     <DockPanel
                                HorizontalAlignment="Stretch"
@@ -1988,7 +1988,7 @@
                                 </Setter>
                             </Trigger>
                             <Trigger Property="IsActive" Value="False">
-                                <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource WindowBorderBrushInactive}"/>
+                                <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource WindowFrameInactiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -2014,7 +2014,7 @@
         <!-- Window NoResize -->
         <Style x:Key="WindowStyleNoResize" TargetType="{x:Type Window}">
             <Setter Property="WindowStyle" Value="None" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderThickness" Value="2" />
             <Setter Property="Background" Value="{DynamicResource WindowBackgroundGradientBrush}"/>
             <Setter Property="AllowsTransparency" Value="False" />
             <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
@@ -2045,9 +2045,9 @@
                             Width="Auto"
                             Height="Auto"
                             Background="{DynamicResource ControlBackgroundNormalLight}"
-                            BorderBrush="{DynamicResource WindowBorderBrush}"
+                            BorderBrush="{DynamicResource WindowFrameBrush}"
                             
-                            BorderThickness="1"
+                            BorderThickness="2"
                             Padding="0">
                                     <DockPanel
                                HorizontalAlignment="Stretch"
@@ -2132,7 +2132,7 @@
                                 </Setter>
                             </Trigger>
                             <Trigger Property="IsActive" Value="False">
-                                <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource WindowBorderBrushInactive}"/>
+                                <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource WindowFrameInactiveBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

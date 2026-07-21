@@ -10,6 +10,8 @@
         <Color x:Key="GridFlashColor">#0ABAB5</Color>
         <Color x:Key="GridLinesColor">#4E6E69</Color>
         <SolidColorBrush x:Key="CheckBoxBackBrush" Color="#14312D"/>
+        <SolidColorBrush x:Key="WindowFrameBrush" Color="#4E6E69"/>
+        <SolidColorBrush x:Key="WindowFrameInactiveBrush" Color="#8FCFC6"/>
         <Color x:Key="GridTextInactiveColor">#4E6E69</Color>
         <Color x:Key="GridCellDisabledColor">#9AB3AE</Color>
         <Color x:Key="GridButtonBackColor">#D7EFEC</Color>
