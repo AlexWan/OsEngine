@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsTrader.Panels.BotPanelChartUi"
+<Window x:Class="OsEngine.OsTrader.Panels.BotPanelChartUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        Title="BotChart" Height="742.138" Width="1296.843" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="300" Icon="/Images/OsLogo.ico">
@@ -60,7 +60,7 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
-            <Rectangle Name="rectToMove" Margin="0,-11,0,0" Fill="#FCEE21" RadiusX="0" RadiusY="0" Height="10"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="290" />
+            <Rectangle Name="rectToMove" Margin="0,-11,0,0" Fill="{DynamicResource BrandStripBrush}" RadiusX="0" RadiusY="0" Height="10"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="290" />
 
             <TabControl Margin="0,-23,0,0" Name="TabControlPrime" BorderThickness="0" >
                 <TabItem Name="TabPosition" Header="Open positions" Width="140"  >
@@ -86,7 +86,7 @@
                 </TabItem>
             </TabControl>
         </Grid>
-        <Rectangle Fill="#FCEE21" Height="150" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,23.667" Grid.Row="1">
+        <Rectangle Fill="{DynamicResource BrandStripBrush}" Height="150" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,23.667" Grid.Row="1">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -128,7 +128,7 @@
             <WindowsFormsHost Name="ChartHostPanel" Margin="26,23,0,0"/>
             <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,25.667" Width="28">
                 <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
-                    <Grid Background="#FFE5E5E5"/>
+                    <Grid Background="{DynamicResource ControlBackgroundNormalLight}"/>
                 </TabItem>
             </TabControl>
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>

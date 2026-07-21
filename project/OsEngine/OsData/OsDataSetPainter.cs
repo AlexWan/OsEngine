@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -347,10 +347,10 @@ namespace OsEngine.OsData
 
                 if (_previousActiveRow < _dataGrid.Rows.Count)
                 {
-                    _dataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    _dataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
                 }
 
-                _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                _dataGrid.Rows[rowIndex].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
 
                 _previousActiveRow = rowIndex;
 
@@ -828,8 +828,8 @@ namespace OsEngine.OsData
                         buttonCell.Value = "+LQDT"; break;
                 }
 
-                buttonCell.Style.ForeColor = System.Drawing.Color.FromArgb(250, 250, 250);
-                buttonCell.Style.BackColor = System.Drawing.Color.FromArgb(17, 18, 23);
+                buttonCell.Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
+                buttonCell.Style.BackColor = Themes.ThemeManager.GetColorWinForms("GridButtonBackColor");
 
                 rows[1].Cells.Add(buttonCell);
             }
@@ -1123,7 +1123,7 @@ colum12.HeaderText = "Delete";
 
             for (int i = 0; i < row.Cells.Count; i++)
             {
-                row.Cells[i].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+                row.Cells[i].Style.BackColor = Themes.ThemeManager.GetColorWinForms("GridRowAltColor");
             }
 
             return row;

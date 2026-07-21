@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.MainWindow"
+<Window x:Class="OsEngine.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Main menu" Style="{StaticResource WindowStyleNoResize}" Height="430" Width="625" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="Images/OsLogo.ico">
@@ -13,9 +13,9 @@
             <Button  Name="ButtonCandleConverter" Content="Candle Converter" HorizontalAlignment="Left" Margin="37,172,0,0" VerticalAlignment="Top" Width="145" Click="CandleConverter_Click"/>
             <Button  Name="ButtonConverter" Content="Converter" Margin="37,138,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
             <Button  Name="ButtonOptimizer" Content="Optimizer" Margin="248,171,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
-            <Label Name="BlockDataLabel" Content="Work with data" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="12,64,0,0" VerticalAlignment="Top" Width="202" Height="36" FontSize="28" Foreground="#FFA7A8AA"/>
-            <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="223,64,0,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="#FFA7A8AA" Height="36"/>
-            <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="430,64,0,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="36" Width="182"/>
+            <Label Name="BlockDataLabel" Content="Work with data" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="12,64,0,0" VerticalAlignment="Top" Width="202" Height="36" FontSize="28" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="223,64,0,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="{DynamicResource TextSecondaryBrush}" Height="36"/>
+            <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="430,64,0,0" VerticalAlignment="Top"  FontSize="28" Foreground="{DynamicResource TextSecondaryBrush}" Height="36" Width="182"/>
             <Image Name="ImageData" HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
             <Image Name="ImageTests" HorizontalAlignment="Left" Source="Images/MainWIndow/data.png" Height="68" Margin="76,7,0,0" VerticalAlignment="Top" Width="68"/>
             <Image Name="ImageTrading" HorizontalAlignment="Left" Source="Images/MainWIndow/Trading.png" Height="85" Margin="484,0,0,0" VerticalAlignment="Top" Width="85"/>
@@ -23,7 +23,10 @@
             <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
                 <Image Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
             </Button>
-            <Button Name="ButtonApi" Content="API" HorizontalAlignment="Left" Margin="403,231,0,0" VerticalAlignment="Top" Width="86" Height="28" Click="ButtonApi_Click"/>
+            <Button Name="ButtonApi" Content="API" HorizontalAlignment="Left" Margin="388,231,0,0" VerticalAlignment="Top" Width="86" Height="28" Click="ButtonApi_Click"/>
+            <Button Name="ButtonTheme" Margin="479,232,0,0" VerticalAlignment="Top" Height="24" Width="37" HorizontalAlignment="Left">
+                <Image Name="ImageTheme" Source="/Images/MainWIndow/theme.png" Width="20" Height="20"/>
+            </Button>
             <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="249,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonTesterLight_Click"   />
             <Button  Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
             <Image Name="ImagePadlock" HorizontalAlignment="Left" Source="/Images/padlockClosed.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
@@ -39,7 +42,7 @@
                     <Image Name="WhiteCollectionMenu"  Source="/Images/InstructionPosts/WhitePostCollection.png" Width="31" Height="25" Opacity="0" />
                 </Grid>
             </Button>
-            <Button Name="ButtonNewCommits" Content="  0 commits  " HorizontalAlignment="Left" Margin="91,231,0,0" VerticalAlignment="Top" Width="141" Height="28"
+            <Button Name="ButtonNewCommits" Content="  0 commits  " HorizontalAlignment="Left" Margin="91,231,0,0" VerticalAlignment="Top" Width="158" Height="28"
                     Click="ButtonNewCommits_Click" MouseEnter="ButtCommits_MouseEnter" MouseLeave="ButtCommits_MouseLeave" />
         </Grid>
         <Grid Name="VideoGrid" VerticalAlignment="Top" Height="120" Margin="0,271,0,0">
@@ -61,7 +64,7 @@
                 <Border Name="VideoBorder"
                 CornerRadius="25"
                 BorderThickness="1"
-                BorderBrush="#1c2228"
+                BorderBrush="{DynamicResource ControlBorderBrush}"
                 Background="Transparent"
                 />
             </Grid>

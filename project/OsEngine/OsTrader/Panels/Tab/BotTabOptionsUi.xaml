@@ -10,7 +10,7 @@
     </Window.Background>
     <Grid>
         <!-- Left Panel: Configuration -->
-        <Rectangle Margin="5,5,0,35" HorizontalAlignment="Left" Width="200" Fill="#FF21262C" Stroke="#FF38414A"/>
+        <Rectangle Margin="5,5,0,35" HorizontalAlignment="Left" Width="200" Fill="{DynamicResource ControlBorderBrush}" Stroke="{DynamicResource ControlBorderBrush}"/>
         <Label Content="Server" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="White"/>
         <ComboBox Name="ComboBoxTypeServer" Margin="10,30,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
         
@@ -25,7 +25,7 @@
         <TextBox Name ="TextBoxCommissionValue" Margin="10,210,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"  />
 
         <!-- Right Panel: Underlying Asset Selection -->
-        <Rectangle Margin="210,5,10,35" Fill="#FF21262C" Stroke="#FF38414A"/>
+        <Rectangle Margin="210,5,10,35" Fill="{DynamicResource ControlBorderBrush}" Stroke="{DynamicResource ControlBorderBrush}"/>
         <Label Content="Underlying Asset Selection" HorizontalAlignment="Left" Margin="215,10,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="White"/>
 
 

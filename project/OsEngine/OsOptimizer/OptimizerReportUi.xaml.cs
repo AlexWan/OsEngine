@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -56,6 +56,8 @@ namespace OsEngine.OsOptimizer
             LabelTableResults.Content = OsLocalization.Optimizer.Label31;
             TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
+            TabItemResults.Header = OsLocalization.Optimizer.Label29;
+            Title = OsLocalization.Optimizer.LabelReportTitle;
             ButtonSaveInFile.Content = OsLocalization.Optimizer.Label45;
             ButtonLoadFromFile.Content = OsLocalization.Optimizer.Label46;
             LabelRobustnessMetric.Content = OsLocalization.Optimizer.Label53;
@@ -337,7 +339,7 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonLoadFromFile_Click(object sender, RoutedEventArgs e)
         {
-            Title = "Optimizer Report";
+            Title = OsLocalization.Optimizer.LabelReportTitle;
 
             try
             {
@@ -643,7 +645,7 @@ namespace OsEngine.OsOptimizer
 
             _gridResults.Columns[2].HeaderText = "Pos Count";
 
-            Color cellColor = Color.Black;
+            Color cellColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
 
             for (int i = 0; i < _gridResults.Columns.Count; i++)
             {
@@ -1004,7 +1006,7 @@ namespace OsEngine.OsOptimizer
 
         private void PaintBotInTable(string botName)
         {
-            Color selectBotColor = Color.FromArgb(255, 83, 0);
+            Color selectBotColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
 
             for (int i2 = 0; i2 < _gridResults.Rows.Count; i2++)
             {
@@ -1044,22 +1046,22 @@ namespace OsEngine.OsOptimizer
 
             _chartSeriesResult.ChartAreas.Clear();
             _chartSeriesResult.ChartAreas.Add(area);
-            _chartSeriesResult.BackColor = Color.FromArgb(21, 26, 30);
-            _chartSeriesResult.ChartAreas[0].AxisX.TitleForeColor = Color.FromArgb(149, 159, 176);
+            _chartSeriesResult.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            _chartSeriesResult.ChartAreas[0].AxisX.TitleForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
 
             for (int i = 0; _chartSeriesResult.ChartAreas != null && i < _chartSeriesResult.ChartAreas.Count; i++)
             {
-                _chartSeriesResult.ChartAreas[i].BackColor = Color.FromArgb(21, 26, 30);
+                _chartSeriesResult.ChartAreas[i].BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserSelectionEnabled = false;
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserEnabled = true;
-                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(255, 83, 0);
+                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
                 _chartSeriesResult.ChartAreas[i].CursorX.LineWidth = 2;
-                _chartSeriesResult.ChartAreas[i].BorderColor = Color.FromArgb(17, 18, 23);
-                _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Color.FromArgb(149, 159, 176);
+                _chartSeriesResult.ChartAreas[i].BorderColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColor");
+                _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
 
                 foreach (var axe in _chartSeriesResult.ChartAreas[i].Axes)
                 {
-                    axe.LabelStyle.ForeColor = Color.FromArgb(149, 159, 176);
+                    axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
                 }
             }
 
@@ -1100,7 +1102,7 @@ namespace OsEngine.OsOptimizer
                         continue;
                     }
                     _chartSeriesResult.Series[0].Points[i].Label = null;
-                    _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                    _chartSeriesResult.Series[0].Points[i].LabelForeColor = Themes.ThemeManager.GetColorWinForms("JournalEquityTotalColor");
                 }
 
                 if (index >= _chartSeriesResult.Series[0].Points.Count)
@@ -1296,7 +1298,7 @@ namespace OsEngine.OsOptimizer
                     for (int i = 0; i < _chartSeriesResult.Series[0].Points.Count; i++)
                     {
                         _chartSeriesResult.Series[0].Points[i].Label = null;
-                        _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                        _chartSeriesResult.Series[0].Points[i].LabelForeColor = Themes.ThemeManager.GetColorWinForms("JournalEquityTotalColor");
                     }
 
                     int index = (int)_chartSeriesResult.ChartAreas[0].CursorX.Position;

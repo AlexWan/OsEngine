@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsData.DataPrunerUi"
+<Window x:Class="OsEngine.OsData.DataPrunerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="" Height="428" Width="610" Style="{StaticResource WindowStyleNoResize}" 
@@ -31,9 +31,9 @@
             </Grid.RowDefinitions>
 
             <Label Name="LabelDelByTime" Content="Deleting by start and end time" FontWeight="Bold" Grid.Row="0"/>
-            <Label Name="LabelStartTime" Content="Start data time" Foreground="#FFE2E3E8" Grid.Row="2"/>
+            <Label Name="LabelStartTime" Content="Start data time" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="2"/>
             <DatePicker Name="DatePickerTimeStart" Grid.Row="2" HorizontalAlignment="Right" Width="133"/>
-            <Label Name="LabelEndTime" Content="End data time" Foreground="#FFE2E3E8" Grid.Row="4"/>
+            <Label Name="LabelEndTime" Content="End data time" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="4"/>
             <DatePicker Name="DatePickerTimeEnd" Grid.Row="4" HorizontalAlignment="Right" Width="133"/>
             <Button Name="ButtonDelete1" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete1_Click"/>
         </Grid>
@@ -56,9 +56,9 @@
             </Grid.ColumnDefinitions>
 
             <Label Name="LabelObjNums" Content="Deleting by number of objects" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label Name="LabelObjsNum" Content="Objects in security" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
+            <Label Name="LabelObjsNum" Content="Objects in security" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="2" Grid.Column="0"/>
             <TextBox Name="TextBoxObjs" Height="23" Grid.Row="2" Grid.Column="1" Width="100" Text="1000"/>
-            <Label Name="LabelTf" Content="Time frame" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
+            <Label Name="LabelTf" Content="Time frame" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="4" Grid.Column="0"/>
             <ComboBox Name="ComboBoxTf" Height="22" Grid.Row="4" Grid.Column="1" Width="100"/>
             <Button Name="ButtonDelete2" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete2_Click"/>
         </Grid>
@@ -81,9 +81,9 @@
             </Grid.ColumnDefinitions>
 
             <Label Name="LabelDelByVol" Content="Deleting by volatility" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label Name="LabelMaxVol" Content="Max volatility" Foreground="#FFDFE1E6" Grid.Row="2" Grid.Column="0"/>
+            <Label Name="LabelMaxVol" Content="Max volatility" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="2" Grid.Column="0"/>
             <TextBox Name="TextBoxMaxVol" Height="24" Grid.Row="2" Grid.Column="1" Width="100" Text="30"/>
-            <Label Name="LabelMinVol" Content="Min volatility" Foreground="#FFDFE1E6" Grid.Row="4" Grid.Column="0"/>
+            <Label Name="LabelMinVol" Content="Min volatility" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="4" Grid.Column="0"/>
             <TextBox Name="TextBoxMinVol" Height="23" Grid.Row="4" Grid.Column="1" Width="100" Text="0.5"/>
             <Button Name="ButtonDelete3" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete3_Click"/>
         </Grid>
@@ -106,9 +106,9 @@
             </Grid.ColumnDefinitions>
 
             <Label Name="LabelDelByFract" Content="Deleting by significant digit count" FontWeight="Bold" Grid.Row="0" Grid.ColumnSpan="2"/>
-            <Label Name="LabelMaxDigit" Content="Max digits" Foreground="#FFE2E3E8" Grid.Row="2" Grid.Column="0"/>
+            <Label Name="LabelMaxDigit" Content="Max digits" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="2" Grid.Column="0"/>
             <TextBox Name="TextBoxMaxDigits" Height="23" Grid.Row="2" Grid.Column="1" Width="100" Text="7"/>
-            <Label Name="LabelMinDigit" Content="Min digits" Foreground="#FFE2E3E8" Grid.Row="4" Grid.Column="0"/>
+            <Label Name="LabelMinDigit" Content="Min digits" Foreground="{DynamicResource ControlForegroundWhite}" Grid.Row="4" Grid.Column="0"/>
             <TextBox Name="TextBoxMinDigits" Height="23" Grid.Row="4" Grid.Column="1" Width="100" Text="3"/>
             <Button Name="ButtonDelete4" Content="Delete" Height="33" Grid.Row="6" HorizontalAlignment="Left" Width="100" Click="ButtonDelete4_Click"/>
             <Button  Name="ButtonDataDelete"  Grid.Row="6" VerticalAlignment="Center"  Height="36" Grid.Column="1" Margin="75,0,10,0" Click="ButtonDataDelete_Click" >

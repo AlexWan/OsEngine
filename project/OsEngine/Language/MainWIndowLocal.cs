@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -95,6 +95,34 @@ namespace OsEngine.Language
         public string OsApiButtonName => OsLocalization.ConvertToLocString(
          "Eng:API_" +
          "Ru:API_");
+
+        public string ThemeWindowTitle => OsLocalization.ConvertToLocString(
+         "Eng:Color theme_" +
+         "Ru:Цветовая тема_");
+
+        public string ThemeButtonAccept => OsLocalization.ConvertToLocString(
+         "Eng:Accept_" +
+         "Ru:Принять_");
+
+        public string ThemeButtonCancel => OsLocalization.ConvertToLocString(
+         "Eng:Cancel_" +
+         "Ru:Отмена_");
+
+        public string ThemePreviewMainText => OsLocalization.ConvertToLocString(
+         "Eng:Main text_" +
+         "Ru:Основной текст_");
+
+        public string ThemePreviewSecondaryText => OsLocalization.ConvertToLocString(
+         "Eng:Secondary text_" +
+         "Ru:Дополнительный текст_");
+
+        public string ThemePreviewButton => OsLocalization.ConvertToLocString(
+         "Eng:Button_" +
+         "Ru:Кнопка_");
+
+        public string ThemePreviewHover => OsLocalization.ConvertToLocString(
+         "Eng:Hover_" +
+         "Ru:Наведение_");
 
     }
 }

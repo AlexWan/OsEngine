@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -291,8 +291,8 @@ namespace OsEngine.Robots
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            _grid.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.Black;
-            _grid.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+            _grid.DefaultCellStyle.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
+            _grid.DefaultCellStyle.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
 
             cell0.Style = _grid.DefaultCellStyle;
 
@@ -622,24 +622,24 @@ namespace OsEngine.Robots
         {
             try
             {
-                System.Drawing.Color baseColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                System.Drawing.Color baseColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
 
                 for (int i = 0; i < _grid.Rows.Count; i++)
                 {
                     if (_grid.Rows[i].Selected)
                     {
-                        _grid.Rows[i].Cells[0].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[1].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[2].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[3].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[4].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[5].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
-                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[0].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[1].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[2].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[3].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[4].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[5].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
+                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("ColorForeground");
                     }
                     else
                     {

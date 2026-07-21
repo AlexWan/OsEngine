@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -721,12 +721,6 @@ namespace OsEngine.Charts.CandleChart
                 ToolStripMenuItem item1 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem1);
 
 
-                ToolStripMenuItem item2 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem2);
-
-                item2.DropDownItems.AddRange(new ToolStripMenuItem[]{
-                            new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem3),
-                            new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem4)});
-
                 ToolStripMenuItem item5 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem5);
                 item5.DropDownItems.AddRange(
                     new ToolStripMenuItem[]{
@@ -736,19 +730,15 @@ namespace OsEngine.Charts.CandleChart
                         new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem8),
                         new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem9)});
 
-                item1.DropDownItems.Add(item2);
                 item1.DropDownItems.Add(item5);
 
                 items.Add(item1);
 
-                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[0].Click += ChartBlackColor_Click;
-                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[1].Click += ChartWhiteColor_Click;
-
-                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[0].Click += ChartAutoToPosition_Click;
-                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[1].Click += ChartCrossToPosition_Click;
-                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[2].Click += ChartRombToPosition_Click;
-                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[3].Click += ChartCircleToPosition_Click;
-                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[4].Click += ChartTriangleToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[0].Click += ChartAutoToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[1].Click += ChartCrossToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[2].Click += ChartRombToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[3].Click += ChartCircleToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[4].Click += ChartTriangleToPosition_Click;
 
                 items.Add(new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem10));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -830,24 +820,6 @@ namespace OsEngine.Charts.CandleChart
         {
             ChartCandle.SetPointType(PointType.TriAngle);
             ChartCandle.ProcessPositions(_myPosition);
-        }
-
-        /// <summary>
-        /// user has selected a dark color setting in context menu
-        /// Пользователь выбрал в контекстном меню темную настройку цветов
-        /// </summary>
-        private void ChartBlackColor_Click(object sender, EventArgs e)
-        {
-            ChartCandle.SetBlackScheme();
-        }
-
-        /// <summary>
-        /// user has selected a light color setting in context menu
-        /// Пользователь выбрал в контекстном меню светлую настройку цветов
-        /// </summary>
-        private void ChartWhiteColor_Click(object sender, EventArgs e)
-        {
-            ChartCandle.SetWhiteScheme();
         }
 
         /// <summary>

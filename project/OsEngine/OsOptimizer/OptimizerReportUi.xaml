@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsOptimizer.OptimizerReportUi"
+<Window x:Class="OsEngine.OsOptimizer.OptimizerReportUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -66,7 +66,7 @@
                 </TabItem>
 
             </TabControl>
-            <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
+            <Rectangle Fill="{DynamicResource BrandStripBrush}" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
                 <Rectangle.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>

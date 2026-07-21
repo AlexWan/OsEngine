@@ -2127,5 +2127,13 @@ namespace OsEngine.Language
         public string LabelAccrualsAndCharges => OsLocalization.ConvertToLocString(
          "Eng:Accruals & Charges_" +
          "Ru:Начисления и списания_");
+
+        public string LabelAcceptRemoveClearing => OsLocalization.ConvertToLocString(
+         "Eng:Are you sure you want to remove the clearing?_" +
+         "Ru:Вы уверены, что хотите удалить время отзыва ордеров?_");
+
+        public string LabelAcceptRemoveNonTradePeriod => OsLocalization.ConvertToLocString(
+         "Eng:Are you sure you want to remove the non trade period?_" +
+         "Ru:Вы уверены, что хотите удалить неторговый период?_");
     }
 }

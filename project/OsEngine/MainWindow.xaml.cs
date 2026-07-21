@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -64,6 +64,11 @@ namespace OsEngine
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             this.Closing += MainWindow_Closing;
+
+            RePaintThemeImages();
+            Themes.ThemeManager.ThemeChangedEvent += MainWindow_ThemeChangedEvent;
+
+            ButtonTheme.Click += ButtonTheme_Click;
 
             try
             {
@@ -1343,7 +1348,8 @@ namespace OsEngine
         {
             OsLocalization.OsLocalType newType;
 
-            if (ButtonLocal_Ru.Background.ToString() == "#FFFF5500")
+            if (ButtonLocal_Ru.Background is System.Windows.Media.SolidColorBrush ruBrush
+                && ruBrush.Color == Themes.ThemeManager.GetColor("ControlForeground"))
             {
                 return;
             }
@@ -1353,8 +1359,8 @@ namespace OsEngine
                 OsLocalization.CurLocalization = newType;
                 Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
-                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
-                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF111217");
+                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
                 GifT.Position = TimeSpan.Zero;
                 GifT.Play();
             }
@@ -1369,8 +1375,8 @@ namespace OsEngine
                 OsLocalization.CurLocalization = newType;
                 Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
-                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
-                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF111217");
+                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
             }
         }
 
@@ -1378,11 +1384,61 @@ namespace OsEngine
         {
             if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {
-                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
             }
             else
             {
-                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
+            }
+        }
+
+        private void MainWindow_ThemeChangedEvent()
+        {
+            try
+            {
+                RePaintThemeImages();
+                ChangeButtonCommits();
+                ReloadFlagButton();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// установить картинки главного меню под текущую тему
+        /// </summary>
+        private void RePaintThemeImages()
+        {
+            try
+            {
+                string themeFolder = "pack://application:,,,/Images/MainWIndow/Themes/"
+                    + Themes.ThemeManager.CurrentTheme + "/";
+
+                ImageData.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "test.png"));
+                ImageTests.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "data.png"));
+                ImageTrading.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "trading.png"));
+                ImageGear.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "gear.png"));
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ButtonTheme_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Themes.ThemeSelectUi ui = new Themes.ThemeSelectUi();
+                ui.ShowDialog();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1574,13 +1630,13 @@ namespace OsEngine
             try
             {
                 string buttCont = OsLocalization.MainWindow.NewCommits;
-                SolidColorBrush foreground = new((Color)ColorConverter.ConvertFromString("#FFEEEFFF"));
-                SolidColorBrush background = new((Color)ColorConverter.ConvertFromString("#FF111217"));
+                SolidColorBrush foreground = Themes.ThemeManager.GetBrush("ControlForegroundWhite");
+                SolidColorBrush background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
 
                 if (_commitsCount > 0)
                 {
                     buttCont = OsLocalization.MainWindow.NewCommits.Replace("0", _commitsCount.ToString());
-                    background = new SolidColorBrush(Color.FromRgb(255, 85, 0));
+                    background = Themes.ThemeManager.GetBrush("ControlForeground");
                     foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF0F0F0"));
                 }
                 else if (_commitsCount < 0)

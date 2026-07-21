@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -928,7 +928,7 @@ namespace OsEngine.Market.Servers.Tester
             Series profit = new Series("SeriesProfit");
 
             profit.ChartType = SeriesChartType.Line;
-            profit.Color = Color.DeepSkyBlue;
+            profit.Color = Themes.ThemeManager.GetColorWinForms("ChartEquityColor");
             profit.YAxisType = AxisType.Secondary;
             profit.ChartArea = "ChartAreaProfit";
             profit.ShadowOffset = 2;
@@ -951,19 +951,22 @@ namespace OsEngine.Market.Servers.Tester
             profitBar.ShadowOffset = 2;
             _chartReport.Series.Add(profitBar);
 
-            _chartReport.BackColor = Color.FromArgb(-15395563);
+            _chartReport.BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
 
             for (int i = 0; _chartReport.ChartAreas != null && i < _chartReport.ChartAreas.Count; i++)
             {
-                _chartReport.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
-                _chartReport.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
-                _chartReport.ChartAreas[i].CursorY.LineColor = Color.DimGray;
-                _chartReport.ChartAreas[i].CursorX.LineColor = Color.DimGray;
-                _chartReport.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
+                _chartReport.ChartAreas[i].BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
+                _chartReport.ChartAreas[i].BorderColor = Themes.ThemeManager.GetColorWinForms("ChartBorderColor");
+                _chartReport.ChartAreas[i].CursorY.LineColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                _chartReport.ChartAreas[i].CursorX.LineColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                _chartReport.ChartAreas[i].AxisX.TitleForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
 
                 foreach (var axe in _chartReport.ChartAreas[i].Axes)
                 {
-                    axe.LabelStyle.ForeColor = Color.DimGray;
+                    axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+
+                    // значения осей — не больше двух знаков после запятой
+                    axe.LabelStyle.Format = "0.##";
                 }
             }
 
@@ -1010,11 +1013,11 @@ namespace OsEngine.Market.Servers.Tester
 
                         if (portfolio[i] - portfolio[i - 1] > 0)
                         {
-                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DeepSkyBlue;
+                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Themes.ThemeManager.GetColorWinForms("ChartBarPlusColor");
                         }
                         else
                         {
-                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DarkRed;
+                            _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Themes.ThemeManager.GetColorWinForms("ChartBarMinusColor");
                         }
                     }
                 }
@@ -1060,11 +1063,11 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (portfolio[portfolio.Count - 1] - portfolio[portfolio.Count - 1 - 1] > 0)
                 {
-                    _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DeepSkyBlue;
+                    _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Themes.ThemeManager.GetColorWinForms("ChartBarPlusColor");
                 }
                 else
                 {
-                    _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Color.DarkRed;
+                    _chartReport.Series[1].Points[_chartReport.Series[1].Points.Count - 1].Color = Themes.ThemeManager.GetColorWinForms("ChartBarMinusColor");
                 }
             }
 
@@ -1338,7 +1341,7 @@ namespace OsEngine.Market.Servers.Tester
                     else
                     {// Удаление клиринга
 
-                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the clearing?");
+                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.LabelAcceptRemoveClearing);
 
                         ui.ShowDialog();
 
@@ -1630,7 +1633,7 @@ namespace OsEngine.Market.Servers.Tester
                     else
                     {// Удаление периода
 
-                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the non trade period?");
+                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.LabelAcceptRemoveNonTradePeriod);
 
                         ui.ShowDialog();
 

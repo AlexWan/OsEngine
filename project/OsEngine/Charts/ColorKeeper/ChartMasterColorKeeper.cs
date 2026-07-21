@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -37,84 +37,85 @@ namespace OsEngine.Charts.ColorKeeper
         {
             _name = name;
             _pointType = PointType.Cross;
-            Load();
+            SetThemeScheme(Themes.ThemeManager.CurrentTheme);
         }
 
         /// <summary>
-        ///  загрузить из файла
+        /// установить схему цветов чарта из темы приложения
         /// </summary>
-        private void Load()
+        public void SetThemeScheme(string themeId)
         {
-            try
+            if (themeId == "Tiffany")
             {
-                if (!Directory.Exists(@"Engine\Color"))
-                {
-                    Directory.CreateDirectory(@"Engine\Color");
-                }
+                ColorUpBodyCandle = Color.FromArgb(255, 14, 159, 110);
+                ColorUpBorderCandle = Color.FromArgb(255, 11, 133, 96);
+                ColorDownBodyCandle = Color.FromArgb(255, 214, 60, 74);
+                ColorDownBorderCandle = Color.FromArgb(255, 183, 47, 60);
+                ColorBackSecond = Color.FromArgb(255, 201, 231, 226);
+                ColorBackChart = Color.FromArgb(255, 215, 239, 236);
+                ColorBackCursor = Color.FromArgb(255, 10, 186, 181);
+                ColorText = Color.FromArgb(255, 78, 110, 105);
 
-                if (File.Exists(@"Engine\Color\" + _name + "Color.txt"))
-                {
-                    using (StreamReader reader = new StreamReader(@"Engine\Color\" + _name + "Color.txt"))
-                    {
-                        ColorUpBodyCandle = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorUpBorderCandle = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorDownBodyCandle = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorDownBorderCandle = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorBackSecond = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorBackChart = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorBackCursor = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        ColorText = Color.FromArgb(Convert.ToInt32(reader.ReadLine()));
-                        Enum.TryParse(reader.ReadLine(), true, out _pointType);
-                        Enum.TryParse(reader.ReadLine(), true, out _colorScheme);
-                    }
-                }
-                else
-                {
-                    ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
-                    ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
-
-                    ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
-                    ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
-
-                    ColorBackSecond = Color.FromArgb(17, 18, 23);
-                    ColorBackChart = Color.FromArgb(17, 18, 23);
-                    ColorBackCursor = Color.FromArgb(255, 83, 0);
-
-                    ColorText = Color.FromArgb(255, 147, 147, 147);
-
-                    _colorScheme = ChartColorScheme.Black;
-                }
+                _colorScheme = ChartColorScheme.White;
             }
-            catch (Exception error)
+            else if (themeId == "Gray")
             {
-                SendNewMessage(error.ToString(),LogMessageType.Error);
+                ColorUpBodyCandle = Color.FromArgb(255, 31, 138, 46);
+                ColorUpBorderCandle = Color.FromArgb(255, 23, 115, 39);
+                ColorDownBodyCandle = Color.FromArgb(255, 198, 40, 40);
+                ColorDownBorderCandle = Color.FromArgb(255, 169, 31, 31);
+                ColorBackSecond = Color.FromArgb(255, 255, 255, 255);
+                ColorBackChart = Color.FromArgb(255, 238, 241, 244);
+                ColorBackCursor = Color.FromArgb(255, 47, 109, 179);
+                ColorText = Color.FromArgb(255, 89, 97, 107);
+
+                _colorScheme = ChartColorScheme.White;
+            }
+            else if (themeId == "Midnight")
+            {
+                ColorUpBodyCandle = Color.FromArgb(255, 63, 163, 77);
+                ColorUpBorderCandle = Color.FromArgb(255, 46, 128, 64);
+                ColorDownBodyCandle = Color.FromArgb(255, 168, 32, 32);
+                ColorDownBorderCandle = Color.FromArgb(255, 192, 40, 40);
+                ColorBackSecond = Color.FromArgb(255, 10, 15, 24);
+                ColorBackChart = Color.FromArgb(255, 14, 20, 32);
+                ColorBackCursor = Color.FromArgb(255, 74, 123, 200);
+                ColorText = Color.FromArgb(255, 138, 147, 166);
+
+                _colorScheme = ChartColorScheme.Dark;
+            }
+            else
+            { // DarkOrange — схема по умолчанию
+                ColorUpBodyCandle = Color.FromArgb(57, 157, 54);
+                ColorUpBorderCandle = Color.FromArgb(57, 157, 54);
+
+                ColorDownBodyCandle = Color.FromArgb(17, 18, 23);
+                ColorDownBorderCandle = Color.FromArgb(255, 83, 0);
+
+                ColorBackSecond = Color.FromArgb(17, 18, 23);
+                ColorBackChart = Color.FromArgb(17, 18, 23);
+                ColorBackCursor = Color.FromArgb(255, 83, 0);
+
+                ColorText = Color.FromArgb(255, 147, 147, 147);
+
+                _colorScheme = ChartColorScheme.Black;
+            }
+
+            if (NeedToRePaintFormEvent != null)
+            {
+                NeedToRePaintFormEvent();
             }
         }
 
         /// <summary>
-        /// сохранить в файл
+        /// уведомить о необходимости перерисовки.
+        /// Раньше сохранял цвета в per-panel файл Engine\Color\ — отключено,
+        /// цвета чарта определяются темой приложения (ThemeManager)
         /// </summary>
         public void Save() 
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\Color\" + _name + "Color.txt"))
-                {
-                    writer.WriteLine(ColorUpBodyCandle.ToArgb());
-                    writer.WriteLine(ColorUpBorderCandle.ToArgb());
-                    writer.WriteLine(ColorDownBodyCandle.ToArgb());
-                    writer.WriteLine(ColorDownBorderCandle.ToArgb());
-
-                    writer.WriteLine(ColorBackSecond.ToArgb());
-                    writer.WriteLine(ColorBackChart.ToArgb());
-                    writer.WriteLine(ColorBackCursor.ToArgb());
-                    writer.WriteLine(ColorText.ToArgb());
-
-                    writer.WriteLine(_pointType);
-
-                    writer.WriteLine(_colorScheme);
-                }
-
                 if (NeedToRePaintFormEvent != null)
                 {
                     NeedToRePaintFormEvent();

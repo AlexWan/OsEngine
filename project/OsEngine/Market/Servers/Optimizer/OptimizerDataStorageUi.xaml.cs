@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -725,7 +725,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     else
                     {// Удаление клиринга
 
-                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the clearing?");
+                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.LabelAcceptRemoveClearing);
 
                         ui.ShowDialog();
 
@@ -960,7 +960,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     else
                     {// Удаление периода
 
-                        AcceptDialogUi ui = new AcceptDialogUi("Are you sure you want to remove the non trade period?");
+                        AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.LabelAcceptRemoveNonTradePeriod);
 
                         ui.ShowDialog();
 

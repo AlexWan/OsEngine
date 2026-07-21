@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +16,8 @@ namespace OsEngine
         protected override void OnStartup(StartupEventArgs e)
         {
             app = this;
+
+            Themes.ThemeManager.Apply(Themes.ThemeManager.Load());
 
             base.OnActivated(e);
         }

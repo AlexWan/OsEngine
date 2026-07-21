@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsTrader.Grids.TradeGridUi"
+<Window x:Class="OsEngine.OsTrader.Grids.TradeGridUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -212,7 +212,7 @@
                     <Label Name="LabelNoTradePeriod1Regime" Content="Regime 1" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="214,10,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods" Content="Set periods 1" Margin="196,38,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods_Click"/>
-                    <Label Name="LabelNonTradePeriod1IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,40,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#FF12FFE5"/>
+                    <Label Name="LabelNonTradePeriod1IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,40,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{DynamicResource ControlForeground}"/>
 
                     <ComboBox Name="ComboBoxOpenOrdersMakerOnly" Margin="195,157,10,0" VerticalAlignment="Top"/>
                     <Label Name="LabelOpenOrdersMakerOnly" Content="Open orders maker only" HorizontalAlignment="Left" Margin="14,157,0,0" VerticalAlignment="Top"/>
@@ -220,7 +220,7 @@
                     <Label Name="LabelNoTradePeriod2Regime" Content="Regime 2" HorizontalAlignment="Left" Margin="14,81,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="214,81,10,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonSetNonTradePeriods2" Content="Set periods 2" Margin="196,109,11,0" VerticalAlignment="Top" Click="ButtonSetNonTradePeriods2_Click"/>
-                    <Label Name="LabelNonTradePeriod2IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,111,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="#FF12FFE5"/>
+                    <Label Name="LabelNonTradePeriod2IsActive" Content="Active >>" HorizontalAlignment="Left" Margin="127,111,0,0" VerticalAlignment="Top" FontWeight="Bold" Foreground="{DynamicResource ControlForeground}"/>
                     <Label Name="LabelServerTime" Content="Current server time" HorizontalAlignment="Left" Margin="14,195,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxCurrentServerTime" Margin="196,195,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxCloseForcedRegimeOrderType" Margin="196,233,9,0" VerticalAlignment="Top"/>

@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.OsTrader.Gui.RobotUiLite"
+<Window x:Class="OsEngine.OsTrader.Gui.RobotUiLite"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -105,7 +105,7 @@
 
             </TabControl>
         </Grid>
-        <Rectangle Fill="#FCEE21" Height="146" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,28" Grid.Row="1">
+        <Rectangle Fill="{DynamicResource BrandStripBrush}" Height="146" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,28" Grid.Row="1">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -136,7 +136,7 @@
             </Grid>
 
             <Grid Grid.Row="1"  Margin="0,0,0,0">
-                <Rectangle Name="rectToMove" Fill="#FCEE21" Margin="722,0,0,0" RadiusX="0" RadiusY="0"/>
+                <Rectangle Name="rectToMove" Fill="{DynamicResource BrandStripBrush}" Margin="722,0,0,0" RadiusX="0" RadiusY="0"/>
             </Grid>
         </Grid>
         <Image Name="ImagePadlock" Source="/Images/padlockOpened.png" HorizontalAlignment="Left" Height="26" Width="25" Margin="0,0,0,5" Grid.Row="1" VerticalAlignment="Bottom" />

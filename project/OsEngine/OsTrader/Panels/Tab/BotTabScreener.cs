@@ -1894,10 +1894,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (_previousActiveRow < SecuritiesDataGrid.Rows.Count)
                     {
-                        SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                        SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
                     }
 
-                    SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                    SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
                     _previousActiveRow = tabRow;
                 }
             }

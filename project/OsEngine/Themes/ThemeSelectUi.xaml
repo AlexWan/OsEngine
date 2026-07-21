@@ -1,0 +1,32 @@
+<Window x:Class="OsEngine.Themes.ThemeSelectUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Theme" Style="{StaticResource WindowStyleNoResize}"
+        Height="1200" Width="1200" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Name="TilesGridRow0" Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+
+        <Grid Name="TilesGridRow1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,5,5">
+            <Button Name="ButtonAccept" Content="OK" Width="150" Height="34" Margin="10,0"/>
+            <Button Name="ButtonCancel" Content="Cancel" Width="150" Height="34" Margin="10,0"/>
+        </StackPanel>
+    </Grid>
+</Window>

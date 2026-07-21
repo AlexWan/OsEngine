@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -392,8 +392,8 @@ namespace OsEngine.OsTrader.Gui
                     return;
                 }
 
-                _grid.Rows[_prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
-                _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
+                _grid.Rows[_prevActiveRow].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+                _grid.Rows[rowIndex].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
                 _prevActiveRow = rowIndex;
             }
             catch (Exception error)
@@ -923,7 +923,7 @@ colum10.HeaderText = "Action";
             {
                 for (int i = 0; i < row.Cells.Count; i++)
                 {
-                    row.Cells[i].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+                    row.Cells[i].Style.BackColor = Themes.ThemeManager.GetColorWinForms("GridRowAltColor");
                 }
             }
 
@@ -1273,7 +1273,7 @@ colum9.HeaderText = "Journal";
             try
             {
                 await Task.Delay(200);
-                ColoredRow(System.Drawing.Color.LightSlateGray);
+                ColoredRow(Themes.ThemeManager.GetColorWinForms("GridFlashColor"));
                 await Task.Delay(600);
                 ColoredRow(_lastBackColor);
                 _rowToPaintInOpenPoses = -1;

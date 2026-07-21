@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1234,14 +1234,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         for (int y = 0; y < _gridSecurities.ColumnCount; y++)
                         {
-                            _gridSecurities.Rows[e.RowIndex].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#ffffff");
+                            _gridSecurities.Rows[e.RowIndex].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
                         }
                     }
                     else
                     {
                         for (int y = 0; y < _gridSecurities.ColumnCount; y++)
                         {
-                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = System.Drawing.ColorTranslator.FromHtml("#FFA1A1A1");
+                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextInactiveColor");
                         }
                     }
                 }
@@ -1497,8 +1497,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     else if (haveThisTf == false)
                     {
                         _gridSecurities.Rows[i].Cells[6].ReadOnly = true;
-                        _gridSecurities.Rows[i].Cells[6].Style.BackColor = Color.DarkGray;
-                        _gridSecurities.Rows[i].Cells[6].Style.SelectionBackColor = Color.DarkGray;
+                        _gridSecurities.Rows[i].Cells[6].Style.BackColor = Themes.ThemeManager.GetColorWinForms("GridCellDisabledColor");
+                        _gridSecurities.Rows[i].Cells[6].Style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridCellDisabledColor");
 
                         DataGridViewCheckBoxCell cellIsOn = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
 

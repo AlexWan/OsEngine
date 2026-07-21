@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -163,14 +163,14 @@ namespace OsEngine.Entity
 
                 DataGridViewCellStyle styleRed = new DataGridViewCellStyle();
                 styleRed.Alignment = DataGridViewContentAlignment.MiddleRight;
-                styleRed.ForeColor = Color.FromArgb(254, 84, 0);
+                styleRed.ForeColor = Themes.ThemeManager.GetColorWinForms("MarketDepthAskColor");
                 styleRed.Font = new Font("Areal", 3);
 
                 for (int i = 0; i < 25; i++)
                 {
                     _marketDepthTable.Rows.Add(null, null, null);
-                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.BackColor = Color.FromArgb(28, 33, 37);
-                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.BackColor = Themes.ThemeManager.GetColorWinForms("MarketDepthAskBackColor");
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("MarketDepthAskColor");
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[0].Style = styleRed;
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[1].Style = styleRed;
@@ -178,14 +178,14 @@ namespace OsEngine.Entity
 
                 DataGridViewCellStyle styleBlue = new DataGridViewCellStyle();
                 styleBlue.Alignment = DataGridViewContentAlignment.MiddleRight;
-                styleBlue.ForeColor = Color.FromArgb(57, 157, 54);
+                styleBlue.ForeColor = Themes.ThemeManager.GetColorWinForms("MarketDepthBidColor");
                 styleBlue.Font = new Font("Areal", 3);
 
                 for (int i = 0; i < 25; i++)
                 {
                     _marketDepthTable.Rows.Add(null, null, null);
-                    //_glassBox.Rows[_glassBox.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Black;
-                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.BackColor = Themes.ThemeManager.GetColorWinForms("MarketDepthBidBackColor");
+                    _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("MarketDepthBidColor");
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].DefaultCellStyle.Font = new Font("New Times Roman", 10);
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[0].Style = styleBlue;
                     _marketDepthTable.Rows[_marketDepthTable.Rows.Count - 1].Cells[1].Style = styleBlue;

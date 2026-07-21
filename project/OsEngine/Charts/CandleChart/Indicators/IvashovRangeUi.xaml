@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IvashovRangeUi"
+<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IvashovRangeUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
          Title="Ivashov Range" Height="221" Width="313" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
@@ -6,12 +6,12 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button Name ="ButtonAccept"  Content="Accept" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="114" Click="ButtonAccept_Click"/>
         <TextBox Name ="TextBoxLength" Height="23" Margin="154,23,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,23,203,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
-        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,106,0,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <Label Name="LabelIndicatorPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,23,203,0" VerticalAlignment="Top" Foreground="{DynamicResource LabelForegroundBrush}" FontFamily="Calibri" FontSize="14"/>
+        <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,106,0,0" VerticalAlignment="Top" Foreground="{DynamicResource LabelForegroundBrush}" FontFamily="Calibri" FontSize="14"/>
         <Button Name="ButtonColorAdx" Content="Color" Height="22" FontSize="14" FontFamily="Calibri"  HorizontalAlignment="Left" Margin="21,79,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"  />
         <WindowsFormsHost Name="HostColorBase" Height="22" Margin="154,79,22,0" VerticalAlignment="Top"/>
         <TextBox Name ="TextBoxLengthAverage" Height="23" Margin="154,51,22,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label Name="LabelIndicatorSmoothing" Content="Smoothing" HorizontalAlignment="Right" Margin="0,51,203,0" VerticalAlignment="Top" Foreground="#FF7212" FontFamily="Calibri" FontSize="14"/>
+        <Label Name="LabelIndicatorSmoothing" Content="Smoothing" HorizontalAlignment="Right" Margin="0,51,203,0" VerticalAlignment="Top" Foreground="{DynamicResource LabelForegroundBrush}" FontFamily="Calibri" FontSize="14"/>
 
     </Grid>
 </Window>

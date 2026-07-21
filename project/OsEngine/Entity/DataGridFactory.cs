@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -28,27 +28,29 @@ namespace OsEngine.Entity
             grid.MultiSelect = false;
             grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             grid.ScrollBars = ScrollBars.None;
-            grid.BackColor = Color.FromArgb(21, 26, 30);
-            grid.BackgroundColor = Color.FromArgb(21, 26, 30);
-           
-            grid.GridColor = Color.FromArgb(17, 18, 23);
-            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            grid.BackgroundColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+
+            grid.GridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
+            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             grid.BorderStyle = BorderStyle.None;
 
             DataGridViewCellStyle style = new DataGridViewCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;
-            style.BackColor =  Color.FromArgb(21, 26, 30);
-            style.SelectionBackColor = Color.FromArgb(17, 18, 23);
-            style.ForeColor = Color.FromArgb(154, 156, 158);
+            style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
+            style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
+            style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
             grid.DefaultCellStyle = style;
 
             DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
             headerStyle.WrapMode = DataGridViewTriState.True;
-            headerStyle.BackColor = Color.FromArgb(21, 26, 30);
-            headerStyle.SelectionBackColor = Color.FromArgb(21, 26, 30);
-            headerStyle.ForeColor = Color.FromArgb(154, 156, 158);
+            headerStyle.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            headerStyle.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            headerStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+            headerStyle.Font = new Font(grid.Font, FontStyle.Bold);
 
 
             grid.ColumnHeadersDefaultCellStyle = headerStyle;

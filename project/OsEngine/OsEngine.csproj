@@ -70,9 +70,13 @@
   </Target>
   <ItemGroup>
     <Compile Remove="lua\**" />
+    <Compile Remove="Theme\**" />
     <EmbeddedResource Remove="lua\**" />
+    <EmbeddedResource Remove="Theme\**" />
     <None Remove="lua\**" />
+    <None Remove="Theme\**" />
     <Page Remove="lua\**" />
+    <Page Remove="Theme\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Robots\DataTransferObjects.cs" />
@@ -245,6 +249,25 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\MainWIndow\gear.png" />
+    <Resource Include="Images\MainWIndow\theme.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\MainWIndow\Themes\DarkOrange\data.png" />
+    <Resource Include="Images\MainWIndow\Themes\DarkOrange\test.png" />
+    <Resource Include="Images\MainWIndow\Themes\DarkOrange\trading.png" />
+    <Resource Include="Images\MainWIndow\Themes\DarkOrange\gear.png" />
+    <Resource Include="Images\MainWIndow\Themes\Tiffany\data.png" />
+    <Resource Include="Images\MainWIndow\Themes\Tiffany\test.png" />
+    <Resource Include="Images\MainWIndow\Themes\Tiffany\trading.png" />
+    <Resource Include="Images\MainWIndow\Themes\Tiffany\gear.png" />
+    <Resource Include="Images\MainWIndow\Themes\Gray\data.png" />
+    <Resource Include="Images\MainWIndow\Themes\Gray\test.png" />
+    <Resource Include="Images\MainWIndow\Themes\Gray\trading.png" />
+    <Resource Include="Images\MainWIndow\Themes\Gray\gear.png" />
+    <Resource Include="Images\MainWIndow\Themes\Midnight\data.png" />
+    <Resource Include="Images\MainWIndow\Themes\Midnight\test.png" />
+    <Resource Include="Images\MainWIndow\Themes\Midnight\trading.png" />
+    <Resource Include="Images\MainWIndow\Themes\Midnight\gear.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\padlockClosed.png" />
