@@ -29,18 +29,21 @@ namespace OsEngine.Entity
             grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             grid.ScrollBars = ScrollBars.None;
 
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
+            DataGridViewCellStyle style = CreateThemedCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;
             grid.DefaultCellStyle = style;
+            grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
 
-            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
+            DataGridViewCellStyle headerStyle = CreateThemedHeaderStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
             headerStyle.WrapMode = DataGridViewTriState.True;
             headerStyle.Font = new Font(grid.Font, FontStyle.Bold);
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
-            ApplyTheme(grid);
+            grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            grid.BackgroundColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            grid.GridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
 
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             grid.BorderStyle = BorderStyle.None;
@@ -55,6 +58,35 @@ namespace OsEngine.Entity
             }
 
             return grid;
+        }
+
+        /// <summary>
+        /// стиль ячеек в цветах текущей темы
+        /// </summary>
+        private static DataGridViewCellStyle CreateThemedCellStyle()
+        {
+            DataGridViewCellStyle style = new DataGridViewCellStyle();
+
+            style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
+            style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
+            style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+
+            return style;
+        }
+
+        /// <summary>
+        /// стиль заголовков в цветах текущей темы
+        /// </summary>
+        private static DataGridViewCellStyle CreateThemedHeaderStyle()
+        {
+            DataGridViewCellStyle style = new DataGridViewCellStyle();
+
+            style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
+            style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+
+            return style;
         }
 
         class DoubleBufferedDataGridView : DataGridView
@@ -76,11 +108,7 @@ namespace OsEngine.Entity
             grid.BackgroundColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             grid.GridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
 
-            DataGridViewCellStyle style = new DataGridViewCellStyle();
-            style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
-            style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
-            style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
-            style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+            DataGridViewCellStyle style = CreateThemedCellStyle();
 
             if (grid.DefaultCellStyle != null)
             {
@@ -92,10 +120,7 @@ namespace OsEngine.Entity
             grid.DefaultCellStyle = style;
             grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
 
-            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
-            headerStyle.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
-            headerStyle.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
-            headerStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+            DataGridViewCellStyle headerStyle = CreateThemedHeaderStyle();
 
             if (grid.ColumnHeadersDefaultCellStyle != null)
             {

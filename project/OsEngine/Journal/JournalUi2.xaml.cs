@@ -885,6 +885,9 @@ namespace OsEngine.Journal
                     _gridStatistics.Rows.Add(); //string addition/ добавление строки
                 }
 
+                // колонка подписей без явного стиля показывает дефолтный чёрный текст
+                _gridStatistics.Columns[0].DefaultCellStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+
                 _gridStatistics.Rows[0].Cells[0].Value = OsLocalization.Journal.GridRow1;
                 _gridStatistics.Rows[1].Cells[0].Value = OsLocalization.Journal.GridRow2;
                 _gridStatistics.Rows[2].Cells[0].Value = OsLocalization.Journal.GridRow3;
@@ -918,6 +921,15 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[28].Cells[0].Value = "";
                 _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
                 _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
+
+                // ячейки созданы из шаблона колонки — присваиваем актуальный стиль темы принудительно
+                for (int i = 0; i < _gridStatistics.Rows.Count; i++)
+                {
+                    for (int y = 0; y < _gridStatistics.Rows[i].Cells.Count; y++)
+                    {
+                        _gridStatistics.Rows[i].Cells[y].Style = _gridStatistics.DefaultCellStyle;
+                    }
+                }
             }
             catch (Exception error)
             {
@@ -983,6 +995,16 @@ namespace OsEngine.Journal
                     for (int i = 0; i < 31; i++)
                     {
                         _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
+                    }
+                }
+
+                // шаблоны колонок захватывают стиль при создании грида —
+                // присваиваем актуальный стиль темы всем ячейкам принудительно
+                for (int i = 0; i < _gridStatistics.Rows.Count; i++)
+                {
+                    for (int y = 0; y < _gridStatistics.Rows[i].Cells.Count; y++)
+                    {
+                        _gridStatistics.Rows[i].Cells[y].Style = _gridStatistics.DefaultCellStyle;
                     }
                 }
             }
