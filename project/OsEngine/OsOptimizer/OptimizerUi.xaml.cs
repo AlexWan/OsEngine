@@ -40,6 +40,7 @@ namespace OsEngine.OsOptimizer
             InitializeComponent();
             _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_FitHeightToWorkArea(this);
             Thread.Sleep(200);
 
             _master = new OptimizerMaster();

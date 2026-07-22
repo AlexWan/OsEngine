@@ -182,6 +182,18 @@ namespace OsEngine.Layout
                     ui.Height = maxHeight;
                 }
 
+                double maxWidth = workArea.Width - 40;
+
+                if (ui.Width > maxWidth)
+                {
+                    if (ui.MinWidth > maxWidth)
+                    {
+                        ui.MinWidth = maxWidth;
+                    }
+
+                    ui.Width = maxWidth;
+                }
+
                 // окно не должно открываться за пределами видимой области
                 if (ui.Top < workArea.Top)
                 {
@@ -191,6 +203,16 @@ namespace OsEngine.Layout
                 if (ui.Top + ui.Height > workArea.Bottom)
                 {
                     ui.Top = workArea.Bottom - ui.Height;
+                }
+
+                if (ui.Left < workArea.Left)
+                {
+                    ui.Left = workArea.Left;
+                }
+
+                if (ui.Left + ui.Width > workArea.Right)
+                {
+                    ui.Left = workArea.Right - ui.Width;
                 }
 
                 ui.Activated -= Ui_Start_FitHeightToWorkArea_ContentActivated;

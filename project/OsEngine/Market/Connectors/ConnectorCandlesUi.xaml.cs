@@ -1242,18 +1242,18 @@ namespace OsEngine.Market.Connectors
             {
                 if (securityType == SecurityType.Futures)
                 {
-                    SecurityTable.Margin = new Thickness(12, 289, 0, 0);
-                    SecurityTable.Height = 226;
+                    SecurityTable.Margin = new Thickness(12, 259, 0, 0);
+                    SecurityTable.Height = 170;
                 }
                 else if (securityType == SecurityType.Option)
                 {
                     SecurityTable.Margin = new Thickness(12, 319, 0, 0);
-                    SecurityTable.Height = 196;
+                    SecurityTable.Height = 110;
                 }
                 else
                 {
-                    SecurityTable.Margin = new Thickness(12, 259, 0, 0);
-                    SecurityTable.Height = 256;
+                    SecurityTable.Margin = new Thickness(12, 236, 0, 0);
+                    SecurityTable.Height = 184;
                 }
 
                 if (securities == null

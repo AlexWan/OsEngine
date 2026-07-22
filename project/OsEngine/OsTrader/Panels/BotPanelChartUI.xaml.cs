@@ -32,6 +32,7 @@ namespace OsEngine.OsTrader.Panels
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_FitHeightToWorkArea(this);
             _panel = panel;
             StartPaint();
             Local();
