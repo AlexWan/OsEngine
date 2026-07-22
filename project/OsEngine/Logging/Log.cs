@@ -1209,6 +1209,8 @@ namespace OsEngine.Logging
 
         private static DateTime _lastTimeShowErrorLog = DateTime.Now;
 
+        private static bool _errorLogCreationPending = false;
+
         public static void ShowErrorLogUi()
         {
             try
@@ -1218,15 +1220,48 @@ namespace OsEngine.Logging
                     MainWindow.GetDispatcher.Invoke(new Action(ShowErrorLogUi));
                     return;
                 }
-                else
+
+                if (_logErrorUi == null)
                 {
-                    if (_lastTimeShowErrorLog.AddSeconds(1) < DateTime.Now)
+                    if (_errorLogCreationPending == true)
                     {
-                        _lastTimeShowErrorLog = DateTime.Now;
-                        Task.Run(ShowErrorLogUi);
                         return;
                     }
+
+                    _errorLogCreationPending = true;
+
+                    // Deferred creation at low dispatcher priority.
+                    // Station windows open via ShowDialog, which disables all previously created windows.
+                    // Creating the log window at ApplicationIdle guarantees it appears inside
+                    // the station's modal session and stays clickable.
+                    // Отложенное создание на низком приоритете диспетчера.
+                    // Окна станций открываются через ShowDialog, который дизейблит все ранее созданные окна.
+                    // Создание на ApplicationIdle гарантирует, что окно появится внутри
+                    // модальной сессии станции и останется кликабельным.
+                    MainWindow.GetDispatcher.BeginInvoke(
+                        System.Windows.Threading.DispatcherPriority.ApplicationIdle,
+                        new Action(ShowErrorLogUiDeferred));
+
+                    return;
                 }
+
+                if (_lastTimeShowErrorLog.AddSeconds(1) < DateTime.Now)
+                {
+                    _lastTimeShowErrorLog = DateTime.Now;
+                    _logErrorUi.Activate();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private static void ShowErrorLogUiDeferred()
+        {
+            try
+            {
+                _errorLogCreationPending = false;
 
                 if (_logErrorUi == null)
                 {

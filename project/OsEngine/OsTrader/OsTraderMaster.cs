@@ -297,7 +297,7 @@ namespace OsEngine.OsTrader
                         }
                         catch (Exception e)
                         {
-                            MessageBox.Show(" Error on bot creation. Bot Name: " + names[1] + " \n" + e.ToString());
+                            SendNewLogMessage(" Error on bot creation. Bot Name: " + names[1] + " \n" + e.ToString(), LogMessageType.Error);
                             continue;
                         }
                     }
