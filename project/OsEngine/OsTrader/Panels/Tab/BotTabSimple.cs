@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1819,7 +1819,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    return BuyAtLimit(volume, price);
+                    return BuyAtLimit(volume, price, signalType);
                 }
             }
             catch (Exception error)
@@ -3008,7 +3008,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    return SellAtLimit(volume, price);
+                    return SellAtLimit(volume, price, signalType);
                 }
             }
             catch (Exception error)
@@ -3783,7 +3783,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Market, true);
+                    ShortUpdate(position, price, volume, ManualPositionSupport.SecondToOpen, false, OrderPriceType.Limit, true);
                 }
 
             }
