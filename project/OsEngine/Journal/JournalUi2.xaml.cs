@@ -6144,6 +6144,11 @@ namespace OsEngine.Journal
         {
             try
             {
+                if(e.RowIndex == -1)
+                {
+                    return;
+                }
+
                 if (e.ColumnIndex == 2)
                 {
                     _lastSecuritiesEvent = e;

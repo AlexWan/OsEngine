@@ -24,6 +24,7 @@ namespace OsEngine.Themes
             InitializeComponent();
             StickyBorders.Listen(this);
             StartupLocation.Start_MouseInCentre(this);
+            StartupLocation.Start_FitHeightToWorkArea(this);
 
             Title = OsLocalization.MainWindow.ThemeWindowTitle;
             ButtonAccept.Content = OsLocalization.MainWindow.ThemeButtonAccept;

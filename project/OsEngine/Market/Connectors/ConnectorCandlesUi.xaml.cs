@@ -39,6 +39,7 @@ namespace OsEngine.Market.Connectors
                 InitializeComponent();
                 OsEngine.Layout.StickyBorders.Listen(this);
                 OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+                OsEngine.Layout.StartupLocation.Start_FitHeightToWorkArea(this);
 
                 ButtonRightInSearchResults.Visibility = Visibility.Hidden;
                 ButtonLeftInSearchResults.Visibility = Visibility.Hidden;
