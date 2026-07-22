@@ -26,6 +26,7 @@ namespace OsEngine.Logging
 
             Title = OsLocalization.Logging.Label32;
             ButtonAccept.Content = OsLocalization.Logging.Button1;
+            ButtonDisconnect.Content = OsLocalization.Logging.Button5;
             Label33.Content = OsLocalization.Logging.Label33;
             Label34.Content = OsLocalization.Logging.Label34;
             Label35.Content = OsLocalization.Logging.Label35;
@@ -35,24 +36,51 @@ namespace OsEngine.Logging
             this.Focus();
         }
 
+        private void buttonDisconnect_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ServerVk.GetServer().Disconnect();
+                Close();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void buttonAccept_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 ServerVk serverVk = ServerVk.GetServer();
                 serverVk.AccessToken = TextBoxAccessToken.Text;
-                serverVk.UserIds = serverVk.ParseUserIds(TextBoxUserId.Text);
+                serverVk.UserIds = serverVk.ParseAndResolveUserIds(TextBoxUserId.Text, out System.Collections.Generic.List<string> unresolvedNames);
 
-                if (serverVk.UserIds.Count > 0)
+                if (unresolvedNames.Count > 0)
                 {
-                    serverVk.ProcessingCommand = CheckBoxProcessingCommand.IsChecked == true;
-                    serverVk.Save();
-                    Close();
-                }
-                else
-                {
+                    Label35.Content = $"Screen names not found: {string.Join(", ", unresolvedNames)}";
                     Label35.Visibility = Visibility.Visible;
+                    return;
                 }
+
+                if (serverVk.UserIds.Count == 0)
+                {
+                    Label35.Content = OsLocalization.Logging.Label35;
+                    Label35.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                if (serverVk.ValidateTokenAndUserIds(serverVk.UserIds, out string validationError) == false)
+                {
+                    Label35.Content = validationError;
+                    Label35.Visibility = Visibility.Visible;
+                    return;
+                }
+
+                serverVk.ProcessingCommand = CheckBoxProcessingCommand.IsChecked == true;
+                serverVk.Save();
+                Close();
             }
             catch (Exception error)
             {

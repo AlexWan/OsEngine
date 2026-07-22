@@ -51,6 +51,10 @@ namespace OsEngine.Language
             "Eng:Configure VK_" +
             "Ru:Настроить ВК_");
 
+        public string Button5 => OsLocalization.ConvertToLocString(
+           "Eng:Disconnect_" +
+           "Ru:Отключить_");
+
         public string ButtonClearExtraLog => OsLocalization.ConvertToLocString(
            "Eng:Clean up_" +
            "Ru:Очистить _");

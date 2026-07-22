@@ -6,12 +6,13 @@
         WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid Margin="0,0,-2,0">
         <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Button Name="ButtonDisconnect" Content="Disconnect" Margin="0,0,111,10" Click="buttonDisconnect_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxAccessToken" Height="23" Margin="145,20,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxUserId" Height="23" Margin="145,48,19,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="User IDs separated by comma, semicolon or space"/>
+        <TextBox Name="TextBoxUserId" Height="23" Margin="145,48,19,0" TextWrapping="Wrap" VerticalAlignment="Top" ToolTip="User IDs or screen names (vk.com/durov) separated by comma, semicolon or space"/>
         <Label Name="Label33" Content="Access Token" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Width="115"/>
         <Label Name="Label34" Content="User IDs" HorizontalAlignment="Left" Margin="20,48,0,0" VerticalAlignment="Top" Width="115"/>
         <CheckBox Name="CheckBoxProcessingCommand" Content="Processing Command from VK" HorizontalAlignment="Left" Margin="20,105,0,0" VerticalAlignment="Top"/>
-        <Label Name="Label35" Content="Enter numeric User IDs separated by comma." HorizontalAlignment="Stretch" Margin="20,76,20,0" VerticalAlignment="Top" Width="Auto" Height="auto" FontSize="12" Foreground="#FFFF1D12" HorizontalContentAlignment="Center" IsEnabled="False" Visibility="Collapsed"/>
+        <Label Name="Label35" Content="Enter numeric User IDs separated by comma." HorizontalAlignment="Stretch" Margin="20,76,20,0" VerticalAlignment="Top" Width="Auto" Height="auto" FontSize="12" Foreground="#FFFF1D12" HorizontalContentAlignment="Center" Visibility="Collapsed"/>
     </Grid>
 </Window>
