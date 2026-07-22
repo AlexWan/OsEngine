@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1742,7 +1742,7 @@ namespace OsEngine.OsTrader.Grids
 
                 Order orderToClose = pos.CloseOrders[^1];
 
-                if (orderToClose.Volume != pos.OpenVolume)
+                if (orderToClose.Volume - orderToClose.VolumeExecute != pos.OpenVolume)
                 {
                     bool isInArray = false;
 
