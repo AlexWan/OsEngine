@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -65,7 +66,12 @@ namespace OsEngine.Entity.WebSocketOsEngine
             _client.Options.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
         }
 
-        public async Task Connect(TimeSpan? timeout = null)
+        public void SetHeader(string headerName, string headerValue)
+        {
+            _client.Options.SetRequestHeader(headerName, headerValue);
+        }
+
+        public async Task Connect(TimeSpan? timeout = null, HttpClient httpClient = null)
         {
             try
             {
@@ -98,7 +104,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     token = _cts.Token;
                 }
 
-                await _client.ConnectAsync(new Uri(_url), token);
+                await _client.ConnectAsync(new Uri(_url), httpClient, token);
 
                 timeoutCts?.Dispose();
 
@@ -129,10 +135,10 @@ namespace OsEngine.Entity.WebSocketOsEngine
             }
         }
 
-        public void ConnectAsync(TimeSpan? timeout = null)
+        public void ConnectAsync(TimeSpan? timeout = null, HttpClient httpClient = null)
         {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            Connect(timeout);
+            Connect(timeout, httpClient);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
