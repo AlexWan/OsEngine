@@ -528,7 +528,7 @@ namespace OsEngine.Robots.Helpers
 
             if (profitCommodity > 0)
             {
-                TaxDeal(taxBot, year, profitCommodity, "Taxes Commodity Futures");
+                TaxDeal(taxBot, year, profitCommodity, "Taxes");
             }
             else if (_fullLogIsOn.ValueBool == true)
             {
@@ -708,11 +708,5 @@ namespace OsEngine.Robots.Helpers
         }
 
         #endregion
-    }
-
-    public class ListTablePeriods
-    {
-        public int Year;
-        public decimal Rate;
     }
 }

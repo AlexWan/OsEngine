@@ -26,6 +26,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace OsEngine.Market.Servers.Tester
 {
@@ -74,6 +75,10 @@ namespace OsEngine.Market.Servers.Tester
             DividendPayments = new List<DividendInfo>();
             _processedDividendKeys = new HashSet<string>();
             _pendingDividendPayments = new List<PendingDividendPayment>();
+
+            MarginPayments = new List<ChargeInfo>();
+            TaxPayments = new List<ChargeInfo>();
+            LoadMarginAndTaxTables();
 
             OrdersActive = new List<Order>();
 
@@ -200,6 +205,46 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action DividendPaymentsChangedEvent;
 
+        public string MarginRegime
+        {
+            get { return _marginRegime; }
+            set
+            {
+                if (value == _marginRegime)
+                {
+                    return;
+                }
+
+                _marginRegime = value;
+                Save();
+            }
+        }
+        private string _marginRegime = "Off";
+
+        public bool TaxesIsOn
+        {
+            get { return _taxesIsOn; }
+            set
+            {
+                if (value == _taxesIsOn)
+                {
+                    return;
+                }
+
+                _taxesIsOn = value;
+                Save();
+            }
+        }
+        private bool _taxesIsOn;
+
+        public List<ChargeInfo> MarginPayments { get; private set; }
+
+        public List<ChargeInfo> TaxPayments { get; private set; }
+
+        public event Action MarginPaymentsChangedEvent;
+
+        public event Action TaxPaymentsChangedEvent;
+
         private void Load()
         {
             if (!File.Exists(@"Engine\" + @"TestServer.txt"))
@@ -226,6 +271,16 @@ namespace OsEngine.Market.Servers.Tester
                     if(reader.EndOfStream == false)
                     {
                         _dividendsIsOn = Convert.ToBoolean(reader.ReadLine());
+                    }
+
+                    if (reader.EndOfStream == false)
+                    {
+                        _marginRegime = reader.ReadLine();
+                    }
+
+                    if (reader.EndOfStream == false)
+                    {
+                        _taxesIsOn = Convert.ToBoolean(reader.ReadLine());
                     }
                     
                     reader.Close();
@@ -255,6 +310,8 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(_guiIsOpenFullSettings);
                     writer.WriteLine(_removeTradesFromMemory);
                     writer.WriteLine(_dividendsIsOn);
+                    writer.WriteLine(_marginRegime);
+                    writer.WriteLine(_taxesIsOn);
 
                     writer.Close();
                 }
@@ -264,6 +321,182 @@ namespace OsEngine.Market.Servers.Tester
                 // ignored
             }
         }
+
+        #region Margin and tax tables
+
+        private Dictionary<int, List<ListTableSumm>> _marginTableSumm;
+
+        private List<ListTablePeriods> _marginTablePercent;
+
+        private List<ListTablePeriods> _taxTable;
+
+        public Dictionary<int, List<ListTableSumm>> GetMarginTableSumm()
+        {
+            return _marginTableSumm;
+        }
+
+        public void SetMarginTableSumm(int year, List<ListTableSumm> list)
+        {
+            _marginTableSumm[year] = list;
+            SaveMarginTableSumm();
+        }
+
+        public List<ListTablePeriods> GetMarginTablePercent()
+        {
+            return _marginTablePercent;
+        }
+
+        public void SetMarginTablePercent(List<ListTablePeriods> list)
+        {
+            _marginTablePercent = list;
+            SaveMarginTablePercent();
+        }
+
+        public List<ListTablePeriods> GetTaxTable()
+        {
+            return _taxTable;
+        }
+
+        public void SetTaxTable(List<ListTablePeriods> list)
+        {
+            _taxTable = list;
+            SaveTaxTable();
+        }
+
+        private void LoadMarginAndTaxTables()
+        {
+            _marginTableSumm = LoadTableFromFile<Dictionary<int, List<ListTableSumm>>>(@"Engine\TesterServerMarginSumm.json");
+
+            if (_marginTableSumm == null
+                || _marginTableSumm.Count == 0)
+            {
+                _marginTableSumm = GetDefaultMarginSummTable();
+            }
+
+            _marginTablePercent = LoadTableFromFile<List<ListTablePeriods>>(@"Engine\TesterServerMarginPercent.json");
+
+            if (_marginTablePercent == null
+                || _marginTablePercent.Count == 0)
+            {
+                _marginTablePercent = GetDefaultRateTable();
+            }
+
+            _taxTable = LoadTableFromFile<List<ListTablePeriods>>(@"Engine\TesterServerTaxes.json");
+
+            if (_taxTable == null
+                || _taxTable.Count == 0)
+            {
+                _taxTable = GetDefaultRateTable();
+            }
+        }
+
+        private T LoadTableFromFile<T>(string fileName)
+        {
+            try
+            {
+                if (!File.Exists(fileName))
+                {
+                    return default(T);
+                }
+
+                string json = File.ReadAllText(fileName);
+                return JsonConvert.DeserializeObject<T>(json);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return default(T);
+            }
+        }
+
+        private void SaveTableToFile(string fileName, object table)
+        {
+            try
+            {
+                string json = JsonConvert.SerializeObject(table, Formatting.Indented);
+                File.WriteAllText(fileName, json);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SaveMarginTableSumm()
+        {
+            SaveTableToFile(@"Engine\TesterServerMarginSumm.json", _marginTableSumm);
+        }
+
+        private void SaveMarginTablePercent()
+        {
+            SaveTableToFile(@"Engine\TesterServerMarginPercent.json", _marginTablePercent);
+        }
+
+        private void SaveTaxTable()
+        {
+            SaveTableToFile(@"Engine\TesterServerTaxes.json", _taxTable);
+        }
+
+        private List<ListTablePeriods> GetDefaultRateTable()
+        {
+            List<ListTablePeriods> list = new List<ListTablePeriods>();
+
+            for (int i = 2000; i < 2031; i++)
+            {
+                list.Add(new ListTablePeriods() { Year = i, Rate = 13 });
+            }
+
+            return list;
+        }
+
+        private Dictionary<int, List<ListTableSumm>> GetDefaultMarginSummTable()
+        {
+            Dictionary<int, List<ListTableSumm>> result = new Dictionary<int, List<ListTableSumm>>();
+
+            for (int year = 2000; year < 2031; year++)
+            {
+                result[year] = GetDefaultMarginSummToYear(year);
+            }
+
+            return result;
+        }
+
+        private List<ListTableSumm> GetDefaultMarginSummToYear(int year)
+        {
+            List<ListTableSumm> list = new List<ListTableSumm>();
+
+            if (year >= 2024)
+            {
+                list.Add(new ListTableSumm() { Summ = 5000, TypeValue = TypeValueTableSumm.Absolute, Rate = 0 });
+                list.Add(new ListTableSumm() { Summ = 50000, TypeValue = TypeValueTableSumm.Absolute, Rate = 45 });
+                list.Add(new ListTableSumm() { Summ = 100000, TypeValue = TypeValueTableSumm.Absolute, Rate = 90 });
+                list.Add(new ListTableSumm() { Summ = 250000, TypeValue = TypeValueTableSumm.Absolute, Rate = 215 });
+                list.Add(new ListTableSumm() { Summ = 500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 430 });
+                list.Add(new ListTableSumm() { Summ = 1000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 850 });
+                list.Add(new ListTableSumm() { Summ = 2500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 2100 });
+                list.Add(new ListTableSumm() { Summ = 5000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 4100 });
+                list.Add(new ListTableSumm() { Summ = 10000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 8000 });
+                list.Add(new ListTableSumm() { Summ = 25000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.078m });
+                list.Add(new ListTableSumm() { Summ = 50000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.075m });
+                list.Add(new ListTableSumm() { Summ = 60000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.067m });
+            }
+            else
+            {
+                list.Add(new ListTableSumm() { Summ = 50000, TypeValue = TypeValueTableSumm.Absolute, Rate = 25 });
+                list.Add(new ListTableSumm() { Summ = 100000, TypeValue = TypeValueTableSumm.Absolute, Rate = 45 });
+                list.Add(new ListTableSumm() { Summ = 200000, TypeValue = TypeValueTableSumm.Absolute, Rate = 85 });
+                list.Add(new ListTableSumm() { Summ = 300000, TypeValue = TypeValueTableSumm.Absolute, Rate = 115 });
+                list.Add(new ListTableSumm() { Summ = 500000, TypeValue = TypeValueTableSumm.Absolute, Rate = 185 });
+                list.Add(new ListTableSumm() { Summ = 1000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 365 });
+                list.Add(new ListTableSumm() { Summ = 2000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 700 });
+                list.Add(new ListTableSumm() { Summ = 5000000, TypeValue = TypeValueTableSumm.Absolute, Rate = 1700 });
+                list.Add(new ListTableSumm() { Summ = 6000000, TypeValue = TypeValueTableSumm.Percent, Rate = 0.033m });
+            }
+
+            return list;
+        }
+
+        #endregion
 
         public void SaveSecurityTestSettings()
         {
@@ -526,6 +759,11 @@ namespace OsEngine.Market.Servers.Tester
                 _pendingDividendPayments?.Clear();
                 _lastCheckDividendDay = DateTime.MinValue;
 
+                MarginPayments?.Clear();
+                TaxPayments?.Clear();
+                _lastCheckMarginDay = DateTime.MinValue;
+                _lastTaxYear = 0;
+
                 Thread.Sleep(2000);
 
                 TesterRegime = TesterRegime.Play;
@@ -751,6 +989,7 @@ namespace OsEngine.Market.Servers.Tester
                         LoadNextData();
                         CheckOrders();
                         CheckDividends(TimeNow);
+                        CheckMarginAndTaxes(TimeNow);
                     }
                 }
                 catch (Exception error)
@@ -2876,6 +3115,547 @@ namespace OsEngine.Market.Servers.Tester
             catch (Exception error)
             {
                 SendLogMessage($"CreateDividendPosition error for {position.SecurityName}: {error}", LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Margin and taxes
+
+        private DateTime _lastCheckMarginDay;
+
+        private int _lastTaxYear;
+
+        private void CheckMarginAndTaxes(DateTime currentServerTime)
+        {
+            try
+            {
+                if (_lastCheckMarginDay.Date != currentServerTime.Date)
+                {
+                    DateTime dayToProcess = _lastCheckMarginDay;
+                    _lastCheckMarginDay = currentServerTime;
+
+                    if (dayToProcess != DateTime.MinValue)
+                    {
+                        CheckMargin(dayToProcess);
+                    }
+                }
+
+                if (_lastTaxYear == 0)
+                {
+                    _lastTaxYear = currentServerTime.Year;
+                }
+                else if (currentServerTime.Year > _lastTaxYear)
+                {
+                    int yearToProcess = _lastTaxYear;
+                    _lastTaxYear = currentServerTime.Year;
+
+                    CheckTaxes(yearToProcess);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"CheckMarginAndTaxes error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private void CheckMargin(DateTime dayToProcess)
+        {
+            try
+            {
+                if (_marginRegime == "Off")
+                {
+                    return;
+                }
+
+                if (OsTraderMaster.Master == null
+                    || OsTraderMaster.Master.PanelsArray == null
+                    || OsTraderMaster.Master.PanelsArray.Count == 0)
+                {
+                    return;
+                }
+
+                List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
+
+                for (int i = 0; i < bots.Count; i++)
+                {
+                    BotPanel bot = bots[i];
+
+                    if (bot == null
+                        || bot.OnOffEventsInTabs == false)
+                    {
+                        continue;
+                    }
+
+                    List<Journal.Journal> journals = bot.GetJournals();
+
+                    if (journals == null)
+                    {
+                        continue;
+                    }
+
+                    decimal volumeLong = 0;
+                    decimal volumeShort = 0;
+                    decimal deposit = 0;
+                    DateTime timeDeposit = DateTime.MinValue;
+
+                    for (int j = 0; j < journals.Count; j++)
+                    {
+                        List<Position> openPositions = journals[j].OpenPositions;
+
+                        for (int p = 0; p < openPositions.Count; p++)
+                        {
+                            Position position = openPositions[p];
+
+                            Security security = null;
+
+                            if (Securities != null)
+                            {
+                                security = Securities.Find(s => s.Name == position.SecurityName);
+                            }
+
+                            bool isFutures = security != null && security.SecurityType == SecurityType.Futures;
+                            decimal marginRate = isFutures ? 0.2m : 1m;
+
+                            if (position.Direction == Side.Buy)
+                            {
+                                if (position.Lots != 0)
+                                {
+                                    volumeLong += position.EntryPrice * position.OpenVolume * position.Lots * marginRate;
+                                }
+                                else
+                                {
+                                    volumeLong += position.EntryPrice * position.OpenVolume * marginRate;
+                                }
+                            }
+                            else if (position.Direction == Side.Sell)
+                            {
+                                if (position.Lots != 0)
+                                {
+                                    volumeShort += position.EntryPrice * position.OpenVolume * position.Lots * marginRate;
+                                }
+                                else
+                                {
+                                    volumeShort += position.EntryPrice * position.OpenVolume * marginRate;
+                                }
+                            }
+
+                            if (timeDeposit < position.TimeOpen)
+                            {
+                                deposit = position.PortfolioValueOnOpenPosition;
+                                timeDeposit = position.TimeOpen;
+                            }
+                        }
+                    }
+
+                    decimal margin = volumeShort;
+
+                    if (volumeLong > deposit)
+                    {
+                        margin += Math.Round(volumeLong - deposit, 2);
+                    }
+
+                    if (margin <= 0)
+                    {
+                        continue;
+                    }
+
+                    decimal commission = GetMarginCommission(margin, dayToProcess);
+
+                    if (commission <= 0)
+                    {
+                        continue;
+                    }
+
+                    CreateChargePosition(bot, "Margin", commission,
+                        new DateTime(dayToProcess.Year, dayToProcess.Month, dayToProcess.Day, 23, 59, 58));
+
+                    lock (MarginPayments)
+                    {
+                        MarginPayments.Add(new ChargeInfo
+                        {
+                            Date = dayToProcess,
+                            BotName = bot.NameStrategyUniq,
+                            Sum = commission,
+                            Comment = "Margin " + margin + " " + _marginRegime
+                        });
+                    }
+
+                    AddProfit(-commission);
+
+                    MarginPaymentsChangedEvent?.Invoke();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"CheckMargin error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private decimal GetMarginCommission(decimal margin, DateTime time)
+        {
+            try
+            {
+                if (_marginRegime == "Summ")
+                {
+                    List<ListTableSumm> list = null;
+
+                    if (_marginTableSumm.TryGetValue(time.Year, out list) == false
+                        || list == null
+                        || list.Count == 0)
+                    {
+                        return 0;
+                    }
+
+                    decimal rate = 0;
+                    TypeValueTableSumm typeValue = TypeValueTableSumm.Absolute;
+
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        if (list[i].Summ > margin && i == 0)
+                        {
+                            rate = list[i].Rate;
+                            typeValue = list[i].TypeValue;
+                            break;
+                        }
+
+                        if (i > 0 && list[i - 1].Summ <= margin && list[i].Summ > margin)
+                        {
+                            rate = list[i].Rate;
+                            typeValue = list[i].TypeValue;
+                            break;
+                        }
+
+                        if (i == list.Count - 1)
+                        {
+                            rate = list[list.Count - 1].Rate;
+                            typeValue = list[list.Count - 1].TypeValue;
+                            break;
+                        }
+                    }
+
+                    if (rate <= 0)
+                    {
+                        return 0;
+                    }
+
+                    decimal commission = rate;
+
+                    if (typeValue == TypeValueTableSumm.Percent)
+                    {
+                        commission = Math.Round(margin * rate / 100, 2);
+                    }
+
+                    return commission;
+                }
+                else // Percent
+                {
+                    decimal rate = 0;
+
+                    for (int i = 0; i < _marginTablePercent.Count; i++)
+                    {
+                        if (_marginTablePercent[i].Year == time.Year)
+                        {
+                            rate = _marginTablePercent[i].Rate / 100;
+                        }
+                    }
+
+                    int daysInYear = 365;
+
+                    if (time.Year % 4 == 0)
+                    {
+                        daysInYear = 366;
+                    }
+
+                    return Math.Round(rate / daysInYear * margin, 2);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"GetMarginCommission error: {error}", LogMessageType.Error);
+                return 0;
+            }
+        }
+
+        private void CheckTaxes(int year)
+        {
+            try
+            {
+                if (_taxesIsOn == false)
+                {
+                    return;
+                }
+
+                if (OsTraderMaster.Master == null
+                    || OsTraderMaster.Master.PanelsArray == null
+                    || OsTraderMaster.Master.PanelsArray.Count == 0)
+                {
+                    return;
+                }
+
+                decimal rate = 0;
+
+                for (int i = 0; i < _taxTable.Count; i++)
+                {
+                    if (_taxTable[i].Year == year)
+                    {
+                        rate = _taxTable[i].Rate;
+                    }
+                }
+
+                if (rate <= 0)
+                {
+                    return;
+                }
+
+                List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
+                List<BotPanel> tradedBots = new List<BotPanel>();
+
+                decimal profit = 0;
+                decimal profitCommodity = 0;
+
+                for (int i = 0; i < bots.Count; i++)
+                {
+                    BotPanel bot = bots[i];
+
+                    if (bot == null
+                        || bot.OnOffEventsInTabs == false)
+                    {
+                        continue;
+                    }
+
+                    List<Journal.Journal> journals = bot.GetJournals();
+
+                    if (journals == null)
+                    {
+                        continue;
+                    }
+
+                    bool botTraded = false;
+
+                    for (int j = 0; j < journals.Count; j++)
+                    {
+                        List<Position> closedPositions = journals[j].CloseAllPositions;
+
+                        for (int p = 0; p < closedPositions.Count; p++)
+                        {
+                            Position position = closedPositions[p];
+
+                            if (position.TimeClose.Year != year)
+                            {
+                                continue;
+                            }
+
+                            // дивиденды обложены при начислении, уплаченный налог базу не уменьшает
+                            if (IsExcludedFromTaxBase(position))
+                            {
+                                continue;
+                            }
+
+                            botTraded = true;
+
+                            if (IsCommodityFuture(position))
+                            {
+                                profitCommodity += position.ProfitPortfolioAbs;
+                            }
+                            else
+                            {
+                                profit += position.ProfitPortfolioAbs;
+                            }
+                        }
+                    }
+
+                    if (botTraded)
+                    {
+                        tradedBots.Add(bot);
+                    }
+                }
+
+                decimal tax = 0;
+
+                if (profit > 0)
+                {
+                    tax += Math.Round(profit * rate / 100, 2);
+                }
+
+                if (profitCommodity > 0)
+                {
+                    tax += Math.Round(profitCommodity * rate / 100, 2);
+                }
+
+                if (tax <= 0
+                    || tradedBots.Count == 0)
+                {
+                    return;
+                }
+
+                // налог равномерно раскладываем между роботами, торговавшими в этом году
+                decimal taxPerBot = Math.Round(tax / tradedBots.Count, 2);
+
+                if (taxPerBot <= 0)
+                {
+                    return;
+                }
+
+                DateTime chargeTime = new DateTime(year, 12, 31, 23, 59, 58);
+
+                for (int i = 0; i < tradedBots.Count; i++)
+                {
+                    CreateChargePosition(tradedBots[i], "Taxes", taxPerBot, chargeTime);
+
+                    lock (TaxPayments)
+                    {
+                        TaxPayments.Add(new ChargeInfo
+                        {
+                            Date = chargeTime,
+                            BotName = tradedBots[i].NameStrategyUniq,
+                            Sum = taxPerBot,
+                            Comment = "Year " + year + " rate " + rate + "%"
+                        });
+                    }
+
+                    AddProfit(-taxPerBot);
+                }
+
+                TaxPaymentsChangedEvent?.Invoke();
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"CheckTaxes error: {error}", LogMessageType.Error);
+            }
+        }
+
+        private bool IsExcludedFromTaxBase(Position position)
+        {
+            if (position == null
+                || string.IsNullOrWhiteSpace(position.SecurityName))
+            {
+                return true;
+            }
+
+            if (position.SecurityName.EndsWith("_divs"))
+            {
+                return true;
+            }
+
+            if (position.SecurityName == "Taxes")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsCommodityFuture(Position position)
+        {
+            if (position == null
+                || string.IsNullOrWhiteSpace(position.SecurityName))
+            {
+                return false;
+            }
+
+            Security security = null;
+
+            if (Securities != null)
+            {
+                security = Securities.Find(s => s.Name == position.SecurityName);
+            }
+
+            if (security != null
+                && security.SecurityType != SecurityType.Futures)
+            {
+                return false;
+            }
+
+            string[] prefixes = _commodityFuturesPrefixes.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            for (int i = 0; i < prefixes.Length; i++)
+            {
+                string prefix = prefixes[i].Trim();
+
+                if (prefix.Length == 0)
+                {
+                    continue;
+                }
+
+                if (position.SecurityName.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private const string _commodityFuturesPrefixes = "GD,SV,BR,NG,PT,PD";
+
+        private void CreateChargePosition(BotPanel bot, string securityName, decimal sum, DateTime chargeTime)
+        {
+            try
+            {
+                List<BotTabSimple> tabs = GetAllBotTabs(bot);
+
+                if (tabs == null
+                    || tabs.Count == 0)
+                {
+                    return;
+                }
+
+                BotTabSimple tab = tabs[0];
+
+                Security security = new Security();
+                security.Name = securityName;
+                security.NameClass = "TestClass";
+
+                Portfolio portfolio = tab.Portfolio;
+                BotManualControl manualPositionSupport = tab.ManualPositionSupport;
+                Journal.Journal journal = tab.GetJournal();
+
+                PositionCreator dealCreator = new PositionCreator();
+
+                // убыточная позиция: открытие дороже закрытия на величину списания
+                Position newDeal = dealCreator.CreatePosition(
+                    bot.NameStrategyUniq, Side.Buy, 2, sum,
+                    OrderPriceType.Limit, manualPositionSupport.SecondToOpen,
+                    security, portfolio, StartProgram.IsTester,
+                    manualPositionSupport.OrderTypeTime,
+                    manualPositionSupport.LimitsMakerOnly);
+
+                newDeal.NameBotClass = bot.GetNameStrategyType();
+                newDeal.SecurityName = securityName;
+
+                journal.SetNewDeal(newDeal);
+
+                tab.OrderFakeExecute(newDeal.OpenOrders[0], chargeTime);
+
+                Position position = tab.PositionsLast;
+
+                if (position == null)
+                {
+                    return;
+                }
+
+                Order closeOrder = dealCreator.CreateCloseOrderForDeal(
+                    security, position, 1,
+                    OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1),
+                    StartProgram.IsTester, manualPositionSupport.OrderTypeTime,
+                    portfolio.ServerUniqueName, manualPositionSupport.LimitsMakerOnly);
+
+                if (closeOrder == null)
+                {
+                    return;
+                }
+
+                closeOrder.PortfolioNumber = portfolio.Number;
+                closeOrder.Volume = sum;
+
+                position.AddNewCloseOrder(closeOrder);
+
+                tab.OrderFakeExecute(closeOrder, chargeTime.AddSeconds(1));
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"CreateChargePosition error: {error}", LogMessageType.Error);
             }
         }
 

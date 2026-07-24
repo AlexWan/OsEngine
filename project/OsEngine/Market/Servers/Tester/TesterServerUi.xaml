@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Market.Servers.Tester.TesterServerUi"
+<Window x:Class="OsEngine.Market.Servers.Tester.TesterServerUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Exchange emulator" Height="492" Width="815" MinHeight="120" MinWidth="770" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
@@ -100,8 +100,36 @@
                             <Grid >
                                 <CheckBox Name="CheckBoxDividendsIsOn" Content="Is On" Margin="10,12,0,0" HorizontalAlignment="Left" Width="131" Height="23" VerticalAlignment="Top"/>
                                 <WindowsFormsHost Name="HostDividends" Foreground="Black" Margin="0,49,0,0" />
-                                <Button Name="ButtonOpenDataBaseDividends" Content="Open data base" HorizontalAlignment="Right" Margin="0,10,165,0" VerticalAlignment="Top" Width="149" Click="ButtonOpenDataBaseDividends_Click"/>
-                                <Button Name="ButtonDivsUpdateBase" Content="Update data base" HorizontalAlignment="Right" Margin="0,10,11,0" VerticalAlignment="Top" Width="149" Click="ButtonDivsUpdateBase_Click"/>
+                                <Button Name="ButtonOpenDataBaseDividends" Content="Open data base" HorizontalAlignment="Right" Margin="0,10,200,0" VerticalAlignment="Top" Width="149" Click="ButtonOpenDataBaseDividends_Click"/>
+                                <Button Name="ButtonDivsUpdateBase" Content="Update data base" HorizontalAlignment="Right" Margin="0,10,46,0" VerticalAlignment="Top" Width="149" Click="ButtonDivsUpdateBase_Click"/>
+                                <Button Name="ButtonHelpDividends" Content="?" HorizontalAlignment="Right" Margin="0,10,11,0" VerticalAlignment="Top" Width="30" Height="23"/>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Name="LabelTabItemMargin" Header="Margin">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="35"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Label Name="LabelMarginRegime" Content="Regime" Grid.Row="0" Margin="10,12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                <ComboBox Name="ComboBoxMarginRegime" Grid.Row="0" Margin="120,12,0,0" HorizontalAlignment="Left" Width="120" Height="23" VerticalAlignment="Top"/>
+                                <WindowsFormsHost Name="HostMarginSettings" Grid.Row="1" Foreground="Black" Margin="0,4,0,0"/>
+                                <WindowsFormsHost Name="HostMarginPayments" Grid.Row="2" Foreground="Black" Margin="0,4,0,0"/>
+                                <Button Name="ButtonHelpMargin" Content="?" Grid.Row="0" HorizontalAlignment="Right" Margin="0,10,11,0" VerticalAlignment="Top" Width="30" Height="23"/>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Name="LabelTabItemTaxes" Header="Taxes">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="35"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <CheckBox Name="CheckBoxTaxesIsOn" Content="Is On" Grid.Row="0" Margin="10,12,0,0" HorizontalAlignment="Left" Width="131" Height="23" VerticalAlignment="Top"/>
+                                <WindowsFormsHost Name="HostTaxSettings" Grid.Row="1" Foreground="Black" Margin="0,4,0,0"/>
+                                <WindowsFormsHost Name="HostTaxPayments" Grid.Row="2" Foreground="Black" Margin="0,4,0,0"/>
+                                <Button Name="ButtonHelpTaxes" Content="?" Grid.Row="0" HorizontalAlignment="Right" Margin="0,10,11,0" VerticalAlignment="Top" Width="30" Height="23"/>
                             </Grid>
                         </TabItem>
                     </TabControl>

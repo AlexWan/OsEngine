@@ -698,18 +698,13 @@ namespace OsEngine.Robots.Helpers
                         }
                         else if (position.Direction == Side.Sell)
                         {
-                            if (isFutures)
-                            {
-                                continue;
-                            }
-
                             if (position.Lots != 0)
                             {
-                                volumeShortBot += position.EntryPrice * position.OpenVolume * position.Lots;
+                                volumeShortBot += position.EntryPrice * position.OpenVolume * position.Lots * marginRate;
                             }
                             else
                             {
-                                volumeShortBot += position.EntryPrice * position.OpenVolume;
+                                volumeShortBot += position.EntryPrice * position.OpenVolume * marginRate;
                             }
                         }
 
@@ -1111,18 +1106,5 @@ namespace OsEngine.Robots.Helpers
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
-    }
-
-    public class ListTableSumm
-    {
-        public int Summ;
-        public TypeValueTableSumm TypeValue;
-        public decimal Rate;
-    }
-
-    public enum TypeValueTableSumm
-    {
-        Absolute,
-        Percent
     }
 }

@@ -2128,6 +2128,38 @@ namespace OsEngine.Language
          "Eng:Accruals & Charges_" +
          "Ru:Начисления и списания_");
 
+        public string LabelTabItemMargin => OsLocalization.ConvertToLocString(
+         "Eng: Margin _" +
+         "Ru: Маржа _");
+
+        public string LabelTabItemTaxes => OsLocalization.ConvertToLocString(
+         "Eng: Taxes _" +
+         "Ru: Налоги _");
+
+        public string LabelMarginRegime => OsLocalization.ConvertToLocString(
+         "Eng:Regime_" +
+         "Ru:Режим_");
+
+        public string LabelChargeDate => OsLocalization.ConvertToLocString(
+         "Eng:Charge date_" +
+         "Ru:Дата списания_");
+
+        public string LabelComment => OsLocalization.ConvertToLocString(
+         "Eng:Comment_" +
+         "Ru:Комментарий_");
+
+        public string LabelHelpDividends => OsLocalization.ConvertToLocString(
+         "Eng:Dividends are credited to positions held open on the T-1 date, the last day to receive the payment. Money is credited to the virtual portfolio with a delay of 7 calendar days, net of 13 percent income tax. A synthetic position with the divs suffix is added to the robot journal._" +
+         "Ru:Дивиденды начисляются на позиции, открытые на дату Т-1 — последний день для получения выплаты. Деньги зачисляются на виртуальный портфель с задержкой 7 календарных дней за вычетом налога 13 процентов. В журнал робота добавляется синтетическая позиция с суффиксом divs._");
+
+        public string LabelHelpMargin => OsLocalization.ConvertToLocString(
+         "Eng:A margin fee is charged daily for borrowed funds. The loan is the full volume of short positions plus the long volume exceeding the deposit. Futures are counted with a coefficient of 0.2 in both directions. Rates are set in the tables. Summ mode is a tiered daily fee, Percent mode is an annual rate._" +
+         "Ru:Маржинальная плата списывается ежедневно за заёмные средства. Заём — это весь объём шортов плюс объём лонгов сверх депозита. Фьючерсы учитываются с коэффициентом 0.2 в обоих направлениях. Тарифы задаются в таблицах. Режим Summ — ступенчатая плата в день, Percent — годовая ставка._");
+
+        public string LabelHelpTaxes => OsLocalization.ConvertToLocString(
+         "Eng:Once a year a tax is charged on the profit of closed positions. Dividend payments and tax positions are excluded from the base, margin fees reduce it. The rate is set for each year in the table. Commodity futures are taxed separately._" +
+         "Ru:Раз в год списывается налог с прибыли закрытых позиций. Дивидендные выплаты и позиции налога исключаются из базы, расходы на маржу её уменьшают. Ставка задаётся для каждого года в таблице. Товарные фьючерсы облагаются отдельно._");
+
         public string LabelAcceptRemoveClearing => OsLocalization.ConvertToLocString(
          "Eng:Are you sure you want to remove the clearing?_" +
          "Ru:Вы уверены, что хотите удалить время отзыва ордеров?_");

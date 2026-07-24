@@ -124,6 +124,30 @@ namespace OsEngine.Market.Servers.Optimizer
             CheckBoxDividendsIsOn.Checked += CheckBoxDividendsIsOn_Checked;
             CheckBoxDividendsIsOn.Unchecked += CheckBoxDividendsIsOn_Unchecked;
 
+            LabelTabItemMargin.Header = OsLocalization.Market.LabelTabItemMargin;
+            LabelTabItemTaxes.Header = OsLocalization.Market.LabelTabItemTaxes;
+            LabelMarginRegime.Content = OsLocalization.Market.LabelMarginRegime;
+            CheckBoxTaxesIsOn.Content = OsLocalization.Market.LabelDividendsIsOn;
+
+            CreateMarginGrids();
+
+            ComboBoxMarginRegime.Items.Add("Off");
+            ComboBoxMarginRegime.Items.Add("Summ");
+            ComboBoxMarginRegime.Items.Add("Percent");
+            ComboBoxMarginRegime.SelectedItem = _server.MarginRegime;
+            ComboBoxMarginRegime.SelectionChanged += ComboBoxMarginRegime_SelectionChanged;
+
+            UpdateMarginSettingsGrid();
+
+            CreateTaxGrids();
+
+            CheckBoxTaxesIsOn.IsChecked = _server.TaxesIsOn;
+            CheckBoxTaxesIsOn.Click += CheckBoxTaxesIsOn_Click;
+
+            ButtonHelpDividends.Click += ButtonHelpDividends_Click;
+            ButtonHelpMargin.Click += ButtonHelpMargin_Click;
+            ButtonHelpTaxes.Click += ButtonHelpTaxes_Click;
+
             Title = OsLocalization.Optimizer.Label62;
 
             Label22.Header = OsLocalization.Market.Label22;
@@ -172,6 +196,13 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 CheckBoxDividendsIsOn.Checked -= CheckBoxDividendsIsOn_Checked;
                 CheckBoxDividendsIsOn.Unchecked -= CheckBoxDividendsIsOn_Unchecked;
+                CheckBoxTaxesIsOn.Click -= CheckBoxTaxesIsOn_Click;
+                ComboBoxMarginRegime.SelectionChanged -= ComboBoxMarginRegime_SelectionChanged;
+                ButtonHelpDividends.Click -= ButtonHelpDividends_Click;
+                ButtonHelpMargin.Click -= ButtonHelpMargin_Click;
+                ButtonHelpTaxes.Click -= ButtonHelpTaxes_Click;
+
+                DeleteMarginAndTaxGrids();
 
                 if (_server != null)
                 {
@@ -1196,6 +1227,537 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 _master?.SendLogMessage($"ButtonDivsUpdateBase_Click error: {ex}", LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Help buttons
+
+        private void ButtonHelpDividends_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi boxUi = new CustomMessageBoxUi(OsLocalization.Market.LabelHelpDividends);
+                boxUi.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonHelpMargin_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi boxUi = new CustomMessageBoxUi(OsLocalization.Market.LabelHelpMargin);
+                boxUi.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonHelpTaxes_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi boxUi = new CustomMessageBoxUi(OsLocalization.Market.LabelHelpTaxes);
+                boxUi.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Margin
+
+        private DataGridView _gridMarginSumm;
+        private YearRateGridEditor _marginPercentEditor;
+        private string _marginSettingsGridRegime = "Percent";
+
+        private void ComboBoxMarginRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (ComboBoxMarginRegime.SelectedItem == null)
+                {
+                    return;
+                }
+
+                _server.MarginRegime = ComboBoxMarginRegime.SelectedItem.ToString();
+                UpdateMarginSettingsGrid();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdateMarginSettingsGrid()
+        {
+            try
+            {
+                // таблица настроек видна всегда, в режиме Off — по последнему рабочему режиму
+                if (_server.MarginRegime == "Summ"
+                    || _server.MarginRegime == "Percent")
+                {
+                    _marginSettingsGridRegime = _server.MarginRegime;
+                }
+
+                if (_marginSettingsGridRegime == "Summ")
+                {
+                    HostMarginSettings.Child = _gridMarginSumm;
+                }
+                else
+                {
+                    HostMarginSettings.Child = _marginPercentEditor.Grid;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateMarginGrids()
+        {
+            _gridMarginSumm = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _gridMarginSumm.Dock = DockStyle.Fill;
+            _gridMarginSumm.ScrollBars = ScrollBars.Vertical;
+            _gridMarginSumm.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            _gridMarginSumm.ColumnCount = 3;
+            _gridMarginSumm.RowCount = 31;
+            _gridMarginSumm.Columns[0].HeaderText = "#";
+            _gridMarginSumm.Columns[1].HeaderText = OsLocalization.ConvertToLocString("Eng:Year_" + "Ru:Год_");
+            _gridMarginSumm.Columns[2].HeaderText = "";
+            _gridMarginSumm.Columns[0].ReadOnly = true;
+            _gridMarginSumm.Columns[1].ReadOnly = true;
+            _gridMarginSumm.Columns[2].ReadOnly = true;
+            _gridMarginSumm.Columns[0].FillWeight = 10;
+            _gridMarginSumm.Columns[1].FillWeight = 45;
+            _gridMarginSumm.Columns[2].FillWeight = 45;
+
+            foreach (DataGridViewColumn column in _gridMarginSumm.Columns)
+            {
+                column.SortMode = DataGridViewColumnSortMode.NotSortable;
+                column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            }
+
+            for (int i = 0; i < _gridMarginSumm.Rows.Count; i++)
+            {
+                DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
+                _gridMarginSumm.Rows[i].Cells[2] = buttonCell;
+
+                _gridMarginSumm.Rows[i].Cells[0].Value = i + 1;
+                _gridMarginSumm.Rows[i].Cells[1].Value = 2000 + i;
+                _gridMarginSumm.Rows[i].Cells[2].Value = OsLocalization.ConvertToLocString("Eng:Settings_Ru:Настроить_");
+            }
+
+            _gridMarginSumm.CellClick += _gridMarginSumm_CellClick;
+            _gridMarginSumm.DataError += _grid_DataError;
+
+            _marginPercentEditor = new YearRateGridEditor(_server.GetMarginTablePercent, _server.SetMarginTablePercent);
+        }
+
+        private void _gridMarginSumm_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex != 2
+                    || e.RowIndex < 0)
+                {
+                    return;
+                }
+
+                int year = 0;
+                int.TryParse(_gridMarginSumm.Rows[e.RowIndex].Cells[1].Value?.ToString(), out year);
+
+                if (year == 0)
+                {
+                    return;
+                }
+
+                Dictionary<int, List<ListTableSumm>> table = _server.GetMarginTableSumm();
+
+                if (table == null
+                    || table.ContainsKey(year) == false)
+                {
+                    return;
+                }
+
+                OptimizerMarginRatesEditUi window = new OptimizerMarginRatesEditUi(_server, table[year], year);
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Taxes
+
+        private YearRateGridEditor _taxRateEditor;
+
+        private void CheckBoxTaxesIsOn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _server.TaxesIsOn = CheckBoxTaxesIsOn.IsChecked.Value;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateTaxGrids()
+        {
+            _taxRateEditor = new YearRateGridEditor(_server.GetTaxTable, _server.SetTaxTable);
+            HostTaxSettings.Child = _taxRateEditor.Grid;
+        }
+
+        #endregion
+
+        #region Margin and taxes grids service
+
+        private void _grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            _master?.SendLogMessage(e.ToString(), LogMessageType.Error);
+        }
+
+        private void DeleteMarginAndTaxGrids()
+        {
+            try
+            {
+                if (_gridMarginSumm != null)
+                {
+                    _gridMarginSumm.CellClick -= _gridMarginSumm_CellClick;
+                    _gridMarginSumm.DataError -= _grid_DataError;
+                    DataGridFactory.ClearLinks(_gridMarginSumm);
+                    _gridMarginSumm.Rows.Clear();
+                    _gridMarginSumm.Columns.Clear();
+                    _gridMarginSumm.DataSource = null;
+                    _gridMarginSumm.Dispose();
+                    _gridMarginSumm = null;
+                }
+
+                _marginPercentEditor?.Dispose();
+                _marginPercentEditor = null;
+
+                _taxRateEditor?.Dispose();
+                _taxRateEditor = null;
+
+                HostMarginSettings.Child = null;
+                HostTaxSettings.Child = null;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Year rate grid editor
+
+        private class YearRateGridEditor
+        {
+            public DataGridView Grid { get; private set; }
+
+            private List<ListTablePeriods> _listTable;
+            private Func<List<ListTablePeriods>> _getTable;
+            private Action<List<ListTablePeriods>> _saveTable;
+
+            public YearRateGridEditor(Func<List<ListTablePeriods>> getTable, Action<List<ListTablePeriods>> saveTable)
+            {
+                _getTable = getTable;
+                _saveTable = saveTable;
+
+                CreateGrid();
+                LoadTable();
+            }
+
+            private void CreateGrid()
+            {
+                Grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells);
+
+                Grid.Dock = DockStyle.Fill;
+                Grid.ScrollBars = ScrollBars.Vertical;
+                Grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+
+                Grid.ColumnCount = 4;
+                Grid.RowCount = 1;
+
+                Grid.Columns[0].HeaderText = "#";
+                Grid.Columns[1].HeaderText = OsLocalization.ConvertToLocString("Eng:Year_" + "Ru:Год_");
+                Grid.Columns[2].HeaderText = OsLocalization.ConvertToLocString("Eng:Rate_" + "Ru:Ставка_");
+                Grid.Columns[3].HeaderText = "";
+
+                Grid.Columns[0].ReadOnly = true;
+                Grid.Columns[0].FillWeight = 10;
+                Grid.Columns[1].FillWeight = 35;
+                Grid.Columns[2].FillWeight = 35;
+                Grid.Columns[3].FillWeight = 20;
+
+                DataGridViewButtonCell cellButton = new DataGridViewButtonCell();
+
+                Grid.Rows[Grid.RowCount - 1].Cells[0] = cellButton;
+                Grid.Rows[Grid.RowCount - 1].Cells[0].Value = OsLocalization.ConvertToLocString("Eng:Add row_" + "Ru:Добавить строку_");
+                Grid.Rows[Grid.RowCount - 1].Cells[1].ReadOnly = true;
+                Grid.Rows[Grid.RowCount - 1].Cells[2].ReadOnly = true;
+                Grid.Rows[Grid.RowCount - 1].Cells[3].ReadOnly = true;
+
+                foreach (DataGridViewColumn column in Grid.Columns)
+                {
+                    column.SortMode = DataGridViewColumnSortMode.NotSortable;
+                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+
+                Grid.CellClick += Grid_CellClick;
+                Grid.CellValueChanged += Grid_CellValueChanged;
+                Grid.DataError += Grid_DataError;
+            }
+
+            private void Grid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+            {
+                ServerMaster.SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+
+            private void Grid_CellClick(object sender, DataGridViewCellEventArgs e)
+            {
+                try
+                {
+                    if (e.RowIndex == Grid.RowCount - 1 && e.ColumnIndex == 0)
+                    {
+                        AddRow();
+                    }
+
+                    if (e.ColumnIndex == 3)
+                    {
+                        if (e.RowIndex > -1 && e.RowIndex < Grid.RowCount - 1)
+                        {
+                            DeleteRow(e.RowIndex);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void AddRow()
+            {
+                DataGridViewButtonCell cellButton = new DataGridViewButtonCell();
+                Grid.Rows.Insert(Grid.RowCount - 1);
+
+                Grid.Rows[Grid.RowCount - 2].Cells[3] = cellButton;
+                Grid.Rows[Grid.RowCount - 2].Cells[3].Value = OsLocalization.ConvertToLocString("Eng:Delete row_" + "Ru:Удалить строку_");
+                Grid.Rows[Grid.RowCount - 2].Cells[3].ReadOnly = true;
+
+                RenumberRows();
+            }
+
+            private void DeleteRow(int rowIndex)
+            {
+                int year = 0;
+
+                if (int.TryParse(Grid[1, rowIndex].Value?.ToString(), out year))
+                {
+                    int deleteIndex = _listTable.FindIndex(x => x.Year == year);
+
+                    if (deleteIndex > -1)
+                    {
+                        _listTable.RemoveAt(deleteIndex);
+                    }
+                }
+
+                Grid.Rows.RemoveAt(rowIndex);
+
+                SaveTable();
+
+                RenumberRows();
+            }
+
+            private void RenumberRows()
+            {
+                for (int i = 0; i < Grid.RowCount - 1; i++)
+                {
+                    Grid.Rows[i].Cells[0].Value = i + 1;
+                }
+            }
+
+            private void Grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+            {
+                try
+                {
+                    if (e.RowIndex < 0
+                        || e.RowIndex == Grid.RowCount - 1
+                        || e.ColumnIndex == 0
+                        || e.ColumnIndex == 3)
+                    {
+                        return;
+                    }
+
+                    int year = 0;
+                    int.TryParse(Grid.Rows[e.RowIndex].Cells[1].Value?.ToString(), out year);
+
+                    if (year == 0)
+                    {
+                        return;
+                    }
+
+                    decimal rate = 0;
+                    decimal.TryParse(Grid.Rows[e.RowIndex].Cells[2].Value?.ToString().Replace(".", ","), out rate);
+
+                    ListTablePeriods list = new ListTablePeriods();
+                    list.Year = year;
+                    list.Rate = rate;
+
+                    for (int i = 0; i < Grid.RowCount - 1; i++)
+                    {
+                        int valueYear = 0;
+                        int.TryParse(Grid.Rows[i].Cells[1].Value?.ToString(), out valueYear);
+
+                        if (valueYear == year)
+                        {
+                            if (i == e.RowIndex)
+                            {
+                                int index = _listTable.FindIndex(x => x.Year == year);
+
+                                if (index > -1)
+                                {
+                                    _listTable[index] = list;
+                                }
+                                else
+                                {
+                                    _listTable.Add(list);
+                                }
+
+                                SaveTable();
+                            }
+                            else
+                            {
+                                Grid.Rows[e.RowIndex].Cells[1].Value = "";
+
+                                string message = OsLocalization.ConvertToLocString("Eng:There is already such a year in the table._" + "Ru:В таблице уже есть такой год._");
+                                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < _listTable.Count; i++)
+                    {
+                        int count = 0;
+
+                        for (int j = 0; j < Grid.RowCount - 1; j++)
+                        {
+                            int valueYear = 0;
+                            int.TryParse(Grid.Rows[j].Cells[1].Value?.ToString(), out valueYear);
+
+                            if (_listTable[i].Year == valueYear)
+                            {
+                                count++;
+                                break;
+                            }
+                        }
+
+                        if (count == 0)
+                        {
+                            _listTable.RemoveAt(i);
+                            i--;
+                            SaveTable();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void LoadTable()
+            {
+                try
+                {
+                    _listTable = _getTable();
+
+                    if (_listTable == null
+                        || _listTable.Count == 0)
+                    {
+                        _listTable = new List<ListTablePeriods>();
+
+                        for (int i = 0; i < 31; i++)
+                        {
+                            _listTable.Add(new ListTablePeriods() { Year = 2000 + i, Rate = 13 });
+                        }
+
+                        SaveTable();
+                    }
+
+                    for (int i = 0; i < _listTable.Count; i++)
+                    {
+                        DataGridViewRow row = new DataGridViewRow();
+                        row.Cells.Add(new DataGridViewTextBoxCell() { Value = i + 1 });
+                        row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTable[i].Year });
+                        row.Cells.Add(new DataGridViewTextBoxCell() { Value = _listTable[i].Rate });
+                        row.Cells.Add(new DataGridViewButtonCell() { Value = OsLocalization.ConvertToLocString("Eng:Delete row_" + "Ru:Удалить строку_") });
+
+                        Grid.Rows.Insert(Grid.RowCount - 1, row);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            private void SaveTable()
+            {
+                try
+                {
+                    _saveTable(_listTable);
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+
+            public void Dispose()
+            {
+                try
+                {
+                    if (Grid != null)
+                    {
+                        Grid.CellClick -= Grid_CellClick;
+                        Grid.CellValueChanged -= Grid_CellValueChanged;
+                        Grid.DataError -= Grid_DataError;
+
+                        DataGridFactory.ClearLinks(Grid);
+
+                        Grid.Rows.Clear();
+                        Grid.Columns.Clear();
+                        Grid.DataSource = null;
+                        Grid.Dispose();
+                        Grid = null;
+                    }
+
+                    _listTable = null;
+                    _getTable = null;
+                    _saveTable = null;
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                }
             }
         }
 
