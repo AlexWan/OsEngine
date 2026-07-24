@@ -24,7 +24,15 @@ namespace OsEngine.Themes
             InitializeComponent();
             StickyBorders.Listen(this);
             StartupLocation.Start_MouseInCentre(this);
-            StartupLocation.Start_FitHeightToWorkArea(this);
+
+            // окно 1200x1200 не влезает на маленькие экраны —
+            // открываем ужатым, плитки сожмутся через Viewbox
+            if (SystemParameters.WorkArea.Height < 1240
+                || SystemParameters.WorkArea.Width < 1240)
+            {
+                Height = 680;
+                Width = 680;
+            }
 
             Title = OsLocalization.MainWindow.ThemeWindowTitle;
             ButtonAccept.Content = OsLocalization.MainWindow.ThemeButtonAccept;
@@ -256,6 +264,14 @@ namespace OsEngine.Themes
 
             content.Children.Add(chartWithStrip);
 
+            // векторное масштабирование плитки при ужатии окна под маленький экран
+            Viewbox viewbox = new Viewbox
+            {
+                Stretch = Stretch.Uniform,
+                StretchDirection = StretchDirection.DownOnly,
+                Child = content
+            };
+
             return new Border
             {
                 Margin = new Thickness(10),
@@ -264,7 +280,7 @@ namespace OsEngine.Themes
                 BorderBrush = borderBrush,
                 Background = panel,
                 Cursor = Cursors.Hand,
-                Child = content
+                Child = viewbox
             };
         }
 
