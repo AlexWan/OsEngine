@@ -1024,7 +1024,16 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
 
 
-                    newSecurity.NameClass = SecurityType.Futures.ToString();
+                    // neo-assets (perpetual futures of SPB Exchange) are marked as a separate class
+                    if (item.Exchange != null
+                        && item.Exchange.StartsWith("spb_future", StringComparison.OrdinalIgnoreCase))
+                    {
+                        newSecurity.NameClass = "FuturesNeoSpb";
+                    }
+                    else
+                    {
+                        newSecurity.NameClass = SecurityType.Futures.ToString();
+                    }
 
                     newSecurity.Lot = item.Lot;
 
@@ -2787,7 +2796,8 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             return;
                         }
-                        if (security.SecurityType == SecurityType.Futures && tradeTimeMsk.Hour < 9)
+                        if (security.SecurityType == SecurityType.Futures && tradeTimeMsk.Hour < 9
+                            && security.NameClass != "FuturesNeoSpb") // neo-assets trade from 7:00 MSK
                         {
                             return;
                         }
