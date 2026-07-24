@@ -1239,9 +1239,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
+                        // в этом окне неактивные строки не затемняем — оставляем обычный цвет текста
                         for (int y = 0; y < _gridSecurities.ColumnCount; y++)
                         {
-                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextInactiveColor");
+                            _gridSecurities.Rows[i].Cells[y].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
                         }
                     }
                 }

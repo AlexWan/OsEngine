@@ -662,7 +662,7 @@
                                 <Setter Property="Opacity" Value="0.9"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="background_disabled_checkbox" Property="Opacity" Value="1"/>
+                                <Setter TargetName="background_disabled_checkbox" Property="Opacity" Value="0.55"/>
                                 <Setter Property="Opacity" Value="0.72"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">

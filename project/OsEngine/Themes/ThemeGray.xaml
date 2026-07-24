@@ -55,8 +55,8 @@
         <SolidColorBrush x:Key="ControlPressedVisualBrush" Color="Transparent"/>
 
         <RadialGradientBrush x:Key="ControlBackgroundNormal" GradientOrigin="0.5,0">
-            <GradientStop Color ="#E0E6EE"  Offset="1"/>
-            <GradientStop Color= "#E0E6EE" Offset="0.082"/>
+            <GradientStop Color ="#D0D8E3"  Offset="1"/>
+            <GradientStop Color= "#D0D8E3" Offset="0.082"/>
         </RadialGradientBrush>
 
         <RadialGradientBrush x:Key="ControlBackgroundNormalLight" GradientOrigin="0.5,0">
