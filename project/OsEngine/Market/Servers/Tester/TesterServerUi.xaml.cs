@@ -2963,8 +2963,7 @@ namespace OsEngine.Market.Servers.Tester
                         return;
                     }
 
-                    decimal rate = 0;
-                    decimal.TryParse(Grid.Rows[e.RowIndex].Cells[2].Value?.ToString().Replace(".", ","), out rate);
+                    decimal rate = Grid.Rows[e.RowIndex].Cells[2].Value?.ToString().ToDecimal() ?? 0;
 
                     ListTablePeriods list = new ListTablePeriods();
                     list.Year = year;
