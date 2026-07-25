@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
@@ -13,30 +15,28 @@ using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Wiki;
 
 /* Description
 Торговый робот для OsEngine
 
-Трендовый импульсный робот с фильтром направления рынка по индексу Мосбиржи.
-Импульс определяется по росту волатильности (ATR), уровни - по каналу Кельтнера.
+Трендовый импульсный робот. Импульс определяется по росту волатильности (ATR),
+уровни - по каналу Кельтнера.
 
-Конструкция: три источника.
+Конструкция: два источника.
 1. BotTabScreener для лонгов (KeltnerChannel + ATR на каждой бумаге).
 2. BotTabScreener для шортов (независимые параметры для отдельной оптимизации).
-3. BotTabSimple с индексом Мосбиржи и Envelops — фильтр направления рынка:
-индекс выше верхней линии Envelop -> разрешены только лонги, индекс ниже нижней линии -> только шорты.
 
 Покупка:
 1. ATR (индикатор с типом расчёта Percent) вырос на заданную величину за последние N свечей.
-2. Индекс выше верхней линии Envelop (если фильтр по индексу включён).
-3. Цена выше центральной линии Keltner и ниже верхней линии Keltner.
-4. Нет позиции по бумаге и не достигнут лимит позиций скринера.
+2. Цена выше центральной линии Keltner и ниже верхней линии Keltner.
+3. Нет позиции по бумаге и не достигнут лимит позиций скринера.
 Вход через BuyAtStopMarketIceberg с ценой активации = верхняя линия Keltner, время жизни заявки = 1 свеча.
 
-Продажа: зеркально (рост ATR тот же - волатильность растёт в обе стороны, индекс ниже нижней линии Envelop,
+Продажа: зеркально (рост ATR тот же - волатильность растёт в обе стороны,
 цена ниже центральной линии Keltner и выше нижней линии Keltner, цена активации = нижняя линия Keltner).
 
-Выход: CloseAtStopMarketIceberg по нижней линии Keltner или по центральной (параметр).
+Выход: CloseAtStopMarketIceberg по нижней линии Keltner (шорт - по верхней).
 Стоп передвигается на каждой закрытой свече только в сторону прибыли и только в торговое время.
 
 Неторговые периоды: торговля 10.00-18.00, в выходные не торгуем. В неторговое время
@@ -53,19 +53,12 @@ namespace OsEngine.Robots.SpeculantSet
 
         private BotTabScreener _screenerLong;
         private BotTabScreener _screenerShort;
-        private BotTabSimple _tabIndex;
-
-        // Envelop на вкладке индекса
-        private Aindicator _envelopIndex;
 
         #endregion
 
         #region Parameters Base
 
         private StrategyParameterString _regime;
-        private StrategyParameterBool _indexFilterIsOn;
-        private StrategyParameterInt _indexEnvelopLength;
-        private StrategyParameterDecimal _indexEnvelopDeviation;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
 
         // Торговые периоды
@@ -82,7 +75,6 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterInt _longKeltnerEmaLength;
         private StrategyParameterInt _longKeltnerAtrLength;
         private StrategyParameterDecimal _longKeltnerDeviation;
-        private StrategyParameterString _longExitLine;
         private StrategyParameterInt _longMaxPositions;
         private StrategyParameterInt _longIcebergOrdersCount;
         private StrategyParameterInt _longIcebergMillisecondsDistance;
@@ -101,13 +93,27 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterInt _shortKeltnerEmaLength;
         private StrategyParameterInt _shortKeltnerAtrLength;
         private StrategyParameterDecimal _shortKeltnerDeviation;
-        private StrategyParameterString _shortExitLine;
         private StrategyParameterInt _shortMaxPositions;
         private StrategyParameterInt _shortIcebergOrdersCount;
         private StrategyParameterInt _shortIcebergMillisecondsDistance;
         private StrategyParameterString _shortVolumeType;
         private StrategyParameterDecimal _shortVolume;
         private StrategyParameterString _shortTradeAssetInPortfolio;
+
+        // Дивидендная блокировка шортов
+        private StrategyParameterBool _shortBlockDuringDividends;
+
+        #endregion
+
+        #region Parameters Update (автообновление дивидендов)
+
+        private StrategyParameterString _autoUpdateDividends;
+        private StrategyParameterTimeOfDay _dividendsUpdateCheckTime;
+        private StrategyParameterInt _dividendsMaxAgeDays;
+        private StrategyParameterButton _startUpdateDividendsButton;
+
+        private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
+        private bool _dividendsUpdating = false;
 
         #endregion
 
@@ -141,9 +147,6 @@ namespace OsEngine.Robots.SpeculantSet
             TabCreate(BotTabType.Screener);
             _screenerShort = TabsScreener[1];
 
-            TabCreate(BotTabType.Simple);
-            _tabIndex = TabsSimple[0];
-
             // Подписка на события завершения свечей
             _screenerLong.CandleFinishedEvent += _screenerLong_CandleFinishedEvent;
             _screenerShort.CandleFinishedEvent += _screenerShort_CandleFinishedEvent;
@@ -153,10 +156,7 @@ namespace OsEngine.Robots.SpeculantSet
             _screenerShort.PositionOpeningSuccesEvent += _screenerShort_PositionOpeningSuccesEvent;
 
             // Базовые настройки
-            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off", "OnlyLong", "OnlyShort" }, "Base");
-            _indexFilterIsOn = CreateParameter("Index filter", true, "Base");
-            _indexEnvelopLength = CreateParameter("Index envelop length", 100, 50, 500, 10, "Base");
-            _indexEnvelopDeviation = CreateParameter("Index envelop deviation", 0.4m, 0.5m, 10, 0.1m, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
@@ -168,7 +168,6 @@ namespace OsEngine.Robots.SpeculantSet
             _longKeltnerEmaLength = CreateParameter("Long keltner ema length", 20, 5, 100, 5, "Long");
             _longKeltnerAtrLength = CreateParameter("Long keltner atr length", 10, 5, 100, 5, "Long");
             _longKeltnerDeviation = CreateParameter("Long keltner deviation", 2.0m, 1, 4, 0.1m, "Long");
-            _longExitLine = CreateParameter("Long exit line", "KeltnerDown", new[] { "KeltnerDown", "KeltnerCenter" }, "Long");
             _longMaxPositions = CreateParameter("Long max positions", 5, 1, 20, 1, "Long");
             _longIcebergOrdersCount = CreateParameter("Long iceberg orders count", 3, 1, 10, 1, "Long");
             _longIcebergMillisecondsDistance = CreateParameter("Long iceberg milliseconds distance", 1000, 500, 10000, 500, "Long");
@@ -184,13 +183,22 @@ namespace OsEngine.Robots.SpeculantSet
             _shortKeltnerEmaLength = CreateParameter("Short keltner ema length", 20, 5, 100, 5, "Short");
             _shortKeltnerAtrLength = CreateParameter("Short keltner atr length", 10, 5, 100, 5, "Short");
             _shortKeltnerDeviation = CreateParameter("Short keltner deviation", 2.0m, 1, 4, 0.1m, "Short");
-            _shortExitLine = CreateParameter("Short exit line", "KeltnerUp", new[] { "KeltnerUp", "KeltnerCenter" }, "Short");
             _shortMaxPositions = CreateParameter("Short max positions", 5, 1, 20, 1, "Short");
             _shortIcebergOrdersCount = CreateParameter("Short iceberg orders count", 3, 1, 10, 1, "Short");
             _shortIcebergMillisecondsDistance = CreateParameter("Short iceberg milliseconds distance", 1000, 500, 10000, 500, "Short");
             _shortVolumeType = CreateParameter("Short volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Short");
             _shortVolume = CreateParameter("Short volume", 10, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short trade asset in portfolio", "Prime", "Short");
+
+            // Дивидендная блокировка шортов
+            _shortBlockDuringDividends = CreateParameter("Short block during dividends", true, "Short");
+
+            // Автообновление базы дивидендов (вкладка Update, работает только в реале)
+            _autoUpdateDividends = CreateParameter("Auto update dividends", "On", new[] { "On", "Off" }, "Update");
+            _dividendsUpdateCheckTime = CreateParameterTimeOfDay("Dividends update check time", 8, 0, 0, 0, "Update");
+            _dividendsMaxAgeDays = CreateParameter("Dividends max age days", 5, 1, 30, 1, "Update");
+            _startUpdateDividendsButton = CreateParameterButton("Start update dividends", "Update");
+            _startUpdateDividendsButton.UserClickOnButtonEvent += _startUpdateDividendsButton_UserClickOnButtonEvent;
 
             // Создаём индикаторы KeltnerChannel и ATR на лонговом скринере
             _screenerLong.CreateCandleIndicator(1, "KeltnerChannel",
@@ -206,20 +214,13 @@ namespace OsEngine.Robots.SpeculantSet
             _screenerShort.CreateCandleIndicator(2, "ATR",
                 new List<string>() { _shortAtrPeriod.ValueInt.ToString(), "Percent" }, "Second");
 
-            // Создаём индикатор Envelops на вкладке индекса
-            _envelopIndex = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "EnvelopIndex", false);
-            _envelopIndex = (Aindicator)_tabIndex.CreateCandleIndicator(_envelopIndex, "Prime");
-            _envelopIndex.ParametersDigit[0].Value = _indexEnvelopLength.ValueInt;
-            _envelopIndex.ParametersDigit[1].Value = _indexEnvelopDeviation.ValueDecimal;
-            _envelopIndex.Save();
-
             // Подписка на событие изменения параметров пользователем
             ParametrsChangeByUser += SpeculantSetAtrKeltner_ParametrsChangeByUser;
 
             DeleteEvent += SpeculantSetAtrKeltner_DeleteEvent;
 
-            string eng = "Trend volatility robot. Two screeners (long and short) with KeltnerChannel + ATR, market direction filter by the MOEX index Envelop, entries by stop iceberg orders, exits by stop on the Keltner line.";
-            string ru = "Трендовый робот на росте волатильности. Два скринера (лонг и шорт) с каналом Кельтнера + ATR, фильтр направления рынка по Envelop индекса Мосбиржи, входы стоп-айсберг заявками, выходы стопом по линии Кельтнера.";
+            string eng = "Trend volatility robot. Two screeners (long and short) with KeltnerChannel + ATR, entries by stop iceberg orders, exits by stop on the Keltner line.";
+            string ru = "Трендовый робот на росте волатильности. Два скринера (лонг и шорт) с каналом Кельтнера + ATR, входы стоп-айсберг заявками, выходы стопом по линии Кельтнера.";
             Description = OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
         }
 
@@ -246,15 +247,6 @@ namespace OsEngine.Robots.SpeculantSet
                 = new List<string>() { _shortAtrPeriod.ValueInt.ToString(), "Percent" };
 
             _screenerShort.UpdateIndicatorsParameters();
-
-            if (_envelopIndex.ParametersDigit[0].Value != _indexEnvelopLength.ValueInt
-                || _envelopIndex.ParametersDigit[1].Value != _indexEnvelopDeviation.ValueDecimal)
-            {
-                _envelopIndex.ParametersDigit[0].Value = _indexEnvelopLength.ValueInt;
-                _envelopIndex.ParametersDigit[1].Value = _indexEnvelopDeviation.ValueDecimal;
-                _envelopIndex.Save();
-                _envelopIndex.Reload();
-            }
         }
 
         #endregion
@@ -337,7 +329,6 @@ namespace OsEngine.Robots.SpeculantSet
             try
             {
                 if (_regime.ValueString == "Off"
-                    || _regime.ValueString == "OnlyShort"
                     || _longIsOn.ValueBool == false)
                 {
                     return;
@@ -353,6 +344,12 @@ namespace OsEngine.Robots.SpeculantSet
 
                 // в торговое время включаем стопы позиций обратно
                 SetStopsActive(_screenerLong.PositionsOpenAll, true);
+
+                // в реале проверяем свежесть базы дивидендов (раз в день, см. регион Dividends)
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    CheckDividendsUpdate(tab.TimeServerCurrent);
+                }
 
                 int candlesNeed = Math.Max(_longAtrPeriod.ValueInt,
                     Math.Max(_longKeltnerEmaLength.ValueInt, _longKeltnerAtrLength.ValueInt))
@@ -394,7 +391,6 @@ namespace OsEngine.Robots.SpeculantSet
             try
             {
                 if (_regime.ValueString == "Off"
-                    || _regime.ValueString == "OnlyLong"
                     || _shortIsOn.ValueBool == false)
                 {
                     return;
@@ -471,11 +467,6 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            if (IndexFilterAllow(Side.Buy) == false)
-            {
-                return;
-            }
-
             // волатильность должна расти: ATR в процентах вырос за последние N свечей
             if (AtrGrows(candles, atr, _longAtrGrowthCandles.ValueInt, _longAtrGrowthValue.ValueDecimal) == false)
             {
@@ -532,11 +523,6 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            if (IndexFilterAllow(Side.Sell) == false)
-            {
-                return;
-            }
-
             // волатильность должна расти: ATR в процентах вырос за последние N свечей
             if (AtrGrows(candles, atr, _shortAtrGrowthCandles.ValueInt, _shortAtrGrowthValue.ValueDecimal) == false)
             {
@@ -547,6 +533,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             if (lastClose >= keltnerCenter
                 || lastClose <= keltnerDown)
+            {
+                return;
+            }
+
+            // дивидендная блокировка: вокруг отсечки в шорт не входим
+            if (ShortBlockedByDividends(tab))
             {
                 return;
             }
@@ -598,7 +590,7 @@ namespace OsEngine.Robots.SpeculantSet
             return growthPercent >= growthValue;
         }
 
-        // Логика закрытия лонга. Стоп по линии Keltner, передвигается только в сторону прибыли
+        // Логика закрытия лонга. Стоп по нижней линии Keltner, передвигается только в сторону прибыли
         private void LogicCloseLong(BotTabSimple tab, Aindicator keltner, Position position)
         {
             if (position.State != PositionStateType.Open)
@@ -606,16 +598,8 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            decimal exitPrice = 0;
-
-            if (_longExitLine.ValueString == "KeltnerCenter")
-            {
-                exitPrice = keltner.DataSeries[3].Last;
-            }
-            else // "KeltnerDown"
-            {
-                exitPrice = keltner.DataSeries[2].Last;
-            }
+            // выход по противоположной границе канала
+            decimal exitPrice = keltner.DataSeries[2].Last;
 
             if (exitPrice == 0)
             {
@@ -631,7 +615,7 @@ namespace OsEngine.Robots.SpeculantSet
             }
         }
 
-        // Логика закрытия шорта
+        // Логика закрытия шорта. Стоп по верхней линии Keltner
         private void LogicCloseShort(BotTabSimple tab, Aindicator keltner, Position position)
         {
             if (position.State != PositionStateType.Open)
@@ -639,16 +623,8 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            decimal exitPrice = 0;
-
-            if (_shortExitLine.ValueString == "KeltnerCenter")
-            {
-                exitPrice = keltner.DataSeries[3].Last;
-            }
-            else // "KeltnerUp"
-            {
-                exitPrice = keltner.DataSeries[1].Last;
-            }
+            // выход по противоположной границе канала
+            decimal exitPrice = keltner.DataSeries[1].Last;
 
             if (exitPrice == 0)
             {
@@ -664,51 +640,6 @@ namespace OsEngine.Robots.SpeculantSet
             }
         }
 
-        // Фильтр направления рынка по индексу Мосбиржи.
-        // Индекс выше верхней линии Envelop -> разрешены лонги, ниже нижней линии -> разрешены шорты
-        private bool IndexFilterAllow(Side side)
-        {
-            if (_indexFilterIsOn.ValueBool == false)
-            {
-                return true;
-            }
-
-            List<Candle> indexCandles = _tabIndex.CandlesAll;
-
-            // фильтр включён, а данных индекса нет - не торгуем
-            if (indexCandles == null
-                || indexCandles.Count < _indexEnvelopLength.ValueInt + 5)
-            {
-                return false;
-            }
-
-            // серии Envelops: 0 - верхняя линия, 2 - нижняя линия
-            if (_envelopIndex.DataSeries[0].Values.Count < indexCandles.Count
-                || _envelopIndex.DataSeries[2].Values.Count < indexCandles.Count)
-            {
-                return false;
-            }
-
-            decimal envelopUp = _envelopIndex.DataSeries[0].Last;
-            decimal envelopDown = _envelopIndex.DataSeries[2].Last;
-
-            // нулевые значения = индикатор не прогрет, не торгуем
-            if (envelopUp == 0
-                || envelopDown == 0)
-            {
-                return false;
-            }
-
-            decimal lastIndexClose = indexCandles[indexCandles.Count - 1].Close;
-
-            if (side == Side.Buy)
-            {
-                return lastIndexClose > envelopUp;
-            }
-
-            return lastIndexClose < envelopDown;
-        }
-
         // Активация / деактивация стопов открытых позиций
         private void SetStopsActive(List<Position> positions, bool isActive)
         {
@@ -719,6 +650,205 @@ namespace OsEngine.Robots.SpeculantSet
                     positions[i].StopOrderIsActive = isActive;
                 }
             }
+        }
+
+        #endregion
+
+        #region Dividends (блокировка шортов и автообновление базы)
+
+        // Дивидендная блокировка шорта: вокруг отсечки в шорт не входим.
+        // Данных по бумаге нет - шорт разрешён
+        private bool ShortBlockedByDividends(BotTabSimple tab)
+        {
+            if (_shortBlockDuringDividends.ValueBool == false)
+            {
+                return false;
+            }
+
+            if (tab.Security == null
+                || string.IsNullOrWhiteSpace(tab.Security.Name))
+            {
+                return false;
+            }
+
+            string ticker = tab.Security.Name;
+            DateTime currentTime = tab.TimeServerCurrent;
+
+            // окно блокировки фиксированное: 5 дней до отсечки и 2 дня после
+
+            // ближайшая будущая отсечка: блокируем за 5 дней до неё
+            WikiDividendFuture future = WikiMaster.GetDividendsFuture(ticker, currentTime);
+
+            if (future != null
+                && future.future != null
+                && string.IsNullOrWhiteSpace(future.future.registry_close_date) == false)
+            {
+                if (DateTime.TryParseExact(future.future.registry_close_date, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out DateTime futureDate))
+                {
+                    if (futureDate.Date >= currentTime.Date
+                        && futureDate.Date <= currentTime.AddDays(5).Date)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // ближайшая прошлая отсечка: блокируем ещё 2 дня после неё
+            WikiDividendPast past = WikiMaster.GetDividendsPast(ticker, currentTime);
+
+            if (past != null
+                && past.past != null
+                && string.IsNullOrWhiteSpace(past.past.registry_close_date) == false)
+            {
+                if (DateTime.TryParseExact(past.past.registry_close_date, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out DateTime pastDate))
+                {
+                    if (pastDate.Date <= currentTime.Date
+                        && pastDate.Date >= currentTime.AddDays(-2).Date)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Ручной запуск обновления базы дивидендов (кнопка на вкладке Update)
+        private void _startUpdateDividendsButton_UserClickOnButtonEvent()
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    SendNewLogMessage("Manual dividends update is available only in real trading mode", Logging.LogMessageType.Error);
+                    return;
+                }
+
+                string path = GetDividendsBasePath();
+
+                if (!Directory.Exists(path))
+                {
+                    SendNewLogMessage($"Dividends directory not found: {path}", Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (_dividendsUpdating)
+                {
+                    SendNewLogMessage("Dividends update is already in progress", Logging.LogMessageType.System);
+                    return;
+                }
+
+                SendNewLogMessage("Manual dividends update started", Logging.LogMessageType.System);
+                StartDividendsUpdate();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        // Ежедневная проверка свежести базы дивидендов (только в реале)
+        private void CheckDividendsUpdate(DateTime serverTime)
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                if (_autoUpdateDividends.ValueString == "Off")
+                {
+                    return;
+                }
+
+                if (_lastDividendsUpdateCheckDate.Date == serverTime.Date)
+                {
+                    return;
+                }
+
+                TimeSpan checkTime = _dividendsUpdateCheckTime.Value.TimeSpan;
+
+                if (serverTime.TimeOfDay < checkTime)
+                {
+                    return;
+                }
+
+                _lastDividendsUpdateCheckDate = serverTime;
+
+                if (!IsDividendsBaseStale(serverTime))
+                {
+                    return;
+                }
+
+                SendNewLogMessage("Dividends base is stale. Starting auto update", Logging.LogMessageType.System);
+                StartDividendsUpdate();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void StartDividendsUpdate()
+        {
+            if (_dividendsUpdating)
+            {
+                return;
+            }
+
+            _dividendsUpdating = true;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    WikiMaster.UpdateDividendsBase();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+                }
+                finally
+                {
+                    _dividendsUpdating = false;
+                    SendNewLogMessage("Dividends update finished", Logging.LogMessageType.System);
+                }
+            });
+        }
+
+        private bool IsDividendsBaseStale(DateTime currentTime)
+        {
+            try
+            {
+                string path = GetDividendsBasePath();
+
+                if (!Directory.Exists(path))
+                {
+                    return true;
+                }
+
+                DateTime lastWrite = Directory.GetLastWriteTime(path);
+                double ageDays = (currentTime - lastWrite).TotalDays;
+
+                return ageDays > _dividendsMaxAgeDays.ValueInt;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+                return false;
+            }
+        }
+
+        private string GetDividendsBasePath()
+        {
+            return AppDomain.CurrentDomain.BaseDirectory + "Wiki\\Dividends";
         }
 
         #endregion

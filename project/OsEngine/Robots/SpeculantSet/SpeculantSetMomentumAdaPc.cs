@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
@@ -13,29 +15,32 @@ using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Wiki;
 
 /* Description
 Торговый робот для OsEngine
 
-Трендовый импульсный робот с фильтром направления рынка по индексу Мосбиржи.
+Трендовый импульсный робот.
 
-Конструкция: три источника.
-1. BotTabScreener для лонгов (Bollinger + Momentum на каждой бумаге).
+Конструкция: два источника.
+1. BotTabScreener для лонгов (PriceChannelAdaptive + Envelop + Momentum на каждой бумаге).
 2. BotTabScreener для шортов (независимые параметры для отдельной оптимизации).
-3. BotTabSimple с индексом Мосбиржи и Envelops — фильтр направления рынка:
-индекс выше верхней линии Envelop -> разрешены только лонги, индекс ниже нижней линии -> только шорты.
 
 Покупка:
 1. Momentum > минимального значения.
-2. Индекс выше верхней линии Envelop (если фильтр по индексу включён).
-3. Цена выше центральной линии Bollinger и ниже верхней линии Bollinger.
+2. Цена выше середины канала AdaptivePriceChannel (Up + Down) / 2 и ниже верхней линии канала.
+Условия проверяются по значениям линий канала вторым с конца: последнее значение перестраивается
+по экстремумам текущей свечи.
+3. Фильтр Envelop: цена не ниже верхней линии Envelop, иначе лонг запрещён.
 4. Нет позиции по бумаге и не достигнут лимит позиций скринера.
-Вход через BuyAtStopMarketIceberg с ценой активации = верхняя линия Bollinger, время жизни заявки = 1 свеча.
+Вход через BuyAtStopMarketIceberg с ценой активации = верхняя линия AdaptivePriceChannel (последнее значение),
+время жизни заявки = 1 свеча.
 
-Продажа: зеркально (Momentum < максимального значения, индекс ниже нижней линии Envelop, цена ниже центральной
-линии Bollinger и выше нижней линии Bollinger, цена активации = нижняя линия Bollinger).
+Продажа: зеркально (Momentum < максимального значения, цена ниже середины
+канала и выше нижней линии канала, фильтр Envelop: цена не выше нижней линии Envelop,
+цена активации = нижняя линия AdaptivePriceChannel).
 
-Выход: CloseAtStopMarketIceberg по нижней линии Bollinger или по центральной (параметр).
+Выход: CloseAtStopMarketIceberg по нижней линии канала или по середине канала (параметр).
 Стоп передвигается на каждой закрытой свече только в сторону прибыли и только в торговое время.
 
 Неторговые периоды: торговля 10.00-18.00, в выходные не торгуем. В неторговое время
@@ -45,26 +50,19 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.SpeculantSet
 {
-    [Bot("SpeculantSetMomentumBollinger")] // Создаём атрибут, чтобы ничего не писать в BotFactory
-    public class SpeculantSetMomentumBollinger : BotPanel
+    [Bot("SpeculantSetMomentumAdaPc")] // Создаём атрибут, чтобы ничего не писать в BotFactory
+    public class SpeculantSetMomentumAdaPc : BotPanel
     {
         #region Sources
 
         private BotTabScreener _screenerLong;
         private BotTabScreener _screenerShort;
-        private BotTabSimple _tabIndex;
-
-        // Envelop на вкладке индекса
-        private Aindicator _envelopIndex;
 
         #endregion
 
         #region Parameters Base
 
         private StrategyParameterString _regime;
-        private StrategyParameterBool _indexFilterIsOn;
-        private StrategyParameterInt _indexEnvelopLength;
-        private StrategyParameterDecimal _indexEnvelopDeviation;
         private StrategyParameterButton _tradePeriodsShowDialogButton;
 
         // Торговые периоды
@@ -77,9 +75,10 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterBool _longIsOn;
         private StrategyParameterInt _longMomentumPeriod;
         private StrategyParameterDecimal _longMomentumMinValue;
-        private StrategyParameterInt _longBollingerLength;
-        private StrategyParameterDecimal _longBollingerDeviation;
-        private StrategyParameterString _longExitLine;
+        private StrategyParameterInt _longAdpcAdxPeriod;
+        private StrategyParameterInt _longAdpcRatio;
+        private StrategyParameterInt _longEnvelopLength;
+        private StrategyParameterDecimal _longEnvelopDeviation;
         private StrategyParameterInt _longMaxPositions;
         private StrategyParameterInt _longIcebergOrdersCount;
         private StrategyParameterInt _longIcebergMillisecondsDistance;
@@ -94,9 +93,10 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterBool _shortIsOn;
         private StrategyParameterInt _shortMomentumPeriod;
         private StrategyParameterDecimal _shortMomentumMaxValue;
-        private StrategyParameterInt _shortBollingerLength;
-        private StrategyParameterDecimal _shortBollingerDeviation;
-        private StrategyParameterString _shortExitLine;
+        private StrategyParameterInt _shortAdpcAdxPeriod;
+        private StrategyParameterInt _shortAdpcRatio;
+        private StrategyParameterInt _shortEnvelopLength;
+        private StrategyParameterDecimal _shortEnvelopDeviation;
         private StrategyParameterInt _shortMaxPositions;
         private StrategyParameterInt _shortIcebergOrdersCount;
         private StrategyParameterInt _shortIcebergMillisecondsDistance;
@@ -104,11 +104,26 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterDecimal _shortVolume;
         private StrategyParameterString _shortTradeAssetInPortfolio;
 
+        // Дивидендная блокировка шортов
+        private StrategyParameterBool _shortBlockDuringDividends;
+
+        #endregion
+
+        #region Parameters Update (автообновление дивидендов)
+
+        private StrategyParameterString _autoUpdateDividends;
+        private StrategyParameterTimeOfDay _dividendsUpdateCheckTime;
+        private StrategyParameterInt _dividendsMaxAgeDays;
+        private StrategyParameterButton _startUpdateDividendsButton;
+
+        private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
+        private bool _dividendsUpdating = false;
+
         #endregion
 
         #region Constructor
 
-        public SpeculantSetMomentumBollinger(string name, StartProgram startProgram) : base(name, startProgram)
+        public SpeculantSetMomentumAdaPc(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // неторговые периоды. Торговля с 10.00 до 18.00, в выходные не торгуем
             _tradePeriodsSettings = new NonTradePeriods(name);
@@ -136,9 +151,6 @@ namespace OsEngine.Robots.SpeculantSet
             TabCreate(BotTabType.Screener);
             _screenerShort = TabsScreener[1];
 
-            TabCreate(BotTabType.Simple);
-            _tabIndex = TabsSimple[0];
-
             // Подписка на события завершения свечей
             _screenerLong.CandleFinishedEvent += _screenerLong_CandleFinishedEvent;
             _screenerShort.CandleFinishedEvent += _screenerShort_CandleFinishedEvent;
@@ -148,10 +160,7 @@ namespace OsEngine.Robots.SpeculantSet
             _screenerShort.PositionOpeningSuccesEvent += _screenerShort_PositionOpeningSuccesEvent;
 
             // Базовые настройки
-            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off", "OnlyLong", "OnlyShort" }, "Base");
-            _indexFilterIsOn = CreateParameter("Index filter", true, "Base");
-            _indexEnvelopLength = CreateParameter("Index envelop length", 100, 50, 500, 10, "Base");
-            _indexEnvelopDeviation = CreateParameter("Index envelop deviation", 0.4m, 0.5m, 10, 0.1m, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
 
@@ -159,9 +168,10 @@ namespace OsEngine.Robots.SpeculantSet
             _longIsOn = CreateParameter("Long is on", true, "Long");
             _longMomentumPeriod = CreateParameter("Long momentum period", 65, 5, 150, 5, "Long");
             _longMomentumMinValue = CreateParameter("Long momentum min value", 102m, 90, 120, 1m, "Long");
-            _longBollingerLength = CreateParameter("Long bollinger length", 120, 5, 100, 5, "Long");
-            _longBollingerDeviation = CreateParameter("Long bollinger deviation", 2.5m, 1, 4, 0.1m, "Long");
-            _longExitLine = CreateParameter("Long exit line", "BollingerDown", new[] { "BollingerDown", "BollingerCenter" }, "Long");
+            _longAdpcAdxPeriod = CreateParameter("Long adpc adx period", 95, 5, 300, 1, "Long");
+            _longAdpcRatio = CreateParameter("Long adpc ratio", 640, 5, 2000, 1, "Long");
+            _longEnvelopLength = CreateParameter("Long envelop length", 186, 50, 500, 10, "Long");
+            _longEnvelopDeviation = CreateParameter("Long envelop deviation", 1.9m, 0.5m, 10, 0.1m, "Long");
             _longMaxPositions = CreateParameter("Long max positions", 5, 1, 20, 1, "Long");
             _longIcebergOrdersCount = CreateParameter("Long iceberg orders count", 3, 1, 10, 1, "Long");
             _longIcebergMillisecondsDistance = CreateParameter("Long iceberg milliseconds distance", 1000, 500, 10000, 500, "Long");
@@ -171,11 +181,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             // Настройки шорта
             _shortIsOn = CreateParameter("Short is on", true, "Short");
-            _shortMomentumPeriod = CreateParameter("Short momentum period", 65, 5, 150, 5, "Short");
-            _shortMomentumMaxValue = CreateParameter("Short momentum max value", 100m, 80, 110, 1m, "Short");
-            _shortBollingerLength = CreateParameter("Short bollinger length", 120, 5, 100, 5, "Short");
-            _shortBollingerDeviation = CreateParameter("Short bollinger deviation", 2.5m, 1, 4, 0.1m, "Short");
-            _shortExitLine = CreateParameter("Short exit line", "BollingerUp", new[] { "BollingerUp", "BollingerCenter" }, "Short");
+            _shortMomentumPeriod = CreateParameter("Short momentum period", 35, 5, 150, 5, "Short");
+            _shortMomentumMaxValue = CreateParameter("Short momentum max value", 98m, 80, 110, 1m, "Short");
+            _shortAdpcAdxPeriod = CreateParameter("Short adpc adx period", 52, 5, 300, 1, "Short");
+            _shortAdpcRatio = CreateParameter("Short adpc ratio", 840, 5, 2000, 1, "Short");
+            _shortEnvelopLength = CreateParameter("Short envelop length", 1500, 50, 500, 10, "Short");
+            _shortEnvelopDeviation = CreateParameter("Short envelop deviation", 3.7m, 0.5m, 10, 0.1m, "Short");
             _shortMaxPositions = CreateParameter("Short max positions", 5, 1, 20, 1, "Short");
             _shortIcebergOrdersCount = CreateParameter("Short iceberg orders count", 3, 1, 10, 1, "Short");
             _shortIcebergMillisecondsDistance = CreateParameter("Short iceberg milliseconds distance", 1000, 500, 10000, 500, "Short");
@@ -183,32 +194,39 @@ namespace OsEngine.Robots.SpeculantSet
             _shortVolume = CreateParameter("Short volume", 10, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short trade asset in portfolio", "Prime", "Short");
 
-            // Создаём индикаторы Bollinger и Momentum на лонговом скринере
-            _screenerLong.CreateCandleIndicator(1, "Bollinger",
-                new List<string>() { _longBollingerLength.ValueInt.ToString(), _longBollingerDeviation.ValueDecimal.ToString() }, "Prime");
-            _screenerLong.CreateCandleIndicator(2, "Momentum",
+            // Дивидендная блокировка шортов
+            _shortBlockDuringDividends = CreateParameter("Short block during dividends", true, "Short");
+
+            // Автообновление базы дивидендов (вкладка Update, работает только в реале)
+            _autoUpdateDividends = CreateParameter("Auto update dividends", "On", new[] { "On", "Off" }, "Update");
+            _dividendsUpdateCheckTime = CreateParameterTimeOfDay("Dividends update check time", 8, 0, 0, 0, "Update");
+            _dividendsMaxAgeDays = CreateParameter("Dividends max age days", 5, 1, 30, 1, "Update");
+            _startUpdateDividendsButton = CreateParameterButton("Start update dividends", "Update");
+            _startUpdateDividendsButton.UserClickOnButtonEvent += _startUpdateDividendsButton_UserClickOnButtonEvent;
+
+            // Создаём индикаторы PriceChannelAdaptive, Envelops и Momentum на лонговом скринере
+            _screenerLong.CreateCandleIndicator(1, "PriceChannelAdaptive",
+                new List<string>() { _longAdpcAdxPeriod.ValueInt.ToString(), _longAdpcRatio.ValueInt.ToString() }, "Prime");
+            _screenerLong.CreateCandleIndicator(2, "Envelops",
+                new List<string>() { _longEnvelopLength.ValueInt.ToString(), _longEnvelopDeviation.ValueDecimal.ToString() }, "Prime");
+            _screenerLong.CreateCandleIndicator(3, "Momentum",
                 new List<string>() { _longMomentumPeriod.ValueInt.ToString(), "Close" }, "Second");
 
-            // Создаём индикаторы Bollinger и Momentum на шортовом скринере
-            _screenerShort.CreateCandleIndicator(1, "Bollinger",
-                new List<string>() { _shortBollingerLength.ValueInt.ToString(), _shortBollingerDeviation.ValueDecimal.ToString() }, "Prime");
-            _screenerShort.CreateCandleIndicator(2, "Momentum",
+            // Создаём индикаторы PriceChannelAdaptive, Envelops и Momentum на шортовом скринере
+            _screenerShort.CreateCandleIndicator(1, "PriceChannelAdaptive",
+                new List<string>() { _shortAdpcAdxPeriod.ValueInt.ToString(), _shortAdpcRatio.ValueInt.ToString() }, "Prime");
+            _screenerShort.CreateCandleIndicator(2, "Envelops",
+                new List<string>() { _shortEnvelopLength.ValueInt.ToString(), _shortEnvelopDeviation.ValueDecimal.ToString() }, "Prime");
+            _screenerShort.CreateCandleIndicator(3, "Momentum",
                 new List<string>() { _shortMomentumPeriod.ValueInt.ToString(), "Close" }, "Second");
 
-            // Создаём индикатор Envelops на вкладке индекса
-            _envelopIndex = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "EnvelopIndex", false);
-            _envelopIndex = (Aindicator)_tabIndex.CreateCandleIndicator(_envelopIndex, "Prime");
-            _envelopIndex.ParametersDigit[0].Value = _indexEnvelopLength.ValueInt;
-            _envelopIndex.ParametersDigit[1].Value = _indexEnvelopDeviation.ValueDecimal;
-            _envelopIndex.Save();
-
             // Подписка на событие изменения параметров пользователем
-            ParametrsChangeByUser += SpeculantSetMomentumBollinger_ParametrsChangeByUser;
+            ParametrsChangeByUser += SpeculantSetMomentumAdaPc_ParametrsChangeByUser;
 
-            DeleteEvent += SpeculantSetMomentumBollinger_DeleteEvent;
+            DeleteEvent += SpeculantSetMomentumAdaPc_DeleteEvent;
 
-            string eng = "Trend momentum robot. Two screeners (long and short) with Bollinger + Momentum, market direction filter by the MOEX index Envelop, entries by stop iceberg orders, exits by stop on the Bollinger line.";
-            string ru = "Трендовый импульсный робот. Два скринера (лонг и шорт) с Bollinger + Momentum, фильтр направления рынка по Envelop индекса Мосбиржи, входы стоп-айсберг заявками, выходы стопом по линии Bollinger.";
+            string eng = "Trend momentum robot. Two screeners (long and short) with Momentum and AdaptivePriceChannel, Envelop entry filter on each security, entries by stop iceberg orders, exits by stop on the AdaptivePriceChannel line.";
+            string ru = "Трендовый импульсный робот. Два скринера (лонг и шорт) с Momentum и AdaptivePriceChannel, фильтр входа по Envelop на каждой бумаге, входы стоп-айсберг заявками, выходы стопом по линии AdaptivePriceChannel.";
             Description = OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
         }
 
@@ -216,39 +234,36 @@ namespace OsEngine.Robots.SpeculantSet
 
         #region Parameters update
 
-        private void SpeculantSetMomentumBollinger_ParametrsChangeByUser()
+        private void SpeculantSetMomentumAdaPc_ParametrsChangeByUser()
         {
             _screenerLong._indicators[0].Parameters
-                = new List<string>() { _longBollingerLength.ValueInt.ToString(), _longBollingerDeviation.ValueDecimal.ToString() };
+                = new List<string>() { _longAdpcAdxPeriod.ValueInt.ToString(), _longAdpcRatio.ValueInt.ToString() };
 
             _screenerLong._indicators[1].Parameters
+                = new List<string>() { _longEnvelopLength.ValueInt.ToString(), _longEnvelopDeviation.ValueDecimal.ToString() };
+
+            _screenerLong._indicators[2].Parameters
                 = new List<string>() { _longMomentumPeriod.ValueInt.ToString(), "Close" };
 
             _screenerLong.UpdateIndicatorsParameters();
 
             _screenerShort._indicators[0].Parameters
-                = new List<string>() { _shortBollingerLength.ValueInt.ToString(), _shortBollingerDeviation.ValueDecimal.ToString() };
+                = new List<string>() { _shortAdpcAdxPeriod.ValueInt.ToString(), _shortAdpcRatio.ValueInt.ToString() };
 
             _screenerShort._indicators[1].Parameters
+                = new List<string>() { _shortEnvelopLength.ValueInt.ToString(), _shortEnvelopDeviation.ValueDecimal.ToString() };
+
+            _screenerShort._indicators[2].Parameters
                 = new List<string>() { _shortMomentumPeriod.ValueInt.ToString(), "Close" };
 
             _screenerShort.UpdateIndicatorsParameters();
-
-            if (_envelopIndex.ParametersDigit[0].Value != _indexEnvelopLength.ValueInt
-                || _envelopIndex.ParametersDigit[1].Value != _indexEnvelopDeviation.ValueDecimal)
-            {
-                _envelopIndex.ParametersDigit[0].Value = _indexEnvelopLength.ValueInt;
-                _envelopIndex.ParametersDigit[1].Value = _indexEnvelopDeviation.ValueDecimal;
-                _envelopIndex.Save();
-                _envelopIndex.Reload();
-            }
         }
 
         #endregion
 
         #region Event handlers
 
-        private void SpeculantSetMomentumBollinger_DeleteEvent()
+        private void SpeculantSetMomentumAdaPc_DeleteEvent()
         {
             try
             {
@@ -324,7 +339,6 @@ namespace OsEngine.Robots.SpeculantSet
             try
             {
                 if (_regime.ValueString == "Off"
-                    || _regime.ValueString == "OnlyShort"
                     || _longIsOn.ValueBool == false)
                 {
                     return;
@@ -341,17 +355,26 @@ namespace OsEngine.Robots.SpeculantSet
                 // в торговое время включаем стопы позиций обратно
                 SetStopsActive(_screenerLong.PositionsOpenAll, true);
 
-                int candlesNeed = Math.Max(_longMomentumPeriod.ValueInt, _longBollingerLength.ValueInt) + 5;
+                // в реале проверяем свежесть базы дивидендов (раз в день, см. регион Dividends)
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    CheckDividendsUpdate(tab.TimeServerCurrent);
+                }
+
+                int candlesNeed = Math.Max(Math.Max(_longMomentumPeriod.ValueInt, _longAdpcAdxPeriod.ValueInt),
+                    _longEnvelopLength.ValueInt) + 5;
 
                 if (candles.Count < candlesNeed)
                 {
                     return;
                 }
 
-                Aindicator bollinger = (Aindicator)tab.Indicators[0];
-                Aindicator momentum = (Aindicator)tab.Indicators[1];
+                Aindicator adpc = (Aindicator)tab.Indicators[0];
+                Aindicator envelop = (Aindicator)tab.Indicators[1];
+                Aindicator momentum = (Aindicator)tab.Indicators[2];
 
-                if (bollinger.DataSeries[0].Values.Count < candles.Count
+                if (adpc.DataSeries[0].Values.Count < candles.Count
+                    || envelop.DataSeries[0].Values.Count < candles.Count
                     || momentum.DataSeries[0].Values.Count < candles.Count)
                 {
                     return;
@@ -361,11 +384,11 @@ namespace OsEngine.Robots.SpeculantSet
 
                 if (positions.Count == 0)
                 { // Логика открытия
-                    LogicOpenLong(candles, tab, bollinger, momentum);
+                    LogicOpenLong(candles, tab, adpc, envelop, momentum);
                 }
                 else
                 { // Логика закрытия позиции
-                    LogicCloseLong(tab, bollinger, positions[0]);
+                    LogicCloseLong(tab, adpc, positions[0]);
                 }
             }
             catch (Exception error)
@@ -379,7 +402,6 @@ namespace OsEngine.Robots.SpeculantSet
             try
             {
                 if (_regime.ValueString == "Off"
-                    || _regime.ValueString == "OnlyLong"
                     || _shortIsOn.ValueBool == false)
                 {
                     return;
@@ -396,17 +418,20 @@ namespace OsEngine.Robots.SpeculantSet
                 // в торговое время включаем стопы позиций обратно
                 SetStopsActive(_screenerShort.PositionsOpenAll, true);
 
-                int candlesNeed = Math.Max(_shortMomentumPeriod.ValueInt, _shortBollingerLength.ValueInt) + 5;
+                int candlesNeed = Math.Max(Math.Max(_shortMomentumPeriod.ValueInt, _shortAdpcAdxPeriod.ValueInt),
+                    _shortEnvelopLength.ValueInt) + 5;
 
                 if (candles.Count < candlesNeed)
                 {
                     return;
                 }
 
-                Aindicator bollinger = (Aindicator)tab.Indicators[0];
-                Aindicator momentum = (Aindicator)tab.Indicators[1];
+                Aindicator adpc = (Aindicator)tab.Indicators[0];
+                Aindicator envelop = (Aindicator)tab.Indicators[1];
+                Aindicator momentum = (Aindicator)tab.Indicators[2];
 
-                if (bollinger.DataSeries[0].Values.Count < candles.Count
+                if (adpc.DataSeries[0].Values.Count < candles.Count
+                    || envelop.DataSeries[0].Values.Count < candles.Count
                     || momentum.DataSeries[0].Values.Count < candles.Count)
                 {
                     return;
@@ -416,11 +441,11 @@ namespace OsEngine.Robots.SpeculantSet
 
                 if (positions.Count == 0)
                 { // Логика открытия
-                    LogicOpenShort(candles, tab, bollinger, momentum);
+                    LogicOpenShort(candles, tab, adpc, envelop, momentum);
                 }
                 else
                 { // Логика закрытия позиции
-                    LogicCloseShort(tab, bollinger, positions[0]);
+                    LogicCloseShort(tab, adpc, positions[0]);
                 }
             }
             catch (Exception error)
@@ -430,7 +455,7 @@ namespace OsEngine.Robots.SpeculantSet
         }
 
         // Логика открытия лонга
-        private void LogicOpenLong(List<Candle> candles, BotTabSimple tab, Aindicator bollinger, Aindicator momentum)
+        private void LogicOpenLong(List<Candle> candles, BotTabSimple tab, Aindicator adpc, Aindicator envelop, Aindicator momentum)
         {
             int longPositionsCount = _screenerLong.PositionsOpenAll.FindAll(p => p.Direction == Side.Buy).Count;
 
@@ -439,25 +464,36 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            // Серии Bollinger: 0 - верхняя линия, 1 - нижняя линия, 2 - центральная линия
-            decimal bollingerUp = bollinger.DataSeries[0].Last;
-            decimal bollingerDown = bollinger.DataSeries[1].Last;
-            decimal bollingerCenter = bollinger.DataSeries[2].Last;
+            // Серии PriceChannelAdaptive: 0 - верхняя линия, 1 - нижняя линия (2 - скрытая служебная)
+            // Серии Envelops: 0 - верхняя линия, 1 - центральная линия, 2 - нижняя линия
+            decimal adpcUp = adpc.DataSeries[0].Last;
+            decimal adpcDown = adpc.DataSeries[1].Last;
+            decimal envelopUp = envelop.DataSeries[0].Last;
+            decimal envelopDown = envelop.DataSeries[2].Last;
             decimal lastMomentum = momentum.DataSeries[0].Last;
 
             // нулевые значения = индикатор не прогрет, не торгуем
-            if (bollingerUp == 0
-                || bollingerDown == 0
-                || bollingerCenter == 0
+            if (adpcUp == 0
+                || adpcDown == 0
+                || envelopUp == 0
+                || envelopDown == 0
                 || lastMomentum == 0)
             {
                 return;
             }
 
-            if (IndexFilterAllow(Side.Buy) == false)
+            // условия входа проверяем по линиям канала вторым с конца:
+            // последнее значение линий перестраивается по экстремумам текущей свечи
+            decimal adpcUpPrev = adpc.DataSeries[0].Values[adpc.DataSeries[0].Values.Count - 2];
+            decimal adpcDownPrev = adpc.DataSeries[1].Values[adpc.DataSeries[1].Values.Count - 2];
+
+            if (adpcUpPrev == 0
+                || adpcDownPrev == 0)
             {
                 return;
             }
+
+            decimal adpcCenterPrev = (adpcUpPrev + adpcDownPrev) / 2;
 
             decimal lastClose = candles[candles.Count - 1].Close;
 
@@ -466,8 +502,14 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            if (lastClose <= bollingerCenter
-                || lastClose >= bollingerUp)
+            if (lastClose <= adpcCenterPrev
+                || lastClose >= adpcUpPrev)
+            {
+                return;
+            }
+
+            // фильтр Envelop: цена ниже верхней линии - лонг запрещён
+            if (lastClose < envelopUp)
             {
                 return;
             }
@@ -482,15 +524,15 @@ namespace OsEngine.Robots.SpeculantSet
             // перед перевыставлением отменяем предыдущую заявку
             tab.BuyAtStopCancel();
 
-            // заявка стоп-маркет: цена активации = верхняя линия Bollinger, жизнь заявки - 1 свеча
-            tab.BuyAtStopMarketIceberg(volume, bollingerUp, bollingerUp,
+            // заявка стоп-маркет: цена активации = верхняя линия канала (последнее значение), жизнь заявки - 1 свеча
+            tab.BuyAtStopMarketIceberg(volume, adpcUp, adpcUp,
                 StopActivateType.HigherOrEqual, 1, "LongEntry",
                 PositionOpenerToStopLifeTimeType.CandlesCount,
                 _longIcebergOrdersCount.ValueInt, _longIcebergMillisecondsDistance.ValueInt);
         }
 
         // Логика открытия шорта
-        private void LogicOpenShort(List<Candle> candles, BotTabSimple tab, Aindicator bollinger, Aindicator momentum)
+        private void LogicOpenShort(List<Candle> candles, BotTabSimple tab, Aindicator adpc, Aindicator envelop, Aindicator momentum)
         {
             int shortPositionsCount = _screenerShort.PositionsOpenAll.FindAll(p => p.Direction == Side.Sell).Count;
 
@@ -499,25 +541,36 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            // Серии Bollinger: 0 - верхняя линия, 1 - нижняя линия, 2 - центральная линия
-            decimal bollingerUp = bollinger.DataSeries[0].Last;
-            decimal bollingerDown = bollinger.DataSeries[1].Last;
-            decimal bollingerCenter = bollinger.DataSeries[2].Last;
+            // Серии PriceChannelAdaptive: 0 - верхняя линия, 1 - нижняя линия (2 - скрытая служебная)
+            // Серии Envelops: 0 - верхняя линия, 1 - центральная линия, 2 - нижняя линия
+            decimal adpcUp = adpc.DataSeries[0].Last;
+            decimal adpcDown = adpc.DataSeries[1].Last;
+            decimal envelopUp = envelop.DataSeries[0].Last;
+            decimal envelopDown = envelop.DataSeries[2].Last;
             decimal lastMomentum = momentum.DataSeries[0].Last;
 
             // нулевые значения = индикатор не прогрет, не торгуем
-            if (bollingerUp == 0
-                || bollingerDown == 0
-                || bollingerCenter == 0
+            if (adpcUp == 0
+                || adpcDown == 0
+                || envelopUp == 0
+                || envelopDown == 0
                 || lastMomentum == 0)
             {
                 return;
             }
 
-            if (IndexFilterAllow(Side.Sell) == false)
+            // условия входа проверяем по линиям канала вторым с конца:
+            // последнее значение линий перестраивается по экстремумам текущей свечи
+            decimal adpcUpPrev = adpc.DataSeries[0].Values[adpc.DataSeries[0].Values.Count - 2];
+            decimal adpcDownPrev = adpc.DataSeries[1].Values[adpc.DataSeries[1].Values.Count - 2];
+
+            if (adpcUpPrev == 0
+                || adpcDownPrev == 0)
             {
                 return;
             }
+
+            decimal adpcCenterPrev = (adpcUpPrev + adpcDownPrev) / 2;
 
             decimal lastClose = candles[candles.Count - 1].Close;
 
@@ -526,8 +579,20 @@ namespace OsEngine.Robots.SpeculantSet
                 return;
             }
 
-            if (lastClose >= bollingerCenter
-                || lastClose <= bollingerDown)
+            if (lastClose >= adpcCenterPrev
+                || lastClose <= adpcDownPrev)
+            {
+                return;
+            }
+
+            // фильтр Envelop: цена выше нижней линии - шорт запрещён
+            if (lastClose > envelopDown)
+            {
+                return;
+            }
+
+            // дивидендная блокировка: вокруг отсечки в шорт не входим
+            if (ShortBlockedByDividends(tab))
             {
                 return;
             }
@@ -542,31 +607,23 @@ namespace OsEngine.Robots.SpeculantSet
             // перед перевыставлением отменяем предыдущую заявку
             tab.SellAtStopCancel();
 
-            // заявка стоп-маркет: цена активации = нижняя линия Bollinger, жизнь заявки - 1 свеча
-            tab.SellAtStopMarketIceberg(volume, bollingerDown, bollingerDown,
+            // заявка стоп-маркет: цена активации = нижняя линия канала (последнее значение), жизнь заявки - 1 свеча
+            tab.SellAtStopMarketIceberg(volume, adpcDown, adpcDown,
                 StopActivateType.LowerOrEqual, 1, "ShortEntry",
                 PositionOpenerToStopLifeTimeType.CandlesCount,
                 _shortIcebergOrdersCount.ValueInt, _shortIcebergMillisecondsDistance.ValueInt);
         }
 
-        // Логика закрытия лонга. Стоп по линии Bollinger, передвигается только в сторону прибыли
-        private void LogicCloseLong(BotTabSimple tab, Aindicator bollinger, Position position)
+        // Логика закрытия лонга. Стоп по нижней линии канала, передвигается только в сторону прибыли
+        private void LogicCloseLong(BotTabSimple tab, Aindicator adpc, Position position)
         {
             if (position.State != PositionStateType.Open)
             {
                 return;
             }
 
-            decimal exitPrice = 0;
-
-            if (_longExitLine.ValueString == "BollingerCenter")
-            {
-                exitPrice = bollinger.DataSeries[2].Last;
-            }
-            else // "BollingerDown"
-            {
-                exitPrice = bollinger.DataSeries[1].Last;
-            }
+            // выход по противоположной границе канала
+            decimal exitPrice = adpc.DataSeries[1].Last;
 
             if (exitPrice == 0)
             {
@@ -582,24 +639,16 @@ namespace OsEngine.Robots.SpeculantSet
             }
         }
 
-        // Логика закрытия шорта
-        private void LogicCloseShort(BotTabSimple tab, Aindicator bollinger, Position position)
+        // Логика закрытия шорта. Стоп по верхней линии канала
+        private void LogicCloseShort(BotTabSimple tab, Aindicator adpc, Position position)
         {
             if (position.State != PositionStateType.Open)
             {
                 return;
             }
 
-            decimal exitPrice = 0;
-
-            if (_shortExitLine.ValueString == "BollingerCenter")
-            {
-                exitPrice = bollinger.DataSeries[2].Last;
-            }
-            else // "BollingerUp"
-            {
-                exitPrice = bollinger.DataSeries[0].Last;
-            }
+            // выход по противоположной границе канала
+            decimal exitPrice = adpc.DataSeries[0].Last;
 
             if (exitPrice == 0)
             {
@@ -615,51 +664,6 @@ namespace OsEngine.Robots.SpeculantSet
             }
         }
 
-        // Фильтр направления рынка по индексу Мосбиржи.
-        // Индекс выше верхней линии Envelop -> разрешены лонги, ниже нижней линии -> разрешены шорты
-        private bool IndexFilterAllow(Side side)
-        {
-            if (_indexFilterIsOn.ValueBool == false)
-            {
-                return true;
-            }
-
-            List<Candle> indexCandles = _tabIndex.CandlesAll;
-
-            // фильтр включён, а данных индекса нет - не торгуем
-            if (indexCandles == null
-                || indexCandles.Count < _indexEnvelopLength.ValueInt + 5)
-            {
-                return false;
-            }
-
-            // серии Envelops: 0 - верхняя линия, 2 - нижняя линия
-            if (_envelopIndex.DataSeries[0].Values.Count < indexCandles.Count
-                || _envelopIndex.DataSeries[2].Values.Count < indexCandles.Count)
-            {
-                return false;
-            }
-
-            decimal envelopUp = _envelopIndex.DataSeries[0].Last;
-            decimal envelopDown = _envelopIndex.DataSeries[2].Last;
-
-            // нулевые значения = индикатор не прогрет, не торгуем
-            if (envelopUp == 0
-                || envelopDown == 0)
-            {
-                return false;
-            }
-
-            decimal lastIndexClose = indexCandles[indexCandles.Count - 1].Close;
-
-            if (side == Side.Buy)
-            {
-                return lastIndexClose > envelopUp;
-            }
-
-            return lastIndexClose < envelopDown;
-        }
-
         // Активация / деактивация стопов открытых позиций
         private void SetStopsActive(List<Position> positions, bool isActive)
         {
@@ -670,6 +674,205 @@ namespace OsEngine.Robots.SpeculantSet
                     positions[i].StopOrderIsActive = isActive;
                 }
             }
+        }
+
+        #endregion
+
+        #region Dividends (блокировка шортов и автообновление базы)
+
+        // Дивидендная блокировка шорта: вокруг отсечки в шорт не входим.
+        // Данных по бумаге нет - шорт разрешён
+        private bool ShortBlockedByDividends(BotTabSimple tab)
+        {
+            if (_shortBlockDuringDividends.ValueBool == false)
+            {
+                return false;
+            }
+
+            if (tab.Security == null
+                || string.IsNullOrWhiteSpace(tab.Security.Name))
+            {
+                return false;
+            }
+
+            string ticker = tab.Security.Name;
+            DateTime currentTime = tab.TimeServerCurrent;
+
+            // окно блокировки фиксированное: 5 дней до отсечки и 2 дня после
+
+            // ближайшая будущая отсечка: блокируем за 5 дней до неё
+            WikiDividendFuture future = WikiMaster.GetDividendsFuture(ticker, currentTime);
+
+            if (future != null
+                && future.future != null
+                && string.IsNullOrWhiteSpace(future.future.registry_close_date) == false)
+            {
+                if (DateTime.TryParseExact(future.future.registry_close_date, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out DateTime futureDate))
+                {
+                    if (futureDate.Date >= currentTime.Date
+                        && futureDate.Date <= currentTime.AddDays(5).Date)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            // ближайшая прошлая отсечка: блокируем ещё 2 дня после неё
+            WikiDividendPast past = WikiMaster.GetDividendsPast(ticker, currentTime);
+
+            if (past != null
+                && past.past != null
+                && string.IsNullOrWhiteSpace(past.past.registry_close_date) == false)
+            {
+                if (DateTime.TryParseExact(past.past.registry_close_date, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None,
+                    out DateTime pastDate))
+                {
+                    if (pastDate.Date <= currentTime.Date
+                        && pastDate.Date >= currentTime.AddDays(-2).Date)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Ручной запуск обновления базы дивидендов (кнопка на вкладке Update)
+        private void _startUpdateDividendsButton_UserClickOnButtonEvent()
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    SendNewLogMessage("Manual dividends update is available only in real trading mode", Logging.LogMessageType.Error);
+                    return;
+                }
+
+                string path = GetDividendsBasePath();
+
+                if (!Directory.Exists(path))
+                {
+                    SendNewLogMessage($"Dividends directory not found: {path}", Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (_dividendsUpdating)
+                {
+                    SendNewLogMessage("Dividends update is already in progress", Logging.LogMessageType.System);
+                    return;
+                }
+
+                SendNewLogMessage("Manual dividends update started", Logging.LogMessageType.System);
+                StartDividendsUpdate();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        // Ежедневная проверка свежести базы дивидендов (только в реале)
+        private void CheckDividendsUpdate(DateTime serverTime)
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                if (_autoUpdateDividends.ValueString == "Off")
+                {
+                    return;
+                }
+
+                if (_lastDividendsUpdateCheckDate.Date == serverTime.Date)
+                {
+                    return;
+                }
+
+                TimeSpan checkTime = _dividendsUpdateCheckTime.Value.TimeSpan;
+
+                if (serverTime.TimeOfDay < checkTime)
+                {
+                    return;
+                }
+
+                _lastDividendsUpdateCheckDate = serverTime;
+
+                if (!IsDividendsBaseStale(serverTime))
+                {
+                    return;
+                }
+
+                SendNewLogMessage("Dividends base is stale. Starting auto update", Logging.LogMessageType.System);
+                StartDividendsUpdate();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void StartDividendsUpdate()
+        {
+            if (_dividendsUpdating)
+            {
+                return;
+            }
+
+            _dividendsUpdating = true;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    WikiMaster.UpdateDividendsBase();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+                }
+                finally
+                {
+                    _dividendsUpdating = false;
+                    SendNewLogMessage("Dividends update finished", Logging.LogMessageType.System);
+                }
+            });
+        }
+
+        private bool IsDividendsBaseStale(DateTime currentTime)
+        {
+            try
+            {
+                string path = GetDividendsBasePath();
+
+                if (!Directory.Exists(path))
+                {
+                    return true;
+                }
+
+                DateTime lastWrite = Directory.GetLastWriteTime(path);
+                double ageDays = (currentTime - lastWrite).TotalDays;
+
+                return ageDays > _dividendsMaxAgeDays.ValueInt;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+                return false;
+            }
+        }
+
+        private string GetDividendsBasePath()
+        {
+            return AppDomain.CurrentDomain.BaseDirectory + "Wiki\\Dividends";
         }
 
         #endregion

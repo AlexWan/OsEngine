@@ -361,6 +361,29 @@ if (_host != null)
 }
 ```
 
+### 4.8. Окна создаются только парой XAML + code-behind
+
+Любое окно движка — это пара `.xaml` (разметка) и `.xaml.cs` (`public partial class`, логика). Запрещено создавать окна целиком в коде (`class MyWindow : Window` с построением контролов в конструкторе). Такой паттерн встречается только внутри некоторых роботов (например `EditRatesWindow` в `PayOfMarginBot`) — это их внутренняя кухня, а не образец. Не копируй паттерны из роботов в UI движка: роботы живут по своим правилам (`CONTEXT_ROBOTS.md`, `CONTEXT_ROBOTS_ARCHITECTURE.md`), движок — по этим.
+
+### 4.9. Компоновка окна — с привязкой к краям
+
+Элементы окна должны быть привязаны к краям через `Grid` с `RowDefinitions`/`ColumnDefinitions` (`*`, `Auto`), `Dock` у WinForms-контролов и `HorizontalAlignment`/`VerticalAlignment`. Запрещено размещать контент «как получится» в `StackPanel` без якорей — при изменении размера окна таблицы и кнопки «плывут». Кнопки подтверждения («Принять» и т.п.) — всегда у нижней границы.
+
+```xml
+<Grid>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <WindowsFormsHost Name="HostTable" Grid.Row="0"/>
+    <Button Name="ButtonAccept" Grid.Row="1" HorizontalAlignment="Right" Margin="0,5,10,10"/>
+</Grid>
+```
+
+### 4.10. WindowsFormsHost перекрывает WPF-элементы (airspace)
+
+WinForms-контент внутри `WindowsFormsHost` всегда рисуется поверх любых WPF-элементов в той же области — z-order не работает. WPF-кнопки и подписи размещай только в полосах, свободных от хоста (отдельные строки или колонки `Grid`), иначе они будут невидимы.
+
 ---
 
 ## 5. Потокобезопасность
@@ -594,6 +617,19 @@ private void Chart_Click(object sender, EventArgs e)
         ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
     }
 }
+```
+
+### 7.5. Парсинг чисел из пользовательского ввода — только через `ToDecimal()`
+
+Для преобразования строки в число используй расширение `.ToDecimal()` из `OsEngine/Entity/Extensions.cs` — оно принимает и точку, и запятую независимо от региональных настроек. Запрещены `decimal.TryParse` с неявной культурой и костыли вида `Replace(".", ",")`: в русской локали ввод с точкой молча превращается в 0 или мусор, и данные пользователя теряются без ошибки.
+
+```csharp
+// Плохо
+decimal rate = 0;
+decimal.TryParse(cell.Value?.ToString(), out rate);
+
+// Хорошо
+decimal rate = cell.Value?.ToString().ToDecimal() ?? 0;
 ```
 
 ---

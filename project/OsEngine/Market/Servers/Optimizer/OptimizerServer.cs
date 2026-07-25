@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -2304,7 +2304,7 @@ namespace OsEngine.Market.Servers.Optimizer
                             continue;
                         }
 
-                        string key = $"{ticker}_{registryDate:dd.MM.yyyy}";
+                        string key = $"{MyRobot.NameStrategyUniq}_{tab.TabName}_{position.Number}_{ticker}_{registryDate:dd.MM.yyyy}";
 
                         if (_processedDividendKeys.Contains(key))
                         {
@@ -2314,7 +2314,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         decimal dividendSum = ProcessDividendForPosition(MyRobot, tab, position, dividendRecord, currentServerTime);
                         _processedDividendKeys.Add(key);
 
-                        if (dividendSum > 0)
+                        if (dividendSum != 0)
                         {
                             _pendingDividendPayments.Add(new PendingDividendPayment
                             {
@@ -2453,6 +2453,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 CreateDividendPosition(bot, tab, position, currentPrice, syntheticVolume, yieldAfterTax, currentServerTime);
 
                 decimal dividendSum = Math.Round(baseVolume * currentPrice * yieldAfterTax / 100, 2);
+
+                if (position.Direction == Side.Sell)
+                {// short pays the dividend: the sum goes to the cash leg with a minus
+                    dividendSum = -dividendSum;
+                }
 
                 return dividendSum;
             }
