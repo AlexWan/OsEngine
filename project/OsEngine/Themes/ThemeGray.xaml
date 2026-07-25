@@ -36,7 +36,7 @@
         <Color x:Key="OptimizerStageCellColor">#9AA2AD</Color>
         <Color x:Key="OptimizerProfitBarColor">#2E9E3F</Color>
         <Color x:Key="GridSelectionBackColor">#DDE3EA</Color>
-        <Color x:Key="GridSelectionForeColor">#16181C</Color>
+        <Color x:Key="GridSelectionForeColor">#1F4E7E</Color>
         <SolidColorBrush x:Key="DataGridWpfRowTextBrush" Color="#59616B"/>
         <SolidColorBrush x:Key="DataGridWpfCellTextBrush" Color="#59616B"/>
         <SolidColorBrush x:Key="DataGridWpfBorderBrush" Color="#C9CDD4"/>
