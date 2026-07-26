@@ -1607,6 +1607,11 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
+                if(rowIndex < 0)
+                {
+                    return;
+                }
+
                 BotPanel bot = _master.BotToTest;
 
                 if (bot == null)

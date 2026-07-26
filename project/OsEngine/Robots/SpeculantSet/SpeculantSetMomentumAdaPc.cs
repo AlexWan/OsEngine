@@ -176,7 +176,7 @@ namespace OsEngine.Robots.SpeculantSet
             _longIcebergOrdersCount = CreateParameter("Long iceberg orders count", 3, 1, 10, 1, "Long");
             _longIcebergMillisecondsDistance = CreateParameter("Long iceberg milliseconds distance", 1000, 500, 10000, 500, "Long");
             _longVolumeType = CreateParameter("Long volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Long");
-            _longVolume = CreateParameter("Long volume", 10, 1.0m, 50, 4, "Long");
+            _longVolume = CreateParameter("Long volume", 7.5m, 1.0m, 50, 4, "Long");
             _longTradeAssetInPortfolio = CreateParameter("Long trade asset in portfolio", "Prime", "Long");
 
             // Настройки шорта
@@ -191,14 +191,14 @@ namespace OsEngine.Robots.SpeculantSet
             _shortIcebergOrdersCount = CreateParameter("Short iceberg orders count", 3, 1, 10, 1, "Short");
             _shortIcebergMillisecondsDistance = CreateParameter("Short iceberg milliseconds distance", 1000, 500, 10000, 500, "Short");
             _shortVolumeType = CreateParameter("Short volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Short");
-            _shortVolume = CreateParameter("Short volume", 10, 1.0m, 50, 4, "Short");
+            _shortVolume = CreateParameter("Short volume", 7.5m, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short trade asset in portfolio", "Prime", "Short");
 
             // Дивидендная блокировка шортов
             _shortBlockDuringDividends = CreateParameter("Short block during dividends", true, "Short");
 
             // Автообновление базы дивидендов (вкладка Update, работает только в реале)
-            _autoUpdateDividends = CreateParameter("Auto update dividends", "On", new[] { "On", "Off" }, "Update");
+            _autoUpdateDividends = CreateParameter("Auto update dividends", "Off", new[] { "On", "Off" }, "Update");
             _dividendsUpdateCheckTime = CreateParameterTimeOfDay("Dividends update check time", 8, 0, 0, 0, "Update");
             _dividendsMaxAgeDays = CreateParameter("Dividends max age days", 5, 1, 30, 1, "Update");
             _startUpdateDividendsButton = CreateParameterButton("Start update dividends", "Update");

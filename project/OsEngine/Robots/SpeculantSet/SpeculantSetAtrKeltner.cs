@@ -21,20 +21,23 @@ using OsEngine.Wiki;
 Торговый робот для OsEngine
 
 Трендовый импульсный робот. Импульс определяется по росту волатильности (ATR),
-уровни - по каналу Кельтнера.
+уровни - по каналу Кельтнера, фильтр тренда - по Bollinger.
 
 Конструкция: два источника.
-1. BotTabScreener для лонгов (KeltnerChannel + ATR на каждой бумаге).
+1. BotTabScreener для лонгов (KeltnerChannel + ATR + Bollinger на каждой бумаге).
 2. BotTabScreener для шортов (независимые параметры для отдельной оптимизации).
 
 Покупка:
 1. ATR (индикатор с типом расчёта Percent) вырос на заданную величину за последние N свечей.
 2. Цена выше центральной линии Keltner и ниже верхней линии Keltner.
-3. Нет позиции по бумаге и не достигнут лимит позиций скринера.
+3. Фильтр Bollinger: цена выше верхней линии Bollinger.
+4. Нет позиции по бумаге и не достигнут лимит позиций скринера.
 Вход через BuyAtStopMarketIceberg с ценой активации = верхняя линия Keltner, время жизни заявки = 1 свеча.
 
 Продажа: зеркально (рост ATR тот же - волатильность растёт в обе стороны,
-цена ниже центральной линии Keltner и выше нижней линии Keltner, цена активации = нижняя линия Keltner).
+цена ниже центральной линии Keltner и выше нижней линии Keltner, фильтр Bollinger: цена ниже
+нижней линии Bollinger, цена активации = нижняя линия Keltner). Шорт не открывается
+в окне дивидендной отсечки (5 дней до и 2 дня после).
 
 Выход: CloseAtStopMarketIceberg по нижней линии Keltner (шорт - по верхней).
 Стоп передвигается на каждой закрытой свече только в сторону прибыли и только в торговое время.
@@ -75,6 +78,8 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterInt _longKeltnerEmaLength;
         private StrategyParameterInt _longKeltnerAtrLength;
         private StrategyParameterDecimal _longKeltnerDeviation;
+        private StrategyParameterInt _longBollingerLength;
+        private StrategyParameterDecimal _longBollingerDeviation;
         private StrategyParameterInt _longMaxPositions;
         private StrategyParameterInt _longIcebergOrdersCount;
         private StrategyParameterInt _longIcebergMillisecondsDistance;
@@ -93,6 +98,8 @@ namespace OsEngine.Robots.SpeculantSet
         private StrategyParameterInt _shortKeltnerEmaLength;
         private StrategyParameterInt _shortKeltnerAtrLength;
         private StrategyParameterDecimal _shortKeltnerDeviation;
+        private StrategyParameterInt _shortBollingerLength;
+        private StrategyParameterDecimal _shortBollingerDeviation;
         private StrategyParameterInt _shortMaxPositions;
         private StrategyParameterInt _shortIcebergOrdersCount;
         private StrategyParameterInt _shortIcebergMillisecondsDistance;
@@ -162,65 +169,73 @@ namespace OsEngine.Robots.SpeculantSet
 
             // Настройки лонга
             _longIsOn = CreateParameter("Long is on", true, "Long");
-            _longAtrPeriod = CreateParameter("Long atr period", 14, 5, 100, 1, "Long");
+            _longAtrPeriod = CreateParameter("Long atr period", 15, 5, 100, 1, "Long");
             _longAtrGrowthCandles = CreateParameter("Long atr growth candles", 10, 2, 50, 1, "Long");
-            _longAtrGrowthValue = CreateParameter("Long atr growth value", 2.0m, 0.5m, 10, 0.5m, "Long");
-            _longKeltnerEmaLength = CreateParameter("Long keltner ema length", 20, 5, 100, 5, "Long");
+            _longAtrGrowthValue = CreateParameter("Long atr growth value", 3.5m, 0.5m, 10, 0.5m, "Long");
+            _longKeltnerEmaLength = CreateParameter("Long keltner ema length", 125, 5, 100, 5, "Long");
             _longKeltnerAtrLength = CreateParameter("Long keltner atr length", 10, 5, 100, 5, "Long");
-            _longKeltnerDeviation = CreateParameter("Long keltner deviation", 2.0m, 1, 4, 0.1m, "Long");
+            _longKeltnerDeviation = CreateParameter("Long keltner deviation", 3.8m, 1, 4, 0.1m, "Long");
+            _longBollingerLength = CreateParameter("Long bollinger length", 490, 50, 1000, 10, "Long");
+            _longBollingerDeviation = CreateParameter("Long bollinger deviation", 0.2m, 0.5m, 4, 0.1m, "Long");
             _longMaxPositions = CreateParameter("Long max positions", 5, 1, 20, 1, "Long");
             _longIcebergOrdersCount = CreateParameter("Long iceberg orders count", 3, 1, 10, 1, "Long");
             _longIcebergMillisecondsDistance = CreateParameter("Long iceberg milliseconds distance", 1000, 500, 10000, 500, "Long");
             _longVolumeType = CreateParameter("Long volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Long");
-            _longVolume = CreateParameter("Long volume", 10, 1.0m, 50, 4, "Long");
+            _longVolume = CreateParameter("Long volume", 7.5m, 1.0m, 50, 4, "Long");
             _longTradeAssetInPortfolio = CreateParameter("Long trade asset in portfolio", "Prime", "Long");
 
             // Настройки шорта
             _shortIsOn = CreateParameter("Short is on", true, "Short");
             _shortAtrPeriod = CreateParameter("Short atr period", 14, 5, 100, 1, "Short");
             _shortAtrGrowthCandles = CreateParameter("Short atr growth candles", 10, 2, 50, 1, "Short");
-            _shortAtrGrowthValue = CreateParameter("Short atr growth value", 2.0m, 0.5m, 10, 0.5m, "Short");
-            _shortKeltnerEmaLength = CreateParameter("Short keltner ema length", 20, 5, 100, 5, "Short");
+            _shortAtrGrowthValue = CreateParameter("Short atr growth value", 1.5m, 0.5m, 10, 0.5m, "Short");
+            _shortKeltnerEmaLength = CreateParameter("Short keltner ema length", 70, 5, 100, 5, "Short");
             _shortKeltnerAtrLength = CreateParameter("Short keltner atr length", 10, 5, 100, 5, "Short");
-            _shortKeltnerDeviation = CreateParameter("Short keltner deviation", 2.0m, 1, 4, 0.1m, "Short");
+            _shortKeltnerDeviation = CreateParameter("Short keltner deviation", 3.2m, 1, 4, 0.1m, "Short");
+            _shortBollingerLength = CreateParameter("Short bollinger length", 1200, 50, 1000, 10, "Short");
+            _shortBollingerDeviation = CreateParameter("Short bollinger deviation", 0.55m, 0.5m, 4, 0.1m, "Short");
             _shortMaxPositions = CreateParameter("Short max positions", 5, 1, 20, 1, "Short");
             _shortIcebergOrdersCount = CreateParameter("Short iceberg orders count", 3, 1, 10, 1, "Short");
             _shortIcebergMillisecondsDistance = CreateParameter("Short iceberg milliseconds distance", 1000, 500, 10000, 500, "Short");
             _shortVolumeType = CreateParameter("Short volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Short");
-            _shortVolume = CreateParameter("Short volume", 10, 1.0m, 50, 4, "Short");
+            _shortVolume = CreateParameter("Short volume", 7.5m, 1.0m, 50, 4, "Short");
             _shortTradeAssetInPortfolio = CreateParameter("Short trade asset in portfolio", "Prime", "Short");
 
             // Дивидендная блокировка шортов
             _shortBlockDuringDividends = CreateParameter("Short block during dividends", true, "Short");
 
             // Автообновление базы дивидендов (вкладка Update, работает только в реале)
-            _autoUpdateDividends = CreateParameter("Auto update dividends", "On", new[] { "On", "Off" }, "Update");
+            _autoUpdateDividends = CreateParameter("Auto update dividends", "Off", new[] { "On", "Off" }, "Update");
             _dividendsUpdateCheckTime = CreateParameterTimeOfDay("Dividends update check time", 8, 0, 0, 0, "Update");
             _dividendsMaxAgeDays = CreateParameter("Dividends max age days", 5, 1, 30, 1, "Update");
             _startUpdateDividendsButton = CreateParameterButton("Start update dividends", "Update");
             _startUpdateDividendsButton.UserClickOnButtonEvent += _startUpdateDividendsButton_UserClickOnButtonEvent;
 
-            // Создаём индикаторы KeltnerChannel и ATR на лонговом скринере
+            // Создаём индикаторы KeltnerChannel, ATR и Bollinger на лонговом скринере
             _screenerLong.CreateCandleIndicator(1, "KeltnerChannel",
                 new List<string>() { _longKeltnerEmaLength.ValueInt.ToString(), _longKeltnerAtrLength.ValueInt.ToString(),
                     _longKeltnerAtrLength.ValueInt.ToString(), _longKeltnerDeviation.ValueDecimal.ToString(), "Close" }, "Prime");
             _screenerLong.CreateCandleIndicator(2, "ATR",
                 new List<string>() { _longAtrPeriod.ValueInt.ToString(), "Percent" }, "Second");
+            _screenerLong.CreateCandleIndicator(3, "Bollinger",
+                new List<string>() { _longBollingerLength.ValueInt.ToString(), _longBollingerDeviation.ValueDecimal.ToString() }, "Prime");
 
-            // Создаём индикаторы KeltnerChannel и ATR на шортовом скринере
+            // Создаём индикаторы KeltnerChannel, ATR и Bollinger на шортовом скринере
             _screenerShort.CreateCandleIndicator(1, "KeltnerChannel",
                 new List<string>() { _shortKeltnerEmaLength.ValueInt.ToString(), _shortKeltnerAtrLength.ValueInt.ToString(),
                     _shortKeltnerAtrLength.ValueInt.ToString(), _shortKeltnerDeviation.ValueDecimal.ToString(), "Close" }, "Prime");
             _screenerShort.CreateCandleIndicator(2, "ATR",
                 new List<string>() { _shortAtrPeriod.ValueInt.ToString(), "Percent" }, "Second");
+            _screenerShort.CreateCandleIndicator(3, "Bollinger",
+                new List<string>() { _shortBollingerLength.ValueInt.ToString(), _shortBollingerDeviation.ValueDecimal.ToString() }, "Prime");
 
             // Подписка на событие изменения параметров пользователем
             ParametrsChangeByUser += SpeculantSetAtrKeltner_ParametrsChangeByUser;
 
             DeleteEvent += SpeculantSetAtrKeltner_DeleteEvent;
 
-            string eng = "Trend volatility robot. Two screeners (long and short) with KeltnerChannel + ATR, entries by stop iceberg orders, exits by stop on the Keltner line.";
-            string ru = "Трендовый робот на росте волатильности. Два скринера (лонг и шорт) с каналом Кельтнера + ATR, входы стоп-айсберг заявками, выходы стопом по линии Кельтнера.";
+            string eng = "Trend volatility robot. Two screeners (long and short) with KeltnerChannel + ATR + Bollinger trend filter, entries by stop iceberg orders, exits by stop on the Keltner line. Shorts are blocked around dividend dates.";
+            string ru = "Трендовый робот на росте волатильности. Два скринера (лонг и шорт) с каналом Кельтнера + ATR + фильтром Bollinger, входы стоп-айсберг заявками, выходы стопом по линии Кельтнера. Шорты блокируются вокруг дивидендных отсечек.";
             Description = OsLocalization.ConvertToLocString($"Eng:{eng}_Ru:{ru}_");
         }
 
@@ -237,6 +252,9 @@ namespace OsEngine.Robots.SpeculantSet
             _screenerLong._indicators[1].Parameters
                 = new List<string>() { _longAtrPeriod.ValueInt.ToString(), "Percent" };
 
+            _screenerLong._indicators[2].Parameters
+                = new List<string>() { _longBollingerLength.ValueInt.ToString(), _longBollingerDeviation.ValueDecimal.ToString() };
+
             _screenerLong.UpdateIndicatorsParameters();
 
             _screenerShort._indicators[0].Parameters
@@ -245,6 +263,9 @@ namespace OsEngine.Robots.SpeculantSet
 
             _screenerShort._indicators[1].Parameters
                 = new List<string>() { _shortAtrPeriod.ValueInt.ToString(), "Percent" };
+
+            _screenerShort._indicators[2].Parameters
+                = new List<string>() { _shortBollingerLength.ValueInt.ToString(), _shortBollingerDeviation.ValueDecimal.ToString() };
 
             _screenerShort.UpdateIndicatorsParameters();
         }
@@ -352,7 +373,8 @@ namespace OsEngine.Robots.SpeculantSet
                 }
 
                 int candlesNeed = Math.Max(_longAtrPeriod.ValueInt,
-                    Math.Max(_longKeltnerEmaLength.ValueInt, _longKeltnerAtrLength.ValueInt))
+                    Math.Max(_longKeltnerEmaLength.ValueInt,
+                    Math.Max(_longKeltnerAtrLength.ValueInt, _longBollingerLength.ValueInt)))
                     + _longAtrGrowthCandles.ValueInt + 5;
 
                 if (candles.Count < candlesNeed)
@@ -362,9 +384,11 @@ namespace OsEngine.Robots.SpeculantSet
 
                 Aindicator keltner = (Aindicator)tab.Indicators[0];
                 Aindicator atr = (Aindicator)tab.Indicators[1];
+                Aindicator bollinger = (Aindicator)tab.Indicators[2];
 
                 if (keltner.DataSeries[0].Values.Count < candles.Count
-                    || atr.DataSeries[0].Values.Count < candles.Count)
+                    || atr.DataSeries[0].Values.Count < candles.Count
+                    || bollinger.DataSeries[0].Values.Count < candles.Count)
                 {
                     return;
                 }
@@ -373,7 +397,7 @@ namespace OsEngine.Robots.SpeculantSet
 
                 if (positions.Count == 0)
                 { // Логика открытия
-                    LogicOpenLong(candles, tab, keltner, atr);
+                    LogicOpenLong(candles, tab, keltner, atr, bollinger);
                 }
                 else
                 { // Логика закрытия позиции
@@ -408,7 +432,8 @@ namespace OsEngine.Robots.SpeculantSet
                 SetStopsActive(_screenerShort.PositionsOpenAll, true);
 
                 int candlesNeed = Math.Max(_shortAtrPeriod.ValueInt,
-                    Math.Max(_shortKeltnerEmaLength.ValueInt, _shortKeltnerAtrLength.ValueInt))
+                    Math.Max(_shortKeltnerEmaLength.ValueInt,
+                    Math.Max(_shortKeltnerAtrLength.ValueInt, _shortBollingerLength.ValueInt)))
                     + _shortAtrGrowthCandles.ValueInt + 5;
 
                 if (candles.Count < candlesNeed)
@@ -418,9 +443,11 @@ namespace OsEngine.Robots.SpeculantSet
 
                 Aindicator keltner = (Aindicator)tab.Indicators[0];
                 Aindicator atr = (Aindicator)tab.Indicators[1];
+                Aindicator bollinger = (Aindicator)tab.Indicators[2];
 
                 if (keltner.DataSeries[0].Values.Count < candles.Count
-                    || atr.DataSeries[0].Values.Count < candles.Count)
+                    || atr.DataSeries[0].Values.Count < candles.Count
+                    || bollinger.DataSeries[0].Values.Count < candles.Count)
                 {
                     return;
                 }
@@ -429,7 +456,7 @@ namespace OsEngine.Robots.SpeculantSet
 
                 if (positions.Count == 0)
                 { // Логика открытия
-                    LogicOpenShort(candles, tab, keltner, atr);
+                    LogicOpenShort(candles, tab, keltner, atr, bollinger);
                 }
                 else
                 { // Логика закрытия позиции
@@ -443,7 +470,7 @@ namespace OsEngine.Robots.SpeculantSet
         }
 
         // Логика открытия лонга
-        private void LogicOpenLong(List<Candle> candles, BotTabSimple tab, Aindicator keltner, Aindicator atr)
+        private void LogicOpenLong(List<Candle> candles, BotTabSimple tab, Aindicator keltner, Aindicator atr, Aindicator bollinger)
         {
             int longPositionsCount = _screenerLong.PositionsOpenAll.FindAll(p => p.Direction == Side.Buy).Count;
 
@@ -453,16 +480,19 @@ namespace OsEngine.Robots.SpeculantSet
             }
 
             // Серии KeltnerChannel: 1 - верхняя линия, 2 - нижняя линия, 3 - центральная линия
+            // Серии Bollinger: 0 - верхняя линия, 1 - нижняя линия, 2 - центральная линия
             decimal keltnerUp = keltner.DataSeries[1].Last;
             decimal keltnerDown = keltner.DataSeries[2].Last;
             decimal keltnerCenter = keltner.DataSeries[3].Last;
             decimal lastAtr = atr.DataSeries[0].Last;
+            decimal bollingerUp = bollinger.DataSeries[0].Last;
 
             // нулевые значения = индикатор не прогрет, не торгуем
             if (keltnerUp == 0
                 || keltnerDown == 0
                 || keltnerCenter == 0
-                || lastAtr == 0)
+                || lastAtr == 0
+                || bollingerUp == 0)
             {
                 return;
             }
@@ -477,6 +507,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             if (lastClose <= keltnerCenter
                 || lastClose >= keltnerUp)
+            {
+                return;
+            }
+
+            // фильтр Bollinger: лонг разрешён только выше верхней линии
+            if (lastClose <= bollingerUp)
             {
                 return;
             }
@@ -499,7 +535,7 @@ namespace OsEngine.Robots.SpeculantSet
         }
 
         // Логика открытия шорта
-        private void LogicOpenShort(List<Candle> candles, BotTabSimple tab, Aindicator keltner, Aindicator atr)
+        private void LogicOpenShort(List<Candle> candles, BotTabSimple tab, Aindicator keltner, Aindicator atr, Aindicator bollinger)
         {
             int shortPositionsCount = _screenerShort.PositionsOpenAll.FindAll(p => p.Direction == Side.Sell).Count;
 
@@ -509,16 +545,19 @@ namespace OsEngine.Robots.SpeculantSet
             }
 
             // Серии KeltnerChannel: 1 - верхняя линия, 2 - нижняя линия, 3 - центральная линия
+            // Серии Bollinger: 0 - верхняя линия, 1 - нижняя линия, 2 - центральная линия
             decimal keltnerUp = keltner.DataSeries[1].Last;
             decimal keltnerDown = keltner.DataSeries[2].Last;
             decimal keltnerCenter = keltner.DataSeries[3].Last;
             decimal lastAtr = atr.DataSeries[0].Last;
+            decimal bollingerDown = bollinger.DataSeries[1].Last;
 
             // нулевые значения = индикатор не прогрет, не торгуем
             if (keltnerUp == 0
                 || keltnerDown == 0
                 || keltnerCenter == 0
-                || lastAtr == 0)
+                || lastAtr == 0
+                || bollingerDown == 0)
             {
                 return;
             }
@@ -533,6 +572,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             if (lastClose >= keltnerCenter
                 || lastClose <= keltnerDown)
+            {
+                return;
+            }
+
+            // фильтр Bollinger: шорт разрешён только ниже нижней линии
+            if (lastClose >= bollingerDown)
             {
                 return;
             }
