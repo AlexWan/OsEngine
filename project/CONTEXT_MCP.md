@@ -69,6 +69,15 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     TesterTests.cs          // tester_* and bot_* via tester mode
 ```
 
+По умолчанию стенд прогоняет все 15 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–15) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+
+```bash
+./OsEngine.McpApi.TestStand.exe                      # все модули
+./OsEngine.McpApi.TestStand.exe --module Tester      # только модуль Tester
+./OsEngine.McpApi.TestStand.exe --module 5,6         # ServerManagement и ServerInstance
+./OsEngine.McpApi.TestStand.exe --module Wiki        # все wiki_* модули
+```
+
 ---
 
 ## 2. Как пользоваться MCP API

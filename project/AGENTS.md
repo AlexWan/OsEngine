@@ -33,6 +33,13 @@ dotnet build OsEngine.sln
 # Тестовый стенд MCP
 cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ./OsEngine.McpApi.TestStand.exe
+
+# Только выбранные модули: номер или подстрока имени, через запятую
+# (1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement,
+#  6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators,
+#  11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal)
+./OsEngine.McpApi.TestStand.exe --module Tester
+./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
 Цель стенда: **114/114 passed**.

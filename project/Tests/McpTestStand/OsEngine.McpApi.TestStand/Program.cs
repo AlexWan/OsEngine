@@ -240,6 +240,12 @@ namespace OsEngine.McpApi.TestStand
                         ?? throw new InvalidOperationException("MCP client is not available after process restart");
 
                     Console.WriteLine("Running tests...");
+
+                    if (options.ModuleFilter.Length > 0)
+                    {
+                        Console.WriteLine($"Module filter: {options.ModuleFilter}");
+                    }
+
                     Console.WriteLine();
 
                     string testStandDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -256,7 +262,7 @@ namespace OsEngine.McpApi.TestStand
 
                     context.PrintHeader();
 
-                    List<TestResult> results = RunAllTests(context);
+                    List<TestResult> results = RunAllTests(context, options.ModuleFilter);
 
                     CleanupAutoDataSets(options.OsEnginePath);
 
@@ -325,9 +331,17 @@ namespace OsEngine.McpApi.TestStand
             }
         }
 
-        private static List<TestResult> RunAllTests(TestContext context)
+        private static string _moduleFilter = string.Empty;
+        private static int _matchedModules = 0;
+        private static List<string> _moduleCatalog = new List<string>();
+
+        private static List<TestResult> RunAllTests(TestContext context, string moduleFilter)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
+
+            _moduleFilter = moduleFilter ?? string.Empty;
+            _matchedModules = 0;
+            _moduleCatalog.Clear();
 
             try
             {
@@ -335,25 +349,25 @@ namespace OsEngine.McpApi.TestStand
                 // MCP API: initialize, notifications/initialized, tools/list.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Protocol", string.Empty, () => new ProtocolTests(context).RunAll());
+                RunModule(context, 1, "Protocol", string.Empty, () => new ProtocolTests(context).RunAll());
 
                 // Модуль: Logs
                 // MCP API: log_get_emergency_log, log_get_mcp_log.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Logs", string.Empty, () => new LogsTests(context).RunAll());
+                RunModule(context, 2, "Logs", string.Empty, () => new LogsTests(context).RunAll());
 
                 // Модуль: Settings
                 // MCP API: prime_settings_get, prime_settings_set.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Settings", string.Empty, () => new SettingsTests(context).RunAll());
+                RunModule(context, 3, "Settings", string.Empty, () => new SettingsTests(context).RunAll());
 
                 // Модуль: Config
                 // MCP API: mcp_settings_get, mcp_settings_set.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Config", string.Empty, () => new ConfigTests(context).RunAll());
+                RunModule(context, 4, "Config", string.Empty, () => new ConfigTests(context).RunAll());
 
                 // Модуль: ServerManagement
                 // MCP API: server_management_get_list, server_management_activate,
@@ -361,7 +375,7 @@ namespace OsEngine.McpApi.TestStand
                 //          server_management_get_connector_permissions.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да (внутри активирует коннектор TInvest).
-                RunModule(context, "ServerManagement", string.Empty, () => new ServerManagementTests(context).RunAll());
+                RunModule(context, 5, "ServerManagement", string.Empty, () => new ServerManagementTests(context).RunAll());
 
                 // Модуль: ServerInstance
                 // MCP API: server_management_activate, server_instance_get_params,
@@ -374,32 +388,32 @@ namespace OsEngine.McpApi.TestStand
                 //          server_instance.portfolio.updated, server_instance.log.
                 // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "ServerInstance", "-robotslight", () => new ServerInstanceTests(context).RunAll());
+                RunModule(context, 6, "ServerInstance", "-robotslight", () => new ServerInstanceTests(context).RunAll());
 
                 // Модуль: SSE
                 // MCP API: GET /api/v1/events.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "SSE", string.Empty, () => new SseTests(context).RunAll());
+                RunModule(context, 7, "SSE", string.Empty, () => new SseTests(context).RunAll());
 
                 // Модуль: Errors
                 // MCP API: POST /api/v1/mcp без ключа, прямой terminal_get_status,
                 //          tools/call unknown_tool, tools/call без name.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Errors", string.Empty, () => new ErrorTests(context).RunAll());
+                RunModule(context, 8, "Errors", string.Empty, () => new ErrorTests(context).RunAll());
 
                 // Модуль: WikiRobots
                 // MCP API: wiki_robots_list, wiki_robot_info.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "WikiRobots", string.Empty, () => new WikiRobotsTests(context).RunAll());
+                RunModule(context, 9, "WikiRobots", string.Empty, () => new WikiRobotsTests(context).RunAll());
 
                 // Модуль: WikiIndicators
                 // MCP API: wiki_indicators_list, wiki_indicator_info.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "WikiIndicators", string.Empty, () => new WikiIndicatorsTests(context).RunAll());
+                RunModule(context, 10, "WikiIndicators", string.Empty, () => new WikiIndicatorsTests(context).RunAll());
 
                 // Модуль: WikiSecurities
                 // MCP API: wiki_securities_moex_iss, wiki_securities_tinvest,
@@ -407,21 +421,21 @@ namespace OsEngine.McpApi.TestStand
                 //          wiki_securities_mapping_info.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "WikiSecurities", string.Empty, () => new WikiSecuritiesTests(context).RunAll());
+                RunModule(context, 11, "WikiSecurities", string.Empty, () => new WikiSecuritiesTests(context).RunAll());
 
                 // Модуль: WikiDividends
                 // MCP API: wiki_dividends_get_history, wiki_dividends_get_future,
                 //          wiki_dividends_get_past, wiki_dividends_search_by_date.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "WikiDividends", string.Empty, () => new WikiDividendsTests(context).RunAll());
+                RunModule(context, 12, "WikiDividends", string.Empty, () => new WikiDividendsTests(context).RunAll());
 
                 // Модуль: Data
                 // MCP API: data_get_sets.
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Открывает режим OsData через terminal_open_mode.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Data", string.Empty, () => new DataTests(context).RunAll());
+                RunModule(context, 13, "Data", string.Empty, () => new DataTests(context).RunAll());
 
                 // Модуль: Tester
                 // MCP API: tester_data_get_config, tester_data_set_config,
@@ -430,7 +444,7 @@ namespace OsEngine.McpApi.TestStand
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Открывает режим Tester через terminal_open_mode.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, "Tester", string.Empty, () => new TesterTests(context).RunAll());
+                RunModule(context, 14, "Tester", string.Empty, () => new TesterTests(context).RunAll());
 
                 // Модуль: Terminal
                 // MCP API: ping, terminal_get_status, terminal_launch, terminal_stop, terminal_kill.
@@ -438,7 +452,24 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да (terminal_stop / terminal_kill внутри модуля).
                 // Terminal tests are always last because launch/stop/kill
                 // terminate or restart the OsEngine process.
-                RunModule(context, "Terminal", string.Empty, () => new TerminalTests(context).RunAll());
+                RunModule(context, 15, "Terminal", string.Empty, () => new TerminalTests(context).RunAll());
+
+                if (_moduleFilter.Length > 0 && _matchedModules == 0)
+                {
+                    Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");
+
+                    foreach (string entry in _moduleCatalog)
+                    {
+                        Console.WriteLine(entry);
+                    }
+
+                    stopwatch.Stop();
+                    context.PrintSummary(stopwatch.Elapsed);
+                    return new List<TestResult>
+                    {
+                        TestResult.Failed("ModuleFilter", $"No modules matched filter '{_moduleFilter}'")
+                    };
+                }
 
                 stopwatch.Stop();
                 context.PrintSummary(stopwatch.Elapsed);
@@ -455,8 +486,19 @@ namespace OsEngine.McpApi.TestStand
             }
         }
 
-        private static void RunModule(TestContext context, string name, string mode, Action run)
+        private static void RunModule(TestContext context, int number, string name, string mode, Action run)
         {
+            _moduleCatalog.Add($" {number,2}. {name}");
+
+            // фильтр проверяем до перезапуска OsEngine: пропуск модуля не должен стоить времени
+            if (_moduleFilter.Length > 0 && !ModuleMatches(_moduleFilter, number, name))
+            {
+                return;
+            }
+
+            _matchedModules++;
+            Console.WriteLine($"[Module {number}] {name}");
+
             try
             {
                 context.RestartOsEngine(mode);
@@ -470,6 +512,36 @@ namespace OsEngine.McpApi.TestStand
             {
                 context.StopOsEngine();
             }
+        }
+
+        private static bool ModuleMatches(string filter, int number, string name)
+        {
+            string[] tokens = filter.Split(',');
+
+            foreach (string rawToken in tokens)
+            {
+                string token = rawToken.Trim();
+
+                if (token.Length == 0)
+                {
+                    continue;
+                }
+
+                // токен целиком из цифр — это номер модуля, иначе — подстрока имени
+                if (int.TryParse(token, out int moduleNumber))
+                {
+                    if (moduleNumber == number)
+                    {
+                        return true;
+                    }
+                }
+                else if (name.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static TestStandOptions ParseOptions(string[] args)
@@ -517,6 +589,10 @@ namespace OsEngine.McpApi.TestStand
                 {
                     string mode = args[++i];
                     options.OsEngineArgs = ConvertModeToArgs(mode);
+                }
+                else if ((arg == "--module" || arg == "-m") && i + 1 < args.Length)
+                {
+                    options.ModuleFilter = args[++i];
                 }
                 else if (!arg.StartsWith("--"))
                 {
@@ -595,6 +671,7 @@ namespace OsEngine.McpApi.TestStand
             public string BaseUrl = string.Empty;
             public int TimeoutSeconds;
             public bool NoWait;
+            public string ModuleFilter = string.Empty;
         }
     }
 }
