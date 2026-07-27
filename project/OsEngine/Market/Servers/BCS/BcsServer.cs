@@ -33,16 +33,29 @@ namespace OsEngine.Market.Servers.BCS
             BcsServerRealization realization = new BcsServerRealization();
             ServerRealization = realization;
 
-            CreateParameterPassword(OsLocalization.Market.ServerParamToken, ""); //
-            CreateParameterBoolean(OsLocalization.Market.UseStock, true);
-            CreateParameterBoolean(OsLocalization.Market.UseFutures, false);
-            CreateParameterBoolean(OsLocalization.Market.UseCurrency, false);
-            CreateParameterBoolean(OsLocalization.Market.UseBonds, false);
-            CreateParameterBoolean(OsLocalization.Market.UseFunds, false);
-            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
-            CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20" });
-            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, false);
+            ServerParameterPassword token = CreateParameterPassword(OsLocalization.Market.ServerParamToken, "");
+            token.Comment = OsLocalization.Market.ServerParamBCSTokenDescription;
+
+            ServerParameterBool useStock = CreateParameterBoolean(OsLocalization.Market.UseStock, true);
+            ServerParameterBool useFutures = CreateParameterBoolean(OsLocalization.Market.UseFutures, false);
+            ServerParameterBool useCurrency = CreateParameterBoolean(OsLocalization.Market.UseCurrency, false);
+            ServerParameterBool useBonds = CreateParameterBoolean(OsLocalization.Market.UseBonds, false);
+            ServerParameterBool useFunds = CreateParameterBoolean(OsLocalization.Market.UseFunds, false);
+            ServerParameterBool useOptions = CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            ServerParameterBool useOther = CreateParameterBoolean(OsLocalization.Market.UseOther, false);
+            useStock.Comment = OsLocalization.Market.UseStockDescription;
+            useFutures.Comment = OsLocalization.Market.UseFuturesDescription;
+            useCurrency.Comment = OsLocalization.Market.UseCurrencyDescription;
+            useBonds.Comment = OsLocalization.Market.UseBondsDescription;
+            useFunds.Comment = OsLocalization.Market.UseFundsDescription;
+            useOptions.Comment = OsLocalization.Market.UseOptionsDescription.Split('.')[0];
+            useOther.Comment = OsLocalization.Market.UseOtherDescription2;
+
+            ServerParameterEnum depthLevels = CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20" });
+            depthLevels.Comment = OsLocalization.Market.SetDepthLevelsDescription;
+
+            ServerParameterBool ignoreMorningAuction = CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, false);
+            ignoreMorningAuction.Comment = OsLocalization.Market.IgnoreMorningAuctionTradesDescription;
         }
     }
 
