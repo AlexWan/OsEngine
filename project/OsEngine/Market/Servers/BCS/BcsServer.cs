@@ -2374,6 +2374,13 @@ namespace OsEngine.Market.Servers.BCS
                         SendLogMessage($"Order Id: {response.clientOrderId} fail. Status: {response.status}", LogMessageType.Error);
                     }
                 }
+                else if (sendOrderResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    string responseMsg = sendOrderResponse.Content.ReadAsStringAsync().Result;
+
+                    CreateOrderFail(order);
+                    SendLogMessage($"Order Fail. Status: {sendOrderResponse.StatusCode} || msg:{responseMsg}", LogMessageType.Error);
+                }
                 else
                 {
                     CreateOrderFail(order);
@@ -2459,6 +2466,11 @@ namespace OsEngine.Market.Servers.BCS
                         SendLogMessage($"Order Id: {response.clientOrderId} change price error. Status: {response.status}", LogMessageType.Error);
                     }
                 }
+                else if (changeOrderResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    string responseMsg = changeOrderResponse.Content.ReadAsStringAsync().Result;
+                    SendLogMessage($"Change price order forbidden. Status: {changeOrderResponse.StatusCode} || msg:{responseMsg}", LogMessageType.Error);
+                }
                 else
                 {
                     SendLogMessage($"Change price order error. Body: {jsonRequest}\n Status: {changeOrderResponse.StatusCode} || msg:{changeOrderResponse.ReasonPhrase}", LogMessageType.Error);
@@ -2515,6 +2527,11 @@ namespace OsEngine.Market.Servers.BCS
                     {
                         SendLogMessage($"Order Id: {response.clientOrderId} cancel error. Status: {response.status}", LogMessageType.Error);
                     }
+                }
+                else if (cancelOrderResponse.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    string responseMsg = cancelOrderResponse.Content.ReadAsStringAsync().Result;
+                    SendLogMessage($"Cancel order forbidden. Status: {cancelOrderResponse.StatusCode} || msg:{responseMsg}", LogMessageType.Error);
                 }
                 else
                 {
