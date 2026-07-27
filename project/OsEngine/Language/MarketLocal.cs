@@ -1856,6 +1856,10 @@ namespace OsEngine.Language
             "Eng:Access token for T-Invest API. Issued in the T-Invest personal account in the API section. Full access token is required for trading._" +
             "Ru:Токен доступа к API Т-Инвест. Выдаётся в личном кабинете Т-Инвест в разделе API. Для торговли нужен токен с полным доступом._");
 
+        public string ServerParamBCSTokenDescription => OsLocalization.ConvertToLocString(
+      "Eng:Access token for BCS API. It is issued in the personal account of the BCS broker in the account menu. You need a token for trading and reading data._" +
+      "Ru:Токен доступа к API БКС. Выдаётся в личном кабинете брокера БКС в меню счета. Нужен токен для торговли и чтения данных._");
+
         public string Memo => OsLocalization.ConvertToLocString(
             "Eng:Memo_" +
             "Ru:Memo_");
@@ -1972,6 +1976,18 @@ namespace OsEngine.Language
             "Eng:Load futures into the securities list and allow trading them._" +
             "Ru:Загружать фьючерсы в список бумаг и разрешить торговлю ими._");
 
+        public string UseBondsDescription => OsLocalization.ConvertToLocString(
+          "Eng:Load futures into the securities list and allow trading them._" +
+          "Ru:Загружать облигации в список бумаг и разрешить торговлю ими._");
+
+        public string UseCurrencyDescription => OsLocalization.ConvertToLocString(
+           "Eng:Load futures into the securities list and allow trading them._" +
+           "Ru:Загружать вылюты в список бумаг и разрешить торговлю ими._");
+
+        public string UseFundsDescription => OsLocalization.ConvertToLocString(
+           "Eng:Load futures into the securities list and allow trading them._" +
+           "Ru:Загружать фонды в список бумаг и разрешить торговлю ими._");
+
         public string UseOptionsDescription => OsLocalization.ConvertToLocString(
             "Eng:Load options into the securities list and allow trading them. Currently options trading is not available via T-Invest API._" +
             "Ru:Загружать опционы в список бумаг и разрешить торговлю ими. В настоящее время торговля опционами через API Т-Инвест недоступна._");
@@ -1980,6 +1996,14 @@ namespace OsEngine.Language
             "Eng:Load bonds, ETFs and indicative instruments into the securities list and allow trading them._" +
             "Ru:Загружать облигации, ETF и индикативные инструменты в список бумаг и разрешить торговлю ими._");
 
+        public string UseOtherDescription2 => OsLocalization.ConvertToLocString(
+          "Eng:Load others available  instruments into the securities list and allow trading them._" +
+          "Ru:Загружать другие доступные инструменты в список бумаг и разрешить торговлю ими._");
+
+        public string SetDepthLevelsDescription => OsLocalization.ConvertToLocString(
+     "Eng:Set the number of Bid levels and Ask levels to be fed into depth._" +
+     "Ru:Установка количества уровней Bid и уровней Ask, которые будут подаваться в стакан._");
+               
         public string FullLogConnector => OsLocalization.ConvertToLocString(
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
