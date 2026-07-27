@@ -7,6 +7,7 @@
 1. [`CONTEXT.md`](CONTEXT.md) — карта проекта.
 2. [`CONTEXT_CODING_GUIDELINES.md`](CONTEXT_CODING_GUIDELINES.md) — стиль кода.
 3. Доменный `CONTEXT_*.md` по задаче.
+4. Работа с коннекторами (`OsEngine/Market/Servers/`) → [`CONTEXT_CONNECTORS.md`](CONTEXT_CONNECTORS.md).
 
 ## Принципы
 
