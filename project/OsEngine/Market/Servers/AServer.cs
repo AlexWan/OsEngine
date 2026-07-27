@@ -1268,6 +1268,7 @@ namespace OsEngine.Market.Servers
                         if (NeedToReconnectEvent != null)
                         {
                             Thread worker = new Thread(SendReconnectEvent);
+                            worker.IsBackground = true;
                             worker.Start();
                         }
 
@@ -1328,6 +1329,7 @@ namespace OsEngine.Market.Servers
                     if (NeedToReconnectEvent != null)
                     {
                         Thread worker = new Thread(SendReconnectEvent);
+                        worker.IsBackground = true;
                         worker.Start();
                     }
 
@@ -4680,6 +4682,7 @@ namespace OsEngine.Market.Servers
                 _messageFirstConnect = $"{this.ServerNameUnique}%Openings";
 
                 Thread thread = new Thread(SendMessageConnectorConnect);
+                thread.IsBackground = true;
                 thread.Start();
 
                 HasConnectionMessageBeenSent = true;
@@ -4714,6 +4717,7 @@ namespace OsEngine.Market.Servers
                 _messageFirstOrder = $"{this.ServerNameUnique}%Orders";
 
                 Thread thread = new Thread(SendMessageFirstOrder);
+                thread.IsBackground = true;
                 thread.Start();
 
                 HasFirstOrderMessageBeenSent = true;

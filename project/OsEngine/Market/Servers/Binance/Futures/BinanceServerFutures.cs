@@ -76,26 +76,32 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             Thread worker1 = new Thread(PortfolioUpdater);
             worker1.Name = "BinanceFutThread_PortfolioUpdater";
+            worker1.IsBackground = true;
             worker1.Start();
 
             Thread worker2 = new Thread(KeepaliveUserDataStream);
             worker2.Name = "BinanceFutThread_KeepaliveUserDataStream";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(ConverterPublicMessagesAll);
             worker3.Name = "BinanceFutThread_ConverterPublicMessages";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(ConverterUserData);
             worker4.Name = "BinanceFutThread_ConverterUserData";
+            worker4.IsBackground = true;
             worker4.Start();
 
             Thread worker5 = new Thread(ThreadExtendedData);
             worker5.Name = "BinanceFutThread_ExtendedData";
+            worker5.IsBackground = true;
             worker5.Start();
 
             Thread worker6 = new Thread(ConverterPublicMessagesMarketDepths);
             worker6.Name = "BinanceFutThread_MarketDepthParse";
+            worker6.IsBackground = true;
             worker6.Start();
         }
 

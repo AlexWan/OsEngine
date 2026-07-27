@@ -51,26 +51,32 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "MessageReaderPublic";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread threadUpdatePortfolio = new Thread(ThreadUpdatePortfolio);
             threadUpdatePortfolio.Name = "ThreadUpdatePortfolio";
+            threadUpdatePortfolio.IsBackground = true;
             threadUpdatePortfolio.Start();
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketHTXSpot";
+            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Start();
 
             Thread threadMessageReaderMarketDepth = new Thread(ThreadMessageReaderMarketDepth);
             threadMessageReaderMarketDepth.Name = "ThreadHtxSpotMessageReaderMarketDepth";
+            threadMessageReaderMarketDepth.IsBackground = true;
             threadMessageReaderMarketDepth.Start();
 
             Thread threadMessageReaderTrades = new Thread(ThreadMessageReaderTrades);
             threadMessageReaderTrades.Name = "ThreadHtxSpotMessageReaderTrades";
+            threadMessageReaderTrades.IsBackground = true;
             threadMessageReaderTrades.Start();
         }
 

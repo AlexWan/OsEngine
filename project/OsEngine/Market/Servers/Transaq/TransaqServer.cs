@@ -89,34 +89,42 @@ namespace OsEngine.Market.Servers.Transaq
 
             Thread worker = new Thread(CycleGettingPortfolios);
             worker.Name = "ThreadTransaqGetPortfolio";
+            worker.IsBackground = true;
             worker.Start();
 
             Thread worker2 = new Thread(ThreadPrivateDataParsingWorkPlace);
             worker2.Name = "ThreadTransaqDataParsing";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(ThreadTradesParsingWorkPlace);
             worker3.Name = "TransaqThreadTradesParsing";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(ThreadMarketDepthsParsingWorkPlace);
             worker4.Name = "TransaqThreadDepthsParsing";
+            worker4.IsBackground = true;
             worker4.Start();
 
             Thread worker5 = new Thread(Converter);
             worker5.Name = "TransaqThreadConverter";
+            worker5.IsBackground = true;
             worker5.Start();
 
             Thread worker6 = new Thread(ThreadUpdateAndSubscribeSecurity);
             worker6.Name = "TransaqThreadUpdateSecurity";
+            worker6.IsBackground = true;
             worker6.Start();
 
             Thread worker7 = new Thread(ThreadHistoricalDataParsingWorkPlace);
             worker7.Name = "TransaqThreadUpdateHistoricalData";
+            worker7.IsBackground = true;
             worker7.Start();
 
             Thread worker8 = new Thread(ThreadSecurityInfoParsingWorkPlace);
             worker8.Name = "TransaqThreadUpdateSecurityInfo";
+            worker8.IsBackground = true;
             worker8.Start();
         }
 

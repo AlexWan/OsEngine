@@ -68,46 +68,57 @@ namespace OsEngine.Market.Servers.OKX
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "MessageReaderPublic";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread thread = new Thread(CheckAliveWebSocket);
             thread.Name = "CheckAliveWebSocket";
+            thread.IsBackground = true;
             thread.Start();
 
             Thread threadMessageReaderMarketDepthSpot = new Thread(ThreadMessageReaderMarketDepthSpot);
             threadMessageReaderMarketDepthSpot.Name = "ThreadOkxMessageReaderMarketDepthSpot";
+            threadMessageReaderMarketDepthSpot.IsBackground = true;
             threadMessageReaderMarketDepthSpot.Start();
 
             Thread threadMessageReaderMarketDepthSwap = new Thread(ThreadMessageReaderMarketDepthSwap);
             threadMessageReaderMarketDepthSwap.Name = "ThreadOkxMessageReaderMarketDepthSwap";
+            threadMessageReaderMarketDepthSwap.IsBackground = true;
             threadMessageReaderMarketDepthSwap.Start();
 
             Thread threadMessageReaderMarketDepthFutures = new Thread(ThreadMessageReaderMarketDepthFutures);
             threadMessageReaderMarketDepthFutures.Name = "ThreadOkxMessageReaderMarketDepthFutures";
+            threadMessageReaderMarketDepthFutures.IsBackground = true;
             threadMessageReaderMarketDepthFutures.Start();
 
             Thread threadMessageReaderMarketDepthOption = new Thread(ThreadMessageReaderMarketDepthOption);
             threadMessageReaderMarketDepthOption.Name = "ThreadOkxMessageReaderMarketDepthOption";
+            threadMessageReaderMarketDepthOption.IsBackground = true;
             threadMessageReaderMarketDepthOption.Start();
 
             Thread threadMessageReaderTradesSpot = new Thread(ThreadMessageReaderTradesSpot);
             threadMessageReaderTradesSpot.Name = "ThreadOkxMessageReaderTradesSpot";
+            threadMessageReaderTradesSpot.IsBackground = true;
             threadMessageReaderTradesSpot.Start();
 
             Thread threadMessageReaderTradesSwap = new Thread(ThreadMessageReaderTradesSwap);
             threadMessageReaderTradesSwap.Name = "ThreadOkxMessageReaderTradesSwap";
+            threadMessageReaderTradesSwap.IsBackground = true;
             threadMessageReaderTradesSwap.Start();
 
             Thread threadMessageReaderTradesFutures = new Thread(ThreadMessageReaderTradesFutures);
             threadMessageReaderTradesFutures.Name = "ThreadOkxMessageReaderTradesFutures";
+            threadMessageReaderTradesFutures.IsBackground = true;
             threadMessageReaderTradesFutures.Start();
 
             Thread threadMessageReaderTradesOption = new Thread(ThreadMessageReaderTradesOption);
             threadMessageReaderTradesOption.Name = "ThreadOkxMessageReaderTradesOption";
+            threadMessageReaderTradesOption.IsBackground = true;
             threadMessageReaderTradesOption.Start();
         }
 

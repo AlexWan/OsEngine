@@ -88,6 +88,7 @@ namespace OsEngine.Market.Servers
             StartButtonBlinkAnimation();
 
             Thread worker = new Thread(RePainterThread);
+            worker.IsBackground = true;
             worker.Start();
         }
 

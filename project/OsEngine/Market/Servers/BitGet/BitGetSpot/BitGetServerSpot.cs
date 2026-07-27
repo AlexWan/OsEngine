@@ -53,22 +53,27 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "BitGetSpotMessageReaderPublic";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "BitGetSpotMessageReaderPrivate";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
             threadMarketDepthParsing.Name = "BitGetSpotThreadMarketDepthParsing";
+            threadMarketDepthParsing.IsBackground = true;
             threadMarketDepthParsing.Start();
 
             Thread threadTradesParsing = new Thread(ThreadTradesParsing);
             threadTradesParsing.Name = "BitGetSpotThreadTradesParsing";
+            threadTradesParsing.IsBackground = true;
             threadTradesParsing.Start();
 
             Thread thread = new Thread(CheckAliveWebSocket);
             thread.Name = "BitGetSpotCheckAliveWebSocket";
+            thread.IsBackground = true;
             thread.Start();
         }
 

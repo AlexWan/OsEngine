@@ -49,14 +49,17 @@ namespace OsEngine.Market.Servers.BitMart
         {
             Thread worker = new Thread(ConnectionCheckThread);
             worker.Name = "CheckAliveBitMart";
+            worker.IsBackground = true;
             worker.Start();
 
             Thread worker2 = new Thread(MessageReaderPublic);
             worker2.Name = "MessageReaderPublicBitMart";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(MessageReaderPrivate);
             worker3.Name = "MessageReaderPrivateBitMart";
+            worker3.IsBackground = true;
             worker3.Start();
         }
 

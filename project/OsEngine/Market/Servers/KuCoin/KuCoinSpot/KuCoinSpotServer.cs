@@ -53,22 +53,27 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             Thread threadForPublicMessages = new Thread(PublicMessageReader);
             threadForPublicMessages.Name = "PublicMessageReaderKuCoin";
+            threadForPublicMessages.IsBackground = true;
             threadForPublicMessages.Start();
 
             Thread threadForPrivateMessages = new Thread(PrivateMessageReader);
             threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
+            threadForPrivateMessages.IsBackground = true;
             threadForPrivateMessages.Start();
 
             Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketKuCoinSpot";
+            threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Start();
 
             Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
             threadMarketDepthParsing.Name = "ThreadKuCoinSpotMarketDepthParsing";
+            threadMarketDepthParsing.IsBackground = true;
             threadMarketDepthParsing.Start();
 
             Thread threadTradesParsing = new Thread(ThreadTradesParsing);
             threadTradesParsing.Name = "ThreadKuCoinSpotTradesParsing";
+            threadTradesParsing.IsBackground = true;
             threadTradesParsing.Start();
         }
 

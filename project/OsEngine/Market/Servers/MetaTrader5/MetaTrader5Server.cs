@@ -92,26 +92,31 @@ namespace OsEngine.Market.Servers.MetaTrader5
             Thread thread1 = new Thread(ThreadUpdateMarketDepth);
             thread1.Name = "MT5ThreadUpdateMarketDepth";
             thread1.CurrentCulture = new CultureInfo("ru-Ru");
+            thread1.IsBackground = true;
             thread1.Start();
 
             Thread thread2 = new Thread(ThreadUpdateTiks);
             thread2.Name = "MT5ThreadUpdateTiks";
             thread2.CurrentCulture = new CultureInfo("ru-Ru");
+            thread2.IsBackground = true;
             thread2.Start();
 
             Thread thread3 = new Thread(ThreadUpdateMyTransaction);
             thread3.Name = "MT5ThreadUpdateMyTransaction";
             thread3.CurrentCulture = new CultureInfo("ru-Ru");
+            thread3.IsBackground = true;
             thread3.Start();
 
             Thread thread4 = new Thread(ThreadRecalculatingCostPriceStep);
             thread4.Name = "ThreadRecalculatingCostPriceStep";
             thread4.CurrentCulture = new CultureInfo("ru-Ru");
+            thread4.IsBackground = true;
             thread4.Start();
 
             Thread thread5 = new Thread(ThreadPortfolioUpdate);
             thread5.Name = "ThreadPortfolioUpdate";
             thread5.CurrentCulture = new CultureInfo("ru-Ru");
+            thread5.IsBackground = true;
             thread5.Start();
         }
 

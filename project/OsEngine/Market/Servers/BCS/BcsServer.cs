@@ -67,18 +67,22 @@ namespace OsEngine.Market.Servers.BCS
         {
             Thread worker = new Thread(CheckLifetimeToken);
             worker.Name = "BcsCheckToken";
+            worker.IsBackground = true;
             worker.Start();
 
             Thread worker2 = new Thread(DataMessageReader);
             worker2.Name = "BcsDataMessageReader";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
             worker3.Name = "BcsPortfolioMessageReader";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(OrderStateMessageReader);
             worker4.Name = "BcsOrdersMessageReader";
+            worker4.IsBackground = true;
             worker4.Start();
         }
 

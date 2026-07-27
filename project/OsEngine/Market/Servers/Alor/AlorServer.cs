@@ -52,14 +52,17 @@ namespace OsEngine.Market.Servers.Alor
         {
             Thread worker = new Thread(ConnectionCheckThread);
             worker.Name = "AlorCheckAlive";
+            worker.IsBackground = true;
             worker.Start();
 
             Thread worker2 = new Thread(DataMessageReader);
             worker2.Name = "AlorDataMessageReader";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
             worker3.Name = "AlorPortfolioMessageReader";
+            worker3.IsBackground = true;
             worker3.Start();
         }
 

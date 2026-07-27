@@ -72,26 +72,32 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             Thread thread = new Thread(CheckAliveWebSocket);
             thread.Name = "CheckAliveWebSocket";
+            thread.IsBackground = true;
             thread.Start();
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "MessageReaderPublic";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread threadPortfolioRequester = new Thread(PortfolioRequester);
             threadPortfolioRequester.Name = "PortfolioRequester";
+            threadPortfolioRequester.IsBackground = true;
             threadPortfolioRequester.Start();
 
             Thread threadTradesParsing = new Thread(ThreadTradesParsing);
             threadTradesParsing.Name = "ThreadGateIoFuturesTradesParsing";
+            threadTradesParsing.IsBackground = true;
             threadTradesParsing.Start();
 
             Thread threadMarketDepthParsing = new Thread(ThreadMarketDepthParsing);
             threadMarketDepthParsing.Name = "ThreadGateIoMarketDepthParsing";
+            threadMarketDepthParsing.IsBackground = true;
             threadMarketDepthParsing.Start();
         }
 

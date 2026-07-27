@@ -47,6 +47,7 @@ namespace OsEngine.Market.Servers
 
             Thread worker = new Thread(ThreadWorkerArea);
             worker.Name = "AServerOrdersHubThreadWorker";
+            worker.IsBackground = true;
             worker.Start();
 
         }

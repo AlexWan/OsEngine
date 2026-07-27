@@ -55,54 +55,67 @@ namespace OsEngine.Market.Servers.BitGetUnified
 
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "MessageReaderPublic";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "MessageReaderPrivate";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread threadCheckingConnect = new Thread(CheckAliveWebSocket);
             threadCheckingConnect.Name = "CheckAliveWebSocket";
+            threadCheckingConnect.IsBackground = true;
             threadCheckingConnect.Start();
 
             Thread threadExtendedData = new Thread(ThreadExtendedData);
             threadExtendedData.Name = "ThreadBitGetUnifiedExtendedData";
+            threadExtendedData.IsBackground = true;
             threadExtendedData.Start();
 
             Thread threadPortfilio = new Thread(PortfolioUpdater);
             threadPortfilio.Name = "BitgetUnified_PortfolioUpdater";
+            threadPortfilio.IsBackground = true;
             threadPortfilio.Start();
 
             Thread threadMessageReaderMarketDepthSpot = new Thread(ThreadMessageReaderMarketDepthSpot);
             threadMessageReaderMarketDepthSpot.Name = "ThreadOkxMessageReaderMarketDepthSpot";
+            threadMessageReaderMarketDepthSpot.IsBackground = true;
             threadMessageReaderMarketDepthSpot.Start();
 
             Thread threadMessageReaderMarketDepthFuturesUsdt = new Thread(ThreadMessageReaderMarketDepthFuturesUsdt);
             threadMessageReaderMarketDepthFuturesUsdt.Name = "ThreadBitGetUnifiedMessageReaderMarketDepthFuturesUsdt";
+            threadMessageReaderMarketDepthFuturesUsdt.IsBackground = true;
             threadMessageReaderMarketDepthFuturesUsdt.Start();
 
             Thread threadMessageReaderMarketDepthFuturesUsdc = new Thread(ThreadMessageReaderMarketDepthFuturesUsdc);
             threadMessageReaderMarketDepthFuturesUsdc.Name = "ThreadBitGetUnifiedMessageReaderMarketDepthFuturesUsdc";
+            threadMessageReaderMarketDepthFuturesUsdc.IsBackground = true;
             threadMessageReaderMarketDepthFuturesUsdc.Start();
 
             Thread threadMessageReaderMarketDepthFuturesCoin = new Thread(ThreadMessageReaderMarketDepthFuturesCoin);
             threadMessageReaderMarketDepthFuturesCoin.Name = "ThreadBitGetUnifiedMessageReaderMarketDepthFuturesCoin";
+            threadMessageReaderMarketDepthFuturesCoin.IsBackground = true;
             threadMessageReaderMarketDepthFuturesCoin.Start();
 
             Thread threadMessageReaderTradesSpot = new Thread(ThreadMessageReaderTradesSpot);
             threadMessageReaderTradesSpot.Name = "ThreadBitGetUnifiedMessageReaderTradesSpot";
+            threadMessageReaderTradesSpot.IsBackground = true;
             threadMessageReaderTradesSpot.Start();
 
             Thread threadMessageReaderTradesFuturesUsdt = new Thread(ThreadMessageReaderTradesFuturesUsdt);
             threadMessageReaderTradesFuturesUsdt.Name = "ThreadBitGetUnifiedMessageReaderTradesFuturesUsdt";
+            threadMessageReaderTradesFuturesUsdt.IsBackground = true;
             threadMessageReaderTradesFuturesUsdt.Start();
 
             Thread threadMessageReaderTradesFuturesUsdc = new Thread(ThreadMessageReaderTradesFuturesUsdc);
             threadMessageReaderTradesFuturesUsdc.Name = "ThreadBitGetUnifiedMessageReaderTradesFuturesUsdc";
+            threadMessageReaderTradesFuturesUsdc.IsBackground = true;
             threadMessageReaderTradesFuturesUsdc.Start();
 
             Thread threadMessageReaderTradesFuturesCoin = new Thread(ThreadMessageReaderTradesFuturesCoin);
             threadMessageReaderTradesFuturesCoin.Name = "ThreadBitGetUnifiedMessageReaderTradesFuturesCoin";
+            threadMessageReaderTradesFuturesCoin.IsBackground = true;
             threadMessageReaderTradesFuturesCoin.Start();
 
         }

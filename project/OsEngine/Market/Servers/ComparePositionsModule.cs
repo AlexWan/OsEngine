@@ -25,6 +25,7 @@ namespace OsEngine.Market.Servers
             LoadIgnoredSecurities();
 
             Thread worker = new Thread(UpdaterThreadWorker);
+            worker.IsBackground = true;
             worker.Start();
         }
 

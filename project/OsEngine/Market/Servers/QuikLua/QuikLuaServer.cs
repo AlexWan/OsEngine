@@ -104,26 +104,31 @@ namespace OsEngine.Market.Servers.QuikLua
             Thread worker1 = new Thread(GetPortfoliosArea);
             worker1.CurrentCulture = new CultureInfo("ru-Ru");
             worker1.Name = "QuikLuaGetPortfoliosArea";
+            worker1.IsBackground = true;
             worker1.Start();
 
             Thread worker2 = new Thread(ThreadTradesParsingWorkPlace);
             worker2.CurrentCulture = new CultureInfo("ru-Ru");
             worker2.Name = "QuikLuaThreadTradesParsingWorkPlace";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(ThreadMarketDepthsParsingWorkPlace);
             worker3.CurrentCulture = new CultureInfo("ru-Ru");
             worker3.Name = "QuikLuaThreadMarketDepthsParsingWorkPlace";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(ThreadDataParsingWorkPlace);
             worker4.CurrentCulture = new CultureInfo("ru-RU");
             worker4.Name = "QuikLuaThreadDataParsingWorkPlace";
+            worker4.IsBackground = true;
             worker4.Start();
 
             Thread worker5 = new Thread(ThreadPing);
             worker5.CurrentCulture = new CultureInfo("ru-RU");
             worker5.Name = "QuikLuaThreadPing";
+            worker5.IsBackground = true;
             worker5.Start();
         }
 

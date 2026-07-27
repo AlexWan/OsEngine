@@ -81,21 +81,26 @@ namespace OsEngine.Market.Servers.TInvest
         {
             Thread worker = new Thread(ConnectionCheckThread);
             worker.Name = "CheckAliveTInvest";
+            worker.IsBackground = true;
             worker.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
             worker3.Name = "PortfolioMessageReaderTInvest";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(PositionsMessageReader);
             worker4.Name = "PositionsMessageReaderTInvest";
+            worker4.IsBackground = true;
             worker4.Start();
 
             Thread worker6 = new Thread(LastPricesPoller);
+            worker6.IsBackground = true;
             worker6.Start();
 
             Thread worker7 = new Thread(OrderStateMessageReader);
             worker7.Name = "OrderStateMessageReaderTInvest";
+            worker7.IsBackground = true;
             worker7.Start();
         }
 

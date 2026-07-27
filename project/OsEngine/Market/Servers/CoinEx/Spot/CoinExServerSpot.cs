@@ -52,14 +52,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             Thread threadMessageReaderPublic = new Thread(MessageReaderPublic);
             threadMessageReaderPublic.Name = "MessageReaderPublicCoinExSpot";
+            threadMessageReaderPublic.IsBackground = true;
             threadMessageReaderPublic.Start();
 
             Thread threadMessageReaderPrivate = new Thread(MessageReaderPrivate);
             threadMessageReaderPrivate.Name = "MessageReaderPrivateCoinExSpot";
+            threadMessageReaderPrivate.IsBackground = true;
             threadMessageReaderPrivate.Start();
 
             Thread threadConnectionCheck = new Thread(ConnectionCheckThread);
             threadConnectionCheck.Name = "CheckAliveCoinExSpot";
+            threadConnectionCheck.IsBackground = true;
             threadConnectionCheck.Start();
         }
 

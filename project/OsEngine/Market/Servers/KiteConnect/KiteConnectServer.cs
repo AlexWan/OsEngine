@@ -47,10 +47,12 @@ namespace OsEngine.Market.Servers.KiteConnect
         {
             Thread threadUpdatePortfolio = new Thread(GetUpdatePortfolio);
             threadUpdatePortfolio.Name = "UpdatePortfolioKiteConnect";
+            threadUpdatePortfolio.IsBackground = true;
             threadUpdatePortfolio.Start();
 
             Thread threadMessageReader = new Thread(MessageReader);
             threadMessageReader.Name = "MessageReaderKiteConnect";
+            threadMessageReader.IsBackground = true;
             threadMessageReader.Start();
         }
 

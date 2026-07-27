@@ -84,6 +84,7 @@ namespace OsEngine.Market.Servers
                 ChangeActiveServer(numServerInArray);
 
                 Thread worker = new Thread(UpdateStatusThread);
+                worker.IsBackground = true;
                 worker.Start();
             }
 

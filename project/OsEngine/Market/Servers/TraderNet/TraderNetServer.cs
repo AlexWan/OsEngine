@@ -46,10 +46,12 @@ namespace OsEngine.Market.Servers.TraderNet
 
             Thread threadMessageReader = new Thread(MessageReader);
             threadMessageReader.Name = "MessageReader";
+            threadMessageReader.IsBackground = true;
             threadMessageReader.Start();
 
             Thread threadUpdateSubscribe = new Thread(ThreadUpdatePortfolio);
             threadUpdateSubscribe.Name = "ThreadUpdatePortfolio";
+            threadUpdateSubscribe.IsBackground = true;
             threadUpdateSubscribe.Start();
         }
 

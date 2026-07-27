@@ -61,46 +61,57 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         {            
             Thread worker0 = new Thread(ConnectionCheckThread);
             worker0.Name = "ConnectionCheckerMoexFixFastSpot";
+            worker0.IsBackground = true;
             worker0.Start();
 
             Thread worker1 = new Thread(InstrumentDefinitionsReader);
             worker1.Name = "InstrumentsMoexFixFastSpot";
+            worker1.IsBackground = true;
             worker1.Start();
 
             Thread worker2 = new Thread(TradesIncrementalReader);
             worker2.Name = "TradesIncremenalMoexFixFastSpot";
+            worker2.IsBackground = true;
             worker2.Start();
 
             Thread worker3 = new Thread(TradesSnapshotsReader);
             worker3.Name = "TradesSnapshotsMoexFixFastSpot";
+            worker3.IsBackground = true;
             worker3.Start();
 
             Thread worker4 = new Thread(TradeMessagesReader);
             worker4.Name = "TradeMessagesReaderMoexFixFastSpot";
+            worker4.IsBackground = true;
             worker4.Start();
 
             Thread worker5 = new Thread(OrderMessagesReader);
             worker5.Name = "OrderMessagesReaderMoexFixFastSpot";
+            worker5.IsBackground = true;
             worker5.Start();
 
             Thread worker6 = new Thread(OrdersIncrementalReaderA);
             worker6.Name = "OrdersIncremenalAMoexFixFastSpot";
+            worker6.IsBackground = true;
             worker6.Start();
 
             Thread worker7 = new Thread(OrdersIncrementalReaderB);
             worker7.Name = "OrdersIncremenalBMoexFixFastSpot";
+            worker7.IsBackground = true;
             worker7.Start();
 
             Thread worker8 = new Thread(OrderSnapshotsReader);
             worker8.Name = "OrdersSnapshotsMoexFixFastSpot";
+            worker8.IsBackground = true;
             worker8.Start();
 
             Thread worker9 = new Thread(MFIXTradeServerConnection);
             worker9.Name = "MFIXTradeServerConnectionMoexFixFastSpot";
+            worker9.IsBackground = true;
             worker9.Start();                       
 
             Thread worker10 = new Thread(HistoricalReplayThread);
             worker10.Name = "HistoricalReplayMoexFixFastSpot";
+            worker10.IsBackground = true;
             worker10.Start();            
         }
 

@@ -49,30 +49,37 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
             Thread thread1 = new Thread(InstrumentDefinitionsReader);
             thread1.Name = "GetterSecurity";
+            thread1.IsBackground = true;
             thread1.Start();
 
             Thread thread2 = new Thread(GetFastMessagesByTrades);
             thread2.Name = "GetterTrades";
+            thread2.IsBackground = true;
             thread2.Start();
 
             Thread thread3 = new Thread(TradeMessagesReader);
             thread3.Name = "TradesReaderFromQueue";
+            thread3.IsBackground = true;
             thread3.Start();
 
             Thread thread4 = new Thread(GetFastMessagesByOrders);
             thread4.Name = "GetterOrders";
+            thread4.IsBackground = true;
             thread4.Start();
 
             Thread thread5 = new Thread(OrderMessagesReader);
             thread5.Name = "OrdersReaderFromQueue";
+            thread5.IsBackground = true;
             thread5.Start();
 
             Thread thread6 = new Thread(RecoveryData);
             thread6.Name = "HistoricalReplayMoexFixFastCurrency";
+            thread6.IsBackground = true;
             thread6.Start();
 
             Thread thread7 = new Thread(MFIXTradeServerProcessing);
             thread7.Name = "MFIXTradeServerProcessing";
+            thread7.IsBackground = true;
             thread7.Start();
         }
 
