@@ -469,6 +469,14 @@ namespace OsEngine.McpApi.TestStand
                 // terminate or restart the OsEngine process.
                 RunModule(context, 15, "Terminal", string.Empty, () => new TerminalTests(context).RunAll());
 
+                // Модуль: SystemLoad
+                // MCP API: system_load_get_current, system_load_get_history,
+                //          system_load_get_settings, system_load_set_settings.
+                // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
+                // Останавливает OsEngine после себя: да.
+                // Идёт после Terminal: каждый модуль всё равно перезапускает OsEngine перед собой.
+                RunModule(context, 16, "SystemLoad", "-robotslight", () => new SystemLoadTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

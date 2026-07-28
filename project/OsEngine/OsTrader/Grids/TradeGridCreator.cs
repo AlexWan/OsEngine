@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -104,6 +104,9 @@ namespace OsEngine.OsTrader.Grids
 
         public void CreateNewGrid(BotTabSimple tab, TradeGridPrimeType gridType)
         {
+            // gridType не используется, и это не ошибка: линии одинаковы для обоих типов сеток,
+            // разница между MarketMaking и OpenPosition — в торговой логике TradeGrid.Process.
+            // Параметр оставлен для обратной совместимости с пользовательскими роботами.
             CreateMarketMakingGrid(tab);
         }
 

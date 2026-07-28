@@ -38,6 +38,7 @@ OsEngine/MCP/
     WikiDividendsApi.cs     // wiki_dividends_get_history, wiki_dividends_get_future, wiki_dividends_get_past, wiki_dividends_search_by_date
     OsDataApi.cs            // data_*
     RobotsApi.cs            // bot_* (robot management in any mode with robots)
+    SystemLoadApi.cs        // system_load_* (RAM, CPU, ECQ, MOQ via SystemUsageAnalyzeMaster)
     TesterApi.cs            // tester_* configuration
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
@@ -67,9 +68,10 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     ErrorTests.cs
     DataTests.cs
     TesterTests.cs          // tester_* and bot_* via tester mode
+    SystemLoadTests.cs      // system_load_* via BotStationLight mode
 ```
 
-По умолчанию стенд прогоняет все 15 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–15) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 15 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–15) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -261,6 +263,11 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `bot_set_config_tab_index` | Настроить вкладку `BotTabIndex` (сервер, портфель, таймфрейм, список бумаг, формула `A0+A1`, глубина расчёта, авто-формула). После изменения списка бумаг или общих настроек пересоздаются коннекторы |
 | `bot_get_position_support` | Получить настройки сопровождения позиции (`BotManualControl`) для вкладки. Поддерживаются вкладки `Simple` и `Screener` (возвращаются настройки первой внутренней вкладки), для остальных типов — ошибка с пояснением. `second_to_open`/`second_to_close` — в секундах |
 | `bot_set_position_support` | Установить настройки сопровождения позиции для вкладки (все поля опциональны). Для `Screener` применяется к первой внутренней вкладке и синхронизируется со всеми остальными |
+| `bot_grid_get` | Сетки вкладки `Simple`. Без `grid_number` — список сеток, с `grid_number` — полные настройки и линии сетки |
+| `bot_grid_create` | Создать сетку на вкладке `Simple`. Обязательные: `grid_type` (`MarketMaking`/`OpenPosition`), `first_price`, `line_count_start`, `line_step`, `start_volume`. Линии генерируются автоматически |
+| `bot_grid_set_settings` | Частичное изменение настроек сетки (prime, GridCreator, StopAndProfit, TrailingUp). Поля GridCreator меняются только при `regime = Off` |
+| `bot_grid_set_regime` | Режим сетки: `On`, `Off`, `OffAndCancelOrders`, `CloseOnly`, `CloseForced` (после закрытия позиций сам возвращается в `Off`) |
+| `bot_grid_delete` | Удалить сетку. Ошибка, если по сетке есть открытые позиции или ордера — сначала закрыть (`CloseForced`) |
 | `bot_journal_get_settings` | Получить настройки журнала (группа, мультипликатор, включён) для одного или всех роботов |
 | `bot_journal_set_settings` | Установить настройки журнала для роботов |
 | `bot_journal_get_summary` | Сводка журнала: прибыль/убыток абс/%, диапазон дат, количество сделок. `bot_name` опционален (`null`/`""` — все роботы) |
@@ -270,6 +277,10 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `bot_journal_get_volume` | Объёмы торговли по бумагам/плечу. Параметр `bot_name` опционален |
 | `bot_journal_get_open_positions` | Открытые позиции. Параметры: `bot_name`, `limit`, `offset` |
 | `bot_journal_get_closed_positions` | Закрытые позиции. Параметры: `bot_name`, `include_failed`, `limit`, `offset` |
+| `system_load_get_current` | Последние точки загруженности системы (RAM, CPU, очередь очистки рыночных данных, очередь ордеров) + флаги сбора. Типы с выключенным сбором возвращают `null` |
+| `system_load_get_history` | История точек загруженности по типу. Параметры: `type` (`Ram`, `Cpu`, `Ecq`, `Moq`, обязательный), `limit` (по умолчанию 100, последние точки) |
+| `system_load_get_settings` | Настройки сбора загруженности по 4 типам: `collect_data_is_on`, `period` (`OneSecond`, `TenSeconds`, `Minute`), `points_max` |
+| `system_load_set_settings` | Частичное изменение настроек сбора загруженности (поля `<тип>_collect_data_is_on`, `<тип>_period`, `<тип>_points_max`) |
 
 ### 2.5. Примеры запросов
 
@@ -1248,7 +1259,7 @@ DATA:             16/16 passed
 TESTER:           23/23 passed
 TERMINAL:         13/13 passed
 
-Total: 118/118 passed in 235.4s
+Total: 127/127 passed in 235.4s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

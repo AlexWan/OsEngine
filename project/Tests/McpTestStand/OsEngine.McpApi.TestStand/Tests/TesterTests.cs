@@ -108,6 +108,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestBotGetSources();
             TestBotConfigTabSimple();
             TestBotPositionSupportSimple();
+            TestBotGrid();
             TestJournalSettings();
             TestGetBotsAfterCreate();
             TestBotDelete();
@@ -1227,6 +1228,341 @@ namespace OsEngine.McpApi.TestStand.Tests
             if (config.GetProperty("order_type_time").GetString() != "GTC") return "order_type_time mismatch";
             if (config.GetProperty("limits_maker_only").GetBoolean() != true) return "limits_maker_only mismatch";
             return null;
+        }
+
+        private void TestBotGrid()
+        {
+            const string getSourcesMethod = "bot_get_sources";
+            const string getMethod = "bot_grid_get";
+            const string createMethod = "bot_grid_create";
+            const string setSettingsMethod = "bot_grid_set_settings";
+            const string setRegimeMethod = "bot_grid_set_regime";
+            const string deleteMethod = "bot_grid_delete";
+
+            try
+            {
+                // Find first Simple tab name
+                object sourcesRequest = new { bot_id = _createdBotName };
+                _context.PrintRequest(Module, getSourcesMethod, sourcesRequest);
+                string sourcesResponse = _context.Client.ToolsCall(getSourcesMethod, sourcesRequest);
+                _context.PrintResponse(sourcesResponse);
+
+                if (!TryParseConfig(sourcesResponse, getSourcesMethod, out JsonElement sourcesConfig))
+                {
+                    _context.RecordFail(Module, createMethod, "failed to get sources");
+                    return;
+                }
+
+                string tabName = string.Empty;
+
+                foreach (JsonElement source in sourcesConfig.GetProperty("sources").EnumerateArray())
+                {
+                    if (source.TryGetProperty("type", out JsonElement type)
+                        && type.GetString() == "Simple"
+                        && source.TryGetProperty("name", out JsonElement name))
+                    {
+                        tabName = name.GetString() ?? string.Empty;
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(tabName))
+                {
+                    _context.RecordFail(Module, createMethod, "no Simple tab found");
+                    return;
+                }
+
+                // Invalid create must be rejected before creating anything
+                object invalidCreate = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_type = "MarketMaking",
+                    first_price = 100m,
+                    line_count_start = 5,
+                    line_step = 0m,
+                    start_volume = 2m
+                };
+
+                _context.PrintRequest(Module, createMethod, invalidCreate);
+                string invalidResponse = _context.Client.ToolsCall(createMethod, invalidCreate);
+                _context.PrintResponse(invalidResponse);
+
+                if (!ExpectErrorContains(invalidResponse, createMethod, "line_step"))
+                {
+                    return;
+                }
+
+                // Create MarketMaking grid
+                object createRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_type = "MarketMaking",
+                    grid_side = "Buy",
+                    first_price = 100m,
+                    line_count_start = 5,
+                    type_step = "Absolute",
+                    line_step = 1m,
+                    type_profit = "Percent",
+                    profit_step = 1m,
+                    type_volume = "Contracts",
+                    start_volume = 2m
+                };
+
+                _context.PrintRequest(Module, createMethod, createRequest);
+                string createResponse = _context.Client.ToolsCall(createMethod, createRequest);
+                _context.PrintResponse(createResponse);
+
+                if (!TryParseConfig(createResponse, createMethod, out JsonElement created))
+                {
+                    return;
+                }
+
+                if (created.GetProperty("number").GetInt32() != 1
+                    || created.GetProperty("grid_type").GetString() != "MarketMaking"
+                    || created.GetProperty("regime").GetString() != "Off"
+                    || created.GetProperty("lines_count").GetInt32() != 5)
+                {
+                    _context.RecordFail(Module, createMethod, "created grid header mismatch");
+                    return;
+                }
+
+                JsonElement firstLine = created.GetProperty("lines")[0];
+
+                if (firstLine.GetProperty("price_enter").GetDecimal() != 100m
+                    || firstLine.GetProperty("price_exit").GetDecimal() != 101m
+                    || firstLine.GetProperty("volume").GetDecimal() != 2m
+                    || firstLine.GetProperty("side").GetString() != "Buy")
+                {
+                    _context.RecordFail(Module, createMethod, "first grid line mismatch");
+                    return;
+                }
+
+                _context.RecordPass(Module, createMethod, $"tab={tabName}, lines=5");
+
+                // Get list and single grid
+                object getListRequest = new { bot_id = _createdBotName, tab_name = tabName };
+                _context.PrintRequest(Module, getMethod, getListRequest);
+                string getListResponse = _context.Client.ToolsCall(getMethod, getListRequest);
+                _context.PrintResponse(getListResponse);
+
+                if (!TryParseConfig(getListResponse, getMethod, out JsonElement listConfig))
+                {
+                    return;
+                }
+
+                if (listConfig.GetProperty("count").GetInt32() != 1)
+                {
+                    _context.RecordFail(Module, getMethod, "grid list count mismatch");
+                    return;
+                }
+
+                object getOneRequest = new { bot_id = _createdBotName, tab_name = tabName, grid_number = 1 };
+                string getOneResponse = _context.Client.ToolsCall(getMethod, getOneRequest);
+
+                if (!TryParseConfig(getOneResponse, getMethod, out JsonElement oneConfig)
+                    || oneConfig.GetProperty("number").GetInt32() != 1
+                    || oneConfig.GetProperty("lines_count").GetInt32() != 5)
+                {
+                    _context.RecordFail(Module, getMethod, "single grid response mismatch");
+                    return;
+                }
+
+                _context.RecordPass(Module, getMethod, "list and single grid received");
+
+                // Set settings: prime + stop_and_profit + trailing + creator (regime Off)
+                object setRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_number = 1,
+                    max_open_orders_in_market = 3,
+                    profit_regime = "On",
+                    profit_value = 2.5m,
+                    trailing_up_is_on = true,
+                    trailing_up_step = 1m,
+                    trailing_up_limit = 2m,
+                    first_price = 90m
+                };
+
+                _context.PrintRequest(Module, setSettingsMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setSettingsMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                if (!TryParseConfig(setResponse, setSettingsMethod, out JsonElement setConfig))
+                {
+                    return;
+                }
+
+                if (setConfig.GetProperty("max_open_orders_in_market").GetInt32() != 3
+                    || setConfig.GetProperty("stop_and_profit").GetProperty("profit_regime").GetString() != "On"
+                    || setConfig.GetProperty("stop_and_profit").GetProperty("profit_value").GetDecimal() != 2.5m
+                    || setConfig.GetProperty("trailing_up").GetProperty("trailing_up_is_on").GetBoolean() != true
+                    || setConfig.GetProperty("creator").GetProperty("first_price").GetDecimal() != 90m)
+                {
+                    _context.RecordFail(Module, setSettingsMethod, "settings were not applied");
+                    return;
+                }
+
+                _context.RecordPass(Module, setSettingsMethod, "settings updated");
+
+                // Regime On, then creator settings must be rejected
+                object regimeOnRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_number = 1,
+                    regime = "On"
+                };
+
+                _context.PrintRequest(Module, setRegimeMethod, regimeOnRequest);
+                string regimeOnResponse = _context.Client.ToolsCall(setRegimeMethod, regimeOnRequest);
+                _context.PrintResponse(regimeOnResponse);
+
+                if (!TryParseConfig(regimeOnResponse, setRegimeMethod, out JsonElement regimeConfig)
+                    || regimeConfig.GetProperty("regime").GetString() != "On")
+                {
+                    _context.RecordFail(Module, setRegimeMethod, "regime was not set to On");
+                    return;
+                }
+
+                object lockedSettings = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_number = 1,
+                    line_step = 5m
+                };
+
+                string lockedResponse = _context.Client.ToolsCall(setSettingsMethod, lockedSettings);
+
+                if (!ExpectErrorContains(lockedResponse, setSettingsMethod, "regime is Off"))
+                {
+                    return;
+                }
+
+                object regimeOffRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_number = 1,
+                    regime = "Off"
+                };
+
+                string regimeOffResponse = _context.Client.ToolsCall(setRegimeMethod, regimeOffRequest);
+
+                if (!TryParseConfig(regimeOffResponse, setRegimeMethod, out JsonElement regimeOffConfig)
+                    || regimeOffConfig.GetProperty("regime").GetString() != "Off")
+                {
+                    _context.RecordFail(Module, setRegimeMethod, "regime was not set back to Off");
+                    return;
+                }
+
+                _context.RecordPass(Module, setRegimeMethod, "regime On/Off, creator settings locked while On");
+
+                // Second grid: OpenPosition
+                object createOpenPosRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    grid_type = "OpenPosition",
+                    grid_side = "Sell",
+                    first_price = 200m,
+                    line_count_start = 3,
+                    type_step = "Percent",
+                    line_step = 1m,
+                    start_volume = 1m
+                };
+
+                _context.PrintRequest(Module, createMethod, createOpenPosRequest);
+                string createOpenPosResponse = _context.Client.ToolsCall(createMethod, createOpenPosRequest);
+                _context.PrintResponse(createOpenPosResponse);
+
+                if (!TryParseConfig(createOpenPosResponse, createMethod, out JsonElement createdOpenPos))
+                {
+                    return;
+                }
+
+                if (createdOpenPos.GetProperty("number").GetInt32() != 2
+                    || createdOpenPos.GetProperty("grid_type").GetString() != "OpenPosition"
+                    || createdOpenPos.GetProperty("lines_count").GetInt32() != 3)
+                {
+                    _context.RecordFail(Module, createMethod, "OpenPosition grid mismatch");
+                    return;
+                }
+
+                // Delete both grids
+                object deleteRequest = new { bot_id = _createdBotName, tab_name = tabName, grid_number = 2 };
+                _context.PrintRequest(Module, deleteMethod, deleteRequest);
+                string deleteResponse = _context.Client.ToolsCall(deleteMethod, deleteRequest);
+                _context.PrintResponse(deleteResponse);
+
+                if (!TryParseConfig(deleteResponse, deleteMethod, out JsonElement deleteConfig)
+                    || deleteConfig.GetProperty("deleted").GetBoolean() != true)
+                {
+                    _context.RecordFail(Module, deleteMethod, "grid 2 was not deleted");
+                    return;
+                }
+
+                object deleteFirstRequest = new { bot_id = _createdBotName, tab_name = tabName, grid_number = 1 };
+                string deleteFirstResponse = _context.Client.ToolsCall(deleteMethod, deleteFirstRequest);
+
+                if (!TryParseConfig(deleteFirstResponse, deleteMethod, out JsonElement deleteFirstConfig)
+                    || deleteFirstConfig.GetProperty("deleted").GetBoolean() != true)
+                {
+                    _context.RecordFail(Module, deleteMethod, "grid 1 was not deleted");
+                    return;
+                }
+
+                string finalListResponse = _context.Client.ToolsCall(getMethod, getListRequest);
+
+                if (!TryParseConfig(finalListResponse, getMethod, out JsonElement finalList)
+                    || finalList.GetProperty("count").GetInt32() != 0)
+                {
+                    _context.RecordFail(Module, deleteMethod, "grids remain after delete");
+                    return;
+                }
+
+                _context.RecordPass(Module, deleteMethod, "both grids deleted");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, createMethod, error.Message);
+            }
+        }
+
+        private bool ExpectErrorContains(string response, string method, string expectedText)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(response))
+                {
+                    JsonElement result = document.RootElement;
+
+                    if (!result.TryGetProperty("IsError", out JsonElement isError) || !isError.GetBoolean())
+                    {
+                        _context.RecordFail(Module, method, "expected IsError, got success");
+                        return false;
+                    }
+
+                    string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                    if (!text.Contains(expectedText))
+                    {
+                        _context.RecordFail(Module, method, $"error text does not contain '{expectedText}': {text}");
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception error)
+            {
+                _context.RecordFail(Module, method, $"ExpectErrorContains failed: {error.Message}");
+                return false;
+            }
         }
 
         private void TestJournalSettings()

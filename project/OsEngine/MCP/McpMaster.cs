@@ -58,6 +58,7 @@ namespace OsEngine.MCP
         private readonly OsDataApi _osDataApi;
         private readonly TesterApi _testerApi;
         private readonly RobotsApi _robotsApi;
+        private readonly SystemLoadApi _systemLoadApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -144,6 +145,9 @@ namespace OsEngine.MCP
             _robotsApi = new RobotsApi(publishEvent);
             _robotsApi.NewLogMessageEvent += RobotsApi_NewLogMessageEvent;
 
+            _systemLoadApi = new SystemLoadApi();
+            _systemLoadApi.NewLogMessageEvent += SystemLoadApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -160,6 +164,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_osDataApi);
             _protocolApi.RegisterToolProvider(_testerApi);
             _protocolApi.RegisterToolProvider(_robotsApi);
+            _protocolApi.RegisterToolProvider(_systemLoadApi);
         }
 
         #endregion
@@ -332,6 +337,11 @@ namespace OsEngine.MCP
         }
 
         private void RobotsApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void SystemLoadApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -829,6 +839,13 @@ namespace OsEngine.MCP
                     case "tester_stop":
                     case "tester_get_status":
                         response = _testerApi.Handle(request);
+                        break;
+
+                    case "system_load_get_current":
+                    case "system_load_get_history":
+                    case "system_load_get_settings":
+                    case "system_load_set_settings":
+                        response = _systemLoadApi.Handle(request);
                         break;
 
                     default:
