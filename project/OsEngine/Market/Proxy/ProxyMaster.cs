@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -137,8 +137,6 @@ namespace OsEngine.Market.Proxy
                             {
                                 continue;
                             }
-
-                            continue;
                         }
 
                         if (Proxies[i].IsOn == false)
@@ -190,8 +188,6 @@ namespace OsEngine.Market.Proxy
                             {
                                 continue;
                             }
-
-                            continue;
                         }
 
                         if (Proxies[i].IsOn == false)
@@ -415,9 +411,11 @@ namespace OsEngine.Market.Proxy
 
                 // 2 теперь проверяем отдельно прокси
 
-                for (int i = 0;i < Proxies.Count;i++)
+                ProxyOsa[] proxies = Proxies.ToArray();
+
+                for (int i = 0; i < proxies.Length; i++)
                 {
-                    PingProxy(Proxies[i]);
+                    PingProxy(proxies[i]);
                 }
             }
             catch(Exception ex)
@@ -481,12 +479,17 @@ namespace OsEngine.Market.Proxy
             try
             {
                 using (HttpClient client = new HttpClient(handler))
-                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
-                using (HttpResponseMessage response = client.Send(request))
                 {
-                    if (response == null || !response.IsSuccessStatusCode)
+                    // иначе на мёртвом прокси запрос висит до дефолтных 100 секунд
+                    client.Timeout = TimeSpan.FromSeconds(10);
+
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
+                    using (HttpResponseMessage response = client.Send(request))
                     {
-                        haveError = true;
+                        if (response == null || !response.IsSuccessStatusCode)
+                        {
+                            haveError = true;
+                        }
                     }
                 }
             }
@@ -497,7 +500,7 @@ namespace OsEngine.Market.Proxy
 
             if (haveError)
             {
-                proxy.AutoPingLastStatus = "Error. no ping address";
+                proxy.AutoPingLastStatus = "Error. Ping failed";
             }
             else
             {
@@ -558,9 +561,11 @@ namespace OsEngine.Market.Proxy
 
                 // 2 теперь проверяем отдельно прокси
 
-                for (int i = 0; i < Proxies.Count; i++)
+                ProxyOsa[] proxies = Proxies.ToArray();
+
+                for (int i = 0; i < proxies.Length; i++)
                 {
-                    CheckLocationProxy(Proxies[i]);
+                    CheckLocationProxy(proxies[i]);
                 }
             }
             catch (Exception ex)

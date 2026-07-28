@@ -146,6 +146,18 @@ namespace OsEngine.MCP.Modules
                         response.Result = DeleteBotGrid(request.Params);
                         break;
 
+                    case "bot_position_get_open":
+                        response.Result = GetBotPositionOpen(request.Params);
+                        break;
+
+                    case "bot_position_open_at_market":
+                        response.Result = OpenBotPositionAtMarket(request.Params);
+                        break;
+
+                    case "bot_position_close_at_market":
+                        response.Result = CloseBotPositionAtMarket(request.Params);
+                        break;
+
                     case "bot_journal_get_settings":
                         response.Result = GetJournalSettings(request.Params);
                         break;
@@ -649,6 +661,62 @@ namespace OsEngine.MCP.Modules
                             grid_number = new { type = "integer", description = "Grid number on the tab" }
                         },
                         required = new[] { "bot_id", "tab_name", "grid_number" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_position_get_open",
+                    Description = "Get open positions of a robot tab. For Screener tabs without security_name returns positions of all internal tabs; with security_name - of the specified one",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            tab_name = new { type = "string", description = "Tab name from bot_get_sources" },
+                            security_name = new { type = "string", description = "Security name (internal tab of a Screener)" }
+                        },
+                        required = new[] { "bot_id", "tab_name" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_position_open_at_market",
+                    Description = "Open a position at market on a robot tab. Real mode sends an order through the tab connector; fake mode (is_fake=true) only writes to the robot journal and requires a price (price parameter or last known price)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            tab_name = new { type = "string", description = "Tab name from bot_get_sources" },
+                            side = new { type = "string", description = "Buy, Sell" },
+                            volume = new { type = "number", description = "> 0" },
+                            security_name = new { type = "string", description = "Security name (required for Screener tabs)" },
+                            is_fake = new { type = "boolean", description = "Journal-only position, no order (default false)" },
+                            price = new { type = "number", description = "Price for fake open (only with is_fake=true)" }
+                        },
+                        required = new[] { "bot_id", "tab_name", "side", "volume" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_position_close_at_market",
+                    Description = "Close a position at market on a robot tab. Without volume closes the whole position. Fake mode (is_fake=true) only writes to the robot journal",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            tab_name = new { type = "string", description = "Tab name from bot_get_sources" },
+                            position_number = new { type = "integer", description = "Position number from bot_position_get_open" },
+                            volume = new { type = "number", description = "Whole position if omitted" },
+                            security_name = new { type = "string", description = "Security name (required for Screener tabs)" },
+                            is_fake = new { type = "boolean", description = "Journal-only close, no order (default false)" },
+                            price = new { type = "number", description = "Price for fake close (only with is_fake=true)" }
+                        },
+                        required = new[] { "bot_id", "tab_name", "position_number" }
                     }
                 },
                 new McpTool
@@ -2900,6 +2968,467 @@ namespace OsEngine.MCP.Modules
             {
                 apply(value);
             }
+        }
+
+        #endregion
+
+        #region Positions
+
+        private object GetBotPositionOpen(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+            string tabName = GetRequiredString(parameters, "tab_name");
+            string securityName = GetOptionalString(parameters, "security_name", null);
+
+            List<object> positions = new List<object>();
+            BotTabScreener screener = FindScreenerTabOrNull(bot, tabName);
+
+            if (screener != null && securityName == null)
+            {
+                // без security_name отдаём позиции всех внутренних вкладок скринера
+                BotTabSimple[] tabs = SnapshotScreenerTabs(screener);
+
+                for (int i = 0; i < tabs.Length; i++)
+                {
+                    AddOpenPositions(positions, tabs[i]);
+                }
+            }
+            else
+            {
+                BotTabSimple tab = FindPositionTab(bot, tabName, securityName, false);
+                AddOpenPositions(positions, tab);
+            }
+
+            return new { positions = positions, count = positions.Count };
+        }
+
+        private object OpenBotPositionAtMarket(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+            string tabName = GetRequiredString(parameters, "tab_name");
+            string securityName = GetOptionalString(parameters, "security_name", null);
+            BotTabSimple tab = FindPositionTab(bot, tabName, securityName, true);
+
+            string sideStr = GetRequiredString(parameters, "side");
+
+            if (!Enum.TryParse<Side>(sideStr, true, out Side side)
+                || (side != Side.Buy && side != Side.Sell))
+            {
+                throw new ArgumentException($"Unknown side '{sideStr}'. Expected: Buy, Sell");
+            }
+
+            decimal volume = GetRequiredDecimal(parameters, "volume");
+
+            if (volume <= 0)
+            {
+                throw new ArgumentException("volume must be greater than 0");
+            }
+
+            bool isFake = GetOptionalBool(parameters, "is_fake", false);
+            decimal? price = GetOptionalPrice(parameters, isFake);
+
+            Position position;
+
+            if (MainWindow.GetDispatcher.CheckAccess())
+            {
+                position = OpenPositionInternal(tab, side, volume, isFake, price);
+            }
+            else
+            {
+                position = (Position)MainWindow.GetDispatcher.Invoke(
+                    new Func<BotTabSimple, Side, decimal, bool, decimal?, Position>(OpenPositionInternal),
+                    tab, side, volume, isFake, price);
+            }
+
+            if (position == null)
+            {
+                throw new InvalidOperationException(
+                    $"Position was not created on tab '{tab.TabName}'. " +
+                    "Check the tab configuration (security, portfolio) and the robot log");
+            }
+
+            return BuildPositionResponse(position, tab);
+        }
+
+        private Position OpenPositionInternal(BotTabSimple tab, Side side, decimal volume, bool isFake, decimal? priceParam)
+        {
+            if (isFake)
+            {
+                decimal price = priceParam ?? ResolveLastPrice(tab);
+
+                if (price <= 0)
+                {
+                    throw new InvalidOperationException(
+                        $"No price available for fake open on tab '{tab.TabName}'. Pass the price parameter explicitly");
+                }
+
+                if (side == Side.Buy)
+                {
+                    return tab.BuyAtFake(volume, price, DateTime.Now);
+                }
+
+                return tab.SellAtFake(volume, price, DateTime.Now);
+            }
+
+            if (side == Side.Buy)
+            {
+                return tab.BuyAtMarket(volume);
+            }
+
+            return tab.SellAtMarket(volume);
+        }
+
+        private object CloseBotPositionAtMarket(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+            string tabName = GetRequiredString(parameters, "tab_name");
+            string securityName = GetOptionalString(parameters, "security_name", null);
+            BotTabSimple tab = FindPositionTab(bot, tabName, securityName, true);
+
+            int positionNumber = GetRequiredInt(parameters, "position_number");
+            Position position = FindOpenPosition(tab, positionNumber);
+
+            decimal volume = position.OpenVolume;
+
+            if (parameters.TryGetProperty("volume", out _))
+            {
+                volume = GetRequiredDecimal(parameters, "volume");
+
+                if (volume <= 0)
+                {
+                    throw new ArgumentException("volume must be greater than 0");
+                }
+
+                if (volume > position.OpenVolume)
+                {
+                    throw new ArgumentException(
+                        $"volume {volume} exceeds open volume {position.OpenVolume} of position {positionNumber}");
+                }
+            }
+
+            bool isFake = GetOptionalBool(parameters, "is_fake", false);
+            decimal? price = GetOptionalPrice(parameters, isFake);
+
+            if (MainWindow.GetDispatcher.CheckAccess())
+            {
+                ClosePositionInternal(tab, position, volume, isFake, price);
+            }
+            else
+            {
+                MainWindow.GetDispatcher.Invoke(() => ClosePositionInternal(tab, position, volume, isFake, price));
+            }
+
+            return new
+            {
+                position_number = positionNumber,
+                closed_volume = volume,
+                is_fake = isFake,
+                state = position.State.ToString()
+            };
+        }
+
+        private void ClosePositionInternal(BotTabSimple tab, Position position, decimal volume, bool isFake, decimal? priceParam)
+        {
+            if (isFake)
+            {
+                decimal price = priceParam ?? ResolveLastPrice(tab);
+
+                if (price <= 0)
+                {
+                    throw new InvalidOperationException(
+                        $"No price available for fake close on tab '{tab.TabName}'. Pass the price parameter explicitly");
+                }
+
+                tab.CloseAtFake(position, volume, price, DateTime.Now);
+                return;
+            }
+
+            tab.CloseAtMarket(position, volume);
+        }
+
+        private BotTabSimple FindPositionTab(BotPanel bot, string tabName, string securityName, bool securityRequired)
+        {
+            if (bot.TabsSimple != null)
+            {
+                for (int i = 0; i < bot.TabsSimple.Count; i++)
+                {
+                    if (bot.TabsSimple[i].TabName == tabName)
+                    {
+                        BotTabSimple tab = bot.TabsSimple[i];
+
+                        if (securityName != null
+                            && tab.Connector != null
+                            && !string.IsNullOrEmpty(tab.Connector.SecurityName)
+                            && tab.Connector.SecurityName != securityName)
+                        {
+                            throw new ArgumentException(
+                                $"Security mismatch: tab '{tabName}' trades '{tab.Connector.SecurityName}', not '{securityName}'");
+                        }
+
+                        return tab;
+                    }
+                }
+            }
+
+            BotTabScreener screener = FindScreenerTabOrNull(bot, tabName);
+
+            if (screener != null)
+            {
+                if (securityName == null)
+                {
+                    if (securityRequired)
+                    {
+                        throw new ArgumentException(
+                            $"security_name is required for Screener tabs. Available: {GetScreenerSecuritiesList(screener)}");
+                    }
+
+                    throw new ArgumentException(
+                        $"Screener tab '{tabName}' has no single position tab. Pass security_name. Available: {GetScreenerSecuritiesList(screener)}");
+                }
+
+                BotTabSimple[] tabs = SnapshotScreenerTabs(screener);
+
+                for (int i = 0; i < tabs.Length; i++)
+                {
+                    if (tabs[i].Connector != null
+                        && tabs[i].Connector.SecurityName == securityName)
+                    {
+                        return tabs[i];
+                    }
+                }
+
+                throw new ArgumentException(
+                    $"Security '{securityName}' not found in screener tab '{tabName}'. Available: {GetScreenerSecuritiesList(screener)}");
+            }
+
+            string unsupportedType = FindUnsupportedTabType(bot, tabName);
+
+            if (unsupportedType != null)
+            {
+                throw new ArgumentException(
+                    $"Tab '{tabName}' of type '{unsupportedType}' does not support position operations. " +
+                    "Supported tab types: Simple, Screener");
+            }
+
+            throw new ArgumentException($"Tab '{tabName}' not found in bot '{bot.NameStrategyUniq}'");
+        }
+
+        private BotTabScreener FindScreenerTabOrNull(BotPanel bot, string tabName)
+        {
+            if (bot.TabsScreener != null)
+            {
+                for (int i = 0; i < bot.TabsScreener.Count; i++)
+                {
+                    if (bot.TabsScreener[i].TabName == tabName)
+                    {
+                        return bot.TabsScreener[i];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private BotTabSimple[] SnapshotScreenerTabs(BotTabScreener screener)
+        {
+            try
+            {
+                if (screener.Tabs == null)
+                {
+                    return new BotTabSimple[0];
+                }
+
+                return screener.Tabs.ToArray();
+            }
+            catch
+            {
+                return new BotTabSimple[0];
+            }
+        }
+
+        private string GetScreenerSecuritiesList(BotTabScreener screener)
+        {
+            List<string> names = new List<string>();
+            BotTabSimple[] tabs = SnapshotScreenerTabs(screener);
+
+            for (int i = 0; i < tabs.Length; i++)
+            {
+                if (tabs[i].Connector != null
+                    && !string.IsNullOrEmpty(tabs[i].Connector.SecurityName))
+                {
+                    names.Add(tabs[i].Connector.SecurityName);
+                }
+            }
+
+            if (names.Count == 0)
+            {
+                return "(no internal tabs yet)";
+            }
+
+            return string.Join(", ", names);
+        }
+
+        private void AddOpenPositions(List<object> positions, BotTabSimple tab)
+        {
+            Position[] snapshot;
+
+            try
+            {
+                snapshot = tab.PositionsOpenAll.ToArray();
+            }
+            catch
+            {
+                snapshot = new Position[0];
+            }
+
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                positions.Add(BuildPositionResponse(snapshot[i], tab));
+            }
+        }
+
+        private object BuildPositionResponse(Position position, BotTabSimple tab)
+        {
+            return new
+            {
+                position_number = position.Number,
+                security_name = tab.Connector != null ? tab.Connector.SecurityName : null,
+                direction = position.Direction.ToString(),
+                state = position.State.ToString(),
+                open_volume = position.OpenVolume,
+                entry_price = position.EntryPrice
+            };
+        }
+
+        private Position FindOpenPosition(BotTabSimple tab, int positionNumber)
+        {
+            Position[] snapshot;
+
+            try
+            {
+                snapshot = tab.PositionsOpenAll.ToArray();
+            }
+            catch
+            {
+                snapshot = new Position[0];
+            }
+
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                if (snapshot[i].Number == positionNumber)
+                {
+                    return snapshot[i];
+                }
+            }
+
+            throw new ArgumentException($"Open position number {positionNumber} not found in tab '{tab.TabName}'");
+        }
+
+        private decimal ResolveLastPrice(BotTabSimple tab)
+        {
+            if (tab.PriceBestAsk > 0)
+            {
+                return tab.PriceBestAsk;
+            }
+
+            if (tab.PriceBestBid > 0)
+            {
+                return tab.PriceBestBid;
+            }
+
+            try
+            {
+                if (tab.CandlesAll != null && tab.CandlesAll.Count > 0)
+                {
+                    return tab.CandlesAll[^1].Close;
+                }
+            }
+            catch
+            {
+                // свечи могут меняться во время чтения
+            }
+
+            return 0;
+        }
+
+        private string GetOptionalString(JsonElement parameters, string name, string defaultValue)
+        {
+            if (parameters.TryGetProperty(name, out JsonElement element)
+                && element.ValueKind == JsonValueKind.String)
+            {
+                return element.GetString();
+            }
+
+            return defaultValue;
+        }
+
+        private bool GetOptionalBool(JsonElement parameters, string name, bool defaultValue)
+        {
+            if (parameters.TryGetProperty(name, out JsonElement element)
+                && (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False))
+            {
+                return element.GetBoolean();
+            }
+
+            return defaultValue;
+        }
+
+        private decimal? GetOptionalPrice(JsonElement parameters, bool isFake)
+        {
+            if (!parameters.TryGetProperty("price", out JsonElement priceElement))
+            {
+                return null;
+            }
+
+            if (!isFake)
+            {
+                throw new ArgumentException("price is allowed only with is_fake=true");
+            }
+
+            if (priceElement.ValueKind != JsonValueKind.Number
+                || !priceElement.TryGetDecimal(out decimal price)
+                || price <= 0)
+            {
+                throw new ArgumentException("price must be greater than 0");
+            }
+
+            return price;
         }
 
         #endregion

@@ -1938,6 +1938,37 @@ namespace OsEngine.Market
             }
         }
 
+        public static bool UpdateProxy(
+            int number, bool isOn, string ip, int port,
+            string login, string password, string pingWebAddress)
+        {
+            try
+            {
+                ProxyOsa proxy = GetOneProxyAt(number);
+
+                if (proxy == null)
+                {
+                    return false;
+                }
+
+                proxy.IsOn = isOn;
+                proxy.Ip = ip;
+                proxy.Port = port;
+                proxy.Login = login;
+                proxy.UserPassword = password;
+                proxy.PingWebAddress = pingWebAddress;
+
+                _proxyMaster.SaveProxy();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return false;
+            }
+        }
+
         #endregion
 
         #region Access to portfolio, orders and its drawing

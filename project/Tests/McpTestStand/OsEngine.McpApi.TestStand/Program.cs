@@ -485,6 +485,14 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, 17, "ComparePositions", "-robotslight", () => new ComparePositionsTests(context).RunAll());
 
+                // Модуль: Proxy
+                // MCP API: proxy_get_list, proxy_create, proxy_delete,
+                //          proxy_get_settings, proxy_set_settings,
+                //          proxy_get_status, proxy_ping.
+                // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 18, "Proxy", "-robotslight", () => new ProxyTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

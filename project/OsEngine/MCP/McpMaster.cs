@@ -60,6 +60,7 @@ namespace OsEngine.MCP
         private readonly RobotsApi _robotsApi;
         private readonly SystemLoadApi _systemLoadApi;
         private readonly ComparePositionsApi _comparePositionsApi;
+        private readonly ProxyApi _proxyApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -152,6 +153,9 @@ namespace OsEngine.MCP
             _comparePositionsApi = new ComparePositionsApi();
             _comparePositionsApi.NewLogMessageEvent += ComparePositionsApi_NewLogMessageEvent;
 
+            _proxyApi = new ProxyApi();
+            _proxyApi.NewLogMessageEvent += ProxyApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -170,6 +174,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_robotsApi);
             _protocolApi.RegisterToolProvider(_systemLoadApi);
             _protocolApi.RegisterToolProvider(_comparePositionsApi);
+            _protocolApi.RegisterToolProvider(_proxyApi);
         }
 
         #endregion
@@ -352,6 +357,11 @@ namespace OsEngine.MCP
         }
 
         private void ComparePositionsApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void ProxyApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -865,6 +875,16 @@ namespace OsEngine.MCP
                     case "compare_positions_sync_all":
                     case "compare_positions_sync_this":
                         response = _comparePositionsApi.Handle(request);
+                        break;
+
+                    case "proxy_get_list":
+                    case "proxy_create":
+                    case "proxy_delete":
+                    case "proxy_get_settings":
+                    case "proxy_set_settings":
+                    case "proxy_get_status":
+                    case "proxy_ping":
+                        response = _proxyApi.Handle(request);
                         break;
 
                     default:

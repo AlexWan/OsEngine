@@ -40,6 +40,7 @@ OsEngine/MCP/
     RobotsApi.cs            // bot_* (robot management in any mode with robots)
     SystemLoadApi.cs        // system_load_* (RAM, CPU, ECQ, MOQ via SystemUsageAnalyzeMaster)
     ComparePositionsApi.cs  // compare_positions_* (robots vs exchange positions + synchronization)
+    ProxyApi.cs             // proxy_* (proxy router: list, create, delete, settings, status, ping)
     TesterApi.cs            // tester_* configuration
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
@@ -71,9 +72,10 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     TesterTests.cs          // tester_* and bot_* via tester mode
     SystemLoadTests.cs      // system_load_* via BotStationLight mode
     ComparePositionsTests.cs // compare_positions_* via BotStationLight mode
+    ProxyTests.cs           // proxy_* via BotStationLight mode
 ```
 
-По умолчанию стенд прогоняет все 17 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–17) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 18 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–18) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -270,6 +272,9 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `bot_grid_set_settings` | Частичное изменение настроек сетки (prime, GridCreator, StopAndProfit, TrailingUp). Поля GridCreator меняются только при `regime = Off` |
 | `bot_grid_set_regime` | Режим сетки: `On`, `Off`, `OffAndCancelOrders`, `CloseOnly`, `CloseForced` (после закрытия позиций сам возвращается в `Off`) |
 | `bot_grid_delete` | Удалить сетку. Ошибка, если по сетке есть открытые позиции или ордера — сначала закрыть (`CloseForced`) |
+| `bot_position_get_open` | Открытые позиции источника. Для `Screener` без `security_name` — позиции всех внутренних вкладок, с `security_name` — указанной |
+| `bot_position_open_at_market` | Открыть позицию по маркету. Параметры: `bot_id`, `tab_name`, `side` (`Buy`/`Sell`), `volume`, `security_name` (обязателен для `Screener`), `is_fake` (только запись в журнал, без ордера), `price` (только с `is_fake`) |
+| `bot_position_close_at_market` | Закрыть позицию по маркету. Параметры: `bot_id`, `tab_name`, `position_number`, `volume` (по умолчанию весь), `security_name`, `is_fake`, `price` |
 | `bot_journal_get_settings` | Получить настройки журнала (группа, мультипликатор, включён) для одного или всех роботов |
 | `bot_journal_set_settings` | Установить настройки журнала для роботов |
 | `bot_journal_get_summary` | Сводка журнала: прибыль/убыток абс/%, диапазон дат, количество сделок. `bot_name` опционален (`null`/`""` — все роботы) |
@@ -289,6 +294,13 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `compare_positions_set_ignored` | Установить список игнорируемых бумаг модуля сверки (заменяет список целиком) |
 | `compare_positions_sync_all` | Синхронизировать весь портфель под учёт роботов: рыночные ордера по каждой расходящейся бумаге (закрыть лишнее / дооткрыть недостающее). Параметры: `server_type`, `number`, `portfolio_name` |
 | `compare_positions_sync_this` | Синхронизировать одну бумагу в портфеле. Параметры: `server_type`, `number`, `portfolio_name`, `security_name` |
+| `proxy_get_list` | Список всех прокси прокси-роутера. Пароли маскированы |
+| `proxy_create` | Создать прокси (номер назначается автоматически, дубликат отклоняется). Обязательные: `ip`, `port` (1..65535); опциональные: `is_on`, `login`, `password`, `ping_web_address` |
+| `proxy_delete` | Удалить прокси по `number` |
+| `proxy_get_settings` | Настройки прокси по `number`. Пароль маскирован |
+| `proxy_set_settings` | Частичное изменение настроек прокси: `is_on`, `ip`, `port`, `login`, `password`, `ping_web_address` |
+| `proxy_get_status` | Статус прокси: `auto_ping_last_status`, `location`, `use_connection_count` |
+| `proxy_ping` | Пропинговать прокси и вернуть обновлённый статус (на мёртвом прокси блокирует до 10 секунд) |
 
 ### 2.5. Примеры запросов
 
@@ -1267,7 +1279,7 @@ DATA:             16/16 passed
 TESTER:           23/23 passed
 TERMINAL:         13/13 passed
 
-Total: 132/132 passed in 235.4s
+Total: 145/145 passed in 235.4s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

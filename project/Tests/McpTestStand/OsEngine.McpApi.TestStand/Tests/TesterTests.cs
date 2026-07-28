@@ -45,6 +45,8 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestScreenerConfiguration();
             TestIndexArbitrage();
             TestPositionSupportScreener();
+            TestBotPositionsScreener();
+            TestBotPositionsSimple();
             TestPositionSupportUnsupportedTab();
         }
 
@@ -1565,6 +1567,205 @@ namespace OsEngine.McpApi.TestStand.Tests
             }
         }
 
+        private void TestBotPositionsSimple()
+        {
+            const string method = "bot_position_open_at_market_simple";
+            const string getMethod = "bot_position_get_open";
+            const string openMethod = "bot_position_open_at_market";
+            const string closeMethod = "bot_position_close_at_market";
+            string botName = string.Empty;
+
+            try
+            {
+                _context.Client.ToolsCall("tester_stop", new { });
+
+                if (!WaitForTesterServer())
+                {
+                    _context.RecordFail(Module, method, "tester server not available");
+                    return;
+                }
+
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
+                    return;
+                }
+
+                if (!ConfigureDataSetForRun(method))
+                {
+                    return;
+                }
+
+                if (!WaitForTesterSecurities(method, out string securityName, out string securityClass))
+                {
+                    return;
+                }
+
+                botName = CreateRobot(method, "TwoTimeFramesBot");
+                if (string.IsNullOrWhiteSpace(botName))
+                {
+                    return;
+                }
+
+                if (!ConfigureRobotTab(method, botName, securityName, securityClass))
+                {
+                    return;
+                }
+
+                WaitForTabSubscription(method);
+
+                // Find first Simple tab name
+                object sourcesRequest = new { bot_id = botName };
+                string sourcesResponse = _context.Client.ToolsCall("bot_get_sources", sourcesRequest);
+
+                if (!TryParseConfig(sourcesResponse, "bot_get_sources", out JsonElement sourcesConfig))
+                {
+                    _context.RecordFail(Module, openMethod, "failed to get sources");
+                    return;
+                }
+
+                string tabName = string.Empty;
+
+                foreach (JsonElement source in sourcesConfig.GetProperty("sources").EnumerateArray())
+                {
+                    if (source.TryGetProperty("type", out JsonElement type)
+                        && type.GetString() == "Simple"
+                        && source.TryGetProperty("name", out JsonElement name))
+                    {
+                        tabName = name.GetString() ?? string.Empty;
+                        break;
+                    }
+                }
+
+                // price without is_fake must be rejected
+                object badOpen = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    side = "Buy",
+                    volume = 1m,
+                    price = 100m
+                };
+
+                _context.PrintRequest(Module, openMethod, badOpen);
+                string badOpenResponse = _context.Client.ToolsCall(openMethod, badOpen);
+                _context.PrintResponse(badOpenResponse);
+
+                if (!ExpectErrorContains(badOpenResponse, openMethod, "is_fake"))
+                {
+                    return;
+                }
+
+                // Fake open
+                object openRequest = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    side = "Buy",
+                    volume = 3m,
+                    is_fake = true,
+                    price = 100m
+                };
+
+                _context.PrintRequest(Module, openMethod, openRequest);
+                string openResponse = _context.Client.ToolsCall(openMethod, openRequest);
+                _context.PrintResponse(openResponse);
+
+                if (!TryParseConfig(openResponse, openMethod, out JsonElement opened))
+                {
+                    return;
+                }
+
+                int positionNumber = opened.GetProperty("position_number").GetInt32();
+
+                if (opened.GetProperty("direction").GetString() != "Buy"
+                    || opened.GetProperty("open_volume").GetDecimal() != 3m)
+                {
+                    _context.RecordFail(Module, openMethod, "opened position mismatch");
+                    return;
+                }
+
+                _context.RecordPass(Module, openMethod, $"position_number={positionNumber}");
+
+                // Get open positions
+                object getRequest = new { bot_id = botName, tab_name = tabName };
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                if (!TryParseConfig(getResponse, getMethod, out JsonElement getConfig))
+                {
+                    return;
+                }
+
+                if (getConfig.GetProperty("count").GetInt32() != 1)
+                {
+                    _context.RecordFail(Module, getMethod, $"expected 1 open position, got {getConfig.GetProperty("count").GetInt32()}");
+                    return;
+                }
+
+                _context.RecordPass(Module, getMethod, "1 fake position listed");
+
+                // Fake close
+                object closeRequest = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    position_number = positionNumber,
+                    is_fake = true,
+                    price = 101m
+                };
+
+                _context.PrintRequest(Module, closeMethod, closeRequest);
+                string closeResponse = _context.Client.ToolsCall(closeMethod, closeRequest);
+                _context.PrintResponse(closeResponse);
+
+                if (!TryParseConfig(closeResponse, closeMethod, out JsonElement closed))
+                {
+                    return;
+                }
+
+                if (closed.GetProperty("closed_volume").GetDecimal() != 3m)
+                {
+                    _context.RecordFail(Module, closeMethod, "closed volume mismatch");
+                    return;
+                }
+
+                string finalGetResponse = _context.Client.ToolsCall(getMethod, getRequest);
+
+                if (!TryParseConfig(finalGetResponse, getMethod, out JsonElement finalConfig)
+                    || finalConfig.GetProperty("count").GetInt32() != 0)
+                {
+                    _context.RecordFail(Module, closeMethod, "position remains open after close");
+                    return;
+                }
+
+                // Second close of the same position must fail
+                string secondCloseResponse = _context.Client.ToolsCall(closeMethod, closeRequest);
+
+                if (!ExpectErrorContains(secondCloseResponse, closeMethod, "not found"))
+                {
+                    return;
+                }
+
+                _context.RecordPass(Module, closeMethod, "position closed, second close rejected");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, $"TestBotPositionsSimple failed: {error.Message}");
+            }
+            finally
+            {
+                if (!string.IsNullOrWhiteSpace(botName))
+                {
+                    _context.Client.ToolsCall("bot_delete", new { bot_id = botName });
+                }
+
+                _context.Client.ToolsCall("tester_stop", new { });
+            }
+        }
+
         private void TestJournalSettings()
         {
             const string method = "bot_journal_settings";
@@ -2981,6 +3182,187 @@ namespace OsEngine.McpApi.TestStand.Tests
             if (config.GetProperty("setback_to_close_position").GetDecimal() != 21m) return "setback_to_close_position mismatch";
             if (config.GetProperty("limits_maker_only").GetBoolean() != true) return "limits_maker_only mismatch";
             return null;
+        }
+
+        private void TestBotPositionsScreener()
+        {
+            const string method = "bot_position_open_at_market_screener";
+            string botName = string.Empty;
+
+            try
+            {
+                _context.Client.ToolsCall("tester_stop", new { });
+
+                if (!WaitForTesterServer())
+                {
+                    _context.RecordFail(Module, method, "tester server not available");
+                    return;
+                }
+
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
+                    return;
+                }
+
+                if (!ConfigureDataSetForRun(method))
+                {
+                    return;
+                }
+
+                List<(string Name, string Class)> securities = GetTesterSecuritiesList(method);
+
+                if (securities == null || securities.Count == 0)
+                {
+                    _context.RecordPass(Module, method, "no tester securities available, screener positions test skipped");
+                    return;
+                }
+
+                botName = CreateRobot(method, "AlgoStart1LinearRegression");
+                if (string.IsNullOrWhiteSpace(botName))
+                {
+                    return;
+                }
+
+                string tabName = GetScreenerTabName(method, botName);
+                if (string.IsNullOrWhiteSpace(tabName))
+                {
+                    return;
+                }
+
+                if (!ConfigureScreenerTab(method, botName, tabName, securities))
+                {
+                    return;
+                }
+
+                if (!WaitForScreenerTabs(method, botName, tabName, securities.Count))
+                {
+                    return;
+                }
+
+                const string getMethod = "bot_position_get_open";
+                const string openMethod = "bot_position_open_at_market";
+                const string closeMethod = "bot_position_close_at_market";
+                string securityName = securities[0].Name;
+
+                // security_name обязателен для скринера: открытие с несуществующей бумагой — ошибка
+                object badOpen = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    side = "Buy",
+                    volume = 1m,
+                    security_name = "MCP_FAKE_SECURITY",
+                    is_fake = true,
+                    price = 100m
+                };
+
+                _context.PrintRequest(Module, openMethod, badOpen);
+                string badOpenResponse = _context.Client.ToolsCall(openMethod, badOpen);
+                _context.PrintResponse(badOpenResponse);
+
+                if (!ExpectErrorContains(badOpenResponse, openMethod, "not found"))
+                {
+                    return;
+                }
+
+                // Fake open на внутренней вкладке по имени бумаги
+                object openRequest = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    side = "Buy",
+                    volume = 2m,
+                    security_name = securityName,
+                    is_fake = true,
+                    price = 100m
+                };
+
+                _context.PrintRequest(Module, openMethod, openRequest);
+                string openResponse = _context.Client.ToolsCall(openMethod, openRequest);
+                _context.PrintResponse(openResponse);
+
+                if (!TryParseConfig(openResponse, openMethod, out JsonElement opened))
+                {
+                    return;
+                }
+
+                int positionNumber = opened.GetProperty("position_number").GetInt32();
+
+                // Get по скринеру без security_name — позиции всех внутренних вкладок
+                object getRequest = new { bot_id = botName, tab_name = tabName };
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+
+                if (!TryParseConfig(getResponse, getMethod, out JsonElement getConfig))
+                {
+                    return;
+                }
+
+                bool found = false;
+
+                foreach (JsonElement position in getConfig.GetProperty("positions").EnumerateArray())
+                {
+                    if (position.GetProperty("security_name").GetString() == securityName
+                        && position.GetProperty("position_number").GetInt32() == positionNumber)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    _context.RecordFail(Module, openMethod, "fake position not found in screener get_open");
+                    return;
+                }
+
+                _context.RecordPass(Module, openMethod, $"security={securityName}, position_number={positionNumber}");
+
+                // Fake close
+                object closeRequest = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    position_number = positionNumber,
+                    security_name = securityName,
+                    is_fake = true,
+                    price = 101m
+                };
+
+                _context.PrintRequest(Module, closeMethod, closeRequest);
+                string closeResponse = _context.Client.ToolsCall(closeMethod, closeRequest);
+                _context.PrintResponse(closeResponse);
+
+                if (!TryParseConfig(closeResponse, closeMethod, out JsonElement closed))
+                {
+                    return;
+                }
+
+                string finalGetResponse = _context.Client.ToolsCall(getMethod, getRequest);
+
+                if (!TryParseConfig(finalGetResponse, getMethod, out JsonElement finalConfig)
+                    || finalConfig.GetProperty("count").GetInt32() != 0)
+                {
+                    _context.RecordFail(Module, closeMethod, "position remains open after close");
+                    return;
+                }
+
+                _context.RecordPass(Module, closeMethod, "screener position closed");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, $"TestBotPositionsScreener failed: {error.Message}");
+            }
+            finally
+            {
+                if (!string.IsNullOrWhiteSpace(botName))
+                {
+                    _context.Client.ToolsCall("bot_delete", new { bot_id = botName });
+                }
+
+                _context.Client.ToolsCall("tester_stop", new { });
+            }
         }
 
         private void TestPositionSupportUnsupportedTab()
