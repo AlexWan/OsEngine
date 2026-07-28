@@ -477,6 +477,14 @@ namespace OsEngine.McpApi.TestStand
                 // Идёт после Terminal: каждый модуль всё равно перезапускает OsEngine перед собой.
                 RunModule(context, 16, "SystemLoad", "-robotslight", () => new SystemLoadTests(context).RunAll());
 
+                // Модуль: ComparePositions
+                // MCP API: compare_positions_get, compare_positions_get_settings,
+                //          compare_positions_set_settings, compare_positions_set_ignored,
+                //          compare_positions_sync_all, compare_positions_sync_this.
+                // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 17, "ComparePositions", "-robotslight", () => new ComparePositionsTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

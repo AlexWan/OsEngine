@@ -38,12 +38,12 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 # (1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement,
 #  6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators,
 #  11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal,
-#  16 SystemLoad)
+#  16 SystemLoad, 17 ComparePositions)
 ./OsEngine.McpApi.TestStand.exe --module Tester
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **127/127 passed**.
+Цель стенда: **132/132 passed**.
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 

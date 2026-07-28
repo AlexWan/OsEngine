@@ -59,6 +59,7 @@ namespace OsEngine.MCP
         private readonly TesterApi _testerApi;
         private readonly RobotsApi _robotsApi;
         private readonly SystemLoadApi _systemLoadApi;
+        private readonly ComparePositionsApi _comparePositionsApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -148,6 +149,9 @@ namespace OsEngine.MCP
             _systemLoadApi = new SystemLoadApi();
             _systemLoadApi.NewLogMessageEvent += SystemLoadApi_NewLogMessageEvent;
 
+            _comparePositionsApi = new ComparePositionsApi();
+            _comparePositionsApi.NewLogMessageEvent += ComparePositionsApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -165,6 +169,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_testerApi);
             _protocolApi.RegisterToolProvider(_robotsApi);
             _protocolApi.RegisterToolProvider(_systemLoadApi);
+            _protocolApi.RegisterToolProvider(_comparePositionsApi);
         }
 
         #endregion
@@ -342,6 +347,11 @@ namespace OsEngine.MCP
         }
 
         private void SystemLoadApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void ComparePositionsApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -846,6 +856,15 @@ namespace OsEngine.MCP
                     case "system_load_get_settings":
                     case "system_load_set_settings":
                         response = _systemLoadApi.Handle(request);
+                        break;
+
+                    case "compare_positions_get":
+                    case "compare_positions_get_settings":
+                    case "compare_positions_set_settings":
+                    case "compare_positions_set_ignored":
+                    case "compare_positions_sync_all":
+                    case "compare_positions_sync_this":
+                        response = _comparePositionsApi.Handle(request);
                         break;
 
                     default:

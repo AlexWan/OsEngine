@@ -39,6 +39,7 @@ OsEngine/MCP/
     OsDataApi.cs            // data_*
     RobotsApi.cs            // bot_* (robot management in any mode with robots)
     SystemLoadApi.cs        // system_load_* (RAM, CPU, ECQ, MOQ via SystemUsageAnalyzeMaster)
+    ComparePositionsApi.cs  // compare_positions_* (robots vs exchange positions + synchronization)
     TesterApi.cs            // tester_* configuration
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
@@ -69,9 +70,10 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     DataTests.cs
     TesterTests.cs          // tester_* and bot_* via tester mode
     SystemLoadTests.cs      // system_load_* via BotStationLight mode
+    ComparePositionsTests.cs // compare_positions_* via BotStationLight mode
 ```
 
-По умолчанию стенд прогоняет все 15 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–15) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 17 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–17) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -281,6 +283,12 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `system_load_get_history` | История точек загруженности по типу. Параметры: `type` (`Ram`, `Cpu`, `Ecq`, `Moq`, обязательный), `limit` (по умолчанию 100, последние точки) |
 | `system_load_get_settings` | Настройки сбора загруженности по 4 типам: `collect_data_is_on`, `period` (`OneSecond`, `TenSeconds`, `Minute`), `points_max` |
 | `system_load_set_settings` | Частичное изменение настроек сбора загруженности (поля `<тип>_collect_data_is_on`, `<тип>_period`, `<тип>_points_max`) |
+| `compare_positions_get` | Свежая сверка позиций роботов с биржей по всем портфелям сервера. Параметры: `server_type`, `number` |
+| `compare_positions_get_settings` | Настройки модуля сверки: `verification_period`, `time_delay_seconds`, `portfolios_to_watch`, `ignored_securities` |
+| `compare_positions_set_settings` | Частичное изменение настроек модуля сверки |
+| `compare_positions_set_ignored` | Установить список игнорируемых бумаг модуля сверки (заменяет список целиком) |
+| `compare_positions_sync_all` | Синхронизировать весь портфель под учёт роботов: рыночные ордера по каждой расходящейся бумаге (закрыть лишнее / дооткрыть недостающее). Параметры: `server_type`, `number`, `portfolio_name` |
+| `compare_positions_sync_this` | Синхронизировать одну бумагу в портфеле. Параметры: `server_type`, `number`, `portfolio_name`, `security_name` |
 
 ### 2.5. Примеры запросов
 
@@ -1259,7 +1267,7 @@ DATA:             16/16 passed
 TESTER:           23/23 passed
 TERMINAL:         13/13 passed
 
-Total: 127/127 passed in 235.4s
+Total: 132/132 passed in 235.4s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.
