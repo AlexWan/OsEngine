@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Journal.JournalUi2"
+<Window x:Class="OsEngine.Journal.JournalUi2"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -13,11 +13,11 @@
                 <TabItem Name="TabItem1" Header="Equity" Width="140" Margin="41,0,-140,0">
                     <Grid>
                         <WindowsFormsHost Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
-                        <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="126,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleEquity"/>
+                        <Rectangle Fill="{DynamicResource JournalEquityTotalBrush}"  HorizontalAlignment="Left" Height="25" Margin="126,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleEquity"/>
                         <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="15,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="240,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleLong"/>
+                        <Rectangle Fill="{DynamicResource JournalSwatchLongBrush}"  HorizontalAlignment="Left" Height="25" Margin="240,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleLong"/>
                         <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="189,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="355,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleShort"/>
+                        <Rectangle Fill="{DynamicResource JournalSwatchShortBrush}"  HorizontalAlignment="Left" Height="25" Margin="355,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38" Name="RectangleShort"/>
                         <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="303,0,0,10" VerticalAlignment="Bottom"/>
                         <Label Name="LabelEqutyCharteType" Content="Chart Type" HorizontalAlignment="Left" Margin="421,0,0,10" VerticalAlignment="Bottom"/>
                         <ComboBox Name="ComboBoxChartType" HorizontalAlignment="Left" Margin="506,0,0,10" VerticalAlignment="Bottom" Width="140"/>

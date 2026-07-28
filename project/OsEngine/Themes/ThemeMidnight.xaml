@@ -30,6 +30,7 @@
         <Color x:Key="JournalBarZeroColor">#4A7BC8</Color>
         <SolidColorBrush x:Key="JournalSwatchLongBrush" Color="#2FC8F0"/>
         <SolidColorBrush x:Key="JournalSwatchShortBrush" Color="#C98242"/>
+        <SolidColorBrush x:Key="JournalEquityTotalBrush" Color="#F0F4FA"/>
         <Color x:Key="JournalDodgerBlueColor">#2FC8F0</Color>
         <Color x:Key="OptimizerChartTextColor">#8A93A6</Color>
         <Color x:Key="OptimizerCursorColor">#4A7BC8</Color>

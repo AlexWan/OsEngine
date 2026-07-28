@@ -18,11 +18,11 @@
                 <TabItem Name="TabItem1" Header="Equity" Width="140">
                     <Grid>
                         <WindowsFormsHost Name="HostEquity" Foreground="Black" Margin="10,5,5,47" />
-                        <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="70,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Rectangle Fill="{DynamicResource JournalEquityTotalBrush}"  HorizontalAlignment="Left" Height="25" Margin="70,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
                         <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="123,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="336,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Rectangle Fill="{DynamicResource JournalSwatchLongBrush}"  HorizontalAlignment="Left" Height="25" Margin="336,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
                         <Label Name="Label2" Content="Long" HorizontalAlignment="Left" Margin="389,0,0,10" VerticalAlignment="Bottom"/>
-                        <Rectangle Fill="DarkOrange"  HorizontalAlignment="Left" Height="25" Margin="604,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
+                        <Rectangle Fill="{DynamicResource JournalSwatchShortBrush}"  HorizontalAlignment="Left" Height="25" Margin="604,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
                         <Label Name="Label3" Content="Short" HorizontalAlignment="Left" Margin="657,0,0,10" VerticalAlignment="Bottom"/>
                         <ComboBox Name="ComboBoxChartType" HorizontalAlignment="Left" Margin="920,0,0,10" VerticalAlignment="Bottom" Width="140"/>
                         <Label Name="LabelEqutyCharteType" Content="Chart Type" HorizontalAlignment="Left" Margin="817,0,0,10" VerticalAlignment="Bottom"/>
