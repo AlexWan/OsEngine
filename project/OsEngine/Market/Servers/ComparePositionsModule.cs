@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Threading;
 using OsEngine.Entity;
 using System.IO;
+using OsEngine.OsTrader.Panels.Tab.Internal;
 
 namespace OsEngine.Market.Servers
 {
@@ -712,6 +713,169 @@ namespace OsEngine.Market.Servers
             {
                 // ignore
             }
+        }
+
+        #endregion
+
+        #region Positions synchronization
+
+        private readonly PositionCreator _dealCreator = new PositionCreator();
+
+        /// <summary>
+        /// signed volume to trade to align the portfolio to robots accounting
+        /// </summary>
+        public decimal GetDifferenceToSync(ComparePositionsSecurity security)
+        {
+            return security.RobotsCommon - security.PortfolioCommon;
+        }
+
+        /// <summary>
+        /// order condition type for the synchronization order (open or close)
+        /// </summary>
+        public OrderPositionConditionType GetConditionTypeToSync(ComparePositionsSecurity security)
+        {
+            return GetConditionType(security.RobotsCommon - security.PortfolioCommon, security.PortfolioCommon);
+        }
+
+        public List<ComparePositionsSecurity> GetOutOfSyncSecurities(string portfolioName)
+        {
+            List<ComparePositionsSecurity> result = new List<ComparePositionsSecurity>();
+            List<ComparePositionsSecurity> securities = GetSecuritiesToPortfolio(portfolioName);
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                if (securities[i].Status == ComparePositionsStatus.Error
+                    && securities[i].IsIgnored == false)
+                {
+                    result.Add(securities[i]);
+                }
+            }
+
+            return result;
+        }
+
+        public int SynchronizePortfolio(string portfolioName)
+        {
+            int sentCount = 0;
+            List<ComparePositionsSecurity> outOfSync = GetOutOfSyncSecurities(portfolioName);
+
+            for (int i = 0; i < outOfSync.Count; i++)
+            {
+                if (SendSynchronizationOrder(portfolioName, outOfSync[i]))
+                {
+                    sentCount++;
+                }
+            }
+
+            return sentCount;
+        }
+
+        public bool SynchronizeSecurity(string portfolioName, string securityName)
+        {
+            List<ComparePositionsSecurity> securities = GetSecuritiesToPortfolio(portfolioName);
+
+            for (int i = 0; i < securities.Count; i++)
+            {
+                if (securities[i].Security == securityName)
+                {
+                    return SendSynchronizationOrder(portfolioName, securities[i]);
+                }
+            }
+
+            SendLogMessage("Synchronization canceled. Security " + securityName + " not found in compare list", LogMessageType.Error);
+            return false;
+        }
+
+        private bool SendSynchronizationOrder(string portfolioName, ComparePositionsSecurity security)
+        {
+            try
+            {
+                if (Server.ServerStatus != ServerConnectStatus.Connect)
+                {
+                    SendLogMessage("Synchronization canceled. Server is not connected.", LogMessageType.Error);
+                    return false;
+                }
+
+                decimal difference = security.RobotsCommon - security.PortfolioCommon;
+
+                if (difference == 0)
+                {
+                    return true;
+                }
+
+                Security sec = Server.GetSecurityForName(security.Security, string.Empty);
+
+                if (sec == null)
+                {
+                    SendLogMessage("Synchronization canceled. Security " + security.Security + " not found on the server", LogMessageType.Error);
+                    return false;
+                }
+
+                decimal volumeToTrade = Math.Round(difference, sec.DecimalsVolume);
+
+                if (volumeToTrade == 0)
+                {
+                    SendLogMessage("Synchronization skipped. Trade volume is zero after rounding. Security " + security.Security, LogMessageType.System);
+                    return false;
+                }
+
+                OrderPositionConditionType conditionType = GetConditionType(volumeToTrade, security.PortfolioCommon);
+                Side direction = volumeToTrade > 0 ? Side.Buy : Side.Sell;
+                decimal absVolume = Math.Abs(volumeToTrade);
+
+                Order order = _dealCreator.CreateOrder(
+                    sec, direction, 0, absVolume,
+                    OrderPriceType.Market, TimeSpan.FromSeconds(60),
+                    StartProgram.IsOsTrader, conditionType,
+                    OrderTypeTime.GTC, Server.ServerNameUnique, false, 0);
+
+                order.PortfolioNumber = portfolioName;
+
+                Server.ExecuteOrder(order);
+
+                SendLogMessage(
+                    "Synchronization order sent. Security " + security.Security +
+                    ", direction " + direction + ", volume " + absVolume +
+                    ", robots " + security.RobotsCommon + ", portfolio " + security.PortfolioCommon,
+                    LogMessageType.System);
+
+                return true;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+                return false;
+            }
+        }
+
+        private OrderPositionConditionType GetConditionType(decimal volumeOrder, decimal volumeInPortfolio)
+        {
+            if (volumeInPortfolio == 0)
+            {
+                return OrderPositionConditionType.Open;
+            }
+
+            if (volumeOrder > 0 && volumeInPortfolio > 0)
+            {
+                return OrderPositionConditionType.Open;
+            }
+
+            if (volumeOrder > 0 && volumeInPortfolio < 0)
+            {
+                return OrderPositionConditionType.Close;
+            }
+
+            if (volumeOrder < 0 && volumeInPortfolio < 0)
+            {
+                return OrderPositionConditionType.Open;
+            }
+
+            if (volumeOrder < 0 && volumeInPortfolio > 0)
+            {
+                return OrderPositionConditionType.Close;
+            }
+
+            return OrderPositionConditionType.Close;
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -66,6 +66,9 @@ namespace OsEngine.Market.Servers
 
             CheckBoxAutoLogMessageOnError.Click += CheckBoxAutoLogMessageOnError_Click;
 
+            ButtonSyncAll.Content = OsLocalization.ConvertToLocString("Eng:Synchronize_Ru:Синхронизировать_");
+            ButtonSyncAll.Click += ButtonSyncAll_Click;
+
             ComboBoxVerificationPeriod.Items.Add(ComparePositionsVerificationPeriod.Min1.ToString());
             ComboBoxVerificationPeriod.Items.Add(ComparePositionsVerificationPeriod.Min5.ToString());
             ComboBoxVerificationPeriod.Items.Add(ComparePositionsVerificationPeriod.Min10.ToString());
@@ -114,6 +117,7 @@ namespace OsEngine.Market.Servers
                 CheckBoxAutoLogMessageOnError.Click -= CheckBoxAutoLogMessageOnError_Click;
                 ComboBoxVerificationPeriod.SelectionChanged -= ComboBoxVerificationPeriod_SelectionChanged;
                 ButtonPositionComparison.Click -= ButtonPositionComparison_Click;
+                ButtonSyncAll.Click -= ButtonSyncAll_Click;
 
                 if (_instructionsUi != null)
                 {
@@ -374,6 +378,14 @@ namespace OsEngine.Market.Servers
             colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             _grid.Columns.Add(colum9);
 
+            // Sync
+            DataGridViewColumn colum10 = new DataGridViewColumn();
+            colum10.CellTemplate = new DataGridViewButtonCell();
+            colum10.HeaderText = "";
+            colum10.ReadOnly = true;
+            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            _grid.Columns.Add(colum10);
+
             Host.Child = _grid;
 
             _grid.CellClick += _grid_CellClick;
@@ -579,6 +591,16 @@ namespace OsEngine.Market.Servers
                 checkBox.Value = portfolio.CompareSecurities[i].IsIgnored;
                 nRow.Cells.Add(checkBox);
 
+                DataGridViewButtonCell syncCell = new DataGridViewButtonCell();
+
+                if (portfolio.CompareSecurities[i].Status == ComparePositionsStatus.Error
+                    && portfolio.CompareSecurities[i].IsIgnored == false)
+                {
+                    syncCell.Value = OsLocalization.ConvertToLocString("Eng:Sync_Ru:Синх._");
+                }
+
+                nRow.Cells.Add(syncCell);
+
                 if (portfolio.CompareSecurities[i].IsIgnored == true)
                 {
                     for (int j = 0; j < nRow.Cells.Count; j++)
@@ -600,11 +622,6 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (e.ColumnIndex != 9)
-                {
-                    return;
-                }
-
                 if (e.RowIndex < 0)
                 {
                     return;
@@ -615,7 +632,24 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                if (e.ColumnIndex == 10)
+                {
+                    SynchronizeRowWithDialog(e.RowIndex);
+                    return;
+                }
+
+                if (e.ColumnIndex != 9)
+                {
+                    return;
+                }
+
+                DataGridViewCheckBoxCell cell = _grid.Rows[e.RowIndex].Cells[e.ColumnIndex] as DataGridViewCheckBoxCell;
+
+                if (cell == null || cell.Value == null)
+                {
+                    // сводная строка портфеля — чекбокса в ней нет
+                    return;
+                }
 
                 string value = cell.Value.ToString();
 
@@ -665,6 +699,150 @@ namespace OsEngine.Market.Servers
             {
                 _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+        }
+
+        #endregion
+
+        #region Positions synchronization
+
+        private void ButtonSyncAll_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                List<ComparePositionsSecurity> outOfSync = _comparePositionsModule.GetOutOfSyncSecurities(PortfolioName);
+
+                if (outOfSync.Count == 0)
+                {
+                    AcceptDialogUi uiEmpty = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                        "Eng:No mismatches. All positions are synchronized._Ru:Расхождений нет. Все позиции синхронизированы._"));
+                    uiEmpty.ShowDialog();
+                    return;
+                }
+
+                string messageEng = "The following market orders will be sent.\n";
+                string messageRu = "Будут отправлены следующие рыночные ордера.\n";
+
+                for (int i = 0; i < outOfSync.Count; i++)
+                {
+                    messageEng += GetOperationTextEng(outOfSync[i]) + "\n";
+                    messageRu += GetOperationTextRu(outOfSync[i]) + "\n";
+                }
+
+                messageEng += "Continue?";
+                messageRu += "Продолжить?";
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                    "Eng:" + messageEng + "_Ru:" + messageRu + "_"));
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _comparePositionsModule.SynchronizePortfolio(PortfolioName);
+            }
+            catch (Exception ex)
+            {
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SynchronizeRowWithDialog(int rowIndex)
+        {
+            try
+            {
+                object cellValue = _grid.Rows[rowIndex].Cells[10].Value;
+
+                if (cellValue == null || string.IsNullOrEmpty(cellValue.ToString()))
+                {
+                    return;
+                }
+
+                string securityName = _grid.Rows[rowIndex].Cells[1].Value.ToString();
+
+                ComparePositionsSecurity security = null;
+                List<ComparePositionsSecurity> outOfSync = _comparePositionsModule.GetOutOfSyncSecurities(PortfolioName);
+
+                for (int i = 0; i < outOfSync.Count; i++)
+                {
+                    if (outOfSync[i].Security == securityName)
+                    {
+                        security = outOfSync[i];
+                        break;
+                    }
+                }
+
+                if (security == null)
+                {
+                    return;
+                }
+
+                string messageEng = "Synchronize " + securityName + "?\n"
+                    + "The following market order will be sent.\n"
+                    + GetOperationTextEng(security) + "\n"
+                    + "Continue?";
+
+                string messageRu = "Синхронизировать " + securityName + "?\n"
+                    + "Будет отправлен следующий рыночный ордер.\n"
+                    + GetOperationTextRu(security) + "\n"
+                    + "Продолжить?";
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                    "Eng:" + messageEng + "_Ru:" + messageRu + "_"));
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _comparePositionsModule.SynchronizeSecurity(PortfolioName, securityName);
+            }
+            catch (Exception ex)
+            {
+                _comparePositionsModule?.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private string GetOperationTextEng(ComparePositionsSecurity security)
+        {
+            decimal difference = _comparePositionsModule.GetDifferenceToSync(security);
+            string direction = difference > 0 ? "Buy" : "Sell";
+
+            string action;
+
+            if (_comparePositionsModule.GetConditionTypeToSync(security) == OrderPositionConditionType.Open)
+            {
+                action = "Position will be opened or increased";
+            }
+            else
+            {
+                action = "Position will be reduced or closed";
+            }
+
+            return security.Security + ". " + direction + " " + Math.Abs(difference) + ". " + action
+                + " (robots " + security.RobotsCommon + ", portfolio " + security.PortfolioCommon + ")";
+        }
+
+        private string GetOperationTextRu(ComparePositionsSecurity security)
+        {
+            decimal difference = _comparePositionsModule.GetDifferenceToSync(security);
+            string direction = difference > 0 ? "Buy" : "Sell";
+
+            string action;
+
+            if (_comparePositionsModule.GetConditionTypeToSync(security) == OrderPositionConditionType.Open)
+            {
+                action = "Позиция будет открыта или увеличена";
+            }
+            else
+            {
+                action = "Позиция будет уменьшена или закрыта";
+            }
+
+            return security.Security + ". " + direction + " " + Math.Abs(difference) + ". " + action
+                + " (роботы " + security.RobotsCommon + ", портфель " + security.PortfolioCommon + ")";
         }
 
         #endregion
