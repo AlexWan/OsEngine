@@ -94,7 +94,16 @@ namespace OsEngine.McpApi.TestStand
             string name = $"{module}.{method}";
             Results.Add(TestResult.Passed(name, message));
             Passed++;
-            Console.WriteLine($"  Status:   PASS");
+
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                Console.WriteLine($"  Status:   PASS");
+            }
+            else
+            {
+                Console.WriteLine($"  Status:   PASS - {message}");
+            }
+
             Console.WriteLine();
         }
 

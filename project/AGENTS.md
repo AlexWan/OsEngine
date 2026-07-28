@@ -42,7 +42,7 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **114/114 passed**.
+Цель стенда: **118/118 passed**.
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 

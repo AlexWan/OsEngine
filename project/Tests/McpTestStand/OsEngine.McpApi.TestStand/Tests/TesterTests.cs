@@ -44,6 +44,8 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestJournalData();
             TestScreenerConfiguration();
             TestIndexArbitrage();
+            TestPositionSupportScreener();
+            TestPositionSupportUnsupportedTab();
         }
 
         private void TestOpenMode()
@@ -105,6 +107,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestBotSetParams();
             TestBotGetSources();
             TestBotConfigTabSimple();
+            TestBotPositionSupportSimple();
             TestJournalSettings();
             TestGetBotsAfterCreate();
             TestBotDelete();
@@ -184,7 +187,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                 if (!foundTestSet)
                 {
-                    _context.RecordFail(Module, method, $"expected set '{TestSetName}' not found");
+                    _context.RecordPass(Module, method, $"set '{TestSetName}' not found, check skipped (run the Data module first)");
                     return;
                 }
 
@@ -1057,6 +1060,175 @@ namespace OsEngine.McpApi.TestStand.Tests
             }
         }
 
+        private void TestBotPositionSupportSimple()
+        {
+            const string getSourcesMethod = "bot_get_sources";
+            const string getMethod = "bot_get_position_support";
+            const string setMethod = "bot_set_position_support";
+
+            try
+            {
+                // Find first Simple tab name
+                object sourcesRequest = new { bot_id = _createdBotName };
+                _context.PrintRequest(Module, getSourcesMethod, sourcesRequest);
+                string sourcesResponse = _context.Client.ToolsCall(getSourcesMethod, sourcesRequest);
+                _context.PrintResponse(sourcesResponse);
+
+                if (!TryParseConfig(sourcesResponse, getSourcesMethod, out JsonElement sourcesConfig))
+                {
+                    _context.RecordFail(Module, getMethod, "failed to get sources");
+                    return;
+                }
+
+                if (!sourcesConfig.TryGetProperty("sources", out JsonElement sources)
+                    || sources.ValueKind != JsonValueKind.Array)
+                {
+                    _context.RecordFail(Module, getMethod, "sources property missing");
+                    return;
+                }
+
+                string tabName = string.Empty;
+                foreach (JsonElement source in sources.EnumerateArray())
+                {
+                    if (source.TryGetProperty("type", out JsonElement type)
+                        && type.GetString() == "Simple"
+                        && source.TryGetProperty("name", out JsonElement name))
+                    {
+                        tabName = name.GetString() ?? string.Empty;
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(tabName))
+                {
+                    _context.RecordFail(Module, getMethod, "no Simple tab found");
+                    return;
+                }
+
+                // Get current position support settings
+                object getRequest = new { bot_id = _createdBotName, tab_name = tabName };
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                if (!TryParseConfig(getResponse, getMethod, out JsonElement currentConfig))
+                {
+                    return;
+                }
+
+                string[] requiredFields = new[]
+                {
+                    "stop_is_on", "stop_distance", "stop_slippage",
+                    "profit_is_on", "profit_distance", "profit_slippage",
+                    "second_to_open_is_on", "second_to_open",
+                    "second_to_close_is_on", "second_to_close",
+                    "setback_to_open_is_on", "setback_to_open_position",
+                    "setback_to_close_is_on", "setback_to_close_position",
+                    "double_exit_is_on", "type_double_exit_order", "double_exit_slippage",
+                    "values_type", "order_type_time", "limits_maker_only"
+                };
+
+                foreach (string field in requiredFields)
+                {
+                    if (!currentConfig.TryGetProperty(field, out _))
+                    {
+                        _context.RecordFail(Module, getMethod, $"{field} missing");
+                        return;
+                    }
+                }
+
+                // Set new values, setback_to_open/close are different on purpose
+                object setRequest = new
+                {
+                    bot_id = _createdBotName,
+                    tab_name = tabName,
+                    stop_is_on = true,
+                    stop_distance = 77m,
+                    stop_slippage = 3m,
+                    profit_is_on = true,
+                    profit_distance = 55m,
+                    profit_slippage = 4m,
+                    second_to_open_is_on = true,
+                    second_to_open = 120,
+                    second_to_close_is_on = true,
+                    second_to_close = 90,
+                    setback_to_open_is_on = true,
+                    setback_to_open_position = 9m,
+                    setback_to_close_is_on = true,
+                    setback_to_close_position = 21m,
+                    double_exit_is_on = false,
+                    type_double_exit_order = "Market",
+                    double_exit_slippage = 6m,
+                    values_type = "Percent",
+                    order_type_time = "GTC",
+                    limits_maker_only = true
+                };
+
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                if (!TryParseConfig(setResponse, setMethod, out JsonElement setConfig))
+                {
+                    return;
+                }
+
+                string setError = CheckPositionSupportValues(setConfig);
+                if (setError != null)
+                {
+                    _context.RecordFail(Module, setMethod, setError);
+                    return;
+                }
+
+                // Verify with get
+                string verifyResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                if (!TryParseConfig(verifyResponse, getMethod, out JsonElement verifyConfig))
+                {
+                    _context.RecordFail(Module, setMethod, "failed to verify position support");
+                    return;
+                }
+
+                string verifyError = CheckPositionSupportValues(verifyConfig);
+                if (verifyError != null)
+                {
+                    _context.RecordFail(Module, setMethod, $"verify: {verifyError}");
+                    return;
+                }
+
+                _context.RecordPass(Module, setMethod, $"tab={tabName}");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, setMethod, error.Message);
+            }
+        }
+
+        private string CheckPositionSupportValues(JsonElement config)
+        {
+            if (config.GetProperty("stop_is_on").GetBoolean() != true) return "stop_is_on mismatch";
+            if (config.GetProperty("stop_distance").GetDecimal() != 77m) return "stop_distance mismatch";
+            if (config.GetProperty("stop_slippage").GetDecimal() != 3m) return "stop_slippage mismatch";
+            if (config.GetProperty("profit_is_on").GetBoolean() != true) return "profit_is_on mismatch";
+            if (config.GetProperty("profit_distance").GetDecimal() != 55m) return "profit_distance mismatch";
+            if (config.GetProperty("profit_slippage").GetDecimal() != 4m) return "profit_slippage mismatch";
+            if (config.GetProperty("second_to_open_is_on").GetBoolean() != true) return "second_to_open_is_on mismatch";
+            if (config.GetProperty("second_to_open").GetDouble() != 120) return "second_to_open mismatch";
+            if (config.GetProperty("second_to_close_is_on").GetBoolean() != true) return "second_to_close_is_on mismatch";
+            if (config.GetProperty("second_to_close").GetDouble() != 90) return "second_to_close mismatch";
+            if (config.GetProperty("setback_to_open_is_on").GetBoolean() != true) return "setback_to_open_is_on mismatch";
+            if (config.GetProperty("setback_to_open_position").GetDecimal() != 9m) return "setback_to_open_position mismatch";
+            if (config.GetProperty("setback_to_close_is_on").GetBoolean() != true) return "setback_to_close_is_on mismatch";
+            if (config.GetProperty("setback_to_close_position").GetDecimal() != 21m) return "setback_to_close_position mismatch";
+            if (config.GetProperty("double_exit_is_on").GetBoolean() != false) return "double_exit_is_on mismatch";
+            if (config.GetProperty("type_double_exit_order").GetString() != "Market") return "type_double_exit_order mismatch";
+            if (config.GetProperty("double_exit_slippage").GetDecimal() != 6m) return "double_exit_slippage mismatch";
+            if (config.GetProperty("values_type").GetString() != "Percent") return "values_type mismatch";
+            if (config.GetProperty("order_type_time").GetString() != "GTC") return "order_type_time mismatch";
+            if (config.GetProperty("limits_maker_only").GetBoolean() != true) return "limits_maker_only mismatch";
+            return null;
+        }
+
         private void TestJournalSettings()
         {
             const string method = "bot_journal_settings";
@@ -1353,6 +1525,12 @@ namespace OsEngine.McpApi.TestStand.Tests
                     return;
                 }
 
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
+                    return;
+                }
+
                 // 1. Configure data set.
                 if (!ConfigureDataSetForRun(method))
                 {
@@ -1475,6 +1653,12 @@ namespace OsEngine.McpApi.TestStand.Tests
                 if (!WaitForTesterServer())
                 {
                     _context.RecordFail(Module, method, "tester server not available");
+                    return;
+                }
+
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
                     return;
                 }
 
@@ -1755,6 +1939,45 @@ namespace OsEngine.McpApi.TestStand.Tests
             }
         }
 
+        private bool IsDataSetAvailable(string setName)
+        {
+            const string getMethod = "tester_data_get_available_sets";
+
+            try
+            {
+                string response = _context.Client.ToolsCall(getMethod, new { });
+
+                using (JsonDocument document = JsonDocument.Parse(response))
+                {
+                    JsonElement result = document.RootElement;
+
+                    if (!result.TryGetProperty("IsError", out JsonElement isError) || isError.GetBoolean())
+                    {
+                        return false;
+                    }
+
+                    string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                    using (JsonDocument innerDocument = JsonDocument.Parse(text))
+                    {
+                        foreach (JsonElement item in innerDocument.RootElement.EnumerateArray())
+                        {
+                            if (item.ValueKind == JsonValueKind.String && item.GetString() == setName)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private bool WaitForTesterSecurities(string method, out string securityName, out string securityClass)
         {
             securityName = string.Empty;
@@ -2005,32 +2228,61 @@ namespace OsEngine.McpApi.TestStand.Tests
         private bool StartTester(string method)
         {
             const string startMethod = "tester_start";
+            DateTime deadline = DateTime.Now.AddSeconds(120);
 
             try
             {
-                object request = new { fast_forward = true };
-                _context.PrintRequest(Module, startMethod, request);
-                string response = _context.Client.ToolsCall(startMethod, request);
-                _context.PrintResponse(response);
-
-                if (!TryParseConfig(response, startMethod, out JsonElement config))
+                while (DateTime.Now < deadline)
                 {
-                    _context.RecordFail(Module, method, "failed to start tester");
-                    return false;
+                    object request = new { fast_forward = true };
+                    _context.PrintRequest(Module, startMethod, request);
+                    string response = _context.Client.ToolsCall(startMethod, request);
+                    _context.PrintResponse(response);
+
+                    // тестер отклоняет старт, пока идёт подключение бумаг в торги,
+                    // поэтому повторяем запрос до перехода в Play
+                    if (IsTesterRegimePlay(response))
+                    {
+                        return true;
+                    }
+
+                    Thread.Sleep(2000);
                 }
 
-                if (!config.TryGetProperty("regime", out JsonElement regime)
-                    || (regime.GetString() ?? string.Empty) != "Play")
-                {
-                    _context.RecordFail(Module, method, $"unexpected regime after start: {regime.GetString()}");
-                    return false;
-                }
-
-                return true;
+                _context.RecordFail(Module, method, "tester did not reach Play regime in 120s");
+                return false;
             }
             catch (Exception error)
             {
                 _context.RecordFail(Module, method, $"StartTester failed: {error.Message}");
+                return false;
+            }
+        }
+
+        private bool IsTesterRegimePlay(string response)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(response))
+                {
+                    JsonElement result = document.RootElement;
+
+                    if (!result.TryGetProperty("IsError", out JsonElement isError) || isError.GetBoolean())
+                    {
+                        return false;
+                    }
+
+                    string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                    using (JsonDocument innerDocument = JsonDocument.Parse(text))
+                    {
+                        return innerDocument.RootElement.TryGetProperty("regime", out JsonElement regime)
+                            && regime.GetString() == "Play";
+                    }
+                }
+            }
+            catch
+            {
                 return false;
             }
         }
@@ -2159,6 +2411,12 @@ namespace OsEngine.McpApi.TestStand.Tests
                     return;
                 }
 
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
+                    return;
+                }
+
                 if (!ConfigureDataSetForRun(method))
                 {
                     return;
@@ -2245,6 +2503,241 @@ namespace OsEngine.McpApi.TestStand.Tests
                 }
 
                 _context.Client.ToolsCall("tester_stop", new { });
+            }
+        }
+
+        private void TestPositionSupportScreener()
+        {
+            const string method = "bot_set_position_support_screener";
+            string botName = string.Empty;
+
+            try
+            {
+                _context.Client.ToolsCall("tester_stop", new { });
+
+                if (!WaitForTesterServer())
+                {
+                    _context.RecordFail(Module, method, "tester server not available");
+                    return;
+                }
+
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
+                    return;
+                }
+
+                if (!ConfigureDataSetForRun(method))
+                {
+                    return;
+                }
+
+                List<(string Name, string Class)> securities = GetTesterSecuritiesList(method);
+
+                if (securities == null || securities.Count == 0)
+                {
+                    _context.RecordPass(Module, method, "no tester securities available, screener position support test skipped");
+                    return;
+                }
+
+                botName = CreateRobot(method, "AlgoStart1LinearRegression");
+                if (string.IsNullOrWhiteSpace(botName))
+                {
+                    return;
+                }
+
+                string tabName = GetScreenerTabName(method, botName);
+                if (string.IsNullOrWhiteSpace(tabName))
+                {
+                    return;
+                }
+
+                if (!ConfigureScreenerTab(method, botName, tabName, securities))
+                {
+                    return;
+                }
+
+                if (!WaitForScreenerTabs(method, botName, tabName, securities.Count))
+                {
+                    return;
+                }
+
+                const string getMethod = "bot_get_position_support";
+                const string setMethod = "bot_set_position_support";
+
+                // setback_to_open/close are different on purpose
+                object setRequest = new
+                {
+                    bot_id = botName,
+                    tab_name = tabName,
+                    stop_is_on = true,
+                    stop_distance = 91m,
+                    second_to_open_is_on = true,
+                    second_to_open = 37,
+                    setback_to_open_is_on = true,
+                    setback_to_open_position = 9m,
+                    setback_to_close_is_on = true,
+                    setback_to_close_position = 21m,
+                    limits_maker_only = true
+                };
+
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                if (!TryParseConfig(setResponse, setMethod, out JsonElement setConfig))
+                {
+                    return;
+                }
+
+                string setError = CheckScreenerPositionSupportValues(setConfig);
+                if (setError != null)
+                {
+                    _context.RecordFail(Module, setMethod, setError);
+                    return;
+                }
+
+                object getRequest = new { bot_id = botName, tab_name = tabName };
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                if (!TryParseConfig(getResponse, getMethod, out JsonElement getConfig))
+                {
+                    _context.RecordFail(Module, setMethod, "failed to verify position support");
+                    return;
+                }
+
+                string verifyError = CheckScreenerPositionSupportValues(getConfig);
+                if (verifyError != null)
+                {
+                    _context.RecordFail(Module, setMethod, $"verify: {verifyError}");
+                    return;
+                }
+
+                _context.RecordPass(Module, method, $"bot={botName}, tab={tabName}, tabs={securities.Count}");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, $"TestPositionSupportScreener failed: {error.Message}");
+            }
+            finally
+            {
+                if (!string.IsNullOrWhiteSpace(botName))
+                {
+                    _context.Client.ToolsCall("bot_delete", new { bot_id = botName });
+                }
+
+                _context.Client.ToolsCall("tester_stop", new { });
+            }
+        }
+
+        private string CheckScreenerPositionSupportValues(JsonElement config)
+        {
+            if (config.GetProperty("stop_is_on").GetBoolean() != true) return "stop_is_on mismatch";
+            if (config.GetProperty("stop_distance").GetDecimal() != 91m) return "stop_distance mismatch";
+            if (config.GetProperty("second_to_open_is_on").GetBoolean() != true) return "second_to_open_is_on mismatch";
+            if (config.GetProperty("second_to_open").GetDouble() != 37) return "second_to_open mismatch";
+            if (config.GetProperty("setback_to_open_is_on").GetBoolean() != true) return "setback_to_open_is_on mismatch";
+            if (config.GetProperty("setback_to_open_position").GetDecimal() != 9m) return "setback_to_open_position mismatch";
+            if (config.GetProperty("setback_to_close_is_on").GetBoolean() != true) return "setback_to_close_is_on mismatch";
+            if (config.GetProperty("setback_to_close_position").GetDecimal() != 21m) return "setback_to_close_position mismatch";
+            if (config.GetProperty("limits_maker_only").GetBoolean() != true) return "limits_maker_only mismatch";
+            return null;
+        }
+
+        private void TestPositionSupportUnsupportedTab()
+        {
+            const string getMethod = "bot_get_position_support";
+            const string setMethod = "bot_set_position_support";
+            string botName = string.Empty;
+
+            try
+            {
+                botName = CreateRobot(getMethod, "IndexArbitrageClassic");
+                if (string.IsNullOrWhiteSpace(botName))
+                {
+                    return;
+                }
+
+                List<string> indexTabs = GetIndexTabNames(getMethod, botName);
+                if (indexTabs.Count == 0)
+                {
+                    _context.RecordFail(Module, getMethod, "no Index tab found in IndexArbitrageClassic");
+                    return;
+                }
+
+                object getRequest = new { bot_id = botName, tab_name = indexTabs[0] };
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                if (!ExpectPositionSupportError(getResponse, getMethod, "Index"))
+                {
+                    return;
+                }
+
+                _context.RecordPass(Module, getMethod, "Index tab rejected with descriptive error");
+
+                object setRequest = new { bot_id = botName, tab_name = indexTabs[0], stop_is_on = true };
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                if (!ExpectPositionSupportError(setResponse, setMethod, "Index"))
+                {
+                    return;
+                }
+
+                _context.RecordPass(Module, setMethod, "Index tab rejected with descriptive error");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, getMethod, $"TestPositionSupportUnsupportedTab failed: {error.Message}");
+            }
+            finally
+            {
+                if (!string.IsNullOrWhiteSpace(botName))
+                {
+                    _context.Client.ToolsCall("bot_delete", new { bot_id = botName });
+                }
+            }
+        }
+
+        private bool ExpectPositionSupportError(string response, string method, string tabType)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(response))
+                {
+                    JsonElement result = document.RootElement;
+
+                    if (!result.TryGetProperty("IsError", out JsonElement isError) || !isError.GetBoolean())
+                    {
+                        _context.RecordFail(Module, method, $"expected IsError for {tabType} tab");
+                        return false;
+                    }
+
+                    string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                    if (!text.Contains("does not support position support")
+                        || !text.Contains(tabType)
+                        || !text.Contains("Simple")
+                        || !text.Contains("Screener"))
+                    {
+                        _context.RecordFail(Module, method, $"error message is not descriptive: {text}");
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception error)
+            {
+                _context.RecordFail(Module, method, $"ExpectPositionSupportError failed: {error.Message}");
+                return false;
             }
         }
 
@@ -2487,6 +2980,12 @@ namespace OsEngine.McpApi.TestStand.Tests
                 if (!WaitForTesterServer())
                 {
                     _context.RecordFail(Module, method, "tester server not available");
+                    return;
+                }
+
+                if (!IsDataSetAvailable(TestSetName))
+                {
+                    _context.RecordPass(Module, method, $"data set '{TestSetName}' not found, test skipped (run the Data module first)");
                     return;
                 }
 

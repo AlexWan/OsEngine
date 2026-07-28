@@ -228,11 +228,19 @@ namespace OsEngine.McpApi.TestStand
 
             using (var processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey))
             {
+                // Remove stale auto-created data folders before starting OsEngine so
+                // previous failed runs cannot pollute the test sets. The folders are
+                // recreated by the Data module, so they are removed only when the
+                // Data module is part of this run.
+                bool cleanupDataSets = options.ModuleFilter.Length == 0
+                    || ModuleMatches(options.ModuleFilter, 13, "Data");
+
                 try
                 {
-                    // Remove stale auto-created data folders before starting OsEngine so
-                    // previous failed runs cannot pollute the test sets.
-                    CleanupAutoDataSets(options.OsEnginePath);
+                    if (cleanupDataSets)
+                    {
+                        CleanupAutoDataSets(options.OsEnginePath);
+                    }
 
                     processController.Restart(options.OsEngineArgs, TimeSpan.FromSeconds(options.TimeoutSeconds));
 
@@ -264,7 +272,10 @@ namespace OsEngine.McpApi.TestStand
 
                     List<TestResult> results = RunAllTests(context, options.ModuleFilter);
 
-                    CleanupAutoDataSets(options.OsEnginePath);
+                    if (cleanupDataSets)
+                    {
+                        CleanupAutoDataSets(options.OsEnginePath);
+                    }
 
                     int failed = 0;
 
@@ -289,7 +300,11 @@ namespace OsEngine.McpApi.TestStand
                 finally
                 {
                     processController.Stop();
-                    CleanupAutoDataSets(options.OsEnginePath);
+
+                    if (cleanupDataSets)
+                    {
+                        CleanupAutoDataSets(options.OsEnginePath);
+                    }
                 }
             }
         }

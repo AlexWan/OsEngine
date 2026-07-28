@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -551,7 +551,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.SecondToCloseIsOn = control.SecondToCloseIsOn;
                 tab.ManualPositionSupport.SecondToOpenIsOn = control.SecondToOpenIsOn;
                 tab.ManualPositionSupport.SetbackToCloseIsOn = control.SetbackToCloseIsOn;
-                tab.ManualPositionSupport.SetbackToClosePosition = control.SetbackToOpenPosition;
+                tab.ManualPositionSupport.SetbackToClosePosition = control.SetbackToClosePosition;
                 tab.ManualPositionSupport.SetbackToOpenIsOn = control.SetbackToOpenIsOn;
                 tab.ManualPositionSupport.SetbackToOpenPosition = control.SetbackToOpenPosition;
                 tab.ManualPositionSupport.StopDistance = control.StopDistance;
@@ -560,6 +560,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.TypeDoubleExitOrder = control.TypeDoubleExitOrder;
                 tab.ManualPositionSupport.ValuesType = control.ValuesType;
                 tab.ManualPositionSupport.OrderTypeTime = control.OrderTypeTime;
+                tab.ManualPositionSupport.LimitsMakerOnly = control.LimitsMakerOnly;
             }
             catch (Exception error)
             {

@@ -23,6 +23,7 @@ using OsEngine.MCP.Json;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.OsTrader.Panels.Tab.Internal;
 using OsEngine.Robots;
 
 namespace OsEngine.MCP.Modules
@@ -114,6 +115,14 @@ namespace OsEngine.MCP.Modules
 
                     case "bot_set_config_tab_index":
                         response.Result = SetBotConfigTabIndex(request.Params);
+                        break;
+
+                    case "bot_get_position_support":
+                        response.Result = GetBotPositionSupport(request.Params);
+                        break;
+
+                    case "bot_set_position_support":
+                        response.Result = SetBotPositionSupport(request.Params);
                         break;
 
                     case "bot_journal_get_settings":
@@ -433,6 +442,56 @@ namespace OsEngine.MCP.Modules
                                     }
                                 }
                             }
+                        },
+                        required = new[] { "bot_id", "tab_name" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_get_position_support",
+                    Description = "Get position support settings (BotManualControl) for a robot tab. Supported tab types: Simple, Screener (returns settings of the first internal tab). Other tab types return an error. second_to_open/second_to_close are in seconds",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            tab_name = new { type = "string", description = "Tab name from bot_get_sources" }
+                        },
+                        required = new[] { "bot_id", "tab_name" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_set_position_support",
+                    Description = "Set position support settings (BotManualControl) for a robot tab. All settings are optional. Supported tab types: Simple, Screener (settings are applied to the first internal tab and synced to all internal tabs). second_to_open/second_to_close are in seconds",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            tab_name = new { type = "string", description = "Tab name from bot_get_sources" },
+                            stop_is_on = new { type = "boolean" },
+                            stop_distance = new { type = "number" },
+                            stop_slippage = new { type = "number" },
+                            profit_is_on = new { type = "boolean" },
+                            profit_distance = new { type = "number" },
+                            profit_slippage = new { type = "number" },
+                            second_to_open_is_on = new { type = "boolean" },
+                            second_to_open = new { type = "number", description = "Seconds" },
+                            second_to_close_is_on = new { type = "boolean" },
+                            second_to_close = new { type = "number", description = "Seconds" },
+                            setback_to_open_is_on = new { type = "boolean" },
+                            setback_to_open_position = new { type = "number" },
+                            setback_to_close_is_on = new { type = "boolean" },
+                            setback_to_close_position = new { type = "number" },
+                            double_exit_is_on = new { type = "boolean" },
+                            type_double_exit_order = new { type = "string", description = "Limit, Market, Iceberg" },
+                            double_exit_slippage = new { type = "number" },
+                            values_type = new { type = "string", description = "MinPriceStep, Absolute, Percent" },
+                            order_type_time = new { type = "string", description = "Specified, GTC, Day" },
+                            limits_maker_only = new { type = "boolean" }
                         },
                         required = new[] { "bot_id", "tab_name" }
                     }
@@ -1768,6 +1827,346 @@ namespace OsEngine.MCP.Modules
             }
 
             throw new ArgumentException($"Screener tab '{tabName}' not found in bot '{bot.NameStrategyUniq}'");
+        }
+
+        #endregion
+
+        #region Position support
+
+        private object GetBotPositionSupport(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+
+            if (!parameters.TryGetProperty("tab_name", out JsonElement tabNameElement)
+                || tabNameElement.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("tab_name is required");
+            }
+
+            string tabName = tabNameElement.GetString();
+            BotTabSimple tab = FindPositionSupportTab(bot, tabName, out BotTabScreener screener);
+
+            return BuildPositionSupportResponse(tab.ManualPositionSupport);
+        }
+
+        private object SetBotPositionSupport(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+
+            if (!parameters.TryGetProperty("tab_name", out JsonElement tabNameElement)
+                || tabNameElement.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("tab_name is required");
+            }
+
+            string tabName = tabNameElement.GetString();
+            BotTabSimple tab = FindPositionSupportTab(bot, tabName, out BotTabScreener screener);
+
+            if (MainWindow.GetDispatcher.CheckAccess())
+            {
+                ApplyBotPositionSupport(tab, screener, parameters);
+            }
+            else
+            {
+                MainWindow.GetDispatcher.Invoke(() => ApplyBotPositionSupport(tab, screener, parameters));
+            }
+
+            return GetBotPositionSupport(parameters);
+        }
+
+        private BotTabSimple FindPositionSupportTab(BotPanel bot, string tabName, out BotTabScreener screener)
+        {
+            screener = null;
+
+            if (bot.TabsSimple != null)
+            {
+                for (int i = 0; i < bot.TabsSimple.Count; i++)
+                {
+                    if (bot.TabsSimple[i].TabName == tabName)
+                    {
+                        return bot.TabsSimple[i];
+                    }
+                }
+            }
+
+            if (bot.TabsScreener != null)
+            {
+                for (int i = 0; i < bot.TabsScreener.Count; i++)
+                {
+                    if (bot.TabsScreener[i].TabName == tabName)
+                    {
+                        screener = bot.TabsScreener[i];
+
+                        if (screener.Tabs == null || screener.Tabs.Count == 0)
+                        {
+                            throw new InvalidOperationException(
+                                $"Screener tab '{tabName}' in bot '{bot.NameStrategyUniq}' has no internal tabs yet. " +
+                                "Configure the screener securities first (bot_set_config_tab_screener)");
+                        }
+
+                        return screener.Tabs[0];
+                    }
+                }
+            }
+
+            string unsupportedType = FindUnsupportedTabType(bot, tabName);
+
+            if (unsupportedType != null)
+            {
+                throw new ArgumentException(
+                    $"Tab '{tabName}' of type '{unsupportedType}' does not support position support. " +
+                    "Supported tab types: Simple, Screener");
+            }
+
+            throw new ArgumentException($"Tab '{tabName}' not found in bot '{bot.NameStrategyUniq}'");
+        }
+
+        private string FindUnsupportedTabType(BotPanel bot, string tabName)
+        {
+            if (ContainsTabName(bot.TabsIndex, tabName))
+            {
+                return "Index";
+            }
+
+            if (ContainsTabName(bot.TabsCluster, tabName))
+            {
+                return "Cluster";
+            }
+
+            if (ContainsTabName(bot.TabsPair, tabName))
+            {
+                return "Pair";
+            }
+
+            if (ContainsTabName(bot.TabsPolygon, tabName))
+            {
+                return "Polygon";
+            }
+
+            if (ContainsTabName(bot.TabsNews, tabName))
+            {
+                return "News";
+            }
+
+            if (ContainsTabName(bot.TabsSyntheticBond, tabName))
+            {
+                return "SyntheticBond";
+            }
+
+            return null;
+        }
+
+        private bool ContainsTabName<T>(List<T> tabs, string tabName)
+        {
+            if (tabs == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                if (GetTabName(tabs[i]) == tabName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private object BuildPositionSupportResponse(BotManualControl support)
+        {
+            return new
+            {
+                stop_is_on = support.StopIsOn,
+                stop_distance = support.StopDistance,
+                stop_slippage = support.StopSlippage,
+                profit_is_on = support.ProfitIsOn,
+                profit_distance = support.ProfitDistance,
+                profit_slippage = support.ProfitSlippage,
+                second_to_open_is_on = support.SecondToOpenIsOn,
+                second_to_open = support.SecondToOpen.TotalSeconds,
+                second_to_close_is_on = support.SecondToCloseIsOn,
+                second_to_close = support.SecondToClose.TotalSeconds,
+                setback_to_open_is_on = support.SetbackToOpenIsOn,
+                setback_to_open_position = support.SetbackToOpenPosition,
+                setback_to_close_is_on = support.SetbackToCloseIsOn,
+                setback_to_close_position = support.SetbackToClosePosition,
+                double_exit_is_on = support.DoubleExitIsOn,
+                type_double_exit_order = support.TypeDoubleExitOrder.ToString(),
+                double_exit_slippage = support.DoubleExitSlippage,
+                values_type = support.ValuesType.ToString(),
+                order_type_time = support.OrderTypeTime.ToString(),
+                limits_maker_only = support.LimitsMakerOnly
+            };
+        }
+
+        private void ApplyBotPositionSupport(BotTabSimple tab, BotTabScreener screener, JsonElement parameters)
+        {
+            BotManualControl support = tab.ManualPositionSupport;
+
+            if (parameters.TryGetProperty("stop_is_on", out JsonElement stopIsOnElement)
+                && (stopIsOnElement.ValueKind == JsonValueKind.True || stopIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.StopIsOn = stopIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("stop_distance", out JsonElement stopDistanceElement)
+                && stopDistanceElement.ValueKind == JsonValueKind.Number
+                && stopDistanceElement.TryGetDecimal(out decimal stopDistance))
+            {
+                support.StopDistance = stopDistance;
+            }
+
+            if (parameters.TryGetProperty("stop_slippage", out JsonElement stopSlippageElement)
+                && stopSlippageElement.ValueKind == JsonValueKind.Number
+                && stopSlippageElement.TryGetDecimal(out decimal stopSlippage))
+            {
+                support.StopSlippage = stopSlippage;
+            }
+
+            if (parameters.TryGetProperty("profit_is_on", out JsonElement profitIsOnElement)
+                && (profitIsOnElement.ValueKind == JsonValueKind.True || profitIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.ProfitIsOn = profitIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("profit_distance", out JsonElement profitDistanceElement)
+                && profitDistanceElement.ValueKind == JsonValueKind.Number
+                && profitDistanceElement.TryGetDecimal(out decimal profitDistance))
+            {
+                support.ProfitDistance = profitDistance;
+            }
+
+            if (parameters.TryGetProperty("profit_slippage", out JsonElement profitSlippageElement)
+                && profitSlippageElement.ValueKind == JsonValueKind.Number
+                && profitSlippageElement.TryGetDecimal(out decimal profitSlippage))
+            {
+                support.ProfitSlippage = profitSlippage;
+            }
+
+            if (parameters.TryGetProperty("second_to_open_is_on", out JsonElement secondToOpenIsOnElement)
+                && (secondToOpenIsOnElement.ValueKind == JsonValueKind.True || secondToOpenIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.SecondToOpenIsOn = secondToOpenIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("second_to_open", out JsonElement secondToOpenElement)
+                && secondToOpenElement.ValueKind == JsonValueKind.Number
+                && secondToOpenElement.TryGetDouble(out double secondToOpen))
+            {
+                support.SecondToOpen = TimeSpan.FromSeconds(secondToOpen);
+            }
+
+            if (parameters.TryGetProperty("second_to_close_is_on", out JsonElement secondToCloseIsOnElement)
+                && (secondToCloseIsOnElement.ValueKind == JsonValueKind.True || secondToCloseIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.SecondToCloseIsOn = secondToCloseIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("second_to_close", out JsonElement secondToCloseElement)
+                && secondToCloseElement.ValueKind == JsonValueKind.Number
+                && secondToCloseElement.TryGetDouble(out double secondToClose))
+            {
+                support.SecondToClose = TimeSpan.FromSeconds(secondToClose);
+            }
+
+            if (parameters.TryGetProperty("setback_to_open_is_on", out JsonElement setbackToOpenIsOnElement)
+                && (setbackToOpenIsOnElement.ValueKind == JsonValueKind.True || setbackToOpenIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.SetbackToOpenIsOn = setbackToOpenIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("setback_to_open_position", out JsonElement setbackToOpenPositionElement)
+                && setbackToOpenPositionElement.ValueKind == JsonValueKind.Number
+                && setbackToOpenPositionElement.TryGetDecimal(out decimal setbackToOpenPosition))
+            {
+                support.SetbackToOpenPosition = setbackToOpenPosition;
+            }
+
+            if (parameters.TryGetProperty("setback_to_close_is_on", out JsonElement setbackToCloseIsOnElement)
+                && (setbackToCloseIsOnElement.ValueKind == JsonValueKind.True || setbackToCloseIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.SetbackToCloseIsOn = setbackToCloseIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("setback_to_close_position", out JsonElement setbackToClosePositionElement)
+                && setbackToClosePositionElement.ValueKind == JsonValueKind.Number
+                && setbackToClosePositionElement.TryGetDecimal(out decimal setbackToClosePosition))
+            {
+                support.SetbackToClosePosition = setbackToClosePosition;
+            }
+
+            if (parameters.TryGetProperty("double_exit_is_on", out JsonElement doubleExitIsOnElement)
+                && (doubleExitIsOnElement.ValueKind == JsonValueKind.True || doubleExitIsOnElement.ValueKind == JsonValueKind.False))
+            {
+                support.DoubleExitIsOn = doubleExitIsOnElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("type_double_exit_order", out JsonElement typeDoubleExitOrderElement)
+                && typeDoubleExitOrderElement.ValueKind == JsonValueKind.String
+                && Enum.TryParse<OrderPriceType>(typeDoubleExitOrderElement.GetString(), true, out OrderPriceType typeDoubleExitOrder))
+            {
+                support.TypeDoubleExitOrder = typeDoubleExitOrder;
+            }
+
+            if (parameters.TryGetProperty("double_exit_slippage", out JsonElement doubleExitSlippageElement)
+                && doubleExitSlippageElement.ValueKind == JsonValueKind.Number
+                && doubleExitSlippageElement.TryGetDecimal(out decimal doubleExitSlippage))
+            {
+                support.DoubleExitSlippage = doubleExitSlippage;
+            }
+
+            if (parameters.TryGetProperty("values_type", out JsonElement valuesTypeElement)
+                && valuesTypeElement.ValueKind == JsonValueKind.String
+                && Enum.TryParse<ManualControlValuesType>(valuesTypeElement.GetString(), true, out ManualControlValuesType valuesType))
+            {
+                support.ValuesType = valuesType;
+            }
+
+            if (parameters.TryGetProperty("order_type_time", out JsonElement orderTypeTimeElement)
+                && orderTypeTimeElement.ValueKind == JsonValueKind.String
+                && Enum.TryParse<OrderTypeTime>(orderTypeTimeElement.GetString(), true, out OrderTypeTime orderTypeTime))
+            {
+                support.OrderTypeTime = orderTypeTime;
+            }
+
+            if (parameters.TryGetProperty("limits_maker_only", out JsonElement limitsMakerOnlyElement)
+                && (limitsMakerOnlyElement.ValueKind == JsonValueKind.True || limitsMakerOnlyElement.ValueKind == JsonValueKind.False))
+            {
+                support.LimitsMakerOnly = limitsMakerOnlyElement.GetBoolean();
+            }
+
+            support.Save();
+
+            if (screener != null)
+            {
+                screener.SynchFirstTab();
+            }
         }
 
         #endregion
