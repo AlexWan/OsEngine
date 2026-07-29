@@ -168,7 +168,17 @@ namespace OsEngine.Market.Servers.Transaq
             _fullLog = ((ServerParameterBool)ServerParameters[12]).Value;
             ServerParameterButton btn = ((ServerParameterButton)ServerParameters[13]);
             _reconectingAfterNone = ((ServerParameterBool)ServerParameters[14]).Value;
-            _fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[22]).Value;
+
+            IServerParameter fullDepthParam = ServerParameters.Find(p => p.Name == OsLocalization.Market.ServerParam10);
+
+            if (fullDepthParam != null)
+            {
+                _fullMarketDepthIsOn = ((ServerParameterBool)fullDepthParam).Value;
+            }
+            else
+            {
+                _fullMarketDepthIsOn = true;
+            }
 
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
@@ -361,6 +371,8 @@ namespace OsEngine.Market.Servers.Transaq
                 _activeOrders = new List<InfoActiveOrder>();
 
                 _securitiesUpdateExpiration = new List<Security>();
+
+                _lastUpdateSecurityArrayTime = DateTime.MinValue;
             }
         }
 
@@ -437,6 +449,19 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent?.Invoke();
+
+                List<Security> toResubscribe = new List<Security>();
+
+                lock (_subscribeSecuritiesLocker)
+                {
+                    toResubscribe.AddRange(_subscribeSecurities);
+                    _subscribeSecurities.Clear();
+                }
+
+                for (int i = 0; i < toResubscribe.Count; i++)
+                {
+                    Subscribe(toResubscribe[i]);
+                }
             }
         }
 
@@ -529,15 +554,19 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (!_transaqSecuritiesInString.IsEmpty)
                     {
+                        DateTime waitStart = DateTime.Now;
+
                         while (true)
                         {
                             Thread.Sleep(500);
 
-                            if (_lastUpdateSecurityArrayTime == DateTime.MinValue)
+                            if (_lastUpdateSecurityArrayTime == DateTime.MinValue
+                                && waitStart.AddSeconds(60) > DateTime.Now)
                             {
                                 continue;
                             }
-                            if (_lastUpdateSecurityArrayTime.AddSeconds(3) > DateTime.Now)
+                            if (_lastUpdateSecurityArrayTime.AddSeconds(3) > DateTime.Now
+                                && waitStart.AddSeconds(60) > DateTime.Now)
                             {
                                 continue;
                             }
@@ -607,14 +636,39 @@ namespace OsEngine.Market.Servers.Transaq
                     }
                     else if (_unsignedSecurities.Count != 0)
                     {
-                        for (int i = 0; i < _unsignedSecurities.Count; i++)
+                        Security security = null;
+
+                        lock (_subscribeSecuritiesLocker)
                         {
-                            Security security = _unsignedSecurities[i];
-
-                            _unsignedSecurities.Remove(security);
-
-                            Subscribe(security);
+                            if (_unsignedSecurities.Count != 0)
+                            {
+                                security = _unsignedSecurities[0];
+                                _unsignedSecurities.RemoveAt(0);
+                            }
                         }
+
+                        if (security == null)
+                        {
+                            continue;
+                        }
+
+                        string secKey = security.Name + "_" + security.NameClass;
+
+                        if (_lastSubscribeAttemptTime.TryGetValue(secKey, out DateTime lastAttempt)
+                            && lastAttempt.AddSeconds(30) > DateTime.Now)
+                        {
+                            lock (_subscribeSecuritiesLocker)
+                            {
+                                _unsignedSecurities.Add(security);
+                            }
+
+                            Thread.Sleep(1000);
+                            continue;
+                        }
+
+                        _lastSubscribeAttemptTime[secKey] = DateTime.Now;
+
+                        Subscribe(security);
                     }
                     else
                     {
@@ -631,8 +685,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void UpdateSecurity(SecurityInfoUpd secs)
         {
-            _lastUpdateSecurityArrayTime = DateTime.Now;
-
             bool isInArray = false;
 
             for (int i = 0; i < _secsSpecification.Count; i++)
@@ -1466,6 +1518,11 @@ namespace OsEngine.Market.Servers.Transaq
                 int oldTf;
                 string needPeriodId = GetNeedIdPeriod(timeFrameBuilder.TimeFrame, out newTf, out oldTf);
 
+                lock (_allCandleSeriesLocker)
+                {
+                    _allCandleSeries.RemoveAll(s => s.Seccode == security.Name && s.Period == needPeriodId);
+                }
+
                 string cmd = "<command id=\"gethistorydata\">";
                 cmd += "<security>";
 
@@ -1802,6 +1859,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<TransaqEntity.Candles> _allCandleSeries = new List<TransaqEntity.Candles>();
 
+        private readonly object _allCandleSeriesLocker = new object();
+
         private List<Tick> _allTicks = new List<Tick>();
 
         #endregion
@@ -1814,6 +1873,12 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<Security> _unsignedSecurities = new List<Security>();
 
+        private readonly object _subscribeSecuritiesLocker = new object();
+
+        private Dictionary<string, DateTime> _lastSubscribeAttemptTime = new Dictionary<string, DateTime>();
+
+        private HashSet<string> _subscribeFailLogged = new HashSet<string>();
+
         public void Subscribe(Security security)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1821,14 +1886,17 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            for (int i = 0; i < _subscribeSecurities.Count; i++)
+            lock (_subscribeSecuritiesLocker)
             {
-                if (_subscribeSecurities[i].Name == security.Name
-                    && _subscribeSecurities[i].NameId == security.NameId
-                     && _subscribeSecurities[i].NameFull == security.NameFull
-                    && _subscribeSecurities[i].NameClass == security.NameClass)
+                for (int i = 0; i < _subscribeSecurities.Count; i++)
                 {
-                    return;
+                    if (_subscribeSecurities[i].Name == security.Name
+                        && _subscribeSecurities[i].NameId == security.NameId
+                         && _subscribeSecurities[i].NameFull == security.NameFull
+                        && _subscribeSecurities[i].NameClass == security.NameClass)
+                    {
+                        return;
+                    }
                 }
             }
 
@@ -1838,9 +1906,32 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            SendLogMessage($"Subscription to security {security.Name} not implemented. Repeat attempt.", LogMessageType.Error);
+            lock (_subscribeSecuritiesLocker)
+            {
+                bool isInQueue = false;
 
-            _unsignedSecurities.Add(security);
+                for (int i = 0; i < _unsignedSecurities.Count; i++)
+                {
+                    if (_unsignedSecurities[i].Name == security.Name
+                        && _unsignedSecurities[i].NameClass == security.NameClass)
+                    {
+                        isInQueue = true;
+                        break;
+                    }
+                }
+
+                if (isInQueue == false)
+                {
+                    _unsignedSecurities.Add(security);
+                }
+
+                string secKey = security.Name + "_" + security.NameClass;
+
+                if (_subscribeFailLogged.Contains(secKey) == false)
+                {
+                    _subscribeFailLogged.Add(secKey);
+                }
+            }
         }
 
         private void SubscribeRecursion(Security security, int counter)
@@ -1859,51 +1950,84 @@ namespace OsEngine.Market.Servers.Transaq
                 board = "FUT";
             }
 
-            string cmd = "";
+            string cmdTrades = "<command id=\"subscribe\">";
+            cmdTrades += "<alltrades>";
+            cmdTrades += "<security>";
+            cmdTrades += "<board>" + board + "</board>";
+            cmdTrades += "<seccode>" + security.Name + "</seccode>";
+            cmdTrades += "</security>";
+            cmdTrades += "</alltrades>";
+            cmdTrades += "</command>";
+
+            // sending command / отправка команды
+            string resTrades = ConnectorSendCommand(cmdTrades);
+
+            string cmdDepth = "<command id=\"subscribe\">";
 
             if (_fullMarketDepthIsOn == true)
             {
-                cmd = "<command id=\"subscribe\">";
-                cmd += "<alltrades>";
-                cmd += "<security>";
-                cmd += "<board>" + board + "</board>";
-                cmd += "<seccode>" + security.Name + "</seccode>";
-                cmd += "</security>";
-                cmd += "</alltrades>";
-                cmd += "<quotes>";
-                cmd += "<security>";
-                cmd += "<board>" + board + "</board>";
-                cmd += "<seccode>" + security.Name + "</seccode>";
-                cmd += "</security>";
-                cmd += "</quotes>";
-                cmd += "</command>";
+                cmdDepth += "<quotes>";
             }
-            else if (_fullMarketDepthIsOn == false)
+            else
             {
-                cmd = "<command id=\"subscribe\">";
-                cmd += "<alltrades>";
-                cmd += "<security>";
-                cmd += "<board>" + board + "</board>";
-                cmd += "<seccode>" + security.Name + "</seccode>";
-                cmd += "</security>";
-                cmd += "</alltrades>";
-                cmd += "<quotations>";
-                cmd += "<security>";
-                cmd += "<board>" + board + "</board>";
-                cmd += "<seccode>" + security.Name + "</seccode>";
-                cmd += "</security>";
-                cmd += "</quotations>";
-                cmd += "</command>";
+                cmdDepth += "<quotations>";
             }
 
-            // sending command / отправка команды
-            string res = ConnectorSendCommand(cmd);
+            cmdDepth += "<security>";
+            cmdDepth += "<board>" + board + "</board>";
+            cmdDepth += "<seccode>" + security.Name + "</seccode>";
+            cmdDepth += "</security>";
 
-            if (res != "<result success=\"true\"/>")
+            if (_fullMarketDepthIsOn == true)
+            {
+                cmdDepth += "</quotes>";
+            }
+            else
+            {
+                cmdDepth += "</quotations>";
+            }
+
+            cmdDepth += "</command>";
+
+            string resDepth = ConnectorSendCommand(cmdDepth);
+
+            bool tradesFailed = resTrades != "<result success=\"true\"/>";
+            bool depthFailed = resDepth != "<result success=\"true\"/>";
+
+            if (tradesFailed || depthFailed)
             {
                 if (counter >= 3)
                 {
-                    SendLogMessage("Subscribe security error " + security.Name + "   " + res, LogMessageType.Error);
+                    if (tradesFailed)
+                    {
+                        SendLogMessage("Subscribe to trades error " + security.Name + "   " + resTrades, LogMessageType.Error);
+                    }
+
+                    if (depthFailed)
+                    {
+                        SendLogMessage("Subscribe to market depth error " + security.Name + "   " + resDepth, LogMessageType.Error);
+                    }
+
+                    lock (_subscribeSecuritiesLocker)
+                    {
+                        bool isInQueue = false;
+
+                        for (int i = 0; i < _unsignedSecurities.Count; i++)
+                        {
+                            if (_unsignedSecurities[i].Name == security.Name
+                                && _unsignedSecurities[i].NameClass == security.NameClass)
+                            {
+                                isInQueue = true;
+                                break;
+                            }
+                        }
+
+                        if (isInQueue == false)
+                        {
+                            _unsignedSecurities.Add(security);
+                        }
+                    }
+
                     return;
                 }
                 else
@@ -1915,10 +2039,15 @@ namespace OsEngine.Market.Servers.Transaq
 
                     counter++;
                     SubscribeRecursion(security, counter);
+                    return;
                 }
             }
 
-            _subscribeSecurities.Add(security);
+            lock (_subscribeSecuritiesLocker)
+            {
+                _subscribeSecurities.Add(security);
+                _subscribeFailLogged.Remove(security.Name + "_" + security.NameClass);
+            }
         }
 
         public bool SubscribeNews()
@@ -2446,7 +2575,10 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             TransaqEntity.Candles newCandles = Deserialize<TransaqEntity.Candles>(data);
 
-                            _allCandleSeries.Add(newCandles);
+                            lock (_allCandleSeriesLocker)
+                            {
+                                _allCandleSeries.Add(newCandles);
+                            }
                         }
                     }
                     else if (_historicalTradesQueue.IsEmpty == false)
@@ -3136,23 +3268,20 @@ namespace OsEngine.Market.Servers.Transaq
 
                 _lastMdTime = needDepth.Time;
 
-                if (needDepth.Asks == null ||
-                    needDepth.Asks.Count == 0 ||
-                    needDepth.Bids == null ||
-                    needDepth.Bids.Count == 0)
+                if ((needDepth.Asks == null ||
+                    needDepth.Asks.Count == 0)
+                    &&
+                    (needDepth.Bids == null ||
+                    needDepth.Bids.Count == 0))
                 {
-                    return;
+                    continue;
                 }
 
                 while (needDepth.Bids.Count > 0 &&
+                    needDepth.Asks.Count > 0 &&
                     needDepth.Bids[0].Price >= needDepth.Asks[0].Price)
                 {
                     needDepth.Bids.RemoveAt(0);
-                }
-
-                if (needDepth.Bids.Count == 0)
-                {
-                    return;
                 }
 
                 while (needDepth.Bids.Count > 25)
