@@ -3032,6 +3032,12 @@ namespace OsEngine.Journal
                     {
                         decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
 
+                        // для фьючерсов цена в пунктах — пересчитываем объём в валюту
+                        if (pos.PriceStep != 0 && pos.PriceStepCost != 0)
+                        {
+                            volumeInPos = (volumeInPos / pos.PriceStep) * pos.PriceStepCost;
+                        }
+
                         if (pos.Direction == Side.Buy && pos.MarginBuy != 0)
                         {
                             volumeInPos = pos.MaxVolume * pos.MarginBuy;
@@ -3055,6 +3061,12 @@ namespace OsEngine.Journal
                         && indexClose != -1)
                     {
                         decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
+
+                        // для фьючерсов цена в пунктах — пересчитываем объём в валюту
+                        if (pos.PriceStep != 0 && pos.PriceStepCost != 0)
+                        {
+                            volumeInPos = (volumeInPos / pos.PriceStep) * pos.PriceStepCost;
+                        }
 
                         if (pos.Direction == Side.Buy && pos.MarginBuy != 0)
                         {
