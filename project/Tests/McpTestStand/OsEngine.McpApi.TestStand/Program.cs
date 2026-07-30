@@ -493,6 +493,14 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, 18, "Proxy", "-robotslight", () => new ProxyTests(context).RunAll());
 
+                // Модуль: Optimizer
+                // MCP API: optimizer_data_*, optimizer_dividends_*, optimizer_bot_*.
+                // Запускает OsEngine перед собой: да, в режиме Optimizer (-optimizer).
+                // Если сета 'OptimizerToTestStend' нет на диске — перезапускает процесс
+                // в главное окно, качает сет через Os.Data и возвращается в Optimizer.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 19, "Optimizer", "-optimizer", () => new OptimizerTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

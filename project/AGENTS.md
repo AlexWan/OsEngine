@@ -38,12 +38,12 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 # (1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement,
 #  6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators,
 #  11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal,
-#  16 SystemLoad, 17 ComparePositions, 18 Proxy)
+#  16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer)
 ./OsEngine.McpApi.TestStand.exe --module Tester
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **145/145 passed**.
+Цель стенда: **164/164 passed**.
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 
@@ -67,7 +67,7 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 
 Если меняешь:
 
-- MCP API → `CONTEXT_MCP.md`, `CONTEXT_MCP_API_DEVELOPMENT.md`.
+- MCP API → `CONTEXT_MCP.md`, `TempContext/CONTEXT_MCP_API_DEVELOPMENT.md`.
 - Сценарии MCP → `CONTEXT_MCP_SCENARIO.md`.
 - Соглашения → `CONTEXT_CODING_GUIDELINES.md`.
 - Карту проекта → `CONTEXT.md`.

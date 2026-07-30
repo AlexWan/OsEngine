@@ -41,6 +41,7 @@ OsEngine/MCP/
     SystemLoadApi.cs        // system_load_* (RAM, CPU, ECQ, MOQ via SystemUsageAnalyzeMaster)
     ComparePositionsApi.cs  // compare_positions_* (robots vs exchange positions + synchronization)
     ProxyApi.cs             // proxy_* (proxy router: list, create, delete, settings, status, ping)
+    OptimizerApi.cs         // optimizer_* (OptimizerMaster: data, bot, params, phases, execution, report)
     TesterApi.cs            // tester_* configuration
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
@@ -73,9 +74,10 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     SystemLoadTests.cs      // system_load_* via BotStationLight mode
     ComparePositionsTests.cs // compare_positions_* via BotStationLight mode
     ProxyTests.cs           // proxy_* via BotStationLight mode
+    OptimizerTests.cs       // optimizer_* via Optimizer mode
 ```
 
-По умолчанию стенд прогоняет все 18 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–18) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 19 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–19) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -301,6 +303,26 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `proxy_set_settings` | Частичное изменение настроек прокси: `is_on`, `ip`, `port`, `login`, `password`, `ping_web_address` |
 | `proxy_get_status` | Статус прокси: `auto_ping_last_status`, `location`, `use_connection_count` |
 | `proxy_ping` | Пропинговать прокси и вернуть обновлённый статус (на мёртвом прокси блокирует до 10 секунд) |
+| `optimizer_data_get_config` / `optimizer_data_set_config` | Источник данных оптимизатора (сет/папка, тип данных, диапазон) |
+| `optimizer_data_get_status` | Статус хранилища данных оптимизатора: загружено ли, число бумаг, диапазон, доступные сеты |
+| `optimizer_dividends_get_config` / `optimizer_dividends_set_config` | Дивиденды/маржа/налоги оптимизатора (`dividends_is_on`, `margin_regime`, `taxes_is_on`) |
+| `optimizer_bot_get` / `optimizer_bot_set` | Текущий робот оптимизации / выбор робота (создаётся сразу, `is_loaded`) |
+| `optimizer_trade_settings_get` / `optimizer_trade_settings_set` | Комиссия, тип исполнения, проскальзывания, стартовый депозит |
+| `optimizer_position_support_get` / `optimizer_position_support_set` | Общее сопровождение позиций для прогонов (`BotManualControl`) |
+| `optimizer_phases_get` / `optimizer_phases_set` | Фазы walk-forward и их пересчёт (`ReloadFazes`) |
+| `optimizer_filters_get` / `optimizer_filters_set` | Фильтры отсева между фазами (значение + вкл/выкл каждого) |
+| `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров: значения, диапазоны, on/off, сброс на стандартные |
+| `optimizer_get_pass_count` | Предполагаемое число прогонов (нельзя во время работы) |
+| `optimizer_get_threads` / `optimizer_set_threads` | Число потоков оптимизации (1..50) |
+| `optimizer_bot_tab_get_config` / `optimizer_bot_tab_set_config` | Вкладки робота оптимизации. Simple: бумага + таймфрейм. Screener: массив `securities` + таймфрейм одним источником (внутренние вкладки пересоздаются сразу; портфель по умолчанию `GodMode`, можно переопределить `portfolio_name`). Настроить нужно все вкладки перед `optimizer_start` |
+| `optimizer_start` / `optimizer_stop` | Запуск (ошибки готовности списком, без диалогов) / остановка |
+| `optimizer_get_status` | `is_running`, прогресс по фазе и потокам, оценка времени до конца |
+| `optimizer_get_report` | Результаты по фазам: полные параметры + метрики, `is_partial`, `sort_type`, `limit` |
+| `optimizer_save_report` / `optimizer_load_report` | Сохранение/загрузка результатов в файл |
+
+**Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов данных **с расширением**: `SBER.txt`, а не `SBER`. Это видно и в диалоге хранилища оптимизатора (колонка «Бумага»). Во вкладки робота через `optimizer_bot_tab_set_config` надо передавать имя точно как в хранилище — с `.txt`. Если передать имя, которого нет в хранилище, инструмент вернёт ошибку со списком доступных имён; UI оптимизатора при перерисовке молча очищает вкладку с неизвестной бумагой.
+
+События оптимизатора по SSE: `optimizer.test.progress` (не чаще 1 раза в секунду), `optimizer.test.finished` (с флагом `is_partial`).
 
 ### 2.5. Примеры запросов
 
@@ -1276,10 +1298,14 @@ WIKI_INDICATORS:   7/7 passed
 WIKI_SECURITIES:  12/12 passed
 WIKI_DIVIDENDS:   12/12 passed
 DATA:             16/16 passed
-TESTER:           23/23 passed
+TESTER:           37/37 passed
 TERMINAL:         13/13 passed
+SYSTEMLOAD:        4/4 passed
+COMPAREPOSITIONS:  5/5 passed
+PROXY:             8/8 passed
+OPTIMIZER:        19/19 passed
 
-Total: 145/145 passed in 235.4s
+Total: 164/164 passed in 338.6s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

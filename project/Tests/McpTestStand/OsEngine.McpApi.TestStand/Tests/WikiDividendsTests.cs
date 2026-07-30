@@ -200,7 +200,11 @@ namespace OsEngine.McpApi.TestStand.Tests
         private void TestGetFutureKnownTicker()
         {
             const string method = "wiki_dividends_get_future";
-            object request = new { ticker = KnownTicker };
+
+            // компания могла ещё не объявить следующий дивиденд —
+            // спрашиваем «будущее» от фиксированной даты в прошлом,
+            // иначе тест зависит от даты объявления, а не от работы API
+            object request = new { ticker = KnownTicker, date = "01.06.2026" };
 
             try
             {

@@ -20,6 +20,7 @@ using OsEngine.Market;
 using OsEngine.MCP.Json;
 using OsEngine.MCP.Modules;
 using OsEngine.OsData;
+using OsEngine.OsOptimizer;
 using OsEngine.PrimeSettings;
 
 namespace OsEngine.MCP
@@ -61,6 +62,7 @@ namespace OsEngine.MCP
         private readonly SystemLoadApi _systemLoadApi;
         private readonly ComparePositionsApi _comparePositionsApi;
         private readonly ProxyApi _proxyApi;
+        private readonly OptimizerApi _optimizerApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -156,6 +158,9 @@ namespace OsEngine.MCP
             _proxyApi = new ProxyApi();
             _proxyApi.NewLogMessageEvent += ProxyApi_NewLogMessageEvent;
 
+            _optimizerApi = new OptimizerApi(publishEvent);
+            _optimizerApi.NewLogMessageEvent += OptimizerApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -175,6 +180,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_systemLoadApi);
             _protocolApi.RegisterToolProvider(_comparePositionsApi);
             _protocolApi.RegisterToolProvider(_proxyApi);
+            _protocolApi.RegisterToolProvider(_optimizerApi);
         }
 
         #endregion
@@ -366,6 +372,11 @@ namespace OsEngine.MCP
             Log.ProcessMessage(message, type);
         }
 
+        private void OptimizerApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
         private void ProtocolApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
@@ -426,6 +437,14 @@ namespace OsEngine.MCP
             _osDataMaster = master;
             _osDataApi?.AttachToMaster();
         }
+
+        public void SetOptimizerMaster(OptimizerMaster master)
+        {
+            _optimizerMaster = master;
+            _optimizerApi?.AttachToMaster(master);
+        }
+
+        private OptimizerMaster _optimizerMaster;
 
         #endregion
 
@@ -885,6 +904,38 @@ namespace OsEngine.MCP
                     case "proxy_get_status":
                     case "proxy_ping":
                         response = _proxyApi.Handle(request);
+                        break;
+
+                    case "optimizer_data_get_config":
+                    case "optimizer_data_set_config":
+                    case "optimizer_data_get_status":
+                    case "optimizer_dividends_get_config":
+                    case "optimizer_dividends_set_config":
+                    case "optimizer_bot_get":
+                    case "optimizer_bot_set":
+                    case "optimizer_bot_tab_get_config":
+                    case "optimizer_bot_tab_set_config":
+                    case "optimizer_trade_settings_get":
+                    case "optimizer_trade_settings_set":
+                    case "optimizer_position_support_get":
+                    case "optimizer_position_support_set":
+                    case "optimizer_phases_get":
+                    case "optimizer_phases_set":
+                    case "optimizer_filters_get":
+                    case "optimizer_filters_set":
+                    case "optimizer_params_get":
+                    case "optimizer_params_set":
+                    case "optimizer_params_reset":
+                    case "optimizer_get_pass_count":
+                    case "optimizer_get_threads":
+                    case "optimizer_set_threads":
+                    case "optimizer_start":
+                    case "optimizer_stop":
+                    case "optimizer_get_status":
+                    case "optimizer_get_report":
+                    case "optimizer_save_report":
+                    case "optimizer_load_report":
+                        response = _optimizerApi.Handle(request);
                         break;
 
                     default:

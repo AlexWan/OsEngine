@@ -183,6 +183,17 @@ namespace OsEngine.OsOptimizer
 
         private Thread _primeThreadWorker;
 
+        /// <summary>
+        /// идёт ли сейчас оптимизация
+        /// </summary>
+        public bool IsRunning
+        {
+            get
+            {
+                return _primeThreadWorker != null;
+            }
+        }
+
         public int BotCountOneFaze(List<IIStrategyParameter> parameters, List<bool> parametersOn)
         {
             List<IIStrategyParameter> allParam = parameters;
@@ -1375,112 +1386,144 @@ namespace OsEngine.OsOptimizer
 
         private void server_TestingEndEvent(int serverNum, TimeSpan testTime)
         {
-            TestingProgressChangeEvent?.Invoke(100, 100, serverNum);
-            _countAllServersEndTest++;
-            PrimeProgressChangeEvent?.Invoke(_countAllServersEndTest, _countAllServersMax);
-
-            BotPanel bot = null;
-            OptimizerServer server = null;
-
-            lock (_serverRemoveLocker)
+            try
             {
-                for (int i = 0; i < _botsInTest.Count; i++)
-                {
-                    BotPanel curBot = _botsInTest[i];
+                TestingProgressChangeEvent?.Invoke(100, 100, serverNum);
+                _countAllServersEndTest++;
+                PrimeProgressChangeEvent?.Invoke(_countAllServersEndTest, _countAllServersMax);
 
-                    if (curBot != null
-                        && curBot.TabsSimple != null
-                        && curBot.TabsSimple.Count > 0
-                        && curBot.TabsSimple[0].Connector != null
-                        && curBot.TabsSimple[0].Connector.ServerUid == serverNum)
+                BotPanel bot = null;
+                OptimizerServer server = null;
+
+                lock (_serverRemoveLocker)
+                {
+                    for (int i = 0; i < _botsInTest.Count; i++)
                     {
-                        bot = curBot;
-                        _botsInTest.RemoveAt(i);
-                        break;
+                        BotPanel curBot = _botsInTest[i];
+
+                        if (curBot != null
+                            && curBot.TabsSimple != null
+                            && curBot.TabsSimple.Count > 0
+                            && curBot.TabsSimple[0].Connector != null
+                            && curBot.TabsSimple[0].Connector.ServerUid == serverNum)
+                        {
+                            bot = curBot;
+                            _botsInTest.RemoveAt(i);
+                            break;
+                        }
+                        else if (curBot != null
+                            && curBot.TabsScreener != null
+                            && curBot.TabsScreener.Count > 0
+                            && curBot.TabsScreener[0].ServerUid == serverNum)
+                        {
+                            bot = curBot;
+                            _botsInTest.RemoveAt(i);
+                            break;
+                        }
+                        else if (curBot != null
+                            && curBot.TabsSyntheticBond != null
+                            && curBot.TabsSyntheticBond.Count > 0
+                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries.Count > 0
+                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab != null
+                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector != null
+                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector.ServerUid == serverNum)
+                        {
+                            bot = curBot;
+                            _botsInTest.RemoveAt(i);
+                            break;
+                        }
                     }
-                    else if (curBot != null
-                        && curBot.TabsScreener != null
-                        && curBot.TabsScreener.Count > 0
-                        && curBot.TabsScreener[0].ServerUid == serverNum)
+
+                    if (bot != null)
                     {
-                        bot = curBot;
-                        _botsInTest.RemoveAt(i);
-                        break;
+                        try
+                        {
+                            ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"TestingEndEvent. Server {serverNum}. Report load failed: {ex}", LogMessageType.Error);
+                        }
                     }
-                    else if (curBot != null
-                        && curBot.TabsSyntheticBond != null
-                        && curBot.TabsSyntheticBond.Count > 0
-                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries.Count > 0
-                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab != null
-                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector != null
-                        && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector.ServerUid == serverNum)
+                    else
                     {
-                        bot = curBot;
-                        _botsInTest.RemoveAt(i);
-                        break;
+                        SendLogMessage($"TestingEndEvent. Server {serverNum}. Bot not found in _botsInTest ({_botsInTest.Count} left)", LogMessageType.Error);
+                    }
+
+                    for (int i = 0; i < _servers.Count; i++)
+                    {
+                        if (_servers[i].NumberServer == serverNum)
+                        {
+                            _servers[i].TestingEndEvent -= server_TestingEndEvent;
+                            _servers[i].TestingProgressChangeEvent -= server_TestingProgressChangeEvent;
+                            server = _servers[i];
+                            _servers.RemoveAt(i);
+                            break;
+                        }
+                    }
+
+                    _testBotsTime.Add(testTime);
+
+                    if (_testBotsTime.Count % 20 == 0)
+                    {
+                        TimeSpan allTime = TimeSpan.Zero;
+
+                        for (int i = 0; i < _testBotsTime.Count; i++)
+                        {
+                            allTime = TimeSpan.FromMilliseconds(allTime.TotalMilliseconds + _testBotsTime[i].TotalMilliseconds + 1000);
+                        }
+
+                        decimal secondsOnOneTest = Convert.ToDecimal(allTime.TotalSeconds / _testBotsTime.Count);
+
+                        decimal secondsToEndAllTests = (_countAllServersMax - _testBotsTime.Count) * secondsOnOneTest;
+
+                        decimal secondsToEndDivideThreads = secondsToEndAllTests / _master.ThreadsCount;
+
+                        TimeSpan timeToEnd = TimeSpan.FromSeconds(Convert.ToInt32(secondsToEndDivideThreads));
+
+                        if (TimeToEndChangeEvent != null
+                            && timeToEnd.TotalSeconds != 0)
+                        {
+                            TimeToEndChangeEvent(timeToEnd);
+                        }
                     }
                 }
 
                 if (bot != null)
                 {
-                    ReportsToFazes[ReportsToFazes.Count - 1].Load(bot);
+                    try
+                    {
+                        // грузим индикаторы робота в кэш сервер
+                        AindicatorCacheServer.TrySetIndicatorValuesInCache(bot);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"TestingEndEvent. Server {serverNum}. Indicator cache failed: {ex.Message}", LogMessageType.Error);
+                    }
                 }
 
-                for (int i = 0; i < _servers.Count; i++)
+                if (bot != null)
                 {
-                    if (_servers[i].NumberServer == serverNum)
+                    try
                     {
-                        _servers[i].TestingEndEvent -= server_TestingEndEvent;
-                        _servers[i].TestingProgressChangeEvent -= server_TestingProgressChangeEvent;
-                        server = _servers[i];
-                        _servers.RemoveAt(i);
-                        break;
+                        // уничтожаем робота
+                        bot.Clear();
+                        bot.Delete();
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"TestingEndEvent. Server {serverNum}. Bot delete failed: {ex.Message}", LogMessageType.Error);
                     }
                 }
 
-                _testBotsTime.Add(testTime);
-
-                if (_testBotsTime.Count % 20 == 0)
+                if (server != null)
                 {
-                    TimeSpan allTime = TimeSpan.Zero;
-
-                    for (int i = 0; i < _testBotsTime.Count; i++)
-                    {
-                        allTime = TimeSpan.FromMilliseconds(allTime.TotalMilliseconds + _testBotsTime[i].TotalMilliseconds + 1000);
-                    }
-
-                    decimal secondsOnOneTest = Convert.ToDecimal(allTime.TotalSeconds / _testBotsTime.Count);
-
-                    decimal secondsToEndAllTests = (_countAllServersMax - _testBotsTime.Count) * secondsOnOneTest;
-
-                    decimal secondsToEndDivideThreads = secondsToEndAllTests / _master.ThreadsCount;
-
-                    TimeSpan timeToEnd = TimeSpan.FromSeconds(Convert.ToInt32(secondsToEndDivideThreads));
-
-                    if (TimeToEndChangeEvent != null
-                        && timeToEnd.TotalSeconds != 0)
-                    {
-                        TimeToEndChangeEvent(timeToEnd);
-                    }
+                    ServerMaster.RemoveOptimizerServer(server);
                 }
             }
-
-            if (bot != null)
+            catch (Exception ex)
             {
-                // грузим индикаторы робота в кэш сервер
-                AindicatorCacheServer.TrySetIndicatorValuesInCache(bot);
-            }
-
-            if (bot != null)
-            {
-                // уничтожаем робота
-                bot.Clear();
-                bot.Delete();
-            }
-
-            if (server != null)
-            {
-                ServerMaster.RemoveOptimizerServer(server);
+                SendLogMessage($"TestingEndEvent. Server {serverNum} FAILED: {ex}", LogMessageType.Error);
             }
         }
 

@@ -80,6 +80,10 @@ namespace OsEngine.OsOptimizer
             CommissionValueTextBox.Text = _master.CommissionValue.ToString();
             CommissionValueTextBox.TextChanged += CommissionValueTextBoxOnTextChanged;
 
+            _master.TradeSettingsChangedEvent += _master_TradeSettingsChangedEvent;
+            _master.PhasesChangedEvent += _master_PhasesChangedEvent;
+            _master.ParametersChangedEvent += _master_ParametersChangedEvent;
+
             CheckBoxCacheIndicatorsIsOn.Content = OsLocalization.Optimizer.Label73;
             CheckBoxCacheIndicatorsIsOn.IsChecked = _master.CacheIndicatorsIsOn;
             CheckBoxCacheIndicatorsIsOn.Checked += CheckBoxCacheIndicatorsIsOn_Checked;
@@ -132,6 +136,7 @@ namespace OsEngine.OsOptimizer
             TextBoxIterationCount.TextChanged += TextBoxIterationCount_TextChanged;
 
             _master.NeedToMoveUiToEvent += _master_NeedToMoveUiToEvent;
+            _master.StrategyChangedEvent += _master_StrategyChangedEvent;
             TextBoxStrategyName.Text = _master.StrategyName;
 
             Thread worker = new Thread(PainterProgressArea);
@@ -228,12 +233,20 @@ namespace OsEngine.OsOptimizer
 
                 _isClosed = true;
 
+                OptimizerMaster.Master = null;
+
+                _master.StrategyChangedEvent -= _master_StrategyChangedEvent;
+
                 ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;
 
                 TextBoxStartPortfolio.TextChanged -= TextBoxStartPortfolio_TextChanged;
                 CommissionTypeComboBox.SelectionChanged -= CommissionTypeComboBoxOnSelectionChanged;
 
                 CommissionValueTextBox.TextChanged -= CommissionValueTextBoxOnTextChanged;
+
+                _master.TradeSettingsChangedEvent -= _master_TradeSettingsChangedEvent;
+                _master.PhasesChangedEvent -= _master_PhasesChangedEvent;
+                _master.ParametersChangedEvent -= _master_ParametersChangedEvent;
 
                 CheckBoxFilterProfitIsOn.Click -= CheckBoxFilterIsOn_Click;
                 CheckBoxFilterMaxDrowDownIsOn.Click -= CheckBoxFilterIsOn_Click;
@@ -473,6 +486,11 @@ namespace OsEngine.OsOptimizer
 
         private OptimizerMaster _master;
 
+        public OptimizerMaster Master
+        {
+            get { return _master; }
+        }
+
         private bool _isClosed;
 
         private void StopUserActivity()
@@ -533,6 +551,14 @@ namespace OsEngine.OsOptimizer
 
         private void _master_TestReadyEvent(List<OptimizerFazeReport> reports)
         {
+            // событие приходит из рабочего потока исполнителя —
+            // создание окон возможно только на UI-потоке
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => _master_TestReadyEvent(reports));
+                return;
+            }
+
             lock (_testEndEventLocker)
             {
                 if (_lastTestEndEventTime.AddSeconds(3) > DateTime.Now)
@@ -978,8 +1004,18 @@ namespace OsEngine.OsOptimizer
             _master.TimeStart = DatePickerStart.SelectedDate.Value;
         }
 
+        private bool _filterTextUpdating;
+
         private void TextBoxFilterValue_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // во время программной синхронизации текстбоксов (событие мастера)
+            // обратную запись в мастер не выполняем — иначе устаревшие значения
+            // из текстбоксов затирают свежие
+            if (_filterTextUpdating)
+            {
+                return;
+            }
+
             try
             {
                 _master.FilterProfitValue = Convert.ToDecimal(TextBoxFilterProfitValue.Text);
@@ -1057,6 +1093,103 @@ namespace OsEngine.OsOptimizer
             PaintTableSources();
             PaintTableParameters();
             PaintCountBotsInOptimization();
+        }
+
+        private void _master_StrategyChangedEvent()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(_master_StrategyChangedEvent);
+                return;
+            }
+
+            try
+            {
+                TextBoxStrategyName.Text = _master.StrategyName;
+                ReloadStrategy();
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _master_TradeSettingsChangedEvent()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(_master_TradeSettingsChangedEvent);
+                return;
+            }
+
+            try
+            {
+                TextBoxStartPortfolio.Text = _master.StartDeposit.ToString();
+                CommissionTypeComboBox.SelectedItem = _master.CommissionType.ToString();
+                CommissionValueTextBox.Text = _master.CommissionValue.ToString();
+                ComboBoxThreadsCount.SelectedItem = _master.ThreadsCount.ToString();
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _master_PhasesChangedEvent()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(_master_PhasesChangedEvent);
+                return;
+            }
+
+            try
+            {
+                _filterTextUpdating = true;
+
+                CheckBoxFilterProfitIsOn.IsChecked = _master.FilterProfitIsOn;
+                CheckBoxFilterMaxDrowDownIsOn.IsChecked = _master.FilterMaxDrawDownIsOn;
+                CheckBoxFilterMiddleProfitIsOn.IsChecked = _master.FilterMiddleProfitIsOn;
+                CheckBoxFilterProfitFactorIsOn.IsChecked = _master.FilterProfitFactorIsOn;
+                CheckBoxFilterDealsCount.IsChecked = _master.FilterDealsCountIsOn;
+
+                TextBoxFilterProfitValue.Text = _master.FilterProfitValue.ToString();
+                TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrawDownValue.ToString();
+                TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
+                TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
+                TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
+
+                TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
+                TextBoxIterationCount.Text = _master.IterationCount.ToString();
+
+                WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+            finally
+            {
+                _filterTextUpdating = false;
+            }
+        }
+
+        private void _master_ParametersChangedEvent()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(_master_ParametersChangedEvent);
+                return;
+            }
+
+            try
+            {
+                ReloadStrategy();
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void TextBoxStartPortfolio_TextChanged(object sender, TextChangedEventArgs e)
@@ -1355,7 +1488,8 @@ namespace OsEngine.OsOptimizer
 
             List<SecurityTester> securities = _master.SecurityTester;
 
-            if (securities == null)
+            if (securities == null
+                || securities.Count == 0)
             {
                 return null;
             }

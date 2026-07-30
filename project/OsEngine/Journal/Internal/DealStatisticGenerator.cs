@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -168,24 +168,20 @@ namespace OsEngine.Journal.Internal
             decimal start = 0;
             int i = 0;
 
-            while (start == 0)
+            while (start == 0 && i < deals.Length)
             {
-                if(ignoreTax == true)
+                if (ignoreTax == true
+                    && IsServiceDeal(deals[i]))
                 {
-                    if (IsServiceDeal(deals[i]))
-                    {
-                        continue;
-                    }
+                    // сервисную сделку пропускаем со сдвигом индекса,
+                    // иначе цикл не завершится никогда
+                    i++;
+                    continue;
                 }
 
                 start = deals[i].PortfolioValueOnOpenPosition;
 
                 i++;
-
-                if (i >= deals.Length)
-                {
-                    break;
-                }
             }
 
             if (start == 0)

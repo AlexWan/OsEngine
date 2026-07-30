@@ -1034,8 +1034,10 @@ namespace OsEngine
                 _mcpMaster?.SendTerminalModeChanged(_startProgram);
                 OptimizerUi ui = new OptimizerUi();
                 _activeModeWindow = ui;
+                _mcpMaster?.SetOptimizerMaster(ui.Master);
                 ui.ShowDialog();
                 _activeModeWindow = null;
+                _mcpMaster?.SetOptimizerMaster(null);
                 Close();
                 ProccesIsWorked = false;
                 Thread.Sleep(10000);

@@ -28,6 +28,8 @@ namespace OsEngine.OsOptimizer
     {
         #region Service
 
+        public static OptimizerMaster Master;
+
         public OptimizerMaster()
         {
             _log = new Log("OptimizerLog", StartProgram.IsTester);
@@ -69,6 +71,10 @@ namespace OsEngine.OsOptimizer
             _optimizerExecutor.TimeToEndChangeEvent += _optimizerExecutor_TimeToEndChangeEvent;
             ProgressBarStatuses = new List<ProgressBarStatus>();
             PrimeProgressBarStatus = new ProgressBarStatus();
+
+            // публикуем мастер только после полной инициализации:
+            // запросы MCP не должны попадать в полусобранный объект
+            Master = this;
         }
 
         public int GetMaxBotsCount()
@@ -308,6 +314,11 @@ namespace OsEngine.OsOptimizer
             {
                 _threadsCount = value;
                 Save();
+
+                if (TradeSettingsChangedEvent != null)
+                {
+                    TradeSettingsChangedEvent();
+                }
             }
         }
         private int _threadsCount;
@@ -472,10 +483,38 @@ namespace OsEngine.OsOptimizer
                 }
 
                 UpdateServerToSettings();
+
+                if (StrategyChangedEvent != null)
+                {
+                    StrategyChangedEvent();
+                }
             }
             catch (Exception ex)
             {
                 SendLogMessage("Can`t create bot " + _strategyName + " Exception: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// робот для оптимизации создан или пересоздан (нужно для перерисовки UI)
+        /// </summary>
+        public event Action StrategyChangedEvent;
+
+        /// <summary>
+        /// пересчитаны фазы оптимизации (нужно для перерисовки UI)
+        /// </summary>
+        public event Action PhasesChangedEvent;
+
+        /// <summary>
+        /// изменились параметры оптимизации (нужно для перерисовки UI)
+        /// </summary>
+        public event Action ParametersChangedEvent;
+
+        public void NotifyParametersChanged()
+        {
+            if (ParametersChangedEvent != null)
+            {
+                ParametersChangedEvent();
             }
         }
 
@@ -582,6 +621,11 @@ namespace OsEngine.OsOptimizer
             {
                 _startDeposit = value;
                 Save();
+
+                if (TradeSettingsChangedEvent != null)
+                {
+                    TradeSettingsChangedEvent();
+                }
             }
         }
         private decimal _startDeposit;
@@ -599,6 +643,11 @@ namespace OsEngine.OsOptimizer
                 _commissionType = value;
                 Save();
                 UpdateBotManualControlSettings();
+
+                if (TradeSettingsChangedEvent != null)
+                {
+                    TradeSettingsChangedEvent();
+                }
             }
         }
         private CommissionType _commissionType;
@@ -616,9 +665,19 @@ namespace OsEngine.OsOptimizer
                 _commissionValue = value;
                 Save();
                 UpdateBotManualControlSettings();
+
+                if (TradeSettingsChangedEvent != null)
+                {
+                    TradeSettingsChangedEvent();
+                }
             }
         }
         private decimal _commissionValue;
+
+        /// <summary>
+        /// изменились настройки исполнения (депозит, комиссия) — нужно для перерисовки UI
+        /// </summary>
+        public event Action TradeSettingsChangedEvent;
 
         #endregion
 
@@ -1109,6 +1168,11 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
+            if (PhasesChangedEvent != null)
+            {
+                PhasesChangedEvent();
+            }
+
 
             /*while (DaysInFazes(Fazes) != dayAll)
             {
@@ -1402,6 +1466,180 @@ namespace OsEngine.OsOptimizer
         public void Stop()
         {
             _optimizerExecutor.Stop();
+        }
+
+        /// <summary>
+        /// проверки готовности к оптимизации без модальных окон (для MCP API)
+        /// </summary>
+        public List<string> CheckReadyDataHeadless()
+        {
+            List<string> errors = new List<string>();
+
+            // хранилище проверяем первым, чтобы не читать SecuritiesTester из null
+            if ((string.IsNullOrEmpty(Storage.ActiveSet)
+                && Storage.SourceDataType == TesterSourceDataType.Set)
+                || Storage.SecuritiesTester == null
+                || Storage.SecuritiesTester.Count == 0)
+            {
+                errors.Add("Data storage is empty. Configure the data source (optimizer_data_set_config)");
+            }
+
+            if (Fazes == null || Fazes.Count == 0)
+            {
+                errors.Add("Optimization phases are not created. Rebuild phases (optimizer_phases_set)");
+            }
+
+            if (BotToTest == null)
+            {
+                errors.Add("Optimization robot is not loaded (optimizer_bot_set)");
+            }
+            else if (errors.Count == 0)
+            {
+                List<IIBotTab> sources = BotToTest.GetTabs();
+                bool noDataFull = true;
+
+                for (int i = 0; i < sources.Count; i++)
+                {
+                    if (sources[i].TabType == BotTabType.Simple)
+                    {
+                        BotTabSimple simple = (BotTabSimple)sources[i];
+
+                        if (string.IsNullOrEmpty(simple.Connector.SecurityName) == false)
+                        {
+                            noDataFull = false;
+
+                            if (HaveSecurityAndTfInStorageHeadless(
+                                simple.Connector.SecurityName, simple.Connector.TimeFrame) == false)
+                            {
+                                errors.Add($"No data in storage for {simple.Connector.SecurityName} {simple.Connector.TimeFrame}");
+                            }
+                        }
+                    }
+                    else if (sources[i].TabType == BotTabType.Index)
+                    {
+                        BotTabIndex index = (BotTabIndex)sources[i];
+
+                        if (index.Tabs != null && index.Tabs.Count > 0)
+                        {
+                            noDataFull = false;
+
+                            for (int i2 = 0; i2 < index.Tabs.Count; i2++)
+                            {
+                                if (HaveSecurityAndTfInStorageHeadless(
+                                    index.Tabs[i2].SecurityName, index.Tabs[i2].TimeFrame) == false)
+                                {
+                                    errors.Add($"No data in storage for {index.Tabs[i2].SecurityName} {index.Tabs[i2].TimeFrame}");
+                                }
+                            }
+                        }
+                    }
+                    else if (sources[i].TabType == BotTabType.Screener)
+                    {
+                        BotTabScreener screener = (BotTabScreener)sources[i];
+
+                        if (screener.Tabs != null && screener.Tabs.Count > 0)
+                        {
+                            noDataFull = false;
+
+                            for (int i2 = 0; i2 < screener.Tabs.Count; i2++)
+                            {
+                                if (HaveSecurityAndTfInStorageHeadless(
+                                    screener.Tabs[i2].Connector.SecurityName, screener.Tabs[i2].Connector.TimeFrame) == false)
+                                {
+                                    errors.Add($"No data in storage for {screener.Tabs[i2].Connector.SecurityName} {screener.Tabs[i2].Connector.TimeFrame}");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (noDataFull == true)
+                {
+                    errors.Add("No securities configured in robot tabs");
+                }
+            }
+
+            if (string.IsNullOrEmpty(_strategyName))
+            {
+                errors.Add("No strategy selected (optimizer_bot_set)");
+            }
+
+            if (_parametersOn == null)
+            {
+                errors.Add("Optimization parameters are not loaded");
+            }
+            else
+            {
+                bool onParametersReady = false;
+
+                for (int i = 0; i < _parametersOn.Count; i++)
+                {
+                    if (_parametersOn[i])
+                    {
+                        onParametersReady = true;
+                        break;
+                    }
+                }
+
+                if (onParametersReady == false)
+                {
+                    errors.Add("No parameters enabled for optimization (optimizer_params_set with on=true)");
+                }
+            }
+
+            if (_parameters != null)
+            {
+                for (int i = 0; i < _parameters.Count; i++)
+                {
+                    if (_parameters[i].Name == "Regime" && _parameters[i].Type == StrategyParameterType.String)
+                    {
+                        if (((StrategyParameterString)_parameters[i]).ValueString == "Off")
+                        {
+                            errors.Add("Robot regime is Off");
+                        }
+                    }
+                    else if (_parameters[i].Name == "Regime" && _parameters[i].Type == StrategyParameterType.CheckBox)
+                    {
+                        if (((StrategyParameterCheckBox)_parameters[i]).CheckState == System.Windows.Forms.CheckState.Unchecked)
+                        {
+                            errors.Add("Robot regime is Off");
+                        }
+                    }
+                }
+            }
+
+            return errors;
+        }
+
+        private bool HaveSecurityAndTfInStorageHeadless(string secName, TimeFrame timeFrame)
+        {
+            for (int j = 0; j < Storage.SecuritiesTester.Count; j++)
+            {
+                if (Storage.SecuritiesTester[j].Security.Name == secName
+                    && (Storage.SecuritiesTester[j].TimeFrame == timeFrame
+                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Sec1
+                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Tick))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// запуск оптимизации без модальных окон (для MCP API)
+        /// </summary>
+        public bool StartHeadless()
+        {
+            if (_optimizerExecutor.Start(_parametersOn, _parameters))
+            {
+                ProgressBarStatuses = new List<ProgressBarStatus>();
+                PrimeProgressBarStatus = new ProgressBarStatus();
+                return true;
+            }
+
+            return false;
         }
 
         private bool CheckReadyData()

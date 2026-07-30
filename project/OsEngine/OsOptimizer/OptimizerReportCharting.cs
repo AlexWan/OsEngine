@@ -993,6 +993,12 @@ namespace OsEngine.OsOptimizer
                     // берём из ИнСампле таблицу роботов
                     List<OptimizerReport> bots = _reports[i].Reports;
 
+                    // отчётов может не быть вовсе (всё отфильтровано) — пропускаем фазу
+                    if (bots == null || bots.Count <= _sortBotNumber)
+                    {
+                        continue;
+                    }
+
                     OptimizerReport bestBot = _reports[i].Reports[_sortBotNumber];
 
                     // находим этого робота в аутОфСемпл
@@ -1224,6 +1230,12 @@ namespace OsEngine.OsOptimizer
                 {
                     // берём из ИнСампле таблицу роботов
                     List<OptimizerReport> bots = _reports[i].Reports;
+
+                    // отчётов может не быть вовсе (всё отфильтровано) — пропускаем фазу
+                    if (bots == null || bots.Count == 0)
+                    {
+                        continue;
+                    }
 
                     OptimizerReport bestBot = _reports[i].Reports[0];
 
