@@ -330,7 +330,10 @@ namespace OsEngine.Market.Servers.Transaq
 
                 _depths = null;
 
-                _allCandleSeries?.Clear();
+                lock (_allCandleSeriesLocker)
+                {
+                    _allCandleSeries?.Clear();
+                }
 
                 _allTicks?.Clear();
 
@@ -1551,25 +1554,54 @@ namespace OsEngine.Market.Servers.Transaq
 
                 DateTime startLoadingTime = DateTime.Now;
 
-                while (startLoadingTime.AddSeconds(20) > DateTime.Now)
+                while (true)
                 {
                     TransaqEntity.Candles candles = null;
 
-                    for (int i = 0; i < _allCandleSeries.Count; i++)
+                    lock (_allCandleSeriesLocker)
                     {
-                        TransaqEntity.Candles curSeries = _allCandleSeries[i];
-
-                        if (curSeries.Seccode == security.Name && curSeries.Period == needPeriodId)
+                        for (int i = 0; i < _allCandleSeries.Count; i++)
                         {
-                            candles = curSeries;
-                            break;
+                            TransaqEntity.Candles curSeries = _allCandleSeries[i];
+
+                            if (curSeries.Seccode == security.Name && curSeries.Period == needPeriodId)
+                            {
+                                candles = curSeries;
+                                break;
+                            }
                         }
                     }
 
-                    if (candles == null)
+                    if (candles != null
+                        && candles.Status == "3")
                     {
-                        Thread.Sleep(200);
-                        continue;
+                        SendLogMessage($"Candle history for {security.Name} is temporarily unavailable. Try again later.", LogMessageType.Error);
+
+                        lock (_allCandleSeriesLocker)
+                        {
+                            _allCandleSeries.Remove(candles);
+                        }
+
+                        return null;
+                    }
+
+                    bool isComplete = candles != null
+                        && (candles.Status == "0"
+                            || candles.Status == "1"
+                            || string.IsNullOrEmpty(candles.Status));
+
+                    if (isComplete == false)
+                    {
+                        if (startLoadingTime.AddSeconds(20) > DateTime.Now)
+                        {
+                            Thread.Sleep(200);
+                            continue;
+                        }
+
+                        if (candles == null)
+                        {
+                            break;
+                        }
                     }
 
                     List<Candle> donorCandles = ParseCandles(candles);
@@ -1618,6 +1650,11 @@ namespace OsEngine.Market.Servers.Transaq
                         }
                     }
 
+                    lock (_allCandleSeriesLocker)
+                    {
+                        _allCandleSeries.Remove(candles);
+                    }
+
                     return newCandle;
 
                 }
@@ -1664,6 +1701,56 @@ namespace OsEngine.Market.Servers.Transaq
             catch
             {
                 return null;
+            }
+        }
+
+        private void MergeCandleSeries(TransaqEntity.Candles newCandles)
+        {
+            lock (_allCandleSeriesLocker)
+            {
+                TransaqEntity.Candles existing = null;
+
+                for (int i = 0; i < _allCandleSeries.Count; i++)
+                {
+                    if (_allCandleSeries[i].Seccode == newCandles.Seccode
+                        && _allCandleSeries[i].Period == newCandles.Period)
+                    {
+                        existing = _allCandleSeries[i];
+                        break;
+                    }
+                }
+
+                if (existing == null
+                    || existing.Status == "0"
+                    || existing.Status == "1")
+                {
+                    if (existing != null)
+                    {
+                        _allCandleSeries.Remove(existing);
+                    }
+
+                    _allCandleSeries.Add(newCandles);
+
+                    return;
+                }
+
+                existing.Status = newCandles.Status;
+
+                if (newCandles.Candle == null
+                    || newCandles.Candle.Count == 0)
+                {
+                    return;
+                }
+
+                DateTime lastDate = DateTime.Parse(existing.Candle[existing.Candle.Count - 1].Date);
+
+                for (int i = 0; i < newCandles.Candle.Count; i++)
+                {
+                    if (DateTime.Parse(newCandles.Candle[i].Date) > lastDate)
+                    {
+                        existing.Candle.Add(newCandles.Candle[i]);
+                    }
+                }
             }
         }
 
@@ -2575,9 +2662,9 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             TransaqEntity.Candles newCandles = Deserialize<TransaqEntity.Candles>(data);
 
-                            lock (_allCandleSeriesLocker)
+                            if (newCandles != null)
                             {
-                                _allCandleSeries.Add(newCandles);
+                                MergeCandleSeries(newCandles);
                             }
                         }
                     }
