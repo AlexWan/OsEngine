@@ -929,6 +929,8 @@ namespace OsEngine.Journal
                     {
                         _gridStatistics.Rows[i].Cells[y].Style = _gridStatistics.DefaultCellStyle;
                     }
+
+                    _gridStatistics.Rows[i].Cells[0].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
                 }
             }
             catch (Exception error)

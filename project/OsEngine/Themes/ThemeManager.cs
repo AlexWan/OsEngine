@@ -305,31 +305,37 @@ namespace OsEngine.Themes
         }
 
         /// <summary>
-        /// шрифт осей чарта из текущей темы
+        /// шрифт осей чарта из текущей темы.
+        /// Размер = базовый (8) × ключ ChartAxisFontSize, округлённый до 2 знаков
         /// </summary>
         public static System.Drawing.Font GetChartAxisFont()
         {
-            double size = GetDouble("ChartAxisFontSize");
+            double scale = GetDouble("ChartAxisFontSize");
 
-            if (size <= 0)
+            if (scale <= 0)
             {
-                size = 8;
+                scale = 1;
             }
+
+            double size = Math.Round(8 * scale, 2);
 
             return new System.Drawing.Font(GetChartFontFamily(), (float)size);
         }
 
         /// <summary>
-        /// шрифт подписей значений на чарте из текущей темы
+        /// шрифт подписей значений на чарте из текущей темы.
+        /// Размер = базовый (7) × ключ ChartLabelFontSize, округлённый до 2 знаков
         /// </summary>
         public static System.Drawing.Font GetChartLabelFont()
         {
-            double size = GetDouble("ChartLabelFontSize");
+            double scale = GetDouble("ChartLabelFontSize");
 
-            if (size <= 0)
+            if (scale <= 0)
             {
-                size = 7;
+                scale = 1;
             }
+
+            double size = Math.Round(7 * scale, 2);
 
             return new System.Drawing.Font(GetChartFontFamily(), (float)size);
         }
@@ -356,50 +362,6 @@ namespace OsEngine.Themes
         public static int GetChartSeriesShadow()
         {
             return (int)GetDouble("ChartSeriesShadowSize");
-        }
-
-        /// <summary>
-        /// шрифт строк таблиц из текущей темы
-        /// </summary>
-        public static System.Drawing.Font GetGridFont()
-        {
-            string family = GetString("GridFontFamily");
-
-            if (string.IsNullOrEmpty(family))
-            {
-                family = "Microsoft Sans Serif";
-            }
-
-            double size = GetDouble("GridFontSize");
-
-            if (size <= 0)
-            {
-                size = 8.25;
-            }
-
-            return new System.Drawing.Font(family, (float)size);
-        }
-
-        /// <summary>
-        /// шрифт шапки таблиц из текущей темы (жирный)
-        /// </summary>
-        public static System.Drawing.Font GetGridHeaderFont()
-        {
-            string family = GetString("GridHeaderFontFamily");
-
-            if (string.IsNullOrEmpty(family))
-            {
-                family = "Microsoft Sans Serif";
-            }
-
-            double size = GetDouble("GridHeaderFontSize");
-
-            if (size <= 0)
-            {
-                size = 8.25;
-            }
-
-            return new System.Drawing.Font(family, (float)size, System.Drawing.FontStyle.Bold);
         }
 
         /// <summary>

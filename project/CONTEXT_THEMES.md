@@ -68,13 +68,16 @@
 ### 4.1. Имя и шрифты
 
 - `ThemeDisplayName` — отображаемое имя темы.
-- `ChartFontFamily`, `ChartAxisFontSize`, `ChartLabelFontSize` —
-  шрифт чартов (оси / подписи точек).
+- `ChartFontFamily` — имя шрифта чартов.
+- `ChartAxisFontSize`, `ChartLabelFontSize` — множитель размера
+  (дефолт 1) для осей / подписей точек: размер = базовый × ключ,
+  округление до 2 знаков.
 - `ChartCandleShadowSize`, `ChartIndicatorShadowSize`,
   `ChartSeriesShadowSize` — тень (px, 0 = выкл) свечей / линий
   индикаторов / прочих серий.
 - `GridFontFamily`, `GridFontSize`, `GridHeaderFontFamily`,
-  `GridHeaderFontSize` — шрифт таблиц (строки / шапка).
+  `GridHeaderFontSize` — шрифт таблиц (строки / шапка): семейство и
+  множитель размера (дефолт 1) от `grid.Font`, округление до 2 знаков.
 
 ### 4.2. Основная палитра (базовые ключи из App.xaml)
 

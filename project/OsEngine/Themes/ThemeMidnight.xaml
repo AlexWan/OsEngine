@@ -4,15 +4,15 @@
 
         <system:String x:Key="ChartFontFamily">Microsoft Sans Serif</system:String>
         <system:String x:Key="ThemeDisplayName">Midnight</system:String>
-        <system:Double x:Key="ChartAxisFontSize">8</system:Double>
-        <system:Double x:Key="ChartLabelFontSize">7</system:Double>
+        <system:Double x:Key="ChartAxisFontSize">1</system:Double>
+        <system:Double x:Key="ChartLabelFontSize">1</system:Double>
         <system:Double x:Key="ChartCandleShadowSize">2</system:Double>
         <system:Double x:Key="ChartIndicatorShadowSize">1</system:Double>
         <system:Double x:Key="ChartSeriesShadowSize">2</system:Double>
         <system:String x:Key="GridFontFamily">Microsoft Sans Serif</system:String>
-        <system:Double x:Key="GridFontSize">8.25</system:Double>
+        <system:Double x:Key="GridFontSize">1</system:Double>
         <system:String x:Key="GridHeaderFontFamily">Microsoft Sans Serif</system:String>
-        <system:Double x:Key="GridHeaderFontSize">8.25</system:Double>
+        <system:Double x:Key="GridHeaderFontSize">1</system:Double>
 
         <SolidColorBrush x:Key="ControlForeground" Color="#4A7BC8" />
         <SolidColorBrush x:Key="ControlForegroundWhite" Color="#F0F4FA" />

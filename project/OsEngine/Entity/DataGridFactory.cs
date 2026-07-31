@@ -32,14 +32,14 @@ namespace OsEngine.Entity
             DataGridViewCellStyle style = CreateThemedCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;
-            style.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridFont());
+            style.Font = CreateGridFont(grid, "GridFontSize", FontStyle.Regular);
             grid.DefaultCellStyle = style;
             grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
 
             DataGridViewCellStyle headerStyle = CreateThemedHeaderStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
             headerStyle.WrapMode = DataGridViewTriState.True;
-            headerStyle.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridHeaderFont());
+            headerStyle.Font = CreateGridFont(grid, "GridHeaderFontSize", FontStyle.Bold);
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
             grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
@@ -72,7 +72,6 @@ namespace OsEngine.Entity
             style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
             style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
             style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
-            style.Font = Themes.ThemeManager.GetGridFont();
 
             return style;
         }
@@ -87,7 +86,6 @@ namespace OsEngine.Entity
             style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
-            style.Font = Themes.ThemeManager.GetGridHeaderFont();
 
             return style;
         }
@@ -119,7 +117,7 @@ namespace OsEngine.Entity
                 style.WrapMode = grid.DefaultCellStyle.WrapMode;
             }
 
-            style.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridFont());
+            style.Font = CreateGridFont(grid, "GridFontSize", FontStyle.Regular);
 
             grid.DefaultCellStyle = style;
             grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
@@ -132,7 +130,7 @@ namespace OsEngine.Entity
                 headerStyle.WrapMode = grid.ColumnHeadersDefaultCellStyle.WrapMode;
             }
 
-            headerStyle.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridHeaderFont());
+            headerStyle.Font = CreateGridFont(grid, "GridHeaderFontSize", FontStyle.Bold);
 
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
@@ -140,21 +138,36 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// шрифт темы с учётом фактического масштаба грида:
-        /// явный шрифт стиля ячеек DPI-автомасштаб не получает,
-        /// поэтому умножаем размер на коэффициент grid.Font
+        /// семейство шрифта таблиц из темы (размер — от grid.Font × множитель темы)
         /// </summary>
-        private static System.Drawing.Font ScaleFontToGrid(DataGridView grid, System.Drawing.Font themedFont)
+        private static string GetGridFontFamilyName()
         {
-            float ratio = grid.Font.Size / 8.25f;
+            string family = Themes.ThemeManager.GetString("GridFontFamily");
 
-            if (ratio <= 0)
+            if (string.IsNullOrEmpty(family))
             {
-                ratio = 1;
+                family = "Microsoft Sans Serif";
             }
 
-            return new System.Drawing.Font(themedFont.FontFamily,
-                themedFont.Size * ratio, themedFont.Style);
+            return family;
+        }
+
+        /// <summary>
+        /// шрифт таблицы: grid.Font.Size × множитель из темы (дефолт 1),
+        /// округление до 2 знаков
+        /// </summary>
+        private static System.Drawing.Font CreateGridFont(DataGridView grid, string scaleKey, System.Drawing.FontStyle style)
+        {
+            double scale = Themes.ThemeManager.GetDouble(scaleKey);
+
+            if (scale <= 0)
+            {
+                scale = 1;
+            }
+
+            float size = (float)Math.Round(grid.Font.Size * scale, 2);
+
+            return new System.Drawing.Font(GetGridFontFamilyName(), size, style);
         }
 
         private static void GridMouseWheelEvent(object sender, MouseEventArgs args)
