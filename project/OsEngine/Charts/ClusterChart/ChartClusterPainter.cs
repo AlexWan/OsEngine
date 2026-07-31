@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -536,7 +536,7 @@ namespace OsEngine.Charts.ClusterChart
                 clusterSeries.YAxisType = AxisType.Primary;
                 clusterSeries.XAxisType = AxisType.Secondary;
                 clusterSeries.ChartArea = "Prime";
-                clusterSeries.ShadowOffset = 2;
+                clusterSeries.ShadowOffset = Themes.ThemeManager.GetChartCandleShadow();
                 clusterSeries.YValuesPerPoint = 2;
 
                 _chart.Series.Add(clusterSeries);
@@ -911,7 +911,7 @@ namespace OsEngine.Charts.ClusterChart
             candleSeries.YAxisType = AxisType.Primary;
             candleSeries.XAxisType = AxisType.Secondary;
             candleSeries.ChartArea = "Prime";
-            candleSeries.ShadowOffset = 2;
+            candleSeries.ShadowOffset = Themes.ThemeManager.GetChartCandleShadow();
             candleSeries.YValuesPerPoint = 2;
 
             for (int i = 0; i < history.Count; i++)

@@ -1000,6 +1000,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 foreach (var axe in _chartCorrelation.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 
@@ -1108,6 +1109,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 foreach (var axe in _chartCointegration.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 

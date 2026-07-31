@@ -459,6 +459,7 @@ namespace OsEngine.OsOptimizer
                 foreach (var axe in _chartRobustness.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 
@@ -702,6 +703,7 @@ namespace OsEngine.OsOptimizer
                 foreach (var axe in _chartTotalProfit.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 
@@ -944,6 +946,7 @@ namespace OsEngine.OsOptimizer
                 foreach (var axe in _chartAverageProfit.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 
@@ -1181,6 +1184,7 @@ namespace OsEngine.OsOptimizer
                 foreach (var axe in _chartProfitFactor.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
 

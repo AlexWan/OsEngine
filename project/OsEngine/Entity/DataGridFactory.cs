@@ -38,7 +38,6 @@ namespace OsEngine.Entity
             DataGridViewCellStyle headerStyle = CreateThemedHeaderStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
             headerStyle.WrapMode = DataGridViewTriState.True;
-            headerStyle.Font = new Font(grid.Font, FontStyle.Bold);
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
             grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
@@ -71,6 +70,7 @@ namespace OsEngine.Entity
             style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("GridSelectionBackColor");
             style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("GridSelectionForeColor");
             style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+            style.Font = Themes.ThemeManager.GetGridFont();
 
             return style;
         }
@@ -85,6 +85,7 @@ namespace OsEngine.Entity
             style.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             style.SelectionBackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             style.ForeColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+            style.Font = Themes.ThemeManager.GetGridHeaderFont();
 
             return style;
         }

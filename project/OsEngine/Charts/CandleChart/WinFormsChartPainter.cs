@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -664,7 +664,7 @@ ContextMenuStrip menu)
                 candleSeries.ChartType = SeriesChartType.Candlestick;
                 candleSeries.YAxisType = AxisType.Secondary;
                 candleSeries.ChartArea = "Prime";
-                candleSeries.ShadowOffset = 2;
+                candleSeries.ShadowOffset = Themes.ThemeManager.GetChartCandleShadow();
                 candleSeries.YValuesPerPoint = 4;
 
                 _chart.Series.Add(candleSeries);
@@ -841,7 +841,7 @@ ContextMenuStrip menu)
                     newSeries.ChartType = SeriesChartType.Candlestick;
                 }
 
-                newSeries.ShadowOffset = 2;
+                newSeries.ShadowOffset = Themes.ThemeManager.GetChartCandleShadow();
                 _chart.Series.Add(newSeries);
                 return newSeries.Name;
             }
@@ -1678,7 +1678,7 @@ ContextMenuStrip menu)
             candleSeries.ChartType = SeriesChartType.Candlestick;
             candleSeries.YAxisType = AxisType.Secondary;
             candleSeries.ChartArea = "Prime";
-            candleSeries.ShadowOffset = 2;
+            candleSeries.ShadowOffset = Themes.ThemeManager.GetChartCandleShadow();
             candleSeries.YValuesPerPoint = 4;
 
             for (int i = 0; i < history.Count; i++)
@@ -2046,7 +2046,7 @@ ContextMenuStrip menu)
                             lineSeries.YAxisType = AxisType.Secondary;
                             lineSeries.XAxisType = AxisType.Secondary;
                             lineSeries.ChartArea = "Prime";
-                            lineSeries.ShadowOffset = 1;
+                            lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                             lineSeries.YValuesPerPoint = 1;
 
                             lineSeries.Points.AddXY(0, curOrder.Price);
@@ -2116,7 +2116,7 @@ ContextMenuStrip menu)
                             lineSeries.YAxisType = AxisType.Secondary;
                             lineSeries.XAxisType = AxisType.Secondary;
                             lineSeries.ChartArea = "Prime";
-                            lineSeries.ShadowOffset = 1;
+                            lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                             lineSeries.YValuesPerPoint = 1;
 
 
@@ -2174,7 +2174,7 @@ ContextMenuStrip menu)
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
                         lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
+                        lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                         lineSeries.YValuesPerPoint = 1;
 
 
@@ -2232,7 +2232,7 @@ ContextMenuStrip menu)
                         lineSeries.YAxisType = AxisType.Secondary;
                         lineSeries.XAxisType = AxisType.Secondary;
                         lineSeries.ChartArea = "Prime";
-                        lineSeries.ShadowOffset = 1;
+                        lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                         lineSeries.YValuesPerPoint = 1;
 
                         lineSeries.Points.AddXY(0, position.ProfitOrderRedLine);
@@ -2672,7 +2672,7 @@ ContextMenuStrip menu)
                 lineSeries.YAxisType = AxisType.Secondary;
                 lineSeries.XAxisType = AxisType.Secondary;
                 lineSeries.ChartArea = "Prime";
-                lineSeries.ShadowOffset = 1;
+                lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                 lineSeries.YValuesPerPoint = 1;
 
                 lineSeries.Points.AddXY(0, curStop.PriceRedLine);
@@ -2935,7 +2935,7 @@ ContextMenuStrip menu)
             {
                 newSeries.Label = lineElement.Label;
                 newSeries.LabelForeColor = lineElement.LabelTextColor.Name == "0" ? Color.White : lineElement.LabelTextColor;
-                newSeries.Font = lineElement.Font ?? new Font("Arial", 7);
+                newSeries.Font = lineElement.Font ?? Themes.ThemeManager.GetChartLabelFont();
                 newSeries.LabelBackColor = lineElement.LabelBackColor.Name == "0" ? Color.Transparent : lineElement.LabelBackColor;
             }
 
@@ -3046,7 +3046,7 @@ ContextMenuStrip menu)
             {
                 newSeries.Label = lineElement.Label;
                 newSeries.LabelForeColor = lineElement.LabelTextColor.Name == "0" ? Color.White : lineElement.LabelTextColor;
-                newSeries.Font = lineElement.Font ?? new Font("Arial", 7);
+                newSeries.Font = lineElement.Font ?? Themes.ThemeManager.GetChartLabelFont();
                 newSeries.LabelBackColor = lineElement.LabelBackColor.Name == "0" ? Color.Transparent : lineElement.LabelBackColor;
             }
 
@@ -3164,7 +3164,7 @@ ContextMenuStrip menu)
             newSeries.MarkerSize = point.Size;
             newSeries.Label = point.Label;
             newSeries.LabelForeColor = point.LabelTextColor.Name == "0" ? Color.White : point.LabelTextColor;
-            newSeries.Font = point.Font ?? new Font("Arial", 7);
+            newSeries.Font = point.Font ?? Themes.ThemeManager.GetChartLabelFont();
             newSeries.LabelBackColor = point.LabelBackColor.Name == "0" ? Color.Transparent : point.LabelBackColor;
 
             newSeries.Points.AddXY(index, point.Y);
@@ -3274,7 +3274,7 @@ ContextMenuStrip menu)
             {
                 // устанавливаем шрифт для всей серии, но Label добавим позже только одной точке
                 newSeries.LabelForeColor = rectangle.LabelTextColor.Name == "0" ? Color.White : rectangle.LabelTextColor;
-                newSeries.Font = rectangle.Font ?? new Font("Arial", 7);
+                newSeries.Font = rectangle.Font ?? Themes.ThemeManager.GetChartLabelFont();
                 newSeries.LabelBackColor = rectangle.LabelBackColor.Name == "0" ? Color.Transparent : rectangle.LabelBackColor;
             }
 
@@ -4334,7 +4334,7 @@ ContextMenuStrip menu)
                 series.MarkerStyle = MarkerStyle.Circle;
                 series.YAxisType = AxisType.Secondary;
                 series.ChartArea = myArea.Name;
-                series.ShadowOffset = 1;
+                series.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                 series.YValuesPerPoint = 1;
                 series.Color = color;
 
@@ -4475,7 +4475,7 @@ ContextMenuStrip menu)
                 series.ChartType = SeriesChartType.Line;
                 series.YAxisType = AxisType.Secondary;
                 series.ChartArea = myArea.Name;
-                series.ShadowOffset = 1;
+                series.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                 series.YValuesPerPoint = 1;
                 series.Color = color;
 
@@ -4631,7 +4631,7 @@ ContextMenuStrip menu)
                 series.ChartType = SeriesChartType.Column;
                 series.YAxisType = AxisType.Secondary;
                 series.ChartArea = myArea.Name;
-                series.ShadowOffset = 1;
+                series.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                 series.YValuesPerPoint = 1;
                 series.Color = colorUp;
 

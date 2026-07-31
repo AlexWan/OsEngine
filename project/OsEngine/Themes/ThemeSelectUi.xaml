@@ -10,19 +10,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Name="TilesGridRow0" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-        </Grid>
-
-        <Grid Name="TilesGridRow1" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-        </Grid>
+        <ScrollViewer Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto">
+            <UniformGrid Name="TilesGrid" Columns="2"/>
+        </ScrollViewer>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,5,5">
             <Button Name="ButtonAccept" Content="OK" Width="150" Height="34" Margin="10,0"/>

@@ -978,6 +978,8 @@ namespace OsEngine.Journal
                     foreach (var axe in _chartEquity.ChartAreas[i].Axes)
                     {
                         axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("JournalChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
+                        axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                     }
                 }
             }
@@ -1218,7 +1220,7 @@ namespace OsEngine.Journal
                 profit.YAxisType = AxisType.Secondary;
                 profit.ChartArea = "ChartAreaProfit";
                 profit.BorderWidth = 4;
-                profit.ShadowOffset = 2;
+                profit.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
 
                 Series profitLong = new Series("SeriesProfitLong");
                 profitLong.ChartType = SeriesChartType.Line;
@@ -1226,21 +1228,21 @@ namespace OsEngine.Journal
                 profitLong.YAxisType = AxisType.Secondary;
                 profitLong.ChartArea = "ChartAreaProfit";
                 profitLong.BorderWidth = 2;
-                profitLong.ShadowOffset = 2;
+                profitLong.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
 
                 Series profitShort = new Series("SeriesProfitShort");
                 profitShort.ChartType = SeriesChartType.Line;
                 profitShort.Color = Themes.ThemeManager.GetColorWinForms("JournalShortColor");  //DeepSkyBlue;
                 profitShort.YAxisType = AxisType.Secondary;
                 profitShort.ChartArea = "ChartAreaProfit";
-                profitShort.ShadowOffset = 2;
+                profitShort.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
                 profitShort.BorderWidth = 2;
 
                 Series profitBar = new Series("SeriesProfitBar");
                 profitBar.ChartType = SeriesChartType.Column;
                 profitBar.YAxisType = AxisType.Secondary;
                 profitBar.ChartArea = "ChartAreaProfitBar";
-                profitBar.ShadowOffset = 2;
+                profitBar.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
 
                 Series nullLine = new Series("SeriesNullLine");
                 nullLine.ChartType = SeriesChartType.Line;
@@ -1257,7 +1259,7 @@ namespace OsEngine.Journal
                     profitMonthlyBar.ChartType = SeriesChartType.Column;
                     profitMonthlyBar.YAxisType = AxisType.Secondary;
                     profitMonthlyBar.ChartArea = "ChartAreaMonthlyBar";
-                    profitMonthlyBar.ShadowOffset = 2;
+                    profitMonthlyBar.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
                     profitMonthlyBar.SetCustomProperty("PointWidth", "1.0");
                 }
 
@@ -1267,7 +1269,7 @@ namespace OsEngine.Journal
                     profitYearlyBar.ChartType = SeriesChartType.Column;
                     profitYearlyBar.YAxisType = AxisType.Secondary;
                     profitYearlyBar.ChartArea = "ChartAreaYearlyBar";
-                    profitYearlyBar.ShadowOffset = 2;
+                    profitYearlyBar.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
                     profitYearlyBar.SetCustomProperty("PointWidth", "1.0");
                 }
 
@@ -1863,6 +1865,7 @@ namespace OsEngine.Journal
                 foreach (var axe in areaLineSecurity.Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("JournalChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
 
                 _chartVolume.ChartAreas.Add(areaLineSecurity);
@@ -1873,7 +1876,7 @@ namespace OsEngine.Journal
                 volumeSeries.YAxisType = AxisType.Secondary;
                 volumeSeries.ChartArea = areaLineSecurity.Name;
                 volumeSeries.BorderWidth = 3;
-                volumeSeries.ShadowOffset = 2;
+                volumeSeries.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
 
                 decimal maxVolume = 0;
                 decimal minVolume = decimal.MaxValue;
@@ -1900,7 +1903,7 @@ namespace OsEngine.Journal
                 nameSeries.YAxisType = AxisType.Secondary;
                 nameSeries.ChartArea = areaLineSecurity.Name;
                 nameSeries.BorderWidth = 3;
-                nameSeries.ShadowOffset = 2;
+                nameSeries.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
                 nameSeries.MarkerStyle = MarkerStyle.Square;
                 nameSeries.MarkerSize = 4;
 
@@ -2082,6 +2085,8 @@ namespace OsEngine.Journal
                     foreach (var axe in _chartDd.ChartAreas[i].Axes)
                     {
                         axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("JournalChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
+                        axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                     }
                 }
             }
@@ -2134,7 +2139,7 @@ namespace OsEngine.Journal
                 drowDownPunct.YAxisType = AxisType.Secondary;
                 drowDownPunct.ChartArea = "ChartAreaDdPunct";
                 drowDownPunct.BorderWidth = 2;
-                drowDownPunct.ShadowOffset = 2;
+                drowDownPunct.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
 
                 Series nullLine = new Series("SeriesNullLine");
                 nullLine.ChartType = SeriesChartType.Line;
@@ -2237,7 +2242,7 @@ namespace OsEngine.Journal
                 drowDownPercent.YAxisType = AxisType.Secondary;
                 drowDownPercent.ChartArea = "ChartAreaDdPercent";
                 drowDownPercent.BorderWidth = 2;
-                drowDownPercent.ShadowOffset = 2;
+                drowDownPercent.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
                 drowDownPercent.XAxisType = AxisType.Primary;
 
                 for (int i = 0; i < ddPepcent.Count; i++)

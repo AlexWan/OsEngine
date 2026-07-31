@@ -65,9 +65,7 @@ namespace OsEngine.Themes
 
                 _tiles[themeId] = tile;
 
-                Grid targetGrid = (i / 2 == 0) ? TilesGridRow0 : TilesGridRow1;
-                Grid.SetColumn(tile, i % 2);
-                targetGrid.Children.Add(tile);
+                TilesGrid.Children.Add(tile);
             }
         }
 
@@ -147,8 +145,7 @@ namespace OsEngine.Themes
 
                 _tiles.Clear();
 
-                TilesGridRow0.Children.Clear();
-                TilesGridRow1.Children.Clear();
+                TilesGrid.Children.Clear();
             }
             catch (Exception error)
             {

@@ -28,9 +28,50 @@ namespace OsEngine.Themes
         public const string DefaultTheme = "DarkOrange";
 
         /// <summary>
-        /// все доступные темы (порядок — порядок плиток в окне выбора: сверху тёмные, снизу светлые)
+        /// встроенные темы (скомпилированы в сборку)
         /// </summary>
-        public static readonly string[] AvailableThemes = { "DarkOrange", "Midnight", "Tiffany", "Gray" };
+        private static readonly string[] _builtInThemes = { "DarkOrange", "Midnight", "Tiffany", "Gray" };
+
+        private static List<string> _availableThemes;
+
+        /// <summary>
+        /// все доступные темы: встроенные + пользовательские из Engine\Themes\*.xaml
+        /// (порядок — порядок плиток в окне выбора: сначала встроенные)
+        /// </summary>
+        public static string[] AvailableThemes
+        {
+            get
+            {
+                if (_availableThemes == null)
+                {
+                    _availableThemes = new List<string>(_builtInThemes);
+
+                    try
+                    {
+                        if (Directory.Exists(@"Engine\Themes"))
+                        {
+                            string[] files = Directory.GetFiles(@"Engine\Themes", "*.xaml");
+
+                            for (int i = 0; i < files.Length; i++)
+                            {
+                                string id = Path.GetFileNameWithoutExtension(files[i]);
+
+                                if (_availableThemes.Contains(id) == false)
+                                {
+                                    _availableThemes.Add(id);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception error)
+                    {
+                        ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                }
+
+                return _availableThemes.ToArray();
+            }
+        }
 
         /// <summary>
         /// текущая тема
@@ -38,26 +79,23 @@ namespace OsEngine.Themes
         public static string CurrentTheme { get; private set; } = DefaultTheme;
 
         /// <summary>
-        /// отображаемое имя темы (для окна выбора)
+        /// отображаемое имя темы (для окна выбора).
+        /// Берётся из ресурса ThemeDisplayName в словаре темы,
+        /// если ресурса нет — из id
         /// </summary>
         public static string GetThemeDisplayName(string themeId)
         {
-            if (themeId == "Tiffany")
+            ResourceDictionary dict = GetThemeDictionary(themeId);
+
+            if (dict != null
+                && dict.Contains("ThemeDisplayName")
+                && dict["ThemeDisplayName"] is string name
+                && name.Length > 0)
             {
-                return "Tiffany";
+                return name;
             }
 
-            if (themeId == "Gray")
-            {
-                return "BloombergLight";
-            }
-
-            if (themeId == "Midnight")
-            {
-                return "Midnight";
-            }
-
-            return "SmartLabXXX";
+            return themeId;
         }
 
         /// <summary>
@@ -222,6 +260,149 @@ namespace OsEngine.Themes
         }
 
         /// <summary>
+        /// строка из ресурсов текущей темы по ключу
+        /// </summary>
+        public static string GetString(string key)
+        {
+            object res = Application.Current.TryFindResource(key);
+
+            if (res is string str)
+            {
+                return str;
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// число из ресурсов текущей темы по ключу (0 если не найдено)
+        /// </summary>
+        public static double GetDouble(string key)
+        {
+            object res = Application.Current.TryFindResource(key);
+
+            if (res is double number)
+            {
+                return number;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// имя шрифта чарта из текущей темы
+        /// </summary>
+        public static string GetChartFontFamily()
+        {
+            string family = GetString("ChartFontFamily");
+
+            if (string.IsNullOrEmpty(family))
+            {
+                family = "Microsoft Sans Serif";
+            }
+
+            return family;
+        }
+
+        /// <summary>
+        /// шрифт осей чарта из текущей темы
+        /// </summary>
+        public static System.Drawing.Font GetChartAxisFont()
+        {
+            double size = GetDouble("ChartAxisFontSize");
+
+            if (size <= 0)
+            {
+                size = 8;
+            }
+
+            return new System.Drawing.Font(GetChartFontFamily(), (float)size);
+        }
+
+        /// <summary>
+        /// шрифт подписей значений на чарте из текущей темы
+        /// </summary>
+        public static System.Drawing.Font GetChartLabelFont()
+        {
+            double size = GetDouble("ChartLabelFontSize");
+
+            if (size <= 0)
+            {
+                size = 7;
+            }
+
+            return new System.Drawing.Font(GetChartFontFamily(), (float)size);
+        }
+
+        /// <summary>
+        /// тень свечей на чарте (0 — выключена)
+        /// </summary>
+        public static int GetChartCandleShadow()
+        {
+            return (int)GetDouble("ChartCandleShadowSize");
+        }
+
+        /// <summary>
+        /// тень линий индикаторов на чарте (0 — выключена)
+        /// </summary>
+        public static int GetChartIndicatorShadow()
+        {
+            return (int)GetDouble("ChartIndicatorShadowSize");
+        }
+
+        /// <summary>
+        /// тень прочих серий на чартах (0 — выключена)
+        /// </summary>
+        public static int GetChartSeriesShadow()
+        {
+            return (int)GetDouble("ChartSeriesShadowSize");
+        }
+
+        /// <summary>
+        /// шрифт строк таблиц из текущей темы
+        /// </summary>
+        public static System.Drawing.Font GetGridFont()
+        {
+            string family = GetString("GridFontFamily");
+
+            if (string.IsNullOrEmpty(family))
+            {
+                family = "Microsoft Sans Serif";
+            }
+
+            double size = GetDouble("GridFontSize");
+
+            if (size <= 0)
+            {
+                size = 8.25;
+            }
+
+            return new System.Drawing.Font(family, (float)size);
+        }
+
+        /// <summary>
+        /// шрифт шапки таблиц из текущей темы (жирный)
+        /// </summary>
+        public static System.Drawing.Font GetGridHeaderFont()
+        {
+            string family = GetString("GridHeaderFontFamily");
+
+            if (string.IsNullOrEmpty(family))
+            {
+                family = "Microsoft Sans Serif";
+            }
+
+            double size = GetDouble("GridHeaderFontSize");
+
+            if (size <= 0)
+            {
+                size = 8.25;
+            }
+
+            return new System.Drawing.Font(family, (float)size, System.Drawing.FontStyle.Bold);
+        }
+
+        /// <summary>
         /// словарь конкретной темы (без применения к приложению, для превью)
         /// </summary>
         public static ResourceDictionary GetThemeDictionary(string themeId)
@@ -304,6 +485,7 @@ namespace OsEngine.Themes
 
         private static ResourceDictionary LoadDictionary(string themeId)
         {
+            // сначала — встроенная тема из сборки
             try
             {
                 return new ResourceDictionary
@@ -311,10 +493,71 @@ namespace OsEngine.Themes
                     Source = new Uri("/OsEngine;component/Themes/Theme" + themeId + ".xaml", UriKind.Relative)
                 };
             }
+            catch
+            {
+                // встроенной темы нет — ищем пользовательскую в Engine\Themes
+            }
+
+            try
+            {
+                string path = @"Engine\Themes\" + themeId + ".xaml";
+
+                if (File.Exists(path))
+                {
+                    using (FileStream stream = new FileStream(path, FileMode.Open))
+                    {
+                        ResourceDictionary dict =
+                            (ResourceDictionary)System.Windows.Markup.XamlReader.Load(stream);
+
+                        ValidateTheme(dict, themeId);
+                        return dict;
+                    }
+                }
+            }
             catch (Exception error)
             {
                 ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// проверить, что в теме есть все ключи из темы по умолчанию.
+        /// Недостающие — в лог
+        /// </summary>
+        private static void ValidateTheme(ResourceDictionary dict, string themeId)
+        {
+            try
+            {
+                ResourceDictionary reference = GetThemeDictionary(DefaultTheme);
+
+                if (reference == null)
+                {
+                    return;
+                }
+
+                List<string> missing = new List<string>();
+
+                foreach (object key in reference.Keys)
+                {
+                    if (dict.Contains(key) == false)
+                    {
+                        missing.Add(key.ToString());
+                    }
+                }
+
+                if (missing.Count > 0)
+                {
+                    ServerMaster.SendNewLogMessage(
+                        "Theme " + themeId + ": missing keys: " + string.Join(", ", missing),
+                        LogMessageType.Error);
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

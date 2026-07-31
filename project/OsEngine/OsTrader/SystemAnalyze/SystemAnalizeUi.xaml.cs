@@ -543,7 +543,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesTotalRam.Color = Color.Green;
             seriesTotalRam.YAxisType = AxisType.Secondary;
             seriesTotalRam.ChartArea = "ChartAreaSystemValues";
-            seriesTotalRam.ShadowOffset = 2;
+            seriesTotalRam.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartRam.Series.Add(seriesTotalRam);
 
             // 3 series free ram
@@ -553,7 +553,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesFreeRam.Color = Color.Red;
             seriesFreeRam.YAxisType = AxisType.Secondary;
             seriesFreeRam.ChartArea = "ChartAreaSystemValues";
-            seriesFreeRam.ShadowOffset = 2;
+            seriesFreeRam.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartRam.Series.Add(seriesFreeRam);
 
             // 4 chart area my values
@@ -573,7 +573,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesMyRam.YAxisType = AxisType.Secondary;
             seriesMyRam.Color = Color.DarkOrange;
             seriesMyRam.ChartArea = "ChartAreaMyValues";
-            seriesMyRam.ShadowOffset = 2;
+            seriesMyRam.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartRam.Series.Add(seriesMyRam);
 
             // 6 colors
@@ -591,6 +591,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 foreach (var axe in _chartRam.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
         }
@@ -692,7 +693,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesTotalCpu.Color = Color.Green;
             seriesTotalCpu.YAxisType = AxisType.Secondary;
             seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
-            seriesTotalCpu.ShadowOffset = 2;
+            seriesTotalCpu.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartCpu.Series.Add(seriesTotalCpu);
 
             // 3 series osEngine cpu
@@ -703,7 +704,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesOsEngineCpu.Color = Color.Red;
             seriesOsEngineCpu.YAxisType = AxisType.Secondary;
             seriesOsEngineCpu.ChartArea = "ChartAreaSystemValues";
-            seriesOsEngineCpu.ShadowOffset = 2;
+            seriesOsEngineCpu.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartCpu.Series.Add(seriesOsEngineCpu);
 
             _chartCpu.BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
@@ -719,6 +720,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 foreach (var axe in _chartCpu.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
         }
@@ -829,7 +831,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesTotalCpu.Color = Color.DarkOrange;
             seriesTotalCpu.YAxisType = AxisType.Secondary;
             seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
-            seriesTotalCpu.ShadowOffset = 2;
+            seriesTotalCpu.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartEcq.Series.Add(seriesTotalCpu);
 
             // 3 series bid ask
@@ -840,7 +842,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesOsEngineCpu.Color = Color.Red;
             seriesOsEngineCpu.YAxisType = AxisType.Secondary;
             seriesOsEngineCpu.ChartArea = "ChartAreaSystemValues";
-            seriesOsEngineCpu.ShadowOffset = 2;
+            seriesOsEngineCpu.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartEcq.Series.Add(seriesOsEngineCpu);
 
             _chartEcq.BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
@@ -856,6 +858,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 foreach (var axe in _chartEcq.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
         }
@@ -979,7 +982,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesTotalCpu.Color = Color.DarkOrange;
             seriesTotalCpu.YAxisType = AxisType.Secondary;
             seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
-            seriesTotalCpu.ShadowOffset = 2;
+            seriesTotalCpu.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartMoq.Series.Add(seriesTotalCpu);
 
             _chartMoq.BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
@@ -995,6 +998,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 foreach (var axe in _chartMoq.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
                 }
             }
         }

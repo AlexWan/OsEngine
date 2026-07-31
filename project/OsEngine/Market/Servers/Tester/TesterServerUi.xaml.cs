@@ -970,7 +970,7 @@ namespace OsEngine.Market.Servers.Tester
             profit.Color = Themes.ThemeManager.GetColorWinForms("ChartEquityColor");
             profit.YAxisType = AxisType.Secondary;
             profit.ChartArea = "ChartAreaProfit";
-            profit.ShadowOffset = 2;
+            profit.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartReport.Series.Add(profit);
 
             ChartArea areaLineProfitBar = new ChartArea("ChartAreaProfitBar");
@@ -987,7 +987,7 @@ namespace OsEngine.Market.Servers.Tester
             profitBar.ChartType = SeriesChartType.Column;
             profitBar.YAxisType = AxisType.Secondary;
             profitBar.ChartArea = "ChartAreaProfitBar";
-            profitBar.ShadowOffset = 2;
+            profitBar.ShadowOffset = Themes.ThemeManager.GetChartSeriesShadow();
             _chartReport.Series.Add(profitBar);
 
             _chartReport.BackColor = Themes.ThemeManager.GetColorWinForms("ChartBackColor");
@@ -1003,6 +1003,7 @@ namespace OsEngine.Market.Servers.Tester
                 foreach (var axe in _chartReport.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Themes.ThemeManager.GetColorWinForms("ChartTextColor");
+                    axe.LabelStyle.Font = Themes.ThemeManager.GetChartAxisFont();
 
                     // значения осей — не больше двух знаков после запятой
                     axe.LabelStyle.Format = "0.##";

@@ -1417,8 +1417,31 @@ namespace OsEngine
         {
             try
             {
+                string theme = Themes.ThemeManager.CurrentTheme;
+
+                // у пользовательской темы может не быть своих картинок — откат на DarkOrange
+                Uri probe = new Uri("pack://application:,,,/Images/MainWIndow/Themes/" + theme + "/gear.png");
+
+                try
+                {
+                    System.Windows.Resources.StreamResourceInfo stream = Application.GetResourceStream(probe);
+
+                    if (stream != null)
+                    {
+                        stream.Stream.Dispose();
+                    }
+                    else
+                    {
+                        theme = Themes.ThemeManager.DefaultTheme;
+                    }
+                }
+                catch
+                {
+                    theme = Themes.ThemeManager.DefaultTheme;
+                }
+
                 string themeFolder = "pack://application:,,,/Images/MainWIndow/Themes/"
-                    + Themes.ThemeManager.CurrentTheme + "/";
+                    + theme + "/";
 
                 ImageData.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "test.png"));
                 ImageTests.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(themeFolder + "data.png"));
