@@ -32,12 +32,14 @@ namespace OsEngine.Entity
             DataGridViewCellStyle style = CreateThemedCellStyle();
             style.Alignment = DataGridViewContentAlignment.TopLeft;
             style.WrapMode = DataGridViewTriState.True;
+            style.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridFont());
             grid.DefaultCellStyle = style;
             grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
 
             DataGridViewCellStyle headerStyle = CreateThemedHeaderStyle();
             headerStyle.Alignment = DataGridViewContentAlignment.TopLeft;
             headerStyle.WrapMode = DataGridViewTriState.True;
+            headerStyle.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridHeaderFont());
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
             grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
@@ -115,8 +117,9 @@ namespace OsEngine.Entity
             {
                 style.Alignment = grid.DefaultCellStyle.Alignment;
                 style.WrapMode = grid.DefaultCellStyle.WrapMode;
-                style.Font = grid.DefaultCellStyle.Font;
             }
+
+            style.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridFont());
 
             grid.DefaultCellStyle = style;
             grid.RowsDefaultCellStyle = (DataGridViewCellStyle)style.Clone();
@@ -127,12 +130,31 @@ namespace OsEngine.Entity
             {
                 headerStyle.Alignment = grid.ColumnHeadersDefaultCellStyle.Alignment;
                 headerStyle.WrapMode = grid.ColumnHeadersDefaultCellStyle.WrapMode;
-                headerStyle.Font = grid.ColumnHeadersDefaultCellStyle.Font;
             }
+
+            headerStyle.Font = ScaleFontToGrid(grid, Themes.ThemeManager.GetGridHeaderFont());
 
             grid.ColumnHeadersDefaultCellStyle = headerStyle;
 
             grid.Refresh();
+        }
+
+        /// <summary>
+        /// шрифт темы с учётом фактического масштаба грида:
+        /// явный шрифт стиля ячеек DPI-автомасштаб не получает,
+        /// поэтому умножаем размер на коэффициент grid.Font
+        /// </summary>
+        private static System.Drawing.Font ScaleFontToGrid(DataGridView grid, System.Drawing.Font themedFont)
+        {
+            float ratio = grid.Font.Size / 8.25f;
+
+            if (ratio <= 0)
+            {
+                ratio = 1;
+            }
+
+            return new System.Drawing.Font(themedFont.FontFamily,
+                themedFont.Size * ratio, themedFont.Style);
         }
 
         private static void GridMouseWheelEvent(object sender, MouseEventArgs args)
