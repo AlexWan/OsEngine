@@ -1547,13 +1547,9 @@ namespace OsEngine.OsOptimizer
             {
                 cell.Value = securityInSource;
             }
-            else
-            {
-                if (string.IsNullOrEmpty(securityInSource) == false)
-                {
-                    source.Connector.SecurityName = "";
-                }
-            }
+
+            // если бумаги нет в списке (сет ещё грузится или её нет в сете) — коннектор не трогаем,
+            // следующая отрисовка после полной загрузки привяжет значение сама
 
             row.Cells.Add(cell);
 
@@ -1586,10 +1582,8 @@ namespace OsEngine.OsOptimizer
                 {
                     cell2.Value = timeFrameInSource;
                 }
-                else
-                {
-                    source.Connector.TimeFrame = TimeFrame.Sec1;
-                }
+
+                // таймфрейма нет в списке — коннектор не трогаем, это отрисовка, а не редактирование
             }
             else
             {
