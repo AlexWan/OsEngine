@@ -3530,7 +3530,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell3);
 
                     DataGridViewTextBoxCell cell33 = new DataGridViewTextBoxCell();
-                    cell33.Value = Math.Round(report.ProfitPositionPercent, 2);
+                    cell33.Value = Math.Round(report.ProfitPositionPercent, 3);
                     row.Cells.Add(cell33);
 
                     DataGridViewTextBoxCell cell34 = new DataGridViewTextBoxCell();
@@ -3547,35 +3547,35 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell34);
 
                     DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
-                    cell4.Value = Math.Round(report.TotalProfit, 5).ToStringWithNoEndZero() + " (" + report.TotalProfitPercent.ToStringWithNoEndZero() + "%)";
+                    cell4.Value = Math.Round(report.TotalProfit, 3).ToStringWithNoEndZero() + " (" + Math.Round(report.TotalProfitPercent, 3).ToStringWithNoEndZero() + "%)";
                     row.Cells.Add(cell4);
 
                     DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                    cell5.Value = Math.Round(report.MaxDrawDawn, 5).ToStringWithNoEndZero();
+                    cell5.Value = Math.Round(report.MaxDrawDawn, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell5);
 
                     DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
-                    cell6.Value = Math.Round(report.AverageProfit, 5).ToStringWithNoEndZero();
+                    cell6.Value = Math.Round(report.AverageProfit, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell6);
 
                     DataGridViewTextBoxCell cell7 = new DataGridViewTextBoxCell();
-                    cell7.Value = Math.Round(report.AverageProfitPercentOneContract, 5).ToStringWithNoEndZero();
+                    cell7.Value = Math.Round(report.AverageProfitPercentOneContract, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell7);
 
                     DataGridViewTextBoxCell cell8 = new DataGridViewTextBoxCell();
-                    cell8.Value = Math.Round(report.ProfitFactor, 5).ToStringWithNoEndZero();
+                    cell8.Value = Math.Round(report.ProfitFactor, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell8);
 
                     DataGridViewTextBoxCell cell9 = new DataGridViewTextBoxCell();
-                    cell9.Value = Math.Round(report.PayOffRatio, 5).ToStringWithNoEndZero();
+                    cell9.Value = Math.Round(report.PayOffRatio, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell9);
 
                     DataGridViewTextBoxCell cell10 = new DataGridViewTextBoxCell();
-                    cell10.Value = Math.Round(report.Recovery, 5).ToStringWithNoEndZero();
+                    cell10.Value = Math.Round(report.Recovery, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell10);
 
                     DataGridViewTextBoxCell cell11 = new DataGridViewTextBoxCell();
-                    cell11.Value = Math.Round(report.SharpRatio, 5).ToStringWithNoEndZero();
+                    cell11.Value = Math.Round(report.SharpRatio, 3).ToStringWithNoEndZero();
                     row.Cells.Add(cell11);
 
                     DataGridViewButtonCell cell12 = new DataGridViewButtonCell();
@@ -3792,7 +3792,8 @@ namespace OsEngine.OsOptimizer
 
         private void PaintBotInTable(string botName)
         {
-            System.Drawing.Color selectBotColor = System.Drawing.Color.FromArgb(255, 83, 0);
+            System.Drawing.Color selectBotColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
+            System.Drawing.Color normalBotColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
 
             for (int i2 = 0; i2 < _gridResults.Rows.Count; i2++)
             {
@@ -3802,6 +3803,9 @@ namespace OsEngine.OsOptimizer
                 {
                     for (int i = 0; i < row.Cells.Count; i++)
                     {
+                        // клон: иначе ячейки делят один объект стиля
+                        // и покраска протекает на всю таблицу
+                        row.Cells[i].Style = (DataGridViewCellStyle)_gridResults.DefaultCellStyle.Clone();
                         row.Cells[i].Style.ForeColor = selectBotColor;
                     }
                 }
@@ -3811,7 +3815,10 @@ namespace OsEngine.OsOptimizer
                     {
                         if (row.Cells[i].Style.ForeColor == selectBotColor)
                         {
-                            row.Cells[i].Style = _gridResults.DefaultCellStyle;
+                            // у DefaultCellStyle этого грида чёрный ForeColor,
+                            // поэтому обычный цвет текста ставим из темы явно
+                            row.Cells[i].Style = (DataGridViewCellStyle)_gridResults.DefaultCellStyle.Clone();
+                            row.Cells[i].Style.ForeColor = normalBotColor;
                         }
                     }
                 }

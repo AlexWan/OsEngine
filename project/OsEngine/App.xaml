@@ -992,7 +992,7 @@
                                 <RowDefinition Name="RowDefinition0" Height="Auto"/>
                                 <RowDefinition Name="RowDefinition1" Height="*"/>
                             </Grid.RowDefinitions>
-                            <WrapPanel Margin="4,1,10,0" Name="HeaderPanel" Grid.Column="0" Grid.Row="0" IsItemsHost="True" Panel.ZIndex="1" KeyboardNavigation.TabIndex="1"/>
+                            <TabPanel Margin="4,1,10,0" Name="HeaderPanel" Grid.Column="0" Grid.Row="0" IsItemsHost="True" Panel.ZIndex="1" KeyboardNavigation.TabIndex="1"/>
                             <Border Name="ContentPanel" Grid.Column="0" Grid.Row="1" BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1" CornerRadius="0,0,0,0">
                                 <Border Name="InnerBd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" 
                                     KeyboardNavigation.DirectionalNavigation="Contained" KeyboardNavigation.TabIndex="2" KeyboardNavigation.TabNavigation="Local" CornerRadius="0,0,0,0">
@@ -1020,7 +1020,6 @@
                                 <Setter Property="CornerRadius" TargetName="InnerBd" Value="0,0,0,0"/>
                             </Trigger>
                             <Trigger Property="TabStripPlacement" Value="Left">
-                                <Setter Property="Orientation" TargetName="HeaderPanel" Value="Vertical"/>
                                 <Setter Property="Grid.Row" TargetName="HeaderPanel" Value="0"/>
                                 <Setter Property="Grid.Row" TargetName="ContentPanel" Value="0"/>
                                 <Setter Property="Grid.Column" TargetName="HeaderPanel" Value="0"/>
@@ -1034,7 +1033,6 @@
                                 <Setter Property="CornerRadius" TargetName="InnerBd" Value="0,0,0,0"/>
                             </Trigger>
                             <Trigger Property="TabStripPlacement" Value="Right">
-                                <Setter Property="Orientation" TargetName="HeaderPanel" Value="Vertical"/>
                                 <Setter Property="Grid.Row" TargetName="HeaderPanel" Value="0"/>
                                 <Setter Property="Grid.Row" TargetName="ContentPanel" Value="0"/>
                                 <Setter Property="Grid.Column" TargetName="HeaderPanel" Value="1"/>
