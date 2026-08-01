@@ -133,12 +133,29 @@
         <Grid Grid.Row="0" Name="GreedChartPanel" Margin="0,26,308,10">
             <Rectangle Name="RectChart"/>
             <Grid Name="GridChart"/>
-            <WindowsFormsHost Name="ChartHostPanel" Margin="26,23,0,0"/>
-            <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
-                <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
-                    <Grid Background="{DynamicResource ControlBackgroundNormalLight}"/>
-                </TabItem>
-            </TabControl>
+            <DockPanel LastChildFill="True">
+                <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" DockPanel.Dock="Left">
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="1">
+                                <WrapPanel IsItemsHost="True" Orientation="Vertical"/>
+                            </Border>
+                        </ControlTemplate>
+                    </TabControl.Template>
+                    <TabControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </TabControl.ItemsPanel>
+                    <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
+                        <Grid Background="{DynamicResource ControlBackgroundNormalLight}"/>
+                    </TabItem>
+                </TabControl>
+                <WindowsFormsHost Name="ChartHostPanel" Margin="0,23,0,0"/>
+            </DockPanel>
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>
         </Grid>
 

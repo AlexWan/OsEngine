@@ -2127,7 +2127,7 @@ namespace OsEngine.Journal
         {
             if (_visibleEquityLine)
             {
-                RectangleEquity.Fill = Brushes.White;
+                RectangleEquity.Fill = Themes.ThemeManager.GetBrush("JournalEquityTotalBrush");
             }
             else
             {
@@ -2136,20 +2136,20 @@ namespace OsEngine.Journal
 
             if (_visibleLongLine)
             {
-                RectangleLong.Fill = Brushes.DeepSkyBlue;
+                RectangleLong.Fill = Themes.ThemeManager.GetBrush("JournalSwatchLongBrush");
             }
             else
             {
-                RectangleLong.Fill = Themes.ThemeManager.GetBrush("JournalSwatchLongBrush");
+                RectangleLong.Fill = Brushes.Gray;
             }
 
             if (_visibleShortLine)
             {
-                RectangleShort.Fill = Brushes.DarkOrange;
+                RectangleShort.Fill = Themes.ThemeManager.GetBrush("JournalSwatchShortBrush");
             }
             else
             {
-                RectangleShort.Fill = Themes.ThemeManager.GetBrush("JournalSwatchShortBrush");
+                RectangleShort.Fill = Brushes.Gray;
             }
         }
 

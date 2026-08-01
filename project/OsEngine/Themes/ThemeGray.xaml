@@ -25,6 +25,7 @@
         <SolidColorBrush x:Key="CheckBoxBackBrush" Color="#16181C"/>
         <SolidColorBrush x:Key="WindowFrameBrush" Color="#59616B"/>
         <SolidColorBrush x:Key="WindowFrameInactiveBrush" Color="#AEB4BE"/>
+        <SolidColorBrush x:Key="ProgressLabelBrush" Color="#16181C"/>
         <Color x:Key="GridTextInactiveColor">#59616B</Color>
         <Color x:Key="GridCellDisabledColor">#9AA2AD</Color>
         <Color x:Key="GridButtonBackColor">#E0E6EE</Color>

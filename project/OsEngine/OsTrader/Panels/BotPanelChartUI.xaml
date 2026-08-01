@@ -125,12 +125,29 @@
                     </Button.RenderTransform>
                 </Button>
             </Grid>
-            <WindowsFormsHost Name="ChartHostPanel" Margin="26,23,0,0"/>
-            <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,25.667" Width="28">
-                <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
-                    <Grid Background="{DynamicResource ControlBackgroundNormalLight}"/>
-                </TabItem>
-            </TabControl>
+            <DockPanel LastChildFill="True">
+                <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,10,0,25.667" DockPanel.Dock="Left">
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="1">
+                                <WrapPanel IsItemsHost="True" Orientation="Vertical"/>
+                            </Border>
+                        </ControlTemplate>
+                    </TabControl.Template>
+                    <TabControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </TabControl.ItemsPanel>
+                    <TabItem Header=" 1" Margin="0,0,0,-5" VerticalAlignment="Top" >
+                        <Grid Background="{DynamicResource ControlBackgroundNormalLight}"/>
+                    </TabItem>
+                </TabControl>
+                <WindowsFormsHost Name="ChartHostPanel" Margin="0,23,0,0"/>
+            </DockPanel>
             <Grid Name="GridChartControlPanel" Height="23" Margin="26,0,4,0" VerticalAlignment="Top"/>
         </Grid>
         <Button Name="ButtonHideInformPanel" Content=">" HorizontalAlignment="Left" Margin="1,0,0,1" Grid.Row="1" VerticalAlignment="Bottom" Width="22" RenderTransformOrigin="0.5,0.5" Height="22" Click="ButtonHideInformPanel_Click">

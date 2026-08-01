@@ -44,11 +44,30 @@
 
 ## 3. Как создать свою тему
 
+### 3.1. Быстрый путь — БЕЗ пересборки (рекомендуется для экспериментов)
+
 1. Скопируй любой словарь `OsEngine/Themes/Theme<Id>.xaml` (например,
-   `ThemeMidnight.xaml`) → `Theme<MyTheme>.xaml`.
-2. Заполни **все ключи** своими значениями (реестр — раздел 4).
+   `ThemeMidnight.xaml`) → `Engine\Themes\MyTheme.xaml` **рядом с exe**
+   (`OsEngine/bin/Debug/Engine/Themes/` — создай папку, если её нет).
+2. Заполни все ключи своими значениями (реестр — раздел 4).
    Валидация при загрузке подскажет в логе, чего не хватает.
 3. Задай `<system:String x:Key="ThemeDisplayName">Имя темы</system:String>`.
+4. Перезапусти приложение — тема появится в окне выбора сама.
+   Картинки главного меню не нужны — подставятся из DarkOrange.
+   Схема чарта без своей ветки в `SetThemeScheme` — из DarkOrange.
+
+**Важно:** темы из `Engine\Themes` НЕ попадают в git-репозиторий
+(папка `Engine` — рабочая, рядом с exe). Это локальный способ.
+
+### 3.2. Путь с PR на GitHub (тема для всех пользователей)
+
+1. Скопируй словарь → `OsEngine/Themes/Theme<MyTheme>.xaml`.
+   XAML подхватится сборкой автоматически (SDK-глоб), в csproj ничего
+   добавлять не надо.
+2. Заполни все ключи + `ThemeDisplayName`.
+3. **Пересобери проект** (`dotnet build OsEngine/OsEngine.csproj`) и
+   запусти из `OsEngine/bin/Debug` — только после пересборки тема
+   появится в окне выбора.
 4. Картинки главного меню — опционально:
    `OsEngine/Images/MainWIndow/Themes/<Id>/{data,test,trading,gear}.png`
    + записи `<Resource Include>` в `OsEngine.csproj`.
@@ -59,9 +78,6 @@
    Тестер, Журнал, OsData, настройки.
 7. PR на GitHub: словарь в `OsEngine/Themes/`, при необходимости
    картинки и ветка в `SetThemeScheme`.
-
-**Быстрый путь без PR:** положи словарь в `Engine\Themes\` рядом
-с exe — тема появится в окне выбора сама.
 
 ## 4. Реестр ключей (обязательны все)
 
@@ -143,7 +159,9 @@
 ### 4.8. Оптимизатор
 
 `OptimizerChartTextColor`, `OptimizerCursorColor`,
-`OptimizerStageCellColor`, `OptimizerProfitBarColor`.
+`OptimizerStageCellColor`, `OptimizerProfitBarColor`,
+`ProgressLabelBrush` (лейблы «Общий прогресс» и время до конца:
+в тёмных — светлый, в светлых — тёмный).
 
 ## 5. Чек-лист приёмки темы
 
