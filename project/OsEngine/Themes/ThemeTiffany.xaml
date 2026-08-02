@@ -16,6 +16,7 @@
 
         <SolidColorBrush x:Key="ControlForeground" Color="#0ABAB5" />
         <SolidColorBrush x:Key="ControlForegroundWhite" Color="#0C2421" />
+        <SolidColorBrush x:Key="CaretBrush" Color="#000000" />
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#4E6E69" />
         <SolidColorBrush x:Key="LabelForegroundBrush" Color="#0B8F8A" />
         <Color x:Key="GridTextColor">#14312D</Color>

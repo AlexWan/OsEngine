@@ -98,6 +98,7 @@
 ### 4.2. Основная палитра (базовые ключи из App.xaml)
 
 `ControlForeground` (акцент), `ControlForegroundWhite` (основной текст!),
+`CaretBrush` (текстовый курсор в полях ввода: в светлых темах — чёрный),
 `ColorForeground`, `ColorForegroundWhite`, `TextSecondaryBrush`,
 `LabelForegroundBrush`, `StandardBackgroundBrush`,
 `ControlBackgroundNormal` (кнопки/ввод), `ControlBackgroundNormalLight`

@@ -525,7 +525,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource ControlForegroundWhite}" />
-            <Setter Property="CaretBrush" Value="{DynamicResource ControlBackgroundOver}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource CaretBrush}"/>
             <Setter Property="AllowDrop" Value="True"/>
             <Setter Property="Height" Value="23"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -562,7 +562,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource ControlForegroundWhite}" />
-            <Setter Property="CaretBrush" Value="{DynamicResource ControlBackgroundOver}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource CaretBrush}"/>
             <Setter Property="AllowDrop" Value="True"/>
             <Setter Property="Height" Value="23"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -698,7 +698,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource ControlBackgroundOver}" />
-            <Setter Property="CaretBrush" Value="{DynamicResource ControlBackgroundOver}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource CaretBrush}"/>
             <Setter Property="AllowDrop" Value="True"/>
             <Setter Property="Height" Value="23"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
