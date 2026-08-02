@@ -196,7 +196,7 @@ namespace OsEngine.Market.Servers
 
                     if (haveErrorInSomePortfolio == true)
                     {
-                        Thread.Sleep(TimeDelaySeconds);
+                        Thread.Sleep(TimeDelaySeconds * 1000);
 
                         portfolios = UpdateCompareData();
 
