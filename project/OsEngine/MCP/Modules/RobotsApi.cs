@@ -4232,6 +4232,11 @@ namespace OsEngine.MCP.Modules
             List<Position> positions = GetPositions(master, botName, PositionSet.ClosedAndOpen);
             List<Position> deals = positions.FindAll(p => p.State != PositionStateType.OpeningFail);
 
+            if (deals != null && deals.Count > 1)
+            {
+                deals = deals.OrderBy(p => p.TimeOpen).ToList();
+            }
+
             decimal totalProfitAbs = 0;
             decimal totalProfitPercent = 0;
             DateTime periodStart = DateTime.MinValue;
@@ -4300,6 +4305,11 @@ namespace OsEngine.MCP.Modules
             List<Position> positions = GetPositions(master, botName, PositionSet.ClosedAndOpen);
             List<Position> deals = positions.FindAll(p => p.State != PositionStateType.OpeningFail);
             deals = FilterBySide(deals, side);
+
+            if (deals != null && deals.Count > 1)
+            {
+                deals = deals.OrderBy(p => p.TimeOpen).ToList();
+            }
 
             if (deals.Count == 0)
             {
@@ -4389,6 +4399,11 @@ namespace OsEngine.MCP.Modules
 
             List<Position> positions = GetPositions(master, botName, PositionSet.ClosedAndOpen);
             List<Position> deals = positions.FindAll(p => p.State != PositionStateType.OpeningFail);
+
+            if (deals != null && deals.Count > 1)
+            {
+                deals = deals.OrderBy(p => p.TimeOpen).ToList();
+            }
 
             List<object> points = new List<object>();
 

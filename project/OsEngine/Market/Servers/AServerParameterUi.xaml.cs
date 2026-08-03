@@ -559,35 +559,37 @@ namespace OsEngine.Market.Servers
 
             LabelCurrentConnectionName.Content = label;
 
+            Color selectRowColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
+            Color normalRowColor = Themes.ThemeManager.GetColorWinForms("GridTextColor");
+
             for (int i2 = 0; _gridConnections != null && i2 < _gridConnections.Rows.Count; i2++)
             {
                 DataGridViewRow row = _gridConnections.Rows[i2];
 
-                if (i2 == number)
+                for (int i = 0; i < row.Cells.Count; i++)
                 {
-                    for (int i = 0; i < row.Cells.Count; i++)
+                    if (i == 3)
                     {
-                        if (i == 3)
-                        {
-                            continue;
-                        }
-                        row.Cells[i].Style.ForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
-                        row.Cells[i].Style.SelectionForeColor = Themes.ThemeManager.GetColorWinForms("OptimizerCursorColor");
+                        continue;
                     }
-                }
-                else
-                {
-                    for (int i = 0; i < row.Cells.Count; i++)
-                    {
-                        if (i == 3)
-                        {
-                            continue;
-                        }
 
-                        // клон: иначе все ячейки делят один объект стиля
-                        // и покраска выделенной строки протекает на всю таблицу
-                        row.Cells[i].Style = (DataGridViewCellStyle)_gridConnections.DefaultCellStyle.Clone();
+                    // каждой ячейке — свой клон стиля с явным цветом текста:
+                    // иначе покраска выделенной строки протекает на всю таблицу,
+                    // а у DefaultCellStyle этого грида чёрный ForeColor
+                    DataGridViewCellStyle style = (DataGridViewCellStyle)_gridConnections.DefaultCellStyle.Clone();
+
+                    if (i2 == number)
+                    {
+                        style.ForeColor = selectRowColor;
+                        style.SelectionForeColor = selectRowColor;
                     }
+                    else
+                    {
+                        style.ForeColor = normalRowColor;
+                        style.SelectionForeColor = normalRowColor;
+                    }
+
+                    row.Cells[i].Style = style;
                 }
             }
 
