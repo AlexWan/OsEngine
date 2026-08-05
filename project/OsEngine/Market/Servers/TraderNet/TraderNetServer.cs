@@ -11,7 +11,6 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.TraderNet.Entity;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -33,6 +32,7 @@ namespace OsEngine.Market.Servers.TraderNet
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum(OsLocalization.ConvertToLocString("Eng:Portfolio currency_Ru:Валюта портфеля_"), "RUR", new List<string> { "RUR", "USD" });
+            CreateParameterEnum(OsLocalization.ConvertToLocString("Eng:Server address_Ru:Адрес сервера_"), ".RU", new List<string> {".RU", ".COM"});
         }
     }
 
@@ -46,12 +46,10 @@ namespace OsEngine.Market.Servers.TraderNet
 
             Thread threadMessageReader = new Thread(MessageReader);
             threadMessageReader.Name = "MessageReader";
-            threadMessageReader.IsBackground = true;
             threadMessageReader.Start();
 
             Thread threadUpdateSubscribe = new Thread(ThreadUpdatePortfolio);
             threadUpdateSubscribe.Name = "ThreadUpdatePortfolio";
-            threadUpdateSubscribe.IsBackground = true;
             threadUpdateSubscribe.Start();
         }
 
@@ -60,6 +58,17 @@ namespace OsEngine.Market.Servers.TraderNet
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _portfolioCurrency = ((ServerParameterEnum)ServerParameters[2]).Value;
+
+            if (((ServerParameterEnum)ServerParameters[3]).Value == ".RU")
+            {
+                _baseUrl = "https://tradernet.ru";
+                _webSocketUrl = "wss://wss.tradernet.ru";
+    }
+            else
+            {
+                _baseUrl = "https://tradernet.com";
+                _webSocketUrl = "wss://wss.tradernet.com";
+            }
 
             if (string.IsNullOrEmpty(_publicKey) ||
                 string.IsNullOrEmpty(_secretKey))
@@ -72,18 +81,13 @@ namespace OsEngine.Market.Servers.TraderNet
             try
             {
                 Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
-                data.Add("apiKey", _publicKey);
-                data.Add("cmd", "getSidInfo");
+                data.Add("market", "*");
 
-                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/v2/cmd/getSidInfo", "POST", null, data);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getMarketStatus", "POST", null, data);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-                GetSID result = JsonConvert.DeserializeObject<GetSID>(JsonResponse);
-                _sid = result.SID;
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-
                     CreateWebSocketConnection();
                 }
                 else
@@ -159,13 +163,13 @@ namespace OsEngine.Market.Servers.TraderNet
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private string _baseUrl = "https://tradernet.ru";
+        private string _baseUrl;
+
+        private string _webSocketUrl;
 
         private string _publicKey;
 
         private string _secretKey;
-
-        private string _sid;
 
         private Dictionary<string, List<ListMdTiker>> _listMD = new Dictionary<string, List<ListMdTiker>>();
 
@@ -191,7 +195,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     _securities = new List<Security>();
                 }
 
-                List<string> listSecurities = GetSecList(_sid);
+                List<string> listSecurities = GetSecList();
 
                 if (listSecurities == null)
                 {
@@ -230,7 +234,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private List<string> GetSecList(string sid)
+        private List<string> GetSecList()
         {
             try
             {
@@ -238,14 +242,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
 
-                data.Add("cmd", "getUserStockLists");
-                data.Add("SID", sid);
-
-                Dictionary<string, object> qData = new Dictionary<string, object>();
-
-                qData.Add("q", data);
-
-                HttpResponseMessage responseMessage = CreateQuery($"/api/", "POST", null, qData);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getUserStockLists", "POST", null, data);
 
                 if (responseMessage == null)
                 {
@@ -290,19 +287,17 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 _rateGateSecurity.WaitToProceed();
 
-                RequestSecurity reqData = new RequestSecurity();
-                reqData.q = new RequestSecurity.Q();
-                reqData.q.cmd = "getAllSecurities";
-                reqData.q.@params = new RequestSecurity.Params();
-                reqData.q.@params.take = 50;
-                reqData.q.@params.filter = new RequestSecurity.Filter();
-                reqData.q.@params.filter.filters = new List<RequestSecurity.FilterItem>();
-                reqData.q.@params.filter.filters.Add(new RequestSecurity.FilterItem());
-                reqData.q.@params.filter.filters[0].field = "ticker";
-                reqData.q.@params.filter.filters[0].@operator = "in";
-                reqData.q.@params.filter.filters[0].value = strListSec;
+                RequestSecurity reqData = new RequestSecurity();                
+                reqData.take = 50;
+                reqData.filter = new RequestSecurity.Filter();
+                reqData.filter.filters = new List<RequestSecurity.FilterItem>();
+                reqData.filter.filters.Add(new RequestSecurity.FilterItem());
+                reqData.filter.filters[0].field = "ticker";
+                reqData.filter.filters[0].@operator = "in";
+                reqData.filter.filters[0].value = strListSec;
 
-                HttpResponseMessage responseMessage = CreateQuery("/api/", "POST", null, reqData);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getAllSecurities", "POST", null, reqData);
+
                 string jsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
                 DeserializeDataSecurity(jsonResponse);
@@ -435,14 +430,11 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                RequestSecurity reqData = new RequestSecurity();
-                reqData.q = new RequestSecurity.Q();
-                reqData.q.cmd = "getPositionJson";
-                reqData.q.@params = new RequestSecurity.Params();
-
-                HttpResponseMessage responseMessage = CreateQuery("/api/", "POST", null, reqData);
+                RequestSecurity reqData = new RequestSecurity();                
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getPositionJson", "POST", null, reqData);
 
                 if (responseMessage == null
+                    || responseMessage.ToString() == ""
                     || responseMessage.ToString().StartsWith("<")
                     || responseMessage.ToString().Contains("<!DOCTYPE"))
                 {
@@ -867,16 +859,14 @@ namespace OsEngine.Market.Servers.TraderNet
             try
             {
                 RequestCandle reqData = new RequestCandle();
-                reqData.q = new RequestCandle.Q();
-                reqData.q.cmd = "getHloc";
-                reqData.q.@params = new RequestCandle.Params();
-                reqData.q.@params.id = security.Name;
-                reqData.q.@params.timeframe = interval;
-                reqData.q.@params.count = 200;
-                reqData.q.@params.date_from = startTime.ToString("dd.MM.yyyy HH:mm");
-                reqData.q.@params.date_to = endTime.ToString("dd.MM.yyyy HH:mm");
+                
+                reqData.id = security.Name;
+                reqData.timeframe = interval;
+                reqData.count = 200;
+                reqData.date_from = startTime.ToString("dd.MM.yyyy HH:mm");
+                reqData.date_to = endTime.ToString("dd.MM.yyyy HH:mm");
 
-                HttpResponseMessage responseMessage = CreateQuery($"/api/", "POST", null, reqData);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getHloc", "POST", null, reqData);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
                 return ConvertCandles(JsonResponse, security);
@@ -1016,8 +1006,6 @@ namespace OsEngine.Market.Servers.TraderNet
 
         #region 6 WebSocket creation
 
-        private string _webSocketUrl = "wss://wss.tradernet.ru";
-
         private WebSocket _webSocket;
 
         private void CreateWebSocketConnection()
@@ -1029,13 +1017,15 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
 
-                string url = _webSocketUrl + $"/?SID={_sid}";
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                string signature = GenerateSignature("", timestamp);
+
+                string url = $"{_webSocketUrl}/?X-NtApi-PublicKey={Uri.EscapeDataString(_publicKey)}" +
+                             $"&X-NtApi-Timestamp={Uri.EscapeDataString(timestamp)}" +
+                             $"&X-NtApi-Sig={Uri.EscapeDataString(signature)}";
 
                 _webSocket = new WebSocket(url);
 
-                /*_webSocket.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocket.EmitOnPing = true;
                 _webSocket.OnOpen += WebSocket_Opened;
                 _webSocket.OnClose += WebSocket_Closed;
@@ -1343,6 +1333,8 @@ namespace OsEngine.Market.Servers.TraderNet
                             UpdateDepth(message);
                             continue;
                         }
+
+                        //SendLogMessage(message, LogMessageType.Error);
                     }
                 }
                 catch (Exception exception)
@@ -1439,7 +1431,7 @@ namespace OsEngine.Market.Servers.TraderNet
             try
             {
                 List<ResponseOrders> responseOrder = GetJsonString(message);
-                
+
                 for (int i = 0; i < responseOrder.Count; i++)
                 {
                     if (responseOrder[i].stat == "0" ||
@@ -1719,8 +1711,6 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 _rateGateSendOrder.WaitToProceed();
 
-                Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
-
                 Dictionary<string, dynamic> paramsDict = new Dictionary<string, dynamic>();
 
                 decimal volume = order.Volume * GetLotSecurity(order.SecurityNameCode);
@@ -1733,11 +1723,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 paramsDict.Add("expiration_id", "3");
                 paramsDict.Add("user_order_id", order.NumberUser.ToString());
 
-                data.Add("apiKey", _publicKey);
-                data.Add("cmd", "putTradeOrder");
-                data.Add("params", paramsDict);
-
-                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/v2/cmd/putTradeOrder", "POST", null, data);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/putTradeOrder", "POST", null, paramsDict);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
                 OrderResponse response = JsonConvert.DeserializeObject<OrderResponse>(JsonResponse);
@@ -1788,17 +1774,11 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 _rateGateCancelOrder.WaitToProceed();
 
-                Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
-
                 Dictionary<string, dynamic> paramsDict = new Dictionary<string, dynamic>();
 
                 paramsDict.Add("order_id", order.NumberMarket.ToString());
 
-                data.Add("apiKey", _publicKey);
-                data.Add("cmd", "delTradeOrder");
-                data.Add("params", paramsDict);
-
-                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/v2/cmd/delTradeOrder", "POST", null, data);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/delTradeOrder", "POST", null, paramsDict);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (!JsonResponse.Contains("result"))
@@ -1855,17 +1835,10 @@ namespace OsEngine.Market.Servers.TraderNet
 
             try
             {
-                Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
-
                 Dictionary<string, dynamic> paramsDict = new Dictionary<string, dynamic>();
-
                 paramsDict.Add("active_only", "0");
 
-                data.Add("apiKey", _publicKey);
-                data.Add("cmd", "getNotifyOrderJson");
-                data.Add("params", paramsDict);
-
-                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/v2/cmd/getNotifyOrderJson", "POST", null, data);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getNotifyOrderJson", "POST", null, paramsDict);
 
                 if (responseMessage == null
                     || responseMessage.ToString().StartsWith("<")
@@ -2028,17 +2001,10 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                Dictionary<string, dynamic> data = new Dictionary<string, dynamic>();
-
                 Dictionary<string, dynamic> paramsDict = new Dictionary<string, dynamic>();
-
                 paramsDict.Add("active_only", "1");
 
-                data.Add("cmd", "getNotifyOrderJson");
-                data.Add("apiKey", _publicKey);
-                data.Add("params", paramsDict);
-
-                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/v2/cmd/getNotifyOrderJson", "POST", null, data);
+                HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getNotifyOrderJson", "POST", null, paramsDict);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (JsonResponse.Contains("errMsg"))
@@ -2108,7 +2074,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     break;
                 case ("71"):
                     stateType = OrderStateType.Cancel;
-                    break;                
+                    break;
                 case ("70"):
                     stateType = OrderStateType.Fail;
                     break;
@@ -2149,136 +2115,20 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                string str = QueryData(reqData);
+                string str = JsonConvert.SerializeObject(reqData);
 
                 string url = $"{_baseUrl}{path}";
-                string strFromDict = StrFromDict(reqData);
-                string signature = GenerateSignature(_secretKey, strFromDict);
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                string signature = GenerateSignature(str, timestamp);                
 
                 _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-NtApi-PublicKey", _publicKey);
                 _httpClient.DefaultRequestHeaders.Add("X-NtApi-Sig", signature);
-
-                return _httpClient.PostAsync(url, new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")).Result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-        }
-
-        private string QueryData(Dictionary<string, object> reqData)
-        {
-            string str = "";
-
-            IDictionaryEnumerator enumFirst = reqData.GetEnumerator();
-
-            while (enumFirst.MoveNext())
-            {
-                if (enumFirst.Value is Dictionary<string, dynamic>)
-                {
-                    Dictionary<string, dynamic> value = (Dictionary<string, dynamic>)enumFirst.Value;
-
-                    IDictionaryEnumerator enumSec = value.GetEnumerator();
-
-                    while (enumSec.MoveNext())
-                    {
-                        if (enumSec.Value as string == null)
-                        {
-                            continue;
-                        }
-                        if (str != "")
-                        {
-                            str += "&";
-                        }
-
-                        string s = enumSec.Value as string;
-                        s = s.Replace(" ", "%20");
-                        s = s.Replace(":", "%3A");
-                        str += $"{enumFirst.Key}[{enumSec.Key}]={s}";
-                    }
-                    enumSec.Reset();
-
-                    continue;
-                }
-                if (str != "")
-                {
-                    str += "&";
-                }
-
-                str += $"{enumFirst.Key}={enumFirst.Value}";
-            }
-            enumFirst.Reset();
-
-            // Пример сборки строки:
-            //"apiKey=0e54f1028e8&cmd=getHloc&params[count]=-1&params[date_from]=15.08.2024%2000%3A00&params[date_to]=16.08.2024%2000%3A00&params[id]=TATN&params[intervalMode]=ClosedRay&params[timeframe]=1440";
-
-            return str;
-        }
-
-        public static string StrFromDict(Dictionary<string, object> dictionary)
-        {
-            List<string> strings = new List<string>();
-
-            SortedDictionary<string, object> sortedDict = new SortedDictionary<string, object>(dictionary);
-
-            IDictionaryEnumerator enumerator = sortedDict.GetEnumerator();
-
-            while (enumerator.MoveNext())
-            {
-                object value = enumerator.Value;
-
-                if (value is Dictionary<string, object>)
-                    value = StrFromDict((Dictionary<string, object>)value);
-                else if (value is List<object>)
-                    value = SimpleList((List<object>)value);
-                else
-                    value = value.ToString();
-
-                strings.Add($"{enumerator.Key}={value}");
-            }
-            enumerator.Reset();
-
-            // Пример сборки строки:
-            // apiKey=80dc85c96c1d0&cmd=getNotifyOrderJson&params=active_only=1
-
-            return string.Join("&", strings);
-        }
-
-        private static string SimpleList(List<object> rawList)
-        {
-            List<string> stringValues = new List<string>();
-
-            for (int i = 0; i < rawList.Count; i++)
-            {
-                string stringValue = rawList[i].ToString();
-                stringValues.Add($"'{stringValue}'");
-            }
-
-            string stringList = string.Join(", ", stringValues);
-            return $"[{stringList}]";
-        }
-
-        private HttpResponseMessage CreateQuery(string path, string method, string stringData, dynamic jsonData)
-        {
-            try
-            {
-                string json = stringData;
-                string contentType = "application/x-www-form-urlencoded";
-
-                if (jsonData != null)
-                {
-                    json = JsonConvert.SerializeObject(jsonData);
-                    contentType = "application/json";
-                }
-
-                string url = $"{_baseUrl}{path}";
-
-                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-NtApi-Timestamp", timestamp);
 
                 if (method.Equals("POST"))
                 {
-                    return _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, contentType)).Result;
+                    return _httpClient.PostAsync(url, new StringContent(str, Encoding.UTF8, "application/json")).Result;
                 }
                 else
                 {
@@ -2287,23 +2137,24 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }
 
-        public string GenerateSignature(string key, string message, string algorithmName = "sha256")
+        public string GenerateSignature(string message, string timestamp)
         {
-            using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
+            using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
 
             byte[] hash;
-            if (string.IsNullOrEmpty(message))
+
+            if (string.IsNullOrEmpty(message + timestamp))
             {
                 hash = hmac.ComputeHash(new byte[0]);
             }
             else
             {
-                hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message + timestamp));
             }
 
             return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();

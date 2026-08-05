@@ -3,29 +3,17 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.TraderNet.Entity
 {
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+
     public class RequestSecurity
     {
-        public Q q { get; set; }
+        public int? take;
 
-        [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-        public class Q
-        {
-            public string cmd { get; set; }
-            public Params @params { get; set; }
-            public string SID;
-        }
+        public int? skip;
 
-        [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+        public List<Sort> sort;
 
-        public class Params
-        {
-            public int? take;
-
-            public int? skip;
-
-            public List<Sort> sort;
-            public Filter filter { get; set; }
-        }
+        public Filter filter { get; set; }
 
         public class Sort
         {
