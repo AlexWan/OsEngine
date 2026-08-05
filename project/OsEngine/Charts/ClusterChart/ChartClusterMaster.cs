@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -190,7 +190,9 @@ namespace OsEngine.Charts.ClusterChart
             {
                 // if no one's subscribed to us and there's a mistake
                 // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(error.ToString());
+                // no MessageBox: it blocks a background thread in headless mode
+                // без MessageBox: в безлюдном режиме он блокирует фоновый поток
+                System.Diagnostics.Debug.WriteLine(error.ToString());
             }
         }
 
@@ -208,7 +210,9 @@ namespace OsEngine.Charts.ClusterChart
             {
                 // if no one's subscribed to us and there's a mistake
                 // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(message);
+                // no MessageBox: it blocks a background thread in headless mode
+                // без MessageBox: в безлюдном режиме он блокирует фоновый поток
+                System.Diagnostics.Debug.WriteLine(message);
             }
         }
 

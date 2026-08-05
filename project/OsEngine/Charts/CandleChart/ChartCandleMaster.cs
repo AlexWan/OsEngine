@@ -2115,7 +2115,9 @@ namespace OsEngine.Charts.CandleChart
             {
                 // if no one's subscribed to us and there's a mistake
                 // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(error.ToString());
+                // no MessageBox: it blocks a background thread in headless mode
+                // без MessageBox: в безлюдном режиме он блокирует фоновый поток
+                System.Diagnostics.Debug.WriteLine(error.ToString());
             }
         }
 
@@ -2133,7 +2135,9 @@ namespace OsEngine.Charts.CandleChart
             {
                 // if no one's subscribed to us and there's a mistake
                 // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(message);
+                // no MessageBox: it blocks a background thread in headless mode
+                // без MessageBox: в безлюдном режиме он блокирует фоновый поток
+                System.Diagnostics.Debug.WriteLine(message);
             }
         }
 
