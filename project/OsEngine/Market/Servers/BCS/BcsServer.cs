@@ -93,7 +93,6 @@ namespace OsEngine.Market.Servers.BCS
             try
             {
                 _myProxy = proxy;
-                _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
                 _accessTokenExpireTime = DateTime.MinValue;
@@ -247,8 +246,8 @@ namespace OsEngine.Market.Servers.BCS
 
         public void Dispose()
         {
-            _securities.Clear();
             _myPortfolios.Clear();
+            _securitiesLots.Clear();
 
             UnsubscribeAllSecurities();
             _subscribedSecurities.Clear();
@@ -333,6 +332,9 @@ namespace OsEngine.Market.Servers.BCS
 
         public void GetSecurities()
         {
+            if (_securities.Count > 0)
+                _securities.Clear();
+
             _useStock = ((ServerParameterBool)ServerParameters[1]).Value;
             _useFutures = ((ServerParameterBool)ServerParameters[2]).Value;
             _useCurrency = ((ServerParameterBool)ServerParameters[3]).Value;
@@ -626,6 +628,7 @@ namespace OsEngine.Market.Servers.BCS
         #region 4 Portfolios
 
         private List<Portfolio> _myPortfolios = new List<Portfolio>();
+        private Dictionary<string, decimal> _securitiesLots = [];
 
         public void GetPortfolios()
         {
@@ -658,6 +661,9 @@ namespace OsEngine.Market.Servers.BCS
 
         private void UpdateMyPortfolio(List<BcsPortfolio> bcsPortfolios)
         {
+            if (_securities.Count == 0)
+                return;
+
             List<string> accounts = GetAllAccounts(bcsPortfolios);
 
             for (int i = 0; i < accounts.Count; i++)
@@ -702,6 +708,7 @@ namespace OsEngine.Market.Servers.BCS
                                 {
                                     if (portfT365term.Find(p => p.ticker == portfolio.PositionOnBoard[k].SecurityNameCode) == null)
                                     {
+                                        _securitiesLots.Remove(portfolio.PositionOnBoard[k].SecurityNameCode);
                                         portfolio.PositionOnBoard.Remove(portfolio.PositionOnBoard[k]);
                                         k--;
                                     }
@@ -715,17 +722,40 @@ namespace OsEngine.Market.Servers.BCS
                         {
                             posPortf = new PositionOnBoard();
                             posPortf.SecurityNameCode = portfT365term[j].ticker;
-                            posPortf.ValueCurrent = quantity;
+
+                            Security security = _securities.Find(s => s.Name == portfT365term[j].ticker);
+
+                            if (security != null)
+                            {
+                                _securitiesLots[security.Name] = security.Lot;
+                                posPortf.ValueCurrent = quantity / security.Lot;
+                                posPortf.ValueBegin = quantity / security.Lot;
+                            }
+                            else
+                            {
+                                posPortf.ValueCurrent = quantity;
+                                posPortf.ValueBegin = quantity;
+                            }
+
                             posPortf.ValueBlocked = currBlocked;
                             posPortf.PortfolioName = portfT365term[j].account;
                             posPortf.UnrealizedPnl = currUnrealizedPl;
-                            posPortf.ValueBegin = quantity;
+
 
                             portfolio.SetNewPosition(posPortf);
                         }
                         else
                         {
-                            posPortf.ValueCurrent = quantity;
+
+                            if (_securitiesLots.TryGetValue(posPortf.SecurityNameCode, out decimal lot))
+                            {
+                                posPortf.ValueCurrent = quantity / lot;
+                            }
+                            else
+                            {
+                                posPortf.ValueCurrent = quantity;
+                            }
+
                             posPortf.ValueBlocked = currBlocked;
                             posPortf.UnrealizedPnl = currUnrealizedPl;
                         }
