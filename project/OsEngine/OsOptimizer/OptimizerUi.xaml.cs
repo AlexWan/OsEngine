@@ -789,16 +789,27 @@ namespace OsEngine.OsOptimizer
 
                 if (_testIsEnd)
                 {
-                    ProgressBarPrime.Maximum = 100;
-                    ProgressBarPrime.Value = 100;
+                    // запуск мог произойти через MCP API, минуя кнопку "Погнали!",
+                    // и тогда флаг никто не сбросил — живой прогон важнее флага
+                    bool isRunning = _master != null
+                        && _master._optimizerExecutor != null
+                        && _master._optimizerExecutor.IsRunning;
 
-                    for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
+                    if (isRunning == false)
                     {
-                        _progressBars[i2].Maximum = 100;
-                        _progressBars[i2].Value = 100;
+                        ProgressBarPrime.Maximum = 100;
+                        ProgressBarPrime.Value = 100;
+
+                        for (int i2 = 0; i2 > -1 && i2 < _progressBars.Count; i2++)
+                        {
+                            _progressBars[i2].Maximum = 100;
+                            _progressBars[i2].Value = 100;
+                        }
+
+                        return;
                     }
 
-                    return;
+                    _testIsEnd = false;
                 }
 
                 if (_master == null)
