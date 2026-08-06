@@ -303,7 +303,7 @@ namespace OsEngine.Market.Servers
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Market.Label140;
             colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum0);
 
             // Security
@@ -327,7 +327,7 @@ namespace OsEngine.Market.Servers
             colum3.CellTemplate = cell0;
             colum3.HeaderText = OsLocalization.Market.Label142;
             colum3.ReadOnly = true;
-            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum3);
 
             // Robots Short
@@ -335,7 +335,7 @@ namespace OsEngine.Market.Servers
             colum4.CellTemplate = cell0;
             colum4.HeaderText = OsLocalization.Market.Label143;
             colum4.ReadOnly = true;
-            colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum4);
 
             // Robots Common
@@ -343,7 +343,7 @@ namespace OsEngine.Market.Servers
             colum5.CellTemplate = cell0;
             colum5.HeaderText = OsLocalization.Market.Label144;
             colum5.ReadOnly = true;
-            colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum5);
 
             // Portfolio Long
@@ -351,7 +351,7 @@ namespace OsEngine.Market.Servers
             colum6.CellTemplate = cell0;
             colum6.HeaderText = OsLocalization.Market.Label145;
             colum6.ReadOnly = true;
-            colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum6);
 
             // Portfolio Short
@@ -359,7 +359,7 @@ namespace OsEngine.Market.Servers
             colum7.CellTemplate = cell0;
             colum7.HeaderText = OsLocalization.Market.Label146;
             colum7.ReadOnly = true;
-            colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum7);
 
             // Portfolio Common
@@ -367,7 +367,7 @@ namespace OsEngine.Market.Servers
             colum8.CellTemplate = cell0;
             colum8.HeaderText = OsLocalization.Market.Label147;
             colum8.ReadOnly = true;
-            colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum8);
 
             // Is Ignored
@@ -375,7 +375,7 @@ namespace OsEngine.Market.Servers
             colum9.CellTemplate = cell0;
             colum9.HeaderText = OsLocalization.Market.Label158;
             colum9.ReadOnly = false;
-            colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum9);
 
             // Sync
@@ -383,7 +383,7 @@ namespace OsEngine.Market.Servers
             colum10.CellTemplate = new DataGridViewButtonCell();
             colum10.HeaderText = "";
             colum10.ReadOnly = true;
-            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(colum10);
 
             Host.Child = _grid;
