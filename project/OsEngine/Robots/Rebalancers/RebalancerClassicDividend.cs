@@ -43,7 +43,7 @@ namespace OsEngine.Robots.Rebalancers
         private StrategyParameterString _rebalanceDayOfWeek;
         private StrategyParameterTimeOfDay _rebalanceTime;
 
-        private StrategyParameterString _detailedLoggingEnabled;
+        private StrategyParameterBool _fullOrderLog;
 
         private StrategyParameterDecimal _stocksWeightPercent;
         private StrategyParameterString _classicModeEnabled;
@@ -61,6 +61,9 @@ namespace OsEngine.Robots.Rebalancers
         private DateTime _lastRebalanceDate = DateTime.MinValue;
         private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
 
+        // время последней завершённой свечи для приписки в логах ребалансировки
+        private string _rebalanceLogStamp = "";
+
         private bool _dividendsUpdating = false;
 
         #endregion
@@ -75,7 +78,7 @@ namespace OsEngine.Robots.Rebalancers
             _rebalanceDayOfWeek = CreateParameter("Rebalance day of week", "Tuesday", new[] { "Monday", "Tuesday", "Wednesday" }, "Base");
             _rebalanceTime = CreateParameterTimeOfDay("Rebalance time", 11, 0, 0, 0, "Base");
 
-            _detailedLoggingEnabled = CreateParameter("Detailed logging enabled", "Off", new[] { "On", "Off" }, "Base");
+            _fullOrderLog = CreateParameter("Full order log", false, "Base");
 
             _classicModeEnabled = CreateParameter("Classic mode enabled", "On", new[] { "On", "Off" }, "Classic");
             _stocksWeightPercent = CreateParameter("Stocks weight percent", 60.0m, 10.0m, 100.0m, 1.0m, "Classic");
@@ -189,6 +192,12 @@ namespace OsEngine.Robots.Rebalancers
             try
             {
                 SendNewLogMessage("Manual rebalance requested", LogMessageType.System);
+
+                // фиксируем дату, чтобы авто-ребалансировка сегодня повторно не сработала
+                _lastRebalanceDate = TimeServer;
+
+                _rebalanceLogStamp = TimeServer.ToString("dd.MM.yyyy HH:mm");
+
                 ExecuteRebalance();
             }
             catch (Exception error)
@@ -208,13 +217,13 @@ namespace OsEngine.Robots.Rebalancers
 
                 if (tabs == null
                     || tabs.Count == 0
-                    || tabs[0].CandlesAll == null
-                    || tabs[0].CandlesAll.Count < 10)
+                    || tabs[0].CandlesFinishedOnly == null
+                    || tabs[0].CandlesFinishedOnly.Count < 10)
                 {
                     return;
                 }
 
-                Candle lastCandle = tabs[0].CandlesAll[tabs[0].CandlesAll.Count - 1];
+                Candle lastCandle = tabs[0].CandlesFinishedOnly[tabs[0].CandlesFinishedOnly.Count - 1];
                 DateTime serverTime = TimeServer;
 
                 if (serverTime == DateTime.MinValue)
@@ -230,6 +239,8 @@ namespace OsEngine.Robots.Rebalancers
                 if (_lastRebalanceDate.Date != serverTime.Date
                     && IsRebalanceTime(serverTime, lastCandle, tabs[0]))
                 {
+                    _lastRebalanceDate = serverTime;
+                    _rebalanceLogStamp = lastCandle.TimeStart.ToString("dd.MM.yyyy HH:mm");
                     ExecuteRebalance();
                 }
             }
@@ -409,8 +420,6 @@ namespace OsEngine.Robots.Rebalancers
         {
             try
             {
-                _lastRebalanceDate = TimeServer;
-
                 decimal totalCapital = GetCurrentCapital();
 
                 if (totalCapital <= 0)
@@ -435,11 +444,13 @@ namespace OsEngine.Robots.Rebalancers
                     return;
                 }
 
+                LogDetailed($"Real rebalance: total capital {totalCapital}, trade deposit {tradeDeposit}, targets {targetVolumes.Count}");
+
                 ClosePositionsNotInTarget(targetVolumes);
                 OpenMissingPositions(targetVolumes);
                 AdjustExistingPositions(targetVolumes);
 
-                SendNewLogMessage("Real rebalance finished", LogMessageType.System);
+                SendNewLogMessage("Real rebalance finished. LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
             }
             catch (Exception error)
             {
@@ -589,6 +600,8 @@ namespace OsEngine.Robots.Rebalancers
 
                 for (int j = 0; j < positions.Count; j++)
                 {
+                    LogDetailed($"Close extra stock position: {positions[j].SecurityName}, volume {positions[j].OpenVolume}");
+
                     tab.CloseAtMarket(positions[j], positions[j].OpenVolume);
                 }
             }
@@ -603,6 +616,8 @@ namespace OsEngine.Robots.Rebalancers
 
                 for (int i = 0; i < positions.Count; i++)
                 {
+                    LogDetailed($"Close extra gold position: volume {positions[i].OpenVolume}");
+
                     _tabGold.CloseAtMarket(positions[i], positions[i].OpenVolume);
                 }
             }
@@ -637,6 +652,8 @@ namespace OsEngine.Robots.Rebalancers
                 {
                     continue;
                 }
+
+                LogDetailed($"Open missing position: {tab.Security.Name}, volume {targetVolume}, price {price}");
 
                 tab.BuyAtMarket(targetVolume);
             }
@@ -691,10 +708,14 @@ namespace OsEngine.Robots.Rebalancers
 
                 if (targetVolume > currentVolume)
                 {
+                    LogDetailed($"Adjust position up: {tab.Security.Name}, current {currentVolume}, target {targetVolume}, buy {targetVolume - currentVolume}");
+
                     tab.BuyAtMarketToPosition(position, targetVolume - currentVolume);
                 }
                 else if (targetVolume < currentVolume)
                 {
+                    LogDetailed($"Adjust position down: {tab.Security.Name}, current {currentVolume}, target {targetVolume}, close {currentVolume - targetVolume}");
+
                     tab.CloseAtMarket(position, currentVolume - targetVolume);
                 }
             }
@@ -725,12 +746,10 @@ namespace OsEngine.Robots.Rebalancers
         {
             try
             {
-                _lastRebalanceDate = TimeServer;
-
                 CloseAllStockPositions();
                 CloseGoldPosition();
 
-                SendNewLogMessage("Rebalance started", LogMessageType.System);
+                SendNewLogMessage("Rebalance started. LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
 
                 decimal totalCapital = GetCurrentCapital();
 
@@ -750,13 +769,19 @@ namespace OsEngine.Robots.Rebalancers
 
                 List<CandidateInfo> candidatesWithDividends = GetCandidatesToDividendsNextPeriod();
 
+                LogDetailed($"Rebalance: total capital {totalCapital}, trade deposit {tradeDeposit}, dividend candidates {candidatesWithDividends.Count}");
+
                 if (_dividendModeEnabled.ValueString == "On"
                     && candidatesWithDividends.Count > 0)
                 {
+                    LogDetailed("Open positions in dividend mode");
+
                     OpenPositionsInDividendMode(candidatesWithDividends, tradeDeposit);
                 }
                 else if (_classicModeEnabled.ValueString == "On")
                 {
+                    LogDetailed("Open positions in classic mode");
+
                     OpenPositionsInClassicMode(tradeDeposit);
                 }
                 else
@@ -764,7 +789,7 @@ namespace OsEngine.Robots.Rebalancers
                     SendNewLogMessage("Rebalance skipped: both modes are disabled or no dividend candidates", LogMessageType.System);
                 }
 
-                SendNewLogMessage("Rebalance finished", LogMessageType.System);
+                SendNewLogMessage("Rebalance finished. LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
             }
             catch (Exception error)
             {
@@ -1090,6 +1115,8 @@ namespace OsEngine.Robots.Rebalancers
 
                 for (int i2 = 0; i2 < positions.Count; i2++)
                 {
+                    LogDetailed($"Close stock position: {positions[i2].SecurityName}, volume {positions[i2].OpenVolume}");
+
                     tab.CloseAtMarket(positions[i2], positions[i2].OpenVolume);
                 }
             }
@@ -1106,6 +1133,8 @@ namespace OsEngine.Robots.Rebalancers
 
             for (int i = 0; i < positions.Count; i++)
             {
+                LogDetailed($"Close gold position: volume {positions[i].OpenVolume}");
+
                 _tabGold.CloseAtMarket(positions[i], positions[i].OpenVolume);
             }
         }
@@ -1131,6 +1160,8 @@ namespace OsEngine.Robots.Rebalancers
                 return;
             }
 
+            LogDetailed($"Entry order: {tab.Security.Name}, volume {volumeToBuy}, money {targetMoney}, price {price}");
+
             tab.BuyAtMarket(volumeToBuy);
         }
 
@@ -1140,9 +1171,9 @@ namespace OsEngine.Robots.Rebalancers
 
         private void LogDetailed(string message)
         {
-            if (_detailedLoggingEnabled.ValueString == "On")
+            if (_fullOrderLog.ValueBool == true)
             {
-                SendNewLogMessage(message, LogMessageType.System);
+                SendNewLogMessage(message + ". LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
             }
         }
 

@@ -50,8 +50,13 @@ namespace OsEngine.Robots.Rebalancers
         private StrategyParameterButton _startUpdateDividendsButton;
         private StrategyParameterButton _rebalanceNowButton;
 
+        private StrategyParameterBool _fullOrderLog;
+
         private DateTime _lastRebalanceDate = DateTime.MinValue;
         private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
+
+        // время последней завершённой свечи для приписки в логах ребалансировки
+        private string _rebalanceLogStamp = "";
 
         private bool _dividendsUpdating = false;
 
@@ -77,6 +82,8 @@ namespace OsEngine.Robots.Rebalancers
 
             _rebalanceNowButton = CreateParameterButton("Rebalance NOW", "Base");
             _rebalanceNowButton.UserClickOnButtonEvent += RebalanceNowButton_UserClickOnButtonEvent;
+
+            _fullOrderLog = CreateParameter("Full order log", false, "Base");
 
             _tabScreenerStocks = TabCreate<BotTabScreener>();
             _tabLqdt = TabCreate<BotTabSimple>();
@@ -142,13 +149,13 @@ namespace OsEngine.Robots.Rebalancers
 
                 if (tabs == null
                     || tabs.Count == 0
-                    || tabs[0].CandlesAll == null
-                    || tabs[0].CandlesAll.Count < 10)
+                    || tabs[0].CandlesFinishedOnly == null
+                    || tabs[0].CandlesFinishedOnly.Count < 10)
                 {
                     return;
                 }
 
-                Candle lastCandle = tabs[0].CandlesAll[tabs[0].CandlesAll.Count - 1];
+                Candle lastCandle = tabs[0].CandlesFinishedOnly[tabs[0].CandlesFinishedOnly.Count - 1];
                 DateTime serverTime = TimeServer;
 
                 if (serverTime == DateTime.MinValue)
@@ -164,6 +171,7 @@ namespace OsEngine.Robots.Rebalancers
                 if (_lastRebalanceDate.Date != serverTime.Date
                     && IsRebalanceTime(serverTime, lastCandle, tabs[0]))
                 {
+                    _rebalanceLogStamp = lastCandle.TimeStart.ToString("dd.MM.yyyy HH:mm");
                     ExecuteRebalance(serverTime);
                 }
             }
@@ -321,18 +329,31 @@ namespace OsEngine.Robots.Rebalancers
 
         #region Rebalance logic
 
+        // Подробный лог ордеров. Пишется только при включённом параметре Full order log
+        private void SendFullOrderLog(string message)
+        {
+            if (_fullOrderLog.ValueBool == true)
+            {
+                SendNewLogMessage(message + ". LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
+            }
+        }
+
         private void ExecuteRebalance(DateTime serverTime)
         {
             try
             {
                 _lastRebalanceDate = serverTime;
 
-                SendNewLogMessage("Rebalance started", LogMessageType.System);
+                SendNewLogMessage("Rebalance started. LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
 
                 List<CandidateInfo> candidates = GetCandidates();
 
+                SendFullOrderLog($"Rebalance: candidates {candidates.Count}");
+
                 if (candidates.Count == 0)
                 {
+                    SendFullOrderLog("No candidates. Close stocks, go to LQDT");
+
                     CloseAllStockPositions();
                     TryResetLqdtByYear();
 
@@ -344,11 +365,13 @@ namespace OsEngine.Robots.Rebalancers
                         decimal freeMoney = GetFreeMoney();
 
                         decimal availableCapital = targetCapital;
-                        
+
                         if(StartProgram == StartProgram.IsOsTrader)
                         {
                             availableCapital = Math.Min(targetCapital, freeMoney);
                         }
+
+                        SendFullOrderLog($"Entry LQDT: capital {capital}, target {targetCapital}, free {freeMoney}, to use {availableCapital}");
 
                         EntryInPosition(_tabLqdt, availableCapital);
                     }
@@ -363,12 +386,16 @@ namespace OsEngine.Robots.Rebalancers
                 decimal availableStockCapital = stockCapital * _maxStocksDepositPercent.ValueDecimal / 100m;
                 decimal moneyOnOneStock = availableStockCapital / candidates.Count;
 
+                SendFullOrderLog($"Stocks capital {stockCapital}, available {availableStockCapital}, money on one stock {moneyOnOneStock}");
+
                 for (int i = 0; i < candidates.Count; i++)
                 {
+                    SendFullOrderLog($"Entry in stock: {candidates[i].Ticker}, registry date {candidates[i].RegistryDate}, money {moneyOnOneStock}");
+
                     EntryInPosition(candidates[i].Tab, moneyOnOneStock);
                 }
 
-                SendNewLogMessage("Rebalance finished", LogMessageType.System);
+                SendNewLogMessage("Rebalance finished. LastFinishedCandle: " + _rebalanceLogStamp, LogMessageType.System);
             }
             catch (Exception error)
             {
@@ -381,6 +408,9 @@ namespace OsEngine.Robots.Rebalancers
             try
             {
                 SendNewLogMessage("Manual rebalance requested", LogMessageType.System);
+
+                _rebalanceLogStamp = TimeServer.ToString("dd.MM.yyyy HH:mm");
+
                 ExecuteRebalance(TimeServer);
             }
             catch (Exception error)
@@ -412,6 +442,8 @@ namespace OsEngine.Robots.Rebalancers
 
             decimal capital = GetCurrentCapital();
             decimal availableCapital = capital * _maxLqdtDepositPercent.ValueDecimal / 100m;
+
+            SendFullOrderLog($"LQDT year reset: close volume {lqdtPosition.OpenVolume}, reopen with money {availableCapital}");
 
             _tabLqdt.CloseAtMarket(lqdtPosition, lqdtPosition.OpenVolume);
             EntryInPosition(_tabLqdt, availableCapital);
@@ -494,6 +526,8 @@ namespace OsEngine.Robots.Rebalancers
 
                 for (int i2 = 0; i2 < positions.Count; i2++)
                 {
+                    SendFullOrderLog($"Close stock position: {positions[i2].SecurityName}, volume {positions[i2].OpenVolume}");
+
                     tab.CloseAtMarket(positions[i2], positions[i2].OpenVolume);
                 }
             }
@@ -510,6 +544,8 @@ namespace OsEngine.Robots.Rebalancers
 
             for (int i = 0; i < positions.Count; i++)
             {
+                SendFullOrderLog($"Close LQDT position: volume {positions[i].OpenVolume}");
+
                 _tabLqdt.CloseAtMarket(positions[i], positions[i].OpenVolume);
             }
         }
@@ -534,6 +570,8 @@ namespace OsEngine.Robots.Rebalancers
             {
                 return;
             }
+
+            SendFullOrderLog($"Entry order: {tab.Security.Name}, volume {volumeToBuy}, money {targetMoney}, price {price}");
 
             tab.BuyAtMarket(volumeToBuy);
         }

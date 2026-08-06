@@ -135,7 +135,7 @@ private void Server_EndNextMinuteWithCandlesEvent()
 
 ### 3.1. Триггер по времени
 
-Проверяйте день недели и время по `TimeServer` и свече:
+Проверяйте день недели и время по `TimeServer` и **последней завершённой свече** (`CandlesFinishedOnly[^1]`). Гард «раз в день» (`_lastRebalanceDate`) пишите один раз значением `serverTime` из места проверки.
 
 ```csharp
 private bool IsRebalanceTime(DateTime serverTime, Candle candle)
