@@ -90,6 +90,10 @@ namespace OsEngine.MCP.Modules
                         response.Result = SetBotParams(request.Params);
                         break;
 
+                    case "bot_click_param_button":
+                        response.Result = ClickBotParamButton(request.Params);
+                        break;
+
                     case "bot_get_sources":
                         response.Result = GetBotSources(request.Params);
                         break;
@@ -286,6 +290,21 @@ namespace OsEngine.MCP.Modules
                             }
                         },
                         required = new[] { "bot_id", "parameters" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_click_param_button",
+                    Description = "Click a Button-type strategy parameter of a robot (emulates user click in the parameters window)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            param_name = new { type = "string", description = "Button parameter name from bot_get_params" }
+                        },
+                        required = new[] { "bot_id", "param_name" }
                     }
                 },
                 new McpTool
@@ -1393,6 +1412,69 @@ namespace OsEngine.MCP.Modules
                 updated_count = updated.Count,
                 not_found = notFound,
                 not_found_count = notFound.Count
+            };
+        }
+
+        private object ClickBotParamButton(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            if (!parameters.TryGetProperty("param_name", out JsonElement paramNameElement)
+                || paramNameElement.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("param_name is required and must be a string");
+            }
+
+            string paramName = paramNameElement.GetString();
+
+            BotPanel bot = FindBot(master, botIdElement);
+
+            IIStrategyParameter param = bot.Parameters?.Find(p => p.Name == paramName);
+
+            if (param == null)
+            {
+                throw new ArgumentException($"Parameter '{paramName}' not found in robot '{bot.NameStrategyUniq}'");
+            }
+
+            if (param.Type != StrategyParameterType.Button)
+            {
+                throw new ArgumentException($"Parameter '{paramName}' of robot '{bot.NameStrategyUniq}' is not a button (type: {param.Type})");
+            }
+
+            StrategyParameterButton button = (StrategyParameterButton)param;
+
+            try
+            {
+                if (MainWindow.GetDispatcher.CheckAccess())
+                {
+                    button.Click();
+                }
+                else
+                {
+                    MainWindow.GetDispatcher.Invoke(() => button.Click());
+                }
+            }
+            catch (Exception error)
+            {
+                throw new InvalidOperationException(
+                    $"Click on button '{paramName}' of robot '{bot.NameStrategyUniq}' failed: {error.Message}", error);
+            }
+
+            return new
+            {
+                bot = bot.NameStrategyUniq,
+                param_name = button.Name,
+                clicked = true
             };
         }
 

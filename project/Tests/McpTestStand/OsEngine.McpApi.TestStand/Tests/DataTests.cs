@@ -37,6 +37,12 @@ namespace OsEngine.McpApi.TestStand.Tests
             _context.PrintModuleHeader(Module);
 
             TestOpenMode();
+
+            if (!WaitForOsDataMode())
+            {
+                return;
+            }
+
             CleanupAutoSets();
             TestGetSets();
             TestCreateSet();
@@ -223,6 +229,49 @@ namespace OsEngine.McpApi.TestStand.Tests
                 _context.PrintResponse("");
                 _context.RecordFail(Module, method, error.Message);
             }
+        }
+
+        private bool WaitForOsDataMode()
+        {
+            const string method = "data_get_sets";
+            DateTime deadline = DateTime.Now.AddSeconds(30);
+
+            while (DateTime.Now < deadline)
+            {
+                try
+                {
+                    string response = _context.Client.ToolsCall(method, new { });
+
+                    using (var document = JsonDocument.Parse(response))
+                    {
+                        JsonElement result = document.RootElement;
+
+                        if (result.TryGetProperty("IsError", out JsonElement isError) && !isError.GetBoolean()
+                            && result.TryGetProperty("Content", out JsonElement content) && content.GetArrayLength() > 0)
+                        {
+                            string text = content[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                            using (var innerDocument = JsonDocument.Parse(text))
+                            {
+                                // пока режим не открыт, API возвращает объект {code, message} вместо массива сетов
+                                if (innerDocument.RootElement.ValueKind == JsonValueKind.Array)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore and retry
+                }
+
+                Thread.Sleep(500);
+            }
+
+            _context.RecordFail(Module, method, "OsData mode is not available after open_mode");
+            return false;
         }
 
         private void TestGetSets()

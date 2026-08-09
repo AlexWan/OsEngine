@@ -260,6 +260,7 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `bot_delete` | Удалить робота |
 | `bot_get_params` | Получить параметры созданного робота |
 | `bot_set_params` | Установить параметры робота |
+| `bot_click_param_button` | Нажать на Button-параметр робота (эмуляция клика пользователя в окне параметров). Параметры: `bot_id`, `param_name`. Клик выполняется в UI-потоке; если обработчик кнопки робота падает, инструмент возвращает ошибку с текстом исключения |
 | `bot_get_sources` | Получить список источников (вкладок) робота |
 | `bot_get_config_tab_simple` | Получить конфигурацию вкладки `BotTabSimple` |
 | `bot_set_config_tab_simple` | Настроить вкладку `BotTabSimple` (сервер, портфель, эмулятор, комиссия, инструмент, свечи) |
@@ -995,6 +996,53 @@ curl -s -H "X-Api-Key: osengine-mcp-default-key" \
   http://localhost:6500/api/v1/mcp
 ```
 
+**tools/call (bot_click_param_button):**
+
+```bash
+curl -s -H "X-Api-Key: osengine-mcp-default-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"bot_click_param_button","arguments":{"bot_id":"Lesson2Bot1_1","param_name":"Button1. String"}},"id":42}' \
+  http://localhost:6500/api/v1/mcp
+```
+
+**Пример ответа `bot_click_param_button`:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "Content": [
+      {
+        "Type": "text",
+        "Text": "{\"bot\":\"Lesson2Bot1_1\",\"param_name\":\"Button1. String\",\"clicked\":true}"
+      }
+    ],
+    "IsError": false
+  },
+  "error": null,
+  "id": 42
+}
+```
+
+**Пример ошибки `bot_click_param_button`** (обработчик кнопки робота упал или параметр не Button):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "Content": [
+      {
+        "Type": "text",
+        "Text": "Parameter 'PC length' of robot 'TwoTimeFramesBot_1' is not a button (type: Int)"
+      }
+    ],
+    "IsError": true
+  },
+  "error": null,
+  "id": 42
+}
+```
+
 **tools/call (bot_get_sources):**
 
 ```bash
@@ -1230,7 +1278,7 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
 | Errors | HTTP 401, `-32601`, неизвестный инструмент, невалидные параметры |
 | Terminal | `ping`, `terminal_get_status`, `terminal_launch`, `terminal_stop`, `terminal_kill`, `terminal_open_mode` |
 | Data | `data_get_sets`, `data_create_set`, `data_delete_set`, `data_set_settings_get`, `data_set_settings_set`, `data_set_securities_get`, `data_set_securities_add`, `data_set_securities_remove`, `data_set_on`, `data_set_off`, `data_get_set_status`, `data_get_security_status` |
-| Robot | `bot_get_list`, `bot_create`, `bot_delete`, `bot_get_params`, `bot_set_params`, `bot_get_sources`, `bot_get_config_tab_simple`, `bot_set_config_tab_simple`, `bot_get_config_tab_screener`, `bot_set_config_tab_screener`, `bot_get_config_tab_index`, `bot_set_config_tab_index` |
+| Robot | `bot_get_list`, `bot_create`, `bot_delete`, `bot_get_params`, `bot_set_params`, `bot_click_param_button`, `bot_get_sources`, `bot_get_config_tab_simple`, `bot_set_config_tab_simple`, `bot_get_config_tab_screener`, `bot_set_config_tab_screener`, `bot_get_config_tab_index`, `bot_set_config_tab_index` |
 | Journal | `bot_journal_get_settings`, `bot_journal_set_settings`, `bot_journal_get_summary`, `bot_journal_get_equity`, `bot_journal_get_statistics`, `bot_journal_get_drawdown`, `bot_journal_get_volume`, `bot_journal_get_open_positions`, `bot_journal_get_closed_positions` |
 | Tester | `tester_data_get_config`, `tester_data_get_available_sets`, `tester_data_set_config`, `tester_execution_get_config`, `tester_execution_set_config`, `tester_portfolio_get_config`, `tester_portfolio_set_config`, `tester_start`, `tester_pause`, `tester_stop`, `tester_fast_forward`, `tester_step_forward`, `tester_get_status` |
 
@@ -1298,14 +1346,14 @@ WIKI_INDICATORS:   7/7 passed
 WIKI_SECURITIES:  12/12 passed
 WIKI_DIVIDENDS:   12/12 passed
 DATA:             16/16 passed
-TESTER:           37/37 passed
+TESTER:           43/43 passed
 TERMINAL:         13/13 passed
 SYSTEMLOAD:        4/4 passed
 COMPAREPOSITIONS:  5/5 passed
 PROXY:             8/8 passed
 OPTIMIZER:        19/19 passed
 
-Total: 164/164 passed in 338.6s
+Total: 170/170 passed in 338.6s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

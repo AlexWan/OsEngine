@@ -107,6 +107,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestBotCreate();
             TestBotGetParams();
             TestBotSetParams();
+            TestBotClickParamButton();
             TestBotGetSources();
             TestBotConfigTabSimple();
             TestBotPositionSupportSimple();
@@ -796,6 +797,167 @@ namespace OsEngine.McpApi.TestStand.Tests
             {
                 _context.PrintResponse("");
                 _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private void TestBotClickParamButton()
+        {
+            const string method = "bot_click_param_button";
+            const string createMethod = "bot_create";
+            const string deleteMethod = "bot_delete";
+            const string strategy = "Lesson2Bot1";
+            string? buttonBotName = null;
+
+            string[] buttons = new[]
+            {
+                "Button1. String",
+                "Button2. Int",
+                "Button3. Decimal",
+                "Button4. Bool",
+                "Button5. DateTime"
+            };
+
+            try
+            {
+                // the tool must be registered in tools/list
+                object listRequest = new { };
+                _context.PrintRequest(Module, "tools/list", listRequest);
+                string listResponse = _context.Client.SendRequest("tools/list", listRequest);
+                _context.PrintResponse(listResponse);
+
+                using (JsonDocument listDocument = JsonDocument.Parse(listResponse))
+                {
+                    JsonElement root = listDocument.RootElement;
+
+                    if (!root.TryGetProperty("Tools", out JsonElement tools))
+                    {
+                        _context.RecordFail(Module, "tools/list", "Tools array is missing");
+                        return;
+                    }
+
+                    bool registered = tools.EnumerateArray()
+                        .Any(t => t.GetProperty("name").GetString() == method);
+
+                    if (!registered)
+                    {
+                        _context.RecordFail(Module, "tools/list", $"{method} tool is missing");
+                        return;
+                    }
+
+                    _context.RecordPass(Module, "tools/list", $"{method} tool registered");
+                }
+
+                // create a robot whose parameters contain only buttons
+                object createRequest = new { strategy_name = strategy };
+                _context.PrintRequest(Module, createMethod, createRequest);
+                string createResponse = _context.Client.ToolsCall(createMethod, createRequest);
+                _context.PrintResponse(createResponse);
+
+                if (!TryParseConfig(createResponse, createMethod, out JsonElement createConfig))
+                {
+                    _context.RecordFail(Module, method, $"failed to create {strategy}");
+                    return;
+                }
+
+                buttonBotName = createConfig.GetProperty("name").GetString() ?? string.Empty;
+
+                // click every button of the robot
+                foreach (string buttonName in buttons)
+                {
+                    object request = new { bot_id = buttonBotName, param_name = buttonName };
+                    _context.PrintRequest(Module, method, request);
+                    string response = _context.Client.ToolsCall(method, request);
+                    _context.PrintResponse(response);
+
+                    if (!TryParseConfig(response, method, out JsonElement config))
+                    {
+                        return;
+                    }
+
+                    if (!config.TryGetProperty("clicked", out JsonElement clicked)
+                        || !clicked.GetBoolean())
+                    {
+                        _context.RecordFail(Module, method, $"clicked is false for '{buttonName}'");
+                        return;
+                    }
+
+                    if (!config.TryGetProperty("param_name", out JsonElement paramName)
+                        || paramName.GetString() != buttonName)
+                    {
+                        _context.RecordFail(Module, method, $"param_name mismatch for '{buttonName}'");
+                        return;
+                    }
+                }
+
+                _context.RecordPass(Module, method, $"clicked {buttons.Length} buttons on '{buttonBotName}'");
+
+                // negative cases: human-readable errors are expected
+                RecordClickButtonError(buttonBotName, "No such button", "not found");
+                RecordClickButtonError(_createdBotName, "PC length", "is not a button");
+                RecordClickButtonError("NoSuchBot_12345", buttons[0], "not found");
+                RecordClickButtonError(buttonBotName, null, "param_name is required");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, error.Message);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(buttonBotName))
+                {
+                    try
+                    {
+                        object deleteRequest = new { bot_id = buttonBotName };
+                        _context.PrintRequest(Module, deleteMethod, deleteRequest);
+                        string deleteResponse = _context.Client.ToolsCall(deleteMethod, deleteRequest);
+                        _context.PrintResponse(deleteResponse);
+                    }
+                    catch
+                    {
+                        // cleanup failure must not override the test result
+                    }
+                }
+            }
+        }
+
+        private void RecordClickButtonError(string botId, string? paramName, string expectedText)
+        {
+            const string method = "bot_click_param_button";
+            object request = paramName == null
+                ? (object)new { bot_id = botId }
+                : new { bot_id = botId, param_name = paramName };
+
+            _context.PrintRequest(Module, method, request);
+            string response = _context.Client.ToolsCall(method, request);
+            _context.PrintResponse(response);
+
+            using (JsonDocument document = JsonDocument.Parse(response))
+            {
+                JsonElement root = document.RootElement;
+
+                if (!root.TryGetProperty("IsError", out JsonElement isError)
+                    || isError.ValueKind != JsonValueKind.True)
+                {
+                    _context.RecordFail(Module, method, $"expected IsError=true for '{paramName}' on '{botId}'");
+                    return;
+                }
+
+                string text = string.Empty;
+
+                if (root.TryGetProperty("Content", out JsonElement content)
+                    && content.GetArrayLength() > 0)
+                {
+                    text = content[0].GetProperty("Text").GetString() ?? string.Empty;
+                }
+
+                if (!text.Contains(expectedText))
+                {
+                    _context.RecordFail(Module, method, $"error text does not contain '{expectedText}': {text}");
+                    return;
+                }
+
+                _context.RecordPass(Module, method, $"'{paramName ?? "<missing>"}' on '{botId}': {expectedText}");
             }
         }
 
