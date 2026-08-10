@@ -2159,30 +2159,14 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     newOrder.SecurityNameCode = security.Name;
                     newOrder.SecurityClassCode = security.NameClass;
-
-                    if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
-                    {
-                        newOrder.Volume = orderEvent.Data.LastQuantity.ToDecimal() / security.Lot;
-                    }
-                    else
-                    {
-                        newOrder.Volume = orderEvent.Data.OrderQuantity.ToDecimal() / security.Lot;
-                    }
+                    newOrder.Volume = orderEvent.Data.OrderQuantity.ToDecimal() / security.Lot;
                 }
                 else
                 {
                     newOrder.SecurityNameCode = orderEvent.Data.Ticker;
                     newOrder.SecurityClassCode = orderEvent.Data.ClassCode;
-
-                    if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
-                    {
-                        newOrder.Volume = orderEvent.Data.LastQuantity.ToDecimal();
-                    }
-                    else
-                    {
-                        newOrder.Volume = orderEvent.Data.OrderQuantity.ToDecimal();
-                    }
-                }
+                    newOrder.Volume = orderEvent.Data.OrderQuantity.ToDecimal();
+                 }
 
                 newOrder.TimeCallBack = ConvertUtsStringToDateTimeRu(orderEvent.Data.TransactionTime);
 
@@ -2263,7 +2247,7 @@ namespace OsEngine.Market.Servers.BCS
                 MyTrade trade = new MyTrade();
                 trade.SecurityNameCode = dealEvent.Data.Ticker;
                 trade.Price = price;
-                trade.Volume = dealEvent.Data.ExecutedQuantity.ToDecimal() / lot;
+                trade.Volume = dealEvent.Data.LastQuantity.ToDecimal() / lot;
                 trade.NumberOrderParent = orderNumber;
                 trade.NumberTrade = dealEvent.Data.ExecutionId;
                 trade.Time = ConvertUtsStringToDateTimeRu(dealEvent.Data.TransactionTime);
