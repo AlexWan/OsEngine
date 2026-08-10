@@ -227,7 +227,7 @@ namespace OsEngine.Market.Servers.Alor
         private bool _useOptions = false;
         private bool _useCurrency = false;
         private bool _useOther = false;
-        private bool _ignoreMorningAuctionTrades = true; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
+        private bool _ignoreMorningAuctionTrades = true; // ignore trades before 7:00 MSK
 
         private string _portfolioSpotId;
         private string _portfolioFutId;
@@ -1825,32 +1825,9 @@ namespace OsEngine.Market.Servers.Alor
 
             }
 
-            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
+            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 7)
             {
-                Security security = _subscribedSecurities[0];
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].Name == trade.SecurityNameCode)
-                    {
-                        security = _subscribedSecurities[i];
-                        break;
-                    }
-                }
-
-                if (security.SecurityType == SecurityType.Futures)
-                {
-                    if (trade.Time < trade.Time.Date.AddHours(9))
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    if (trade.Time < trade.Time.Date.AddHours(7))
-                    {
-                        return;
-                    }
-                }
+                return;
             }
 
 

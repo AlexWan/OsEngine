@@ -484,7 +484,7 @@ namespace OsEngine.Market.Servers.TInvest
         private bool _useOther = false;
 
         private bool _filterOutDealerData; // отфильтровать данные дилера (внутренняя ликвидность Т-Инвест, торги выходного дня)
-        private bool _ignoreMorningAuctionTrades; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
+        private bool _ignoreMorningAuctionTrades; // ignore trades before 7:00 MSK
         private string _accessToken;
 
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
@@ -2797,12 +2797,7 @@ namespace OsEngine.Market.Servers.TInvest
                     if (_ignoreMorningAuctionTrades)
                     {
                         var tradeTimeMsk = TimeZoneInfo.ConvertTimeFromUtc(trade.Time.ToDateTime(), _mskTimeZone);
-                        if (security.SecurityType == SecurityType.Stock && tradeTimeMsk.Hour < 7)
-                        {
-                            return;
-                        }
-                        if (security.SecurityType == SecurityType.Futures && tradeTimeMsk.Hour < 9
-                            && security.NameClass != "FuturesNeoSpb") // neo-assets trade from 7:00 MSK
+                        if (tradeTimeMsk.Hour < 7)
                         {
                             return;
                         }
@@ -3154,6 +3149,11 @@ namespace OsEngine.Market.Servers.TInvest
             newTrade.Side = Side.Buy;
             newTrade.Volume = 1;
             newTrade.Id = newTrade.Time.Ticks.ToString();
+
+            if (_ignoreMorningAuctionTrades && newTrade.Time.Hour < 7)
+            {
+                return;
+            }
 
             if (_openInterestData.ContainsKey(mySec.Name))
             {

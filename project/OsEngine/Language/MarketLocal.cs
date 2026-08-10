@@ -2037,8 +2037,8 @@ namespace OsEngine.Language
             "Ru:Игнорировать сделки утреннего аукциона_");
 
         public string IgnoreMorningAuctionTradesDescription => OsLocalization.ConvertToLocString(
-            "Eng:When enabled, ignores trades before 7.00 MSK (stocks) and 9.00 MSK (futures), the morning opening auction prints. They often gap from the previous close and create false signals in candles built from the trade feed._" +
-            "Ru:Если включено, игнорируются сделки до 7.00 МСК (акции) и до 9.00 МСК (фьючерсы), принты утреннего аукциона открытия. Они часто идут с гэпом относительно закрытия и дают ложные сигналы в свечах, построенных по ленте сделок._");
+            "Eng:When enabled, ignores trades before 7.00 MSK, the morning opening auction prints. They often gap from the previous close and create false signals in candles built from the trade feed._" +
+            "Ru:Если включено, игнорируются сделки до 7.00 МСК, принты утреннего аукциона открытия. Они часто идут с гэпом относительно закрытия и дают ложные сигналы в свечах, построенных по ленте сделок._");
 
         public string FilterOutDealerData => OsLocalization.ConvertToLocString(
             "Eng:Filter out T-Invest dealer (OTC) data_" +

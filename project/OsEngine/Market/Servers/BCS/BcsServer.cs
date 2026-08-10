@@ -302,7 +302,7 @@ namespace OsEngine.Market.Servers.BCS
         private bool _useBonds = false;
         private bool _useFunds = false;
         private bool _useOther = false;
-        private bool _ignoreMorningAuctionTrades = true; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
+        private bool _ignoreMorningAuctionTrades = true; // ignore trades before 7:00 MSK
 
 
         private string _apiTokenRefresh;
@@ -1941,32 +1941,9 @@ namespace OsEngine.Market.Servers.BCS
             trade.SecurityNameCode = tradeData.Ticker;
             trade.Time = ConvertUtsStringToDateTimeRu(tradeData.DateTime);
 
-            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9)
+            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 7)
             {
-                Security security = _subscribedSecurities[0];
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].Name == trade.SecurityNameCode)
-                    {
-                        security = _subscribedSecurities[i];
-                        break;
-                    }
-                }
-
-                if (security.SecurityType == SecurityType.Futures)
-                {
-                    if (trade.Time < trade.Time.Date.AddHours(9))
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    if (trade.Time < trade.Time.Date.AddHours(7))
-                    {
-                        return;
-                    }
-                }
+                return;
             }
 
             trade.Price = tradeData.Price.ToDecimal();
