@@ -4588,6 +4588,103 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Cancel stop order for a position
+        /// </summary>
+        /// <param name="position">position for which the stop order will be cancelled</param>
+        public void CloseAtStopCancel(Position position)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                if (position.StopOrderIsActive == false)
+                {
+                    return;
+                }
+
+                position.StopOrderIsActive = false;
+
+                if (_journal == null)
+                {
+                    return;
+                }
+
+                _journal.PaintPosition(position);
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.Save();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Cancel stop orders for all open positions on the tab
+        /// </summary>
+        public void CloseAtStopCancel()
+        {
+            try
+            {
+                if (_journal == null)
+                {
+                    return;
+                }
+
+                List<Position> positions = _journal.OpenPositions;
+
+                if (positions == null ||
+                    positions.Count == 0)
+                {
+                    return;
+                }
+
+                bool isChanged = false;
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    Position position = positions[i];
+
+                    if (position == null)
+                    {
+                        continue;
+                    }
+
+                    if (position.StopOrderIsActive == false)
+                    {
+                        continue;
+                    }
+
+                    position.StopOrderIsActive = false;
+                    isChanged = true;
+
+                    _journal.PaintPosition(position);
+                }
+
+                if (isChanged == false)
+                {
+                    return;
+                }
+
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.Save();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// Place a stop market order for a position
         /// </summary>
         /// <param name="position">position to be closed</param>
