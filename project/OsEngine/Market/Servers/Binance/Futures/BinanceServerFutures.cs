@@ -315,6 +315,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/exchangeInfo", null, false);
                 SecurityResponse secResp = JsonConvert.DeserializeAnonymousType(res, new SecurityResponse());
+                UpdateRateLimits(secResp);
                 UpdatePairs(secResp);
             }
             catch (Exception ex)
@@ -327,6 +328,39 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         private List<Security> _securities = new List<Security>();
+
+        private int _requestWeightLimitPerMinute = 2400;
+
+        private void UpdateRateLimits(SecurityResponse response)
+        {
+            // реальный лимит REQUEST_WEIGHT приходит в exchangeInfo, не зашиваем его константой
+
+            if (response == null
+                || response.rateLimits == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < response.rateLimits.Count; i++)
+            {
+                Spot.BinanceSpotEntity.RateLimit limit = response.rateLimits[i];
+
+                if (limit.rateLimitType == "REQUEST_WEIGHT"
+                    && limit.interval == "MINUTE"
+                    && limit.intervalNum == "1")
+                {
+                    int parsedLimit;
+
+                    if (int.TryParse(limit.limit, out parsedLimit)
+                        && parsedLimit > 0)
+                    {
+                        _requestWeightLimitPerMinute = parsedLimit;
+
+                        SendLogMessage("Binance Futures: REQUEST_WEIGHT limit is " + parsedLimit + " per minute", LogMessageType.System);
+                    }
+                }
+            }
+        }
 
         private void UpdatePairs(SecurityResponse pairs)
         {
@@ -760,11 +794,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
             DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
+            return GetCandleDataToSecurityWithCount(security, timeFrameBuilder, startTime, endTime, startTime, candleCount);
         }
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return GetCandleDataToSecurityWithCount(security, timeFrameBuilder, startTime, endTime, actualTime, 0);
+        }
+
+        private List<Candle> GetCandleDataToSecurityWithCount(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime, int candleCount)
         {
             if (actualTime > endTime)
             {
@@ -775,6 +815,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
 
             int interval = 1500 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            int tfMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
             List<Candle> candles = new List<Candle>();
 
@@ -790,7 +832,31 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (realEndTime > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
                     realEndTime = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                List<Candle> stepCandles = GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, realEndTime);
+                // считаем limit по реальной потребности: вес klines 1-2 при limit < 500 против 10 при limit = 1500
+
+                int chunkLimit = (int)((realEndTime - startTimeStep).TotalMinutes / tfMinutes) + 2;
+
+                if (candleCount > 0)
+                {
+                    int remaining = candleCount - candles.Count + 2;
+
+                    if (remaining < chunkLimit)
+                    {
+                        chunkLimit = remaining;
+                    }
+                }
+
+                if (chunkLimit < 1)
+                {
+                    chunkLimit = 1;
+                }
+
+                if (chunkLimit > 1500)
+                {
+                    chunkLimit = 1500;
+                }
+
+                List<Candle> stepCandles = GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, realEndTime, chunkLimit);
 
                 if (stepCandles != null)
                 {
@@ -846,7 +912,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return candles;
         }
 
-        private List<Candle> GetCandlesForTimes(string nameSec, TimeSpan tf, DateTime timeStart, DateTime timeEnd)
+        private List<Candle> GetCandlesForTimes(string nameSec, TimeSpan tf, DateTime timeStart, DateTime timeEnd, int limit)
         {
             DateTime yearBegin = new DateTime(1970, 1, 1);
 
@@ -909,7 +975,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (needTf != "2m" && needTf != "10m" && needTf != "20m" && needTf != "45m")
             {
                 var param = new Dictionary<string, string>();
-                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=1500");
+                param.Add("symbol=" + nameSec.ToUpper(), "&interval=" + needTf + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + limit);
 
                 string res = CreateQuery(Method.GET, endPoint, param, false);
 
@@ -924,10 +990,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
             else
             {
+                // для составных таймфреймов limit умножаем на коэффициент базового ТФ
+
+                int baseLimit2 = Math.Min(limit * 2, 1500);
+                int baseLimit4 = Math.Min(limit * 4, 1500);
+                int baseLimit3 = Math.Min(limit * 3, 1500);
+
                 if (needTf == "2m")
                 {
                     var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=1m" + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + baseLimit2);
                     var res = CreateQuery(Method.GET, endPoint, param, false);
 
                     if (string.IsNullOrEmpty(res))
@@ -943,7 +1015,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 else if (needTf == "10m")
                 {
                     var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + baseLimit2);
                     var res = CreateQuery(Method.GET, endPoint, param, false);
 
                     if (string.IsNullOrEmpty(res))
@@ -958,7 +1030,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 else if (needTf == "20m")
                 {
                     var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=5m" + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + baseLimit4);
                     var res = CreateQuery(Method.GET, endPoint, param, false);
 
                     if (string.IsNullOrEmpty(res))
@@ -973,7 +1045,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 else if (needTf == "45m")
                 {
                     var param = new Dictionary<string, string>();
-                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime);
+                    param.Add("symbol=" + nameSec.ToUpper(), "&interval=15m" + "&startTime=" + startTime + "&endTime=" + endTime + "&limit=" + baseLimit3);
                     var res = CreateQuery(Method.GET, endPoint, param, false);
 
                     if (string.IsNullOrEmpty(res))
@@ -2654,7 +2726,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         param.Add("&timeInForce=", "GTC");
                     }
 
-                    param.Add("&price=",order.Price.ToString(CultureInfo.InvariantCulture)
+                    param.Add("&price=", order.Price.ToString(CultureInfo.InvariantCulture)
                             .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
                 }
 
@@ -3198,13 +3270,133 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return ((ServerParameterBool)ServerParameters[6]).Value ? _sharedRateGate : _rateGate;
         }
 
+        private RestClient _restClient;
+
+        private string _restClientBaseUrl;
+
+        private DateTime _ipBannedUntil = DateTime.MinValue;
+
+        private int _lastUsedWeight = 0;
+
+        private DateTime _lastUsedWeightTime = DateTime.MinValue;
+
+        private bool IsIpBanned()
+        {
+            return DateTime.UtcNow < _ipBannedUntil;
+        }
+
+        private void UpdateUsedWeight(IRestResponse response)
+        {
+            // Binance присылает текущий расход лимита в заголовке X-MBX-USED-WEIGHT-1M
+
+            for (int i = 0; i < response.Headers.Count; i++)
+            {
+                if (response.Headers[i].Name == "X-MBX-USED-WEIGHT-1M")
+                {
+                    int weight;
+
+                    if (int.TryParse(Convert.ToString(response.Headers[i].Value), out weight))
+                    {
+                        _lastUsedWeight = weight;
+                        _lastUsedWeightTime = DateTime.UtcNow;
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        private void WaitIfWeightNearLimit()
+        {
+            // жёсткий лимит Binance Futures приходит из exchangeInfo, тормозим заранее от 75%
+
+            if (_lastUsedWeightTime == DateTime.MinValue)
+            {
+                return;
+            }
+
+            double secondsPassed = (DateTime.UtcNow - _lastUsedWeightTime).TotalSeconds;
+
+            if (secondsPassed >= 60)
+            {
+                return;
+            }
+
+            double estimatedWeight = _lastUsedWeight * (60 - secondsPassed) / 60.0;
+
+            double softLimit = _requestWeightLimitPerMinute * 0.75;
+
+            if (estimatedWeight <= softLimit)
+            {
+                return;
+            }
+
+            double waitSeconds = 60 * (1 - softLimit / estimatedWeight);
+
+            if (waitSeconds > 30)
+            {
+                waitSeconds = 30;
+            }
+
+            Thread.Sleep(TimeSpan.FromSeconds(waitSeconds));
+        }
+
+        private void TryRegisterIpBan(string response)
+        {
+            // формат сообщения: "Way too many requests; IP(1.2.3.4) banned until 1786092758447. Please use the websocket..."
+
+            if (string.IsNullOrEmpty(response))
+            {
+                return;
+            }
+
+            int bannedIndex = response.IndexOf("banned until ", StringComparison.Ordinal);
+
+            if (bannedIndex < 0)
+            {
+                return;
+            }
+
+            int start = bannedIndex + "banned until ".Length;
+            int end = start;
+
+            while (end < response.Length && char.IsDigit(response[end]))
+            {
+                end++;
+            }
+
+            long banMs;
+
+            if (end == start
+                || long.TryParse(response.Substring(start, end - start), out banMs) == false)
+            {
+                return;
+            }
+
+            DateTime banUntil = new DateTime(1970, 1, 1).AddMilliseconds(banMs);
+
+            if (banUntil > _ipBannedUntil)
+            {
+                _ipBannedUntil = banUntil;
+
+                SendLogMessage("Binance Futures: IP banned until " + _ipBannedUntil.ToString("yyyy.MM.dd HH:mm:ss")
+                    + " UTC. REST requests are paused until that time.", LogMessageType.System);
+            }
+        }
+
         public string CreateQuery(Method method, string endpoint, Dictionary<string, string> param = null, bool auth = false)
         {
+            if (IsIpBanned())
+            {
+                return null;
+            }
+
             try
             {
                 lock (_queryHttpLocker)
                 {
                     GetRateGate().WaitToProceed();
+                    WaitIfWeightNearLimit();
                     return PerformHttpRequest(method, endpoint, param, auth);
                 }
             }
@@ -3221,6 +3413,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string CreateQueryNoLock(Method method, string endpoint, Dictionary<string, string> param = null, bool auth = false)
         {
+            if (IsIpBanned())
+            {
+                return null;
+            }
+
             try
             {
                 return PerformHttpRequest(method, endpoint, param, auth);
@@ -3269,14 +3466,54 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             string baseUrl = _baseUrl;
 
-            RestClient client = new RestClient(baseUrl);
+            // один RestClient на базовый адрес: keep-alive, без нового TLS-handshake на каждый запрос
 
-            if (_myProxy != null)
+            if (_restClient == null
+                || _restClientBaseUrl != baseUrl
+                || _restClient.Proxy != _myProxy)
             {
-                client.Proxy = _myProxy;
+                _restClient = new RestClient(baseUrl);
+                _restClientBaseUrl = baseUrl;
+
+                if (_myProxy != null)
+                {
+                    _restClient.Proxy = _myProxy;
+                }
             }
 
-            var response = client.Execute(request).Content;
+            IRestResponse restResponse = _restClient.Execute(request);
+
+            UpdateUsedWeight(restResponse);
+
+            var response = restResponse.Content;
+
+            if (restResponse.StatusCode == (HttpStatusCode)429)
+            {
+                // превышен лимит без бана: ждём Retry-After, чтобы не получить 418
+
+                DateTime pauseUntil = DateTime.UtcNow.AddSeconds(10);
+
+                for (int i = 0; i < restResponse.Headers.Count; i++)
+                {
+                    if (restResponse.Headers[i].Name == "Retry-After")
+                    {
+                        int retrySeconds;
+
+                        if (int.TryParse(Convert.ToString(restResponse.Headers[i].Value), out retrySeconds))
+                        {
+                            pauseUntil = DateTime.UtcNow.AddSeconds(retrySeconds);
+                        }
+                    }
+                }
+
+                if (pauseUntil > _ipBannedUntil)
+                {
+                    _ipBannedUntil = pauseUntil;
+
+                    SendLogMessage("Binance Futures: 429 Too Many Requests. REST requests are paused until "
+                        + pauseUntil.ToString("yyyy.MM.dd HH:mm:ss") + " UTC", LogMessageType.System);
+                }
+            }
 
             if (response.StartsWith("<!DOCTYPE"))
             {
@@ -3284,6 +3521,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
             else if (response.Contains("code") && !response.StartsWith("{\"code\":200"))
             {
+                TryRegisterIpBan(response);
+
                 var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
                 throw new Exception(error.msg);
             }
@@ -3308,24 +3547,42 @@ namespace OsEngine.Market.Servers.Binance.Futures
             return null;
         }
 
+        private TimeSpan _serverTimeOffset = TimeSpan.Zero;
+
+        private DateTime _lastServerTimeSync = DateTime.MinValue;
+
         private string GetNonce()
         {
-            var resTime = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/time", null, false);
-
-            if (!string.IsNullOrEmpty(resTime))
+            if (_lastServerTimeSync == DateTime.MinValue
+                || _lastServerTimeSync.AddMinutes(5) < DateTime.UtcNow)
             {
-                var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
-                return (result.serverTime + 500).ToString();
+                SyncServerTime();
             }
-            else
-            {
-                DateTime yearBegin = new DateTime(1970, 1, 1);
-                var timeStamp = DateTime.UtcNow - yearBegin;
-                var r = timeStamp.TotalMilliseconds;
-                var re = Convert.ToInt64(r);
 
-                return re.ToString();
+            // считаем timestamp локально по сохранённому смещению, без лишнего REST-запроса
+
+            DateTime serverNow = DateTime.UtcNow + _serverTimeOffset;
+
+            long timeStamp = (long)(serverNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+
+            return (timeStamp + 500).ToString();
+        }
+
+        private void SyncServerTime()
+        {
+            string resTime = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/time", null, false);
+
+            if (string.IsNullOrEmpty(resTime))
+            {
+                return;
             }
+
+            var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
+
+            DateTime serverTime = new DateTime(1970, 1, 1).AddMilliseconds(result.serverTime);
+
+            _serverTimeOffset = serverTime - DateTime.UtcNow;
+            _lastServerTimeSync = DateTime.UtcNow;
         }
 
         private string CreateSignature(string message)
