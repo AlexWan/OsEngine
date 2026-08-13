@@ -849,6 +849,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Candles = val.ValueCandles;
 
+                    if(Candles == null)
+                    {
+                        return;
+                    }
+
                     if (Candles.Count > 1)
                     {
                         for (int i = Candles.Count - 1; i > 0 && i > Candles.Count - 20; i--)
