@@ -580,6 +580,8 @@ namespace OsEngine.Entity
             if (CandlesAll.Count == 0)
             {
                 CandlesAll.Add(candle);
+
+                UpdateFinishCandle();
                 return;
             }
 
