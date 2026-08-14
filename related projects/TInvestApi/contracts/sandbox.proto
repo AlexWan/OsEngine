@@ -12,6 +12,7 @@ option php_namespace = "Tinkoff\\Invest\\V1";
 import "common.proto";
 import "orders.proto";
 import "operations.proto";
+import "stoporders.proto";
 import "users.proto";
 import "google/api/field_behavior.proto";
 
@@ -45,6 +46,9 @@ service SandboxService { // Методы для работы с песочниц
   //GetSandboxOrderState — получить статус торгового поручения
   rpc GetSandboxOrderState(GetOrderStateRequest) returns (OrderState);
 
+  //GetSandboxOrderPrice — получить предварительную стоимость для лимитной заявки
+  rpc GetSandboxOrderPrice(GetOrderPriceRequest) returns (GetOrderPriceResponse);
+
   //GetSandboxPositions — список позиций по счету
   rpc GetSandboxPositions(PositionsRequest) returns (PositionsResponse);
 
@@ -67,6 +71,15 @@ service SandboxService { // Методы для работы с песочниц
 
   //GetSandboxMaxLots — расчет количества доступных для покупки/продажи лотов
   rpc GetSandboxMaxLots(GetMaxLotsRequest) returns (GetMaxLotsResponse);
+
+  //PostSandboxStopOrder — выставить стоп-заявку
+  rpc PostSandboxStopOrder(PostStopOrderRequest) returns (PostStopOrderResponse);
+
+  //GetSandboxStopOrders — получить список активных стоп-заявок по счету
+  rpc GetSandboxStopOrders(GetStopOrdersRequest) returns (GetStopOrdersResponse);
+
+  //CancelSandboxStopOrder — отменить стоп-заявку
+  rpc CancelSandboxStopOrder(CancelStopOrderRequest) returns (CancelStopOrderResponse);
 }
 
 //Запрос открытия счета в песочнице.

@@ -23,7 +23,7 @@ namespace OsEngine.Entity
             TimeCreate = DateTime.MinValue;
             TimeCallBack = DateTime.MinValue;
             TimeCancel = DateTime.MinValue;
-            TimeDone =  DateTime.MinValue;
+            TimeDone = DateTime.MinValue;
             NumberMarket = "";
             Side = Side.None;
             NumberPosition = 0;
@@ -70,13 +70,18 @@ namespace OsEngine.Entity
         public decimal Price;
 
         /// <summary>
+        /// Trigger price of the stop order
+        /// </summary>
+        public decimal StopPrice;
+
+        /// <summary>
         /// Real price
         /// </summary>
         public decimal PriceReal
         {
             get
             {
-                if((State == OrderStateType.None 
+                if ((State == OrderStateType.None
                     || State == OrderStateType.Active
                     || State == OrderStateType.Cancel)
                     && _trades == null)
@@ -103,17 +108,17 @@ namespace OsEngine.Entity
                 if (_trades != null && (_volumeExecute == 0 || _volumeExecuteChange))
                 {
                     _volumeExecute = 0;
-                    
-                    for(int i = 0;i < _trades.Count;i++)
+
+                    for (int i = 0; i < _trades.Count; i++)
                     {
-                        if(_trades[i] == null)
+                        if (_trades[i] == null)
                         {
                             continue;
                         }
 
                         _volumeExecute += _trades[i].Volume;
                     }
-                    
+
                     _volumeExecuteChange = false;
                     return _volumeExecute;
                 }
@@ -127,9 +132,9 @@ namespace OsEngine.Entity
                 }
 
             }
-            set 
-            { 
-                _volumeExecute = value; 
+            set
+            {
+                _volumeExecute = value;
             }
         }
         private decimal _volumeExecute;
@@ -151,28 +156,28 @@ namespace OsEngine.Entity
         /// <summary>
         /// Order status: None, Pending, Done, Partial, Fail
         /// </summary>
-        public OrderStateType State 
+        public OrderStateType State
         {
             get { return _state; }
             set
             {
-                if(value == OrderStateType.Fail 
-                    && _trades != null 
+                if (value == OrderStateType.Fail
+                    && _trades != null
                     && _trades.Count > 1)
                 {
                     return;
                 }
 
                 if (value == OrderStateType.Fail
-                    && 
-                    (State == OrderStateType.Done 
+                    &&
+                    (State == OrderStateType.Done
                     || State == OrderStateType.Partial
                     || State == OrderStateType.Cancel))
                 {
                     return;
                 }
 
-                if((value == OrderStateType.Active
+                if ((value == OrderStateType.Active
                     || value == OrderStateType.Active)
                     &&
                     (_state == OrderStateType.Done
@@ -182,7 +187,7 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if(value == OrderStateType.Active
+                if (value == OrderStateType.Active
                     && (_state == OrderStateType.Done
                     || _state == OrderStateType.Cancel))
                 {
@@ -190,7 +195,7 @@ namespace OsEngine.Entity
                 }
 
                 _state = value;
-            } 
+            }
         }
 
         private OrderStateType _state;
@@ -240,7 +245,7 @@ namespace OsEngine.Entity
                 if (TimeCallBack == DateTime.MinValue ||
                     TimeCreate == DateTime.MinValue)
                 {
-                    return new TimeSpan(0,0,0,0);
+                    return new TimeSpan(0, 0, 0, 0);
                 }
 
                 return (TimeCallBack - TimeCreate);
@@ -360,7 +365,7 @@ namespace OsEngine.Entity
                 State = OrderStateType.Done;
             }
 
-            if(State == OrderStateType.Fail)
+            if (State == OrderStateType.Fail)
             {
                 State = OrderStateType.Partial;
             }
@@ -381,12 +386,12 @@ namespace OsEngine.Entity
 
             for (int i = 0; i < _trades.Count; i++)
             {
-                if(_trades[i] == null)
+                if (_trades[i] == null)
                 {
                     continue;
                 }
 
-                price += _trades[i].Volume*_trades[i].Price;
+                price += _trades[i].Volume * _trades[i].Price;
                 volumeExecute += _trades[i].Volume;
             }
 
@@ -395,7 +400,7 @@ namespace OsEngine.Entity
                 return Price;
             }
 
-            price = price/volumeExecute;
+            price = price / volumeExecute;
 
             return price;
         }
@@ -427,7 +432,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_trades == null 
+                if (_trades == null
                     || _trades.Count == 0)
                 {
                     return false;
@@ -435,7 +440,7 @@ namespace OsEngine.Entity
                 else
                 {
                     return true;
-                }              
+                }
             }
         }
 
@@ -468,7 +473,7 @@ namespace OsEngine.Entity
             result.Append(TimeCallBack.ToString(CultureInfo) + "@");
             result.Append(SecurityNameCode.Replace('@', '%') + "@");
 
-            if(PortfolioNumber != null)
+            if (PortfolioNumber != null)
             {
                 result.Append(PortfolioNumber.Replace('@', '%') + "@");
             }
@@ -493,7 +498,7 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; i < _trades.Count; i++)
                 {
-                    if(_trades[i] == null)
+                    if (_trades[i] == null)
                     {
                         continue;
                     }
@@ -512,6 +517,8 @@ namespace OsEngine.Entity
             result.Append(ServerName + "@");
 
             result.Append(IsSendToCancel + "&" + CancellingTryCount + "&" + LastCancelTryLocalTime.ToString(CultureInfo.InvariantCulture));
+
+            result.Append("@" + StopPrice.ToString(CultureInfo));
 
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
@@ -575,7 +582,7 @@ namespace OsEngine.Entity
             Comment = saveArray[18];
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
 
-            if(saveArray.Length > 21)
+            if (saveArray.Length > 21)
             {
                 Enum.TryParse(saveArray[20], true, out OrderTypeTime);
             }
@@ -585,16 +592,21 @@ namespace OsEngine.Entity
                 ServerName = saveArray[21];
             }
 
-            if(saveArray.Length >= 23)
+            if (saveArray.Length >= 23)
             {
                 string[] cancelling = saveArray[22].Split("&");
 
-                if(cancelling.Length == 3)
+                if (cancelling.Length == 3)
                 {
                     IsSendToCancel = Convert.ToBoolean(cancelling[0]);
                     CancellingTryCount = Convert.ToInt32(cancelling[1]);
-                    LastCancelTryLocalTime = Convert.ToDateTime(cancelling[2],CultureInfo.InvariantCulture);
+                    LastCancelTryLocalTime = Convert.ToDateTime(cancelling[2], CultureInfo.InvariantCulture);
                 }
+            }
+
+            if (saveArray.Length > 23)
+            {
+                StopPrice = saveArray[23].ToDecimal();
             }
         }
     }
@@ -617,7 +629,17 @@ namespace OsEngine.Entity
         /// <summary>
         /// Iceberg application. Those. An application whose volume is not fully visible in the glass.
         /// </summary>
-        Iceberg
+        Iceberg,
+
+        /// <summary>
+        /// Stop-limit order. Those. limit order placed on the server when the activation price (PriceCondition) is reached
+        /// </summary>
+        StopLimit,
+
+        /// <summary>
+        /// Stop-market order. Those. market order placed on the server when the activation price (PriceCondition) is reached
+        /// </summary>
+        StopMarket
     }
 
     /// <summary>

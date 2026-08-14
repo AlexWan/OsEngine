@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 10; }

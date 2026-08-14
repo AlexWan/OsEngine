@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return true; }

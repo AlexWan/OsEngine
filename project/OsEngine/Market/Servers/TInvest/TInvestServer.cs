@@ -63,6 +63,8 @@ namespace OsEngine.Market.Servers.TInvest
 
             ServerParameterBool ignoreMorningAuction = CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
             ignoreMorningAuction.Comment = OsLocalization.Market.IgnoreMorningAuctionTradesDescription;
+
+            CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false);
         }
 
         private void UseSector_ValueChange()
@@ -130,11 +132,17 @@ namespace OsEngine.Market.Servers.TInvest
                 _marketDataStreams = new List<MarketDataStreamWrapper>();
                 _securityStreamMap = new Dictionary<string, MarketDataStreamWrapper>();
 
+                lock (_stopOrdersLocker)
+                {
+                    _activeStopOrders.Clear();
+                }
+
                 SendLogMessage(OsLocalization.Market.Label284, LogMessageType.System);
 
                 _accessToken = ((ServerParameterPassword)ServerParameters[0]).Value;
                 _filterOutDealerData = ((ServerParameterBool)ServerParameters[5]).Value;
                 _ignoreMorningAuctionTrades = ((ServerParameterBool)ServerParameters[6]).Value;
+                _fullLog = ((ServerParameterBool)ServerParameters[7]).Value;
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
@@ -484,7 +492,8 @@ namespace OsEngine.Market.Servers.TInvest
         private bool _useOther = false;
 
         private bool _filterOutDealerData; // отфильтровать данные дилера (внутренняя ликвидность Т-Инвест, торги выходного дня)
-        private bool _ignoreMorningAuctionTrades; // ignore trades before 7:00 MSK
+        private bool _ignoreMorningAuctionTrades; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
+        private bool _fullLog; // полное логирование ордеров и трейдов
         private string _accessToken;
 
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
@@ -492,6 +501,12 @@ namespace OsEngine.Market.Servers.TInvest
         private string _orderNumbersLocker = "_orderNumbersLocker";
 
         private ConcurrentDictionary<string, decimal> _orderPrices = new ConcurrentDictionary<string, decimal>();
+
+        private List<Order> _activeStopOrders = new List<Order>();
+
+        private string _stopOrdersLocker = "_stopOrdersLocker";
+
+        private Dictionary<string, int> _stopOrderNumbers = new Dictionary<string, int>();
 
         #endregion
 
@@ -2101,6 +2116,7 @@ namespace OsEngine.Market.Servers.TInvest
         private MarketDataStreamService.MarketDataStreamServiceClient _marketDataStreamClient;
         private OrdersService.OrdersServiceClient _ordersClient;
         private OrdersStreamService.OrdersStreamServiceClient _ordersStreamClient;
+        private StopOrdersService.StopOrdersServiceClient _stopOrdersClient;
 
         private void GetUserLimits()
         {
@@ -2222,6 +2238,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _instrumentsClient = new InstrumentsService.InstrumentsServiceClient(_channel);
                 _ordersClient = new OrdersService.OrdersServiceClient(_channel);
                 _ordersStreamClient = new OrdersStreamService.OrdersStreamServiceClient(_channel);
+                _stopOrdersClient = new StopOrdersService.StopOrdersServiceClient(_channel);
                 _marketDataServiceClient = new MarketDataService.MarketDataServiceClient(_channel);
                 _marketDataStreamClient = new MarketDataStreamService.MarketDataStreamServiceClient(_channel);
 
@@ -2797,7 +2814,12 @@ namespace OsEngine.Market.Servers.TInvest
                     if (_ignoreMorningAuctionTrades)
                     {
                         var tradeTimeMsk = TimeZoneInfo.ConvertTimeFromUtc(trade.Time.ToDateTime(), _mskTimeZone);
-                        if (tradeTimeMsk.Hour < 7)
+                        if (security.SecurityType == SecurityType.Stock && tradeTimeMsk.Hour < 7)
+                        {
+                            return;
+                        }
+                        if (security.SecurityType == SecurityType.Futures && tradeTimeMsk.Hour < 9
+                            && security.NameClass != "FuturesNeoSpb") // neo-assets trade from 7:00 MSK
                         {
                             return;
                         }
@@ -3149,11 +3171,6 @@ namespace OsEngine.Market.Servers.TInvest
             newTrade.Side = Side.Buy;
             newTrade.Volume = 1;
             newTrade.Id = newTrade.Time.Ticks.ToString();
-
-            if (_ignoreMorningAuctionTrades && newTrade.Time.Hour < 7)
-            {
-                return;
-            }
 
             if (_openInterestData.ContainsKey(mySec.Name))
             {
@@ -3582,6 +3599,13 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
+                        if (string.IsNullOrEmpty(state.TradeOrderId) == false
+                            && IsOurStopOrder(state.TradeOrderId))
+                        {   // дочерняя биржевая заявка нашего стоп-ордера. Обрабатываем только трейды
+                            ProcessStopOrderChildOrderTrades(state, security);
+                            continue;
+                        }
+
                         Order order = new Order();
 
                         lock (_orderNumbersLocker)
@@ -3723,11 +3747,20 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 trade.Side = order.Side;
 
+                                LogTradeInFullLog(trade);
+
                                 MyTradeEvent?.Invoke(trade);
                             }
                         }
 
+                        LogOrderInFullLog(order);
+
                         MyOrderEvent?.Invoke(order);
+                    }
+
+                    if (orderStateResponse.StopOrderState != null)
+                    {
+                        ProcessStopOrderStateFromStream(orderStateResponse.StopOrderState);
                     }
                 }
                 catch (Exception exception)
@@ -3775,6 +3808,24 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
+        private void LogOrderInFullLog(Order order)
+        {
+            if (_fullLog)
+            {
+                SendLogMessage($"Пришел ордер: Security {order.SecurityNameCode}, NumberMarket {order.NumberMarket}, NumberUser {order.NumberUser}, Side {order.Side}, Price {order.Price} " +
+                    $"Volume {order.Volume}, VolumeExecute {order.VolumeExecute}, Time {order.TimeCallBack}, Status {order.State}", LogMessageType.System);
+            }
+        }
+
+        private void LogTradeInFullLog(MyTrade trade)
+        {
+            if (_fullLog)
+            {
+                SendLogMessage($"Пришел трейд: Security {trade.SecurityNameCode}, NumberOrder {trade.NumberOrderParent}, Side {trade.Side}, Price {trade.Price} " +
+                    $"Volume {trade.Volume}, Time {trade.Time}", LogMessageType.System);
+            }
+        }
+
         private bool IsCancelOrderInClearing(Order order)
         {
             if (order.State != OrderStateType.Cancel)
@@ -3818,6 +3869,261 @@ namespace OsEngine.Market.Servers.TInvest
             SendLogMessage(OsLocalization.Market.Label296, LogMessageType.Error);
         }
 
+        private void ProcessStopOrderStateFromStream(OrderStateStreamResponse.Types.StopOrderState state)
+        {
+            try
+            {
+                Security security = GetSecurityByIdFast(state.InstrumentUid);
+
+                if (security == null)
+                {
+                    return;
+                }
+
+                Order order = new Order();
+
+                order.NumberMarket = state.StopOrderId;
+                order.SecurityNameCode = security.Name;
+                order.SecurityClassCode = security.NameClass;
+                order.PortfolioNumber = state.AccountId;
+                order.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
+                order.TypeOrder = state.OrderType == OrderType.Limit
+                    ? OrderPriceType.StopLimit
+                    : OrderPriceType.StopMarket;
+
+                order.TimeCallBack = state.CreatedAt != null
+                    ? TimeZoneInfo.ConvertTimeFromUtc(state.CreatedAt.ToDateTime(), _mskTimeZone)
+                    : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+
+                order.State = GetStateFromStopOrderStatus(state.Status);
+
+                decimal price = GetValue(state.Price);
+                decimal stopPrice = GetValue(state.StopPrice);
+
+                if (security.SecurityType == SecurityType.Bond
+                    && security.NominalCurrent != 0)
+                {
+                    price = price * (security.NominalCurrent / 100);
+                    stopPrice = stopPrice * (security.NominalCurrent / 100);
+                }
+
+                order.Price = price;
+                order.StopPrice = stopPrice;
+
+                bool isOurOrder = false;
+
+                lock (_stopOrdersLocker)
+                {
+                    Order activeOrder = null;
+
+                    for (int i = 0; i < _activeStopOrders.Count; i++)
+                    {
+                        if (_activeStopOrders[i].NumberMarket == state.StopOrderId)
+                        {
+                            activeOrder = _activeStopOrders[i];
+                            break;
+                        }
+                    }
+
+                    if (activeOrder != null)
+                    {
+                        isOurOrder = true;
+                        order.NumberUser = activeOrder.NumberUser;
+                        order.Volume = activeOrder.Volume;
+
+                        if (order.Price == 0)
+                        {   // у стоп-маркет заявок цена в стриме пустая. Берём цену пользователя
+                            order.Price = activeOrder.Price;
+                        }
+
+                        if (order.StopPrice == 0)
+                        {
+                            order.StopPrice = activeOrder.StopPrice;
+                        }
+
+                        if (order.State != OrderStateType.Active)
+                        {
+                            _activeStopOrders.Remove(activeOrder);
+                        }
+                    }
+                }
+
+                if (isOurOrder == false)
+                {
+                    lock (_orderNumbersLocker)
+                    {
+                        if (_stopOrderNumbers.ContainsKey(state.StopOrderId))
+                        {
+                            isOurOrder = true;
+                            order.NumberUser = _stopOrderNumbers[state.StopOrderId];
+                        }
+                    }
+                }
+
+                if (isOurOrder == false)
+                {
+                    // стоп-ордер не наш, игнорируем
+                    return;
+                }
+
+                LogOrderInFullLog(order);
+
+                MyOrderEvent?.Invoke(order);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error processing stop order state from stream. " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool IsOurStopOrder(string stopOrderId)
+        {
+            lock (_stopOrdersLocker)
+            {
+                for (int i = 0; i < _activeStopOrders.Count; i++)
+                {
+                    if (_activeStopOrders[i].NumberMarket == stopOrderId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            lock (_orderNumbersLocker)
+            {
+                return _stopOrderNumbers.ContainsKey(stopOrderId);
+            }
+        }
+
+        private void ProcessStopOrderChildOrderTrades(OrderStateStreamResponse.Types.OrderState state, Security security)
+        {
+            try
+            {
+                if (state.Trades == null)
+                {
+                    return;
+                }
+
+                Side side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
+
+                for (int i = 0; i < state.Trades.Count; i++)
+                {
+                    OrderTrade orderTrade = state.Trades[i];
+
+                    MyTrade trade = new MyTrade();
+                    trade.SecurityNameCode = security.Name;
+
+                    trade.Price = GetValue(orderTrade.Price);
+
+                    if (security.SecurityType == SecurityType.Bond
+                     && security.NominalCurrent != 0)
+                    {
+                        trade.Price = trade.Price * (security.NominalCurrent / 100);
+                    }
+
+                    trade.Volume = orderTrade.Quantity / security.Lot;
+                    trade.NumberOrderParent = state.TradeOrderId;
+                    trade.NumberTrade = orderTrade.TradeId;
+                    trade.Time = TimeZoneInfo.ConvertTimeFromUtc(orderTrade.DateTime.ToDateTime(), _mskTimeZone); // convert to MSK
+
+                    if (trade.Time == DateTime.Parse("01.01.1970 03:00:00"))
+                    {
+                        trade.Time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone); // fix trade time
+                    }
+
+                    trade.Side = side;
+
+                    LogTradeInFullLog(trade);
+
+                    MyTradeEvent?.Invoke(trade);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error processing stop order child trades. " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RemoveActiveStopOrderUnsafe(string numberMarket)
+        {
+            // вызывать только под lock (_stopOrdersLocker)
+
+            for (int i = 0; i < _activeStopOrders.Count; i++)
+            {
+                if (_activeStopOrders[i].NumberMarket == numberMarket)
+                {
+                    _activeStopOrders.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+        private void ProcessStopOrderTrades(Order order, StopOrder stopFromServer)
+        {
+            try
+            {
+                Security security = _securities.Find((sec) => sec.Name == order.SecurityNameCode);
+
+                if (stopFromServer.HasExchangeOrderId == false
+                    || security == null)
+                {
+                    return;
+                }
+
+                // догоняем трейды по порождённой биржевой заявке
+
+                lock (_rageGateOrdersLocker)
+                {
+                    _rateGateOrders.WaitToProceed();
+                }
+
+                GetOrderStateRequest stateRequest = new GetOrderStateRequest();
+                stateRequest.OrderId = stopFromServer.ExchangeOrderId;
+                stateRequest.AccountId = order.PortfolioNumber;
+
+                OrderState state = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata);
+
+                if (state == null
+                    || state.Stages == null
+                    || state.Stages.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < state.Stages.Count; i++)
+                {
+                    OrderStage stage = state.Stages[i];
+
+                    MyTrade trade = new MyTrade();
+
+                    trade.SecurityNameCode = order.SecurityNameCode;
+                    trade.Price = GetValue(stage.Price) / security.PriceStepCost * security.PriceStep;
+
+                    if (security.SecurityType == SecurityType.Bond
+                       && security.NominalCurrent != 0)
+                    {
+                        trade.Price = trade.Price * (security.NominalCurrent / 100);
+                    }
+
+                    decimal lot = security.Lot > 0 ? security.Lot : 1;
+
+                    trade.Volume = stage.Quantity / lot;
+                    trade.NumberOrderParent = order.NumberMarket;
+                    trade.NumberTrade = stage.TradeId;
+                    trade.Time = TimeZoneInfo.ConvertTimeFromUtc(stage.ExecutionTime.ToDateTime(), _mskTimeZone);// convert to MSK
+                    trade.Side = order.Side;
+
+                    LogTradeInFullLog(trade);
+
+                    MyTradeEvent?.Invoke(trade);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error getting stop order trades. " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -3839,6 +4145,13 @@ namespace OsEngine.Market.Servers.TInvest
             lock (_rageGatePostOrdersLocker)
             {
                 _rateGatePostOrders.WaitToProceed();
+            }
+
+            if (order.TypeOrder == OrderPriceType.StopLimit
+                || order.TypeOrder == OrderPriceType.StopMarket)
+            {
+                SendStopOrder(order);
+                return;
             }
 
             try
@@ -3942,6 +4255,9 @@ namespace OsEngine.Market.Servers.TInvest
                             , LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
                     MyOrderEvent!(order);
 
                     return;
@@ -3951,6 +4267,9 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception.Message, LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
                     MyOrderEvent!(order);
 
                     return;
@@ -3972,6 +4291,8 @@ namespace OsEngine.Market.Servers.TInvest
                         _lastTryReconnectOrdersStream = DateTime.Now.AddMinutes(-1);
                     }
                 }
+
+                LogOrderInFullLog(order);
 
                 MyOrderEvent!(order);
             }
@@ -4151,6 +4472,9 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Error replacing order. Info: {message}", LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
                     if (MyOrderEvent != null)
                     {
                         MyOrderEvent(order);
@@ -4163,6 +4487,9 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("Error on order Execution \n" + exception.Message, LogMessageType.System);
 
                     order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
                     if (MyOrderEvent != null)
                     {
                         MyOrderEvent(order);
@@ -4198,6 +4525,8 @@ namespace OsEngine.Market.Servers.TInvest
                     order.VolumeExecute = 0;
                     order.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(response.ResponseMetadata.ServerTime.ToDateTime(), _mskTimeZone);// convert to MSK
                 }
+
+                LogOrderInFullLog(order);
 
                 if (MyOrderEvent != null)
                 {
@@ -4248,6 +4577,12 @@ namespace OsEngine.Market.Servers.TInvest
                 lock (_rageGateOrdersLocker)
                 {
                     _rateGateOrders.WaitToProceed();
+                }
+
+                if (order.TypeOrder == OrderPriceType.StopLimit
+                    || order.TypeOrder == OrderPriceType.StopMarket)
+                {
+                    return CancelStopOrder(order);
                 }
 
                 CancelOrderRequest request = new CancelOrderRequest();
@@ -4318,6 +4653,16 @@ namespace OsEngine.Market.Servers.TInvest
                     CancelOrder(order);
                 }
             }
+
+            List<Order> stopOrders = GetAllActiveStopOrders();
+
+            for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
+            {
+                if (stopOrders[i].State == OrderStateType.Active)
+                {
+                    CancelOrder(stopOrders[i]);
+                }
+            }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -4327,6 +4672,19 @@ namespace OsEngine.Market.Servers.TInvest
             for (int i = 0; i < orders.Count; i++)
             {
                 Order order = orders[i];
+
+                if (order.State == OrderStateType.Active
+                    && order.SecurityNameCode == security.Name)
+                {
+                    CancelOrder(order);
+                }
+            }
+
+            List<Order> stopOrders = GetAllActiveStopOrders();
+
+            for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
+            {
+                Order order = stopOrders[i];
 
                 if (order.State == OrderStateType.Active
                     && order.SecurityNameCode == security.Name)
@@ -4359,6 +4717,18 @@ namespace OsEngine.Market.Servers.TInvest
                 if (MyOrderEvent != null)
                 {
                     MyOrderEvent(orders[i]);
+                }
+            }
+
+            List<Order> stopOrders = GetAllActiveStopOrders();
+
+            for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
+            {
+                stopOrders[i].TimeCreate = stopOrders[i].TimeCallBack;
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(stopOrders[i]);
                 }
             }
         }
@@ -4461,6 +4831,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (MyOrderEvent != null)
                 {
+                    LogOrderInFullLog(newOrder);
+
                     MyOrderEvent(newOrder);
                 }
 
@@ -4490,6 +4862,8 @@ namespace OsEngine.Market.Servers.TInvest
                             ? Side.Buy
                             : Side.Sell;
 
+                        LogTradeInFullLog(trade);
+
                         MyTradeEvent?.Invoke(trade);
                     }
                 }
@@ -4511,6 +4885,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         public OrderStateType GetOrderStatus(Order order)
         {
+            if (order.TypeOrder == OrderPriceType.StopLimit
+                || order.TypeOrder == OrderPriceType.StopMarket)
+            {
+                return GetStopOrderStatus(order);
+            }
+
             return GetOrderStatusWithTrades(order, true);
         }
 
@@ -4678,6 +5058,13 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            List<Order> activeStopOrders = GetAllActiveStopOrders();
+
+            if (activeStopOrders != null && activeStopOrders.Count > 0)
+            {
+                orders.AddRange(activeStopOrders);
+            }
+
             // 2 оставляем только активные
 
             List<Order> ordersActive = new List<Order>();
@@ -4736,6 +5123,13 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            List<Order> historicalStopOrders = GetHistoricalStopOrders();
+
+            if (historicalStopOrders != null && historicalStopOrders.Count > 0)
+            {
+                orders.AddRange(historicalStopOrders);
+            }
+
             // 2 оставляем только исторические, не активные ордера
 
             List<Order> ordersDontActive = new List<Order>();
@@ -4778,9 +5172,546 @@ namespace OsEngine.Market.Servers.TInvest
             return resultExit;
         }
 
+        public void SendStopOrder(Order order)
+        {
+            try
+            {
+                Security security = _securities.Where(s => _securityStreamMap.ContainsKey(s.NameId)).FirstOrDefault((sec) =>
+                    sec.Name == order.SecurityNameCode);
+
+                if (security == null)
+                {
+                    security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                }
+
+                if (security == null)
+                {
+                    security = _securities.Find((sec) =>
+                    sec.Name == order.SecurityNameCode);
+                }
+
+                if (security == null)
+                {
+                    SendLogMessage(OsLocalization.Market.Label291 + "\nSecurity not found: " + order.SecurityNameCode, LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
+                    MyOrderEvent!(order);
+
+                    return;
+                }
+
+                if (order.Volume <= 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Label291 + "\nVolume is zero: " + order.SecurityNameCode, LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
+                    MyOrderEvent!(order);
+
+                    return;
+                }
+
+                decimal orderPrice = order.Price;
+                decimal priceCondition = order.StopPrice;
+
+                if (security.SecurityType == SecurityType.Bond
+                    && security.NominalCurrent != 0)
+                {
+                    orderPrice = orderPrice / (security.NominalCurrent / 100);
+                    priceCondition = priceCondition / (security.NominalCurrent / 100);
+                }
+
+                PostStopOrderRequest request = new PostStopOrderRequest();
+                request.Direction = order.Side == Side.Buy ? StopOrderDirection.Buy : StopOrderDirection.Sell;
+                request.AccountId = order.PortfolioNumber;
+                request.InstrumentId = security.NameId;
+                request.Quantity = Convert.ToInt64(order.Volume);
+                request.StopPrice = ConvertToQuotation(priceCondition);
+                request.ExchangeOrderType = order.TypeOrder == OrderPriceType.StopLimit
+                    ? ExchangeOrderType.Limit
+                    : ExchangeOrderType.Market;
+                request.StopOrderType = order.TypeOrder == OrderPriceType.StopLimit
+                    ? StopOrderType.StopLimit
+                    : StopOrderType.StopLoss;
+                request.ExpirationType = StopOrderExpirationType.GoodTillCancel;
+                request.ConfirmMarginTrade = true;
+
+                if (order.TypeOrder == OrderPriceType.StopLimit)
+                {
+                    request.Price = ConvertToQuotation(orderPrice);
+                }
+
+                if (security.SecurityType == SecurityType.Bond) // set price type to points in case security type is bond
+                {
+                    request.PriceType = PriceType.Point;
+                }
+
+                // генерируем новый номер ордера и добавляем его в словарь
+                Guid newUid = Guid.NewGuid();
+                string orderId = newUid.ToString();
+
+                lock (_orderNumbersLocker)
+                {
+                    _orderNumbers.Add(orderId, order.NumberUser);
+                }
+
+                _orderPrices[orderId] = order.Price;
+
+                request.OrderId = orderId;
+
+                PostStopOrderResponse response = null;
+
+                try
+                {
+                    response = _stopOrdersClient.PostStopOrder(request, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+
+                    if (message.Contains("Not enough assets"))
+                    {
+                        CheckCrazyNotEnoughAssetsOrderSpam();
+                        message = OsLocalization.Market.Label301;
+                    }
+                    else if (message.Contains("The price is too high"))
+                    {
+                        message = OsLocalization.Market.Label302;
+                    }
+                    else if (message.Contains("The price is outside the limits for"))
+                    {
+                        message = OsLocalization.Market.Label304;
+                    }
+                    else if (message.Contains("Pol`zovatel` ne najden"))
+                    {
+                        message = OsLocalization.Market.Label319;
+                    }
+
+                    SendLogMessage(OsLocalization.Market.Label291 +
+                            "\n" + message +
+                            "\n" + order.SecurityNameCode
+                            + ", " + OsLocalization.Market.Message21 + order.Volume
+                            + ", " + OsLocalization.Market.Label303 + " " + order.Price + " " + order.Side
+                            , LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
+                    MyOrderEvent!(order);
+
+                    return;
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception.Message, LogMessageType.Error);
+
+                    order.State = OrderStateType.Fail;
+
+                    LogOrderInFullLog(order);
+
+                    MyOrderEvent!(order);
+
+                    return;
+                }
+
+                order.State = OrderStateType.Active;
+                order.NumberMarket = response.StopOrderId;
+
+                lock (_stopOrdersLocker)
+                {   // сначала в _activeStopOrders: там полные данные ордера для событий из стрима
+                    _activeStopOrders.Add(order);
+                }
+
+                lock (_orderNumbersLocker)
+                {
+                    if (_stopOrderNumbers.ContainsKey(response.StopOrderId) == false)
+                    {
+                        _stopOrderNumbers.Add(response.StopOrderId, order.NumberUser);
+                    }
+                }
+
+                MyOrderEvent!(order);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
+            }
+        }
+
+        private bool CancelStopOrder(Order order)
+        {
+            CancelStopOrderRequest request = new CancelStopOrderRequest();
+            request.AccountId = order.PortfolioNumber;
+            request.StopOrderId = order.NumberMarket;
+
+            CancelStopOrderResponse response = null;
+
+            try
+            {
+                response = _stopOrdersClient.CancelStopOrder(request, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage(OsLocalization.Market.Label293 + "\n" + message, LogMessageType.Error);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(OsLocalization.Market.Label293 + "\n" +
+                    exception.Message + "  " + order.SecurityClassCode, LogMessageType.Error);
+            }
+
+            if (response != null)
+            {
+                // статус Cancel выставит стрим заявок, когда биржа подтвердит отзыв
+                return true;
+            }
+
+            OrderStateType state = GetStopOrderStatus(order);
+
+            if (state == OrderStateType.None)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private OrderStateType GetStopOrderStatus(Order order)
+        {
+            try
+            {
+                List<StopOrder> stopsFromServer = GetStopOrdersFromServer(order.PortfolioNumber, StopOrderStatusOption.StopOrderStatusAll);
+
+                if (stopsFromServer == null)
+                {
+                    return OrderStateType.None;
+                }
+
+                for (int i = 0; i < stopsFromServer.Count; i++)
+                {
+                    if (stopsFromServer[i].StopOrderId == order.NumberMarket)
+                    {
+                        OrderStateType state = GetStateFromStopOrderStatus(stopsFromServer[i].Status);
+
+                        if (state == OrderStateType.Done
+                            || state == OrderStateType.Cancel)
+                        {   // ядро игнорирует возвращаемое значение. Статус отправляем событием,
+                            // как это делает GetOrderStatusWithTrades для обычных заявок
+
+                            order.State = state;
+                            order.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
+
+                            if (state == OrderStateType.Done)
+                            {
+                                order.TimeDone = stopsFromServer[i].ActivationDateTime != null
+                                    ? TimeZoneInfo.ConvertTimeFromUtc(stopsFromServer[i].ActivationDateTime.ToDateTime(), _mskTimeZone)
+                                    : order.TimeCallBack;
+                            }
+                            else
+                            {
+                                order.TimeCancel = order.TimeCallBack;
+                            }
+
+                            lock (_stopOrdersLocker)
+                            {
+                                RemoveActiveStopOrderUnsafe(order.NumberMarket);
+                            }
+
+                            LogOrderInFullLog(order);
+
+                            MyOrderEvent?.Invoke(order);
+
+                            if (state == OrderStateType.Done)
+                            {   // стоп исполнился, пока не было события в стриме (реконнект). Догоняем трейды
+                                ProcessStopOrderTrades(order, stopsFromServer[i]);
+                            }
+                        }
+
+                        return state;
+                    }
+                }
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting stop order state. Info: {message}", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error getting stop order state " + order.SecurityNameCode + " exception: " + ex.ToString(), LogMessageType.System);
+            }
+
+            return OrderStateType.None;
+        }
+
+        private List<Order> GetAllActiveStopOrders()
+        {
+            List<Order> result = new List<Order>();
+
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                try
+                {
+                    List<StopOrder> stopsFromServer = GetStopOrdersFromServer(_myPortfolios[i].Number, StopOrderStatusOption.StopOrderStatusActive);
+
+                    if (stopsFromServer == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < stopsFromServer.Count; j++)
+                    {
+                        StopOrder stop = stopsFromServer[j];
+
+                        Security security = GetSecurityByIdFast(stop.InstrumentUid);
+
+                        if (security == null)
+                        {
+                            continue;
+                        }
+
+                        Order newOrder = new Order();
+
+                        newOrder.SecurityNameCode = security.Name;
+                        newOrder.SecurityClassCode = security.NameClass;
+                        newOrder.PortfolioNumber = _myPortfolios[i].Number;
+                        newOrder.NumberMarket = stop.StopOrderId;
+                        newOrder.Side = stop.Direction == StopOrderDirection.Buy ? Side.Buy : Side.Sell;
+                        newOrder.TypeOrder = stop.ExchangeOrderType == ExchangeOrderType.Market
+                            ? OrderPriceType.StopMarket
+                            : OrderPriceType.StopLimit;
+                        newOrder.Volume = stop.LotsRequested;
+                        newOrder.State = OrderStateType.Active;
+                        newOrder.TimeCallBack = stop.CreateDate != null
+                            ? TimeZoneInfo.ConvertTimeFromUtc(stop.CreateDate.ToDateTime(), _mskTimeZone)// convert to MSK
+                            : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+
+                        decimal price = GetValue(stop.Price);
+                        decimal priceCondition = GetValue(stop.StopPrice);
+
+                        if (security.SecurityType == SecurityType.Bond
+                            && security.NominalCurrent != 0)
+                        {
+                            price = price * (security.NominalCurrent / 100);
+                            priceCondition = priceCondition * (security.NominalCurrent / 100);
+                        }
+
+                        newOrder.Price = price;
+                        newOrder.StopPrice = priceCondition;
+
+                        lock (_orderNumbersLocker)
+                        {
+                            if (_stopOrderNumbers.ContainsKey(stop.StopOrderId))
+                            {
+                                newOrder.NumberUser = _stopOrderNumbers[stop.StopOrderId];
+                            }
+                            else
+                            {
+                                newOrder.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
+                                _stopOrderNumbers.Add(stop.StopOrderId, newOrder.NumberUser);
+                            }
+                        }
+
+                        lock (_stopOrdersLocker)
+                        {
+                            bool alreadyInList = false;
+
+                            for (int k = 0; k < _activeStopOrders.Count; k++)
+                            {
+                                if (_activeStopOrders[k].NumberMarket == newOrder.NumberMarket)
+                                {
+                                    alreadyInList = true;
+                                    break;
+                                }
+                            }
+
+                            if (alreadyInList == false)
+                            {
+                                _activeStopOrders.Add(newOrder);
+                            }
+                        }
+
+                        result.Add(newOrder);
+                    }
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting active stop orders. Info: {message}", LogMessageType.System);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting active stop orders. " + ex.ToString(), LogMessageType.System);
+                }
+            }
+
+            return result;
+        }
+
+        private List<Order> GetHistoricalStopOrders()
+        {
+            List<Order> result = new List<Order>();
+
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                try
+                {
+                    List<StopOrder> stopsFromServer = GetStopOrdersFromServer(_myPortfolios[i].Number, StopOrderStatusOption.StopOrderStatusAll);
+
+                    if (stopsFromServer == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < stopsFromServer.Count; j++)
+                    {
+                        StopOrder stop = stopsFromServer[j];
+
+                        if (stop.Status == StopOrderStatusOption.StopOrderStatusActive)
+                        {
+                            continue;
+                        }
+
+                        Security security = GetSecurityByIdFast(stop.InstrumentUid);
+
+                        if (security == null)
+                        {
+                            continue;
+                        }
+
+                        Order newOrder = new Order();
+
+                        newOrder.SecurityNameCode = security.Name;
+                        newOrder.SecurityClassCode = security.NameClass;
+                        newOrder.PortfolioNumber = _myPortfolios[i].Number;
+                        newOrder.NumberMarket = stop.StopOrderId;
+                        newOrder.Side = stop.Direction == StopOrderDirection.Buy ? Side.Buy : Side.Sell;
+                        newOrder.TypeOrder = stop.ExchangeOrderType == ExchangeOrderType.Market
+                            ? OrderPriceType.StopMarket
+                            : OrderPriceType.StopLimit;
+                        newOrder.Volume = stop.LotsRequested;
+                        newOrder.State = GetStateFromStopOrderStatus(stop.Status);
+
+                        DateTime createTime = stop.CreateDate != null
+                            ? TimeZoneInfo.ConvertTimeFromUtc(stop.CreateDate.ToDateTime(), _mskTimeZone)
+                            : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+
+                        newOrder.TimeCallBack = createTime;
+
+                        if (newOrder.State == OrderStateType.Done
+                            && stop.ActivationDateTime != null)
+                        {
+                            newOrder.TimeDone = TimeZoneInfo.ConvertTimeFromUtc(stop.ActivationDateTime.ToDateTime(), _mskTimeZone);
+                        }
+                        else if (newOrder.State == OrderStateType.Cancel)
+                        {
+                            newOrder.TimeCancel = stop.ExpirationTime != null
+                                ? TimeZoneInfo.ConvertTimeFromUtc(stop.ExpirationTime.ToDateTime(), _mskTimeZone)
+                                : createTime;
+                        }
+
+                        decimal price = GetValue(stop.Price);
+                        decimal priceCondition = GetValue(stop.StopPrice);
+
+                        if (security.SecurityType == SecurityType.Bond
+                            && security.NominalCurrent != 0)
+                        {
+                            price = price * (security.NominalCurrent / 100);
+                            priceCondition = priceCondition * (security.NominalCurrent / 100);
+                        }
+
+                        newOrder.Price = price;
+                        newOrder.StopPrice = priceCondition;
+
+                        lock (_orderNumbersLocker)
+                        {
+                            if (_stopOrderNumbers.ContainsKey(stop.StopOrderId))
+                            {
+                                newOrder.NumberUser = _stopOrderNumbers[stop.StopOrderId];
+                            }
+                            else
+                            {
+                                newOrder.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
+                                _stopOrderNumbers.Add(stop.StopOrderId, newOrder.NumberUser);
+                            }
+                        }
+
+                        result.Add(newOrder);
+                    }
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting historical stop orders. Info: {message}", LogMessageType.System);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Error getting historical stop orders. " + ex.ToString(), LogMessageType.System);
+                }
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region 10 Helpers
+
+        private OrderStateType GetStateFromStopOrderStatus(StopOrderStatusOption status)
+        {
+            if (status == StopOrderStatusOption.StopOrderStatusActive)
+            {
+                return OrderStateType.Active;
+            }
+
+            if (status == StopOrderStatusOption.StopOrderStatusExecuted)
+            {
+                return OrderStateType.Done;
+            }
+
+            if (status == StopOrderStatusOption.StopOrderStatusCanceled
+                || status == StopOrderStatusOption.StopOrderStatusExpired)
+            {
+                return OrderStateType.Cancel;
+            }
+
+            return OrderStateType.None;
+        }
+
+        private List<StopOrder> GetStopOrdersFromServer(string accountId, StopOrderStatusOption status)
+        {
+            lock (_rageGateOrdersLocker)
+            {
+                _rateGateOrders.WaitToProceed();
+            }
+
+            GetStopOrdersRequest request = new GetStopOrdersRequest();
+            request.AccountId = accountId;
+            request.Status = status;
+
+            GetStopOrdersResponse response = _stopOrdersClient.GetStopOrders(request, _gRpcMetadata);
+
+            if (response == null)
+            {
+                return null;
+            }
+
+            List<StopOrder> result = new List<StopOrder>();
+
+            for (int i = 0; i < response.StopOrders.Count; i++)
+            {
+                result.Add(response.StopOrders[i]);
+            }
+
+            return result;
+        }
 
         private string GetGRPCErrorMessage(RpcException exception)
         {

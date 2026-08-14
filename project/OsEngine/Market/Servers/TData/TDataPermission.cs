@@ -40,6 +40,11 @@ namespace OsEngine.Market.Servers.TData
 
         public bool MarketOrdersIsSupport => false;
 
+
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
         public bool IsTradeServer => false;
 
         public bool IsCanChangeOrderPrice => false;

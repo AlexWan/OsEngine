@@ -100,6 +100,11 @@ namespace OsEngine.Market.Servers.MOEX
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return false; }

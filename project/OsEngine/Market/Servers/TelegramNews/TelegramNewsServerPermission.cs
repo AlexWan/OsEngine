@@ -113,6 +113,11 @@ namespace OsEngine.Market.Servers.TelegramNews
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 0; }

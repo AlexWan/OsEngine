@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.Plaza
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return true; }

@@ -145,6 +145,11 @@ namespace OsEngine.Market.Servers.BloFin
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }

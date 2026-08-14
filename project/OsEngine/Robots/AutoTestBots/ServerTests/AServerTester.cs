@@ -193,6 +193,35 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             O12_Volume = CreateParameter("Volume. orders test 12", 0.01m, 1, 1, 1, "O12");
             O12_CountOrders = CreateParameter("Count orders test 12", 5, 1, 1, 1, "O12");
 
+            StrategyParameterButton buttonOrdersTest13 = CreateParameterButton("Start test orders 13", "O13");
+            buttonOrdersTest13.UserClickOnButtonEvent += ButtonOrdersTest13_UserClickOnButtonEvent;
+            O13_PortfolioName = CreateParameter("Portfolio. orders test 13", "BinanceFutures", "O13");
+            O13_SecurityName = CreateParameter("Sec name. orders test 13", "ETHUSDT", "O13");
+            O13_SecurityClass = CreateParameter("Sec class. orders test 13", "Futures", "O13");
+            O13_Volume = CreateParameter("Volume. orders test 13", 0.01m, 1, 1, 1, "O13");
+
+            StrategyParameterButton buttonOrdersTest14 = CreateParameterButton("Start test orders 14", "O14");
+            buttonOrdersTest14.UserClickOnButtonEvent += ButtonOrdersTest14_UserClickOnButtonEvent;
+            O14_PortfolioName = CreateParameter("Portfolio. orders test 14", "BinanceFutures", "O14");
+            O14_SecurityName = CreateParameter("Sec name. orders test 14", "ETHUSDT", "O14");
+            O14_SecurityClass = CreateParameter("Sec class. orders test 14", "Futures", "O14");
+            O14_Volume = CreateParameter("Volume. orders test 14", 0.01m, 1, 1, 1, "O14");
+            O14_CountOrders = CreateParameter("Count orders test 14", 20, 1, 1, 1, "O14");
+
+            StrategyParameterButton buttonOrdersTest15 = CreateParameterButton("Start test orders 15", "O15");
+            buttonOrdersTest15.UserClickOnButtonEvent += ButtonOrdersTest15_UserClickOnButtonEvent;
+            O15_PortfolioName = CreateParameter("Portfolio. orders test 15", "BinanceFutures", "O15");
+            O15_SecurityName = CreateParameter("Sec name. orders test 15", "ETHUSDT", "O15");
+            O15_SecurityClass = CreateParameter("Sec class. orders test 15", "Futures", "O15");
+            O15_Volume = CreateParameter("Volume. orders test 15", 0.01m, 1, 1, 1, "O15");
+
+            StrategyParameterButton buttonOrdersTest16 = CreateParameterButton("Start test orders 16", "O16");
+            buttonOrdersTest16.UserClickOnButtonEvent += ButtonOrdersTest16_UserClickOnButtonEvent;
+            O16_PortfolioName = CreateParameter("Portfolio. orders test 16", "BinanceFutures", "O16");
+            O16_SecurityName = CreateParameter("Sec name. orders test 16", "ETHUSDT", "O16");
+            O16_SecurityClass = CreateParameter("Sec class. orders test 16", "Futures", "O16");
+            O16_Volume = CreateParameter("Volume. orders test 16", 0.01m, 1, 1, 1, "O16");
+
 
             StrategyParameterButton buttonPortfolioTest1 = CreateParameterButton("Start test portfolio 1", "P1");
             buttonPortfolioTest1.UserClickOnButtonEvent += ButtonPortfolioTest1_UserClickOnButtonEvent;
@@ -324,6 +353,27 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         StrategyParameterString O12_PortfolioName;
         StrategyParameterDecimal O12_Volume;
         StrategyParameterInt O12_CountOrders;
+
+        StrategyParameterString O13_SecurityName;
+        StrategyParameterString O13_SecurityClass;
+        StrategyParameterString O13_PortfolioName;
+        StrategyParameterDecimal O13_Volume;
+
+        StrategyParameterString O14_SecurityName;
+        StrategyParameterString O14_SecurityClass;
+        StrategyParameterString O14_PortfolioName;
+        StrategyParameterDecimal O14_Volume;
+        StrategyParameterInt O14_CountOrders;
+
+        StrategyParameterString O15_SecurityName;
+        StrategyParameterString O15_SecurityClass;
+        StrategyParameterString O15_PortfolioName;
+        StrategyParameterDecimal O15_Volume;
+
+        StrategyParameterString O16_SecurityName;
+        StrategyParameterString O16_SecurityClass;
+        StrategyParameterString O16_PortfolioName;
+        StrategyParameterDecimal O16_Volume;
 
         StrategyParameterString P1_SecurityName;
         StrategyParameterString P1_SecurityClass;
@@ -679,6 +729,58 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             CurTestType = ServerTestType.Order_12;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest13_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_13;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest14_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_14;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest15_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_15;
+
+            Thread worker = new Thread(WorkerThreadArea);
+            worker.Start();
+        }
+
+        private void ButtonOrdersTest16_UserClickOnButtonEvent()
+        {
+            if (_threadIsWork == true)
+            {
+                return;
+            }
+
+            CurTestType = ServerTestType.Order_16;
 
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
@@ -1073,6 +1175,63 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
                         tester.Start();
                     }
+                    else if (CurTestType == ServerTestType.Order_13)
+                    {
+                        Orders_13_StopOrders tester = new Orders_13_StopOrders();
+                        tester.SecurityNameToTrade = O13_SecurityName.ValueString;
+                        tester.SecurityClassToTrade = O13_SecurityClass.ValueString;
+                        tester.PortfolioName = O13_PortfolioName.ValueString;
+                        tester.VolumeToTrade = O13_Volume.ValueDecimal;
+                        tester.LogMessage += SendNewLogMessage;
+                        tester.TestEndEvent += Tester_TestEndEvent;
+                        _testers.Add(tester);
+                        tester.Server = (AServer)servers[i];
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        tester.Start();
+                    }
+                    else if (CurTestType == ServerTestType.Order_14)
+                    {
+                        Orders_14_StopLimitPlaceCancel tester = new Orders_14_StopLimitPlaceCancel();
+                        tester.SecurityNameToTrade = O14_SecurityName.ValueString;
+                        tester.SecurityClassToTrade = O14_SecurityClass.ValueString;
+                        tester.PortfolioName = O14_PortfolioName.ValueString;
+                        tester.VolumeToTrade = O14_Volume.ValueDecimal;
+                        tester.CountOrders = O14_CountOrders.ValueInt;
+                        tester.LogMessage += SendNewLogMessage;
+                        tester.TestEndEvent += Tester_TestEndEvent;
+                        _testers.Add(tester);
+                        tester.Server = (AServer)servers[i];
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        tester.Start();
+                    }
+                    else if (CurTestType == ServerTestType.Order_15)
+                    {
+                        Orders_15_StopLimitRequestOnReconnect tester = new Orders_15_StopLimitRequestOnReconnect();
+                        tester.SecurityNameToTrade = O15_SecurityName.ValueString;
+                        tester.SecurityClassToTrade = O15_SecurityClass.ValueString;
+                        tester.PortfolioName = O15_PortfolioName.ValueString;
+                        tester.VolumeToTrade = O15_Volume.ValueDecimal;
+                        tester.LogMessage += SendNewLogMessage;
+                        tester.TestEndEvent += Tester_TestEndEvent;
+                        _testers.Add(tester);
+                        tester.Server = (AServer)servers[i];
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        tester.Start();
+                    }
+                    else if (CurTestType == ServerTestType.Order_16)
+                    {
+                        Orders_16_StopTriggerOnReconnect tester = new Orders_16_StopTriggerOnReconnect();
+                        tester.SecurityNameToTrade = O16_SecurityName.ValueString;
+                        tester.SecurityClassToTrade = O16_SecurityClass.ValueString;
+                        tester.PortfolioName = O16_PortfolioName.ValueString;
+                        tester.VolumeToTrade = O16_Volume.ValueDecimal;
+                        tester.LogMessage += SendNewLogMessage;
+                        tester.TestEndEvent += Tester_TestEndEvent;
+                        _testers.Add(tester);
+                        tester.Server = (AServer)servers[i];
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        tester.Start();
+                    }
                     else if (CurTestType == ServerTestType.Portfolio_1)
                     {
                         Portfolio_1_Validation tester = new Portfolio_1_Validation();
@@ -1165,6 +1324,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         Order_10,
         Order_11,
         Order_12,
+        Order_13,
+        Order_14,
+        Order_15,
+        Order_16,
         Portfolio_1,
     }
 

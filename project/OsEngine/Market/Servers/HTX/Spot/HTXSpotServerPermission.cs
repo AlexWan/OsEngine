@@ -116,6 +116,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             get { return false; }
         }
+
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 15; }
