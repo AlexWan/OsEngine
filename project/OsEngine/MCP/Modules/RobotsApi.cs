@@ -1599,7 +1599,6 @@ namespace OsEngine.MCP.Modules
             AddSources(sources, bot.TabsPair, "Pair");
             AddSources(sources, bot.TabsPolygon, "Polygon");
             AddSources(sources, bot.TabsNews, "News");
-            AddSources(sources, bot.TabsSyntheticBond, "SyntheticBond");
 
             return new { sources = sources, count = sources.Count };
         }
@@ -2275,11 +2274,6 @@ namespace OsEngine.MCP.Modules
             if (ContainsTabName(bot.TabsNews, tabName))
             {
                 return "News";
-            }
-
-            if (ContainsTabName(bot.TabsSyntheticBond, tabName))
-            {
-                return "SyntheticBond";
             }
 
             return null;

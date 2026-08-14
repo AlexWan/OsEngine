@@ -4,7 +4,6 @@
 */
 
 using OsEngine.Entity;
-using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -15,7 +14,6 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsOptimizer.OptimizerEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader.Panels.Tab.SyntheticBondTab;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -905,95 +903,9 @@ namespace OsEngine.OsOptimizer
                             report.Faze.TimeEnd);
                     }
                 }
-                else if (sources[i].TabType == BotTabType.SyntheticBond)
-                {// BotTabSyntheticBond
-                    BotTabSyntheticBond botTabSyntheticBond = (BotTabSyntheticBond)sources[i];
-
-                    for (int i2 = 0; i2 < botTabSyntheticBond.SyntheticBondSeries.Count; i2++)
-                    {
-                        SyntheticBondSeries series = botTabSyntheticBond.SyntheticBondSeries[i2];
-
-                        if (series.PatternBaseTab != null
-                            && series.PatternBaseTab.Connector != null
-                            && series.PatternBaseTab.Connector.SecurityName != null)
-                        {
-                            Security baseSec = FindSecurityByName(series.PatternBaseTab.Connector.SecurityName);
-
-                            if (baseSec != null)
-                            {
-                                server.GetDataToSecurity(baseSec, series.PatternBaseTab.Connector.TimeFrame,
-                                    report.Faze.TimeStart, report.Faze.TimeEnd);
-                            }
-                        }
-
-                        if (series.SyntheticBonds == null)
-                        {
-                            continue;
-                        }
-
-                        for (int i3 = 0; i3 < series.SyntheticBonds.Count; i3++)
-                        {
-                            SyntheticBond syntheticBond = series.SyntheticBonds[i3];
-
-                            if (syntheticBond.PatternFuturesTab != null
-                                && syntheticBond.PatternFuturesTab.Connector != null
-                                && syntheticBond.PatternFuturesTab.Connector.SecurityName != null)
-                            {
-                                Security futSec = FindSecurityByName(syntheticBond.PatternFuturesTab.Connector.SecurityName);
-
-                                if (futSec != null)
-                                {
-                                    server.GetDataToSecurity(futSec, syntheticBond.PatternFuturesTab.Connector.TimeFrame,
-                                        report.Faze.TimeStart, report.Faze.TimeEnd);
-                                }
-                            }
-
-                            if (syntheticBond.BaseRationingSecurity != null
-                                && syntheticBond.BaseRationingSecurity.Connector != null
-                                && syntheticBond.BaseRationingSecurity.Connector.SecurityName != null)
-                            {
-                                Security rationingSec = FindSecurityByName(syntheticBond.BaseRationingSecurity.Connector.SecurityName);
-
-                                if (rationingSec != null)
-                                {
-                                    server.GetDataToSecurity(rationingSec, syntheticBond.BaseRationingSecurity.Connector.TimeFrame,
-                                        report.Faze.TimeStart, report.Faze.TimeEnd);
-                                }
-                            }
-
-                            if (syntheticBond.FuturesRationingSecurity != null
-                                && syntheticBond.FuturesRationingSecurity.Connector != null
-                                && syntheticBond.FuturesRationingSecurity.Connector.SecurityName != null)
-                            {
-                                Security rationingSec = FindSecurityByName(syntheticBond.FuturesRationingSecurity.Connector.SecurityName);
-
-                                if (rationingSec != null)
-                                {
-                                    server.GetDataToSecurity(rationingSec, syntheticBond.FuturesRationingSecurity.Connector.TimeFrame,
-                                        report.Faze.TimeStart, report.Faze.TimeEnd);
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             return server;
-        }
-
-        private Security FindSecurityByName(string securityName)
-        {
-            List<Security> securities = _master.Storage.Securities;
-
-            for (int i = 0; i < securities.Count; i++)
-            {
-                if (securities[i].Name == securityName)
-                {
-                    return securities[i];
-                }
-            }
-
-            return null;
         }
 
         private BotPanel CreateNewBot(string botName,
@@ -1415,18 +1327,6 @@ namespace OsEngine.OsOptimizer
                             && curBot.TabsScreener != null
                             && curBot.TabsScreener.Count > 0
                             && curBot.TabsScreener[0].ServerUid == serverNum)
-                        {
-                            bot = curBot;
-                            _botsInTest.RemoveAt(i);
-                            break;
-                        }
-                        else if (curBot != null
-                            && curBot.TabsSyntheticBond != null
-                            && curBot.TabsSyntheticBond.Count > 0
-                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries.Count > 0
-                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab != null
-                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector != null
-                            && curBot.TabsSyntheticBond[0].SyntheticBondSeries[0].PatternBaseTab.Connector.ServerUid == serverNum)
                         {
                             bot = curBot;
                             _botsInTest.RemoveAt(i);

@@ -160,7 +160,6 @@ _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 | `Cluster` | `BotTabCluster` | Кластерный график |
 | `Polygon` | `BotTabPolygon` | Валютный арбитраж |
 | `News` | `BotTabNews` | Лента новостей |
-| `SyntheticBond` | `BotTabSyntheticBond` | Синтетические облигации |
 
 **Ключевые примеры выбора таба:**
 

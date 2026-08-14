@@ -1,5 +1,4 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Entity.SyntheticBondEntity;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
@@ -185,5 +184,14 @@ namespace OsEngine.OsTrader.Iceberg
         Contracts,
         ContractCurrency,
         DepositPercent
+    }
+
+    public enum SynteticBondOrderPosition
+    {
+        Ask,
+
+        Bid,
+
+        Middle
     }
 }
