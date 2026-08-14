@@ -153,6 +153,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }

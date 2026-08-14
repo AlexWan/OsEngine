@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return true; }

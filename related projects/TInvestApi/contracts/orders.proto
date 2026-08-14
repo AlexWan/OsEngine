@@ -10,6 +10,7 @@ option objc_class_prefix = "TIAPI";
 option php_namespace = "Tinkoff\\Invest\\V1";
 
 import "common.proto";
+import "stoporders.proto";
 import "google/protobuf/timestamp.proto";
 import "google/api/field_behavior.proto";
 
@@ -93,7 +94,7 @@ message PostOrderRequest {
   string account_id = 5 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   OrderType order_type = 6 [(google.api.field_behavior) = REQUIRED]; //Тип заявки.
   string order_id = 7 [(google.api.field_behavior) = REQUIRED]; //Идентификатор запроса выставления поручения для целей идемпотентности в формате UID. Максимальная длина 36 символов.
-  string instrument_id = 8; //Идентификатор инструмента, принимает значения Figi или Instrument_uid.
+  string instrument_id = 8; //Идентификатор инструмента. Принимает значение `figi`, `instrument_uid` или `ticker + '_' + class_code`.
   TimeInForceType time_in_force = 9; //Алгоритм исполнения поручения, применяется только к лимитной заявке.
   PriceType price_type = 10; //Тип цены.
   bool confirm_margin_trade = 11; // Согласие на выставление заявки, которая может привести к непокрытой позиции, по умолчанию false.
@@ -122,13 +123,15 @@ message PostOrderResponse {
   string message = 15; //Дополнительные данные об исполнении заявки.
   Quotation initial_order_price_pt = 16; //Начальная цена заявки в пунктах (для фьючерсов).
   string instrument_uid = 17; //UID идентификатор инструмента.
+  string ticker = 18; //Тикер инструмента.
+  string class_code = 19; //Класс-код (секция торгов).
   string order_request_id = 20; //Идентификатор ключа идемпотентности, переданный клиентом, в формате UID. Максимальная длина 36 символов.
   ResponseMetadata response_metadata = 254; //Метадата
 }
 
 //Запрос выставления асинхронного торгового поручения.
 message PostOrderAsyncRequest {
-  string instrument_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор инструмента, принимает значения Figi или Instrument_uid.
+  string instrument_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор инструмента. Принимает значение `figi`, `instrument_uid` или `ticker + '_' + class_code`.
   int64 quantity = 2 [(google.api.field_behavior) = REQUIRED]; //Количество лотов.
   optional Quotation price = 3; //Цена за 1 инструмент. Для получения стоимости лота требуется умножить на лотность инструмента. Игнорируется для рыночных поручений.
   OrderDirection direction = 4 [(google.api.field_behavior) = REQUIRED]; //Направление операции.
@@ -207,6 +210,8 @@ message OrderState {
   google.protobuf.Timestamp order_date = 18; //Дата и время выставления заявки в часовом поясе UTC.
   string instrument_uid = 19; //UID идентификатор инструмента.
   string order_request_id = 20; //Идентификатор ключа идемпотентности, переданный клиентом, в формате UID. Максимальная длина 36 символов.
+  string ticker = 21; //Тикер инструмента.
+  string class_code = 22; //Класс-код (секция торгов).
 }
 
 //Сделки в рамках торгового поручения.
@@ -220,6 +225,7 @@ message OrderStage {
 //Запрос изменения выставленной заявки.
 message ReplaceOrderRequest {
   string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
+  optional OrderIdType order_id_type = 5; //Тип идентификатора заявки.
   string order_id = 6 [(google.api.field_behavior) = REQUIRED]; //Идентификатор заявки на бирже.
   string idempotency_key = 7 [(google.api.field_behavior) = REQUIRED]; //Новый идентификатор запроса выставления поручения для целей идемпотентности. Максимальная длина 36 символов. Перезатирает старый ключ.
   int64 quantity = 11 [(google.api.field_behavior) = REQUIRED]; //Количество лотов.
@@ -231,7 +237,7 @@ message ReplaceOrderRequest {
 //Запрос на расчет количества доступных для покупки/продажи лотов. Если не указывать цену инструмента, то расчет произведется по текущум ценам в стакане: по лучшему предложению для покупки и по лучшему спросу для продажи.
 message GetMaxLotsRequest {
   string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета
-  string instrument_id = 2 [(google.api.field_behavior) = REQUIRED]; //Идентификатор инструмента, принимает значения Figi или instrument_uid
+  string instrument_id = 2 [(google.api.field_behavior) = REQUIRED]; //Идентификатор инструмента. Принимает значение `figi`, `instrument_uid` или `ticker + '_' + class_code`.
   optional Quotation price = 3; //Цена инструмента
 }
 
@@ -257,7 +263,7 @@ message GetMaxLotsResponse {
 //Запрос получения предварительной стоимости заявки
 message GetOrderPriceRequest {
   string account_id = 1; //Номер счета
-  string instrument_id = 2; //Идентификатор инструмента, принимает значения Figi или instrument_uid
+  string instrument_id = 2; //Идентификатор инструмента. Принимает значение `figi`, `instrument_uid` или `ticker + '_' + class_code`.
   Quotation price = 3; //Цена инструмента
   OrderDirection direction = 12; //Направление заявки
   int64 quantity = 13; //Количество лотов
@@ -309,6 +315,7 @@ message OrderStateStreamResponse {
     OrderState order_state = 1; //Информация об исполнении торгового поручения.
     Ping ping = 2; //Проверка активности стрима.
     SubscriptionResponse subscription = 3; //Ответ на запрос на подписку.
+    StopOrderState stop_order_state = 4; //Стоп-ордер.
   }
 
   //Заявка
@@ -326,6 +333,7 @@ message OrderStateStreamResponse {
     TimeInForceType time_in_force = 11; //Алгоритм исполнения поручения.
     OrderType order_type = 12; //Тип заявки.
     string account_id = 13; //Номер счета.
+    string trade_order_id = 14 [(google.api.field_behavior) = REQUIRED]; //Идентификатор торгового поручения.
     MoneyValue initial_order_price = 22; //Начальная цена заявки.
     MoneyValue order_price = 23; //Цена выставления заявки.
     optional MoneyValue amount = 24; //Предрассчитанная стоимость полной заявки.
@@ -340,6 +348,21 @@ message OrderStateStreamResponse {
     google.protobuf.Timestamp completion_time = 35; //Время исполнения заявки.
     string exchange = 36; //Код биржи.
     string instrument_uid = 41; //UID идентификатор инструмента.
+  }
+
+  //Стоп-ордер
+  message StopOrderState {
+    string stop_order_id = 1; //Идентификатор стоп-заявки.
+    string account_id = 2; //Номер счёта.
+    google.protobuf.Timestamp created_at = 3; //Дата создания заявки.
+    OrderDirection direction = 4; //Направление заявки.
+    MoneyValue price = 5; //Цена заявки.
+    MoneyValue stop_price = 6; //Цена активации стоп-заявки.
+    OrderType order_type = 7; //Тип дочерней биржевой заявки.
+    string instrument_uid = 8; //UID идентификатор инструмента.
+    string ticker = 9; //Тикер инструмента.
+    string class_code = 10; //Класс-код.
+    StopOrderStatusOption status = 11; //Состояние заявки.
   }
 
   //Маркер

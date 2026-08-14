@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.BitMart
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 5; }

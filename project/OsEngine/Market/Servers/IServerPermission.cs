@@ -58,6 +58,8 @@ namespace OsEngine.Market.Servers
 
         bool MarketOrdersIsSupport { get; }
 
+        bool StopOrdersIsSupport { get; }
+
         bool IsCanChangeOrderPrice { get; }
 
         bool IsUseLotToCalculateProfit { get; }

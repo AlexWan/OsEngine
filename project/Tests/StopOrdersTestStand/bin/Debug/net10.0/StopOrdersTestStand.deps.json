@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "StopOrdersTestStand/1.0.0": {
+        "runtime": {
+          "StopOrdersTestStand.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "StopOrdersTestStand/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

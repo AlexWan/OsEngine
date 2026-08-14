@@ -123,6 +123,11 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return false; }

@@ -116,6 +116,11 @@ namespace OsEngine.Market.Servers.BybitData
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return true; }

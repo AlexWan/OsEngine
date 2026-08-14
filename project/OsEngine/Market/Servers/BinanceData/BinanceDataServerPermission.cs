@@ -96,6 +96,11 @@ namespace OsEngine.Market.Servers.BinanceData
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsTradeServer
         {
             get { return false; }

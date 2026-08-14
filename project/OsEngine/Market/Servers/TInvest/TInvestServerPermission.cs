@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.TInvest
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return true; }
+        }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 10; }

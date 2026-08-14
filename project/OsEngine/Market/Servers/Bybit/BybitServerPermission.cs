@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.Bybit
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }

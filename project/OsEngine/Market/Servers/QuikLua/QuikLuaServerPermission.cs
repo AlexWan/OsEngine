@@ -116,6 +116,11 @@ namespace OsEngine.Market.Servers.QuikLua
             get { return false; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }

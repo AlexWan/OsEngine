@@ -116,6 +116,11 @@ namespace OsEngine.Market.Servers.AscendexSpot
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public bool IsCanChangeOrderPrice
         {
             get { return false; }

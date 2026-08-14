@@ -118,6 +118,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return true; }
         }
 
+        public bool StopOrdersIsSupport
+        {
+            get { return false; }
+        }
+
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
             get { return 10; }
