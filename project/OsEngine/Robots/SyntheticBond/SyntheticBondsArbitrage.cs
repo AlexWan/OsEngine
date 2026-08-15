@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -35,11 +35,11 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 Последние 5 пар - запасные слоты, настраиваются вручную
 
 ВХОД в позицию
-Отклонение фьючерса от базы (контанго) больше Min Deviation To Entry.
-Из всех претендентов выбирается пара с максимальным отклонением
+Доходность синтетической облигации (контанго, пересчитанное в % годовых) больше Min Yield To Entry.
+Из всех претендентов выбирается пара с максимальной доходностью
 
 ПЕРЕНОС позиции
-Если отклонение у претендента больше текущего на Min Deviation To Entry,
+Если доходность у претендента больше текущего на Min Yield To Entry,
 позиция закрывается и открывается на более доходной паре
 
 ВЫХОД из позиции
@@ -51,8 +51,8 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 
 namespace OsEngine.Robots.SyntheticBond
 {
-    [Bot("ArbSyntheticBonds")]
-    public class ArbSyntheticBonds : BotPanel
+    [Bot("SyntheticBondsArbitrage")]
+    public class SyntheticBondsArbitrage : BotPanel
     {
         private StrategyParameterString _regime;
         private StrategyParameterString _volumeType;
@@ -62,7 +62,7 @@ namespace OsEngine.Robots.SyntheticBond
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodButton;
 
-        private StrategyParameterDecimal _minDeviationToEntry;
+        private StrategyParameterDecimal _minYieldToEntry;
 
         private StrategyParameterDecimal _futuresMult1;
         private StrategyParameterDecimal _futuresMult2;
@@ -82,12 +82,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         private StrategyParameterString _portfolioNum;
 
-        public ArbSyntheticBonds(string name, StartProgram startProgram) : base(name, startProgram)
+        public SyntheticBondsArbitrage(string name, StartProgram startProgram) : base(name, startProgram)
         {
             CreateSources();
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-            _minDeviationToEntry = CreateParameter("Min Deviation To Entry", 0.5m, 1.0m, 50, 4, "Base");
+            _minYieldToEntry = CreateParameter("Min Yield To Entry % ann", 20m, 1.0m, 100, 1, "Base");
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Execution");
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4, "Execution");
@@ -160,8 +160,8 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures when the contango deviation exceeds the threshold. The position is moved to a more profitable contract and closed before expiration_" +
-              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс при превышении отклонением контанго заданного порога. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
+              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures when the annualized contango yield exceeds the threshold. The position is moved to a more profitable contract and closed before expiration_" +
+              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс при превышении доходностью контанго в годовых заданного порога. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
         }
 
         private bool _optimizerEventSubscribed = false;
@@ -276,9 +276,9 @@ namespace OsEngine.Robots.SyntheticBond
                     }
                 }
 
-                decimal dev0 = CalculateDeviationContango(
+                decimal dev0 = CalculateAnnualizedYieldContango(
                     pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base));
-                decimal dev1 = CalculateDeviationContango(
+                decimal dev1 = CalculateAnnualizedYieldContango(
                     pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base));
 
                 if (dev0 > dev1)
@@ -331,7 +331,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                decimal curDeviation = CalculateDeviationContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                decimal curDeviation = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
                 if (curDeviation > bestDeviation)
                 {
@@ -342,7 +342,7 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             if (bestBase == null
-                || bestDeviation < _minDeviationToEntry.ValueDecimal)
+                || bestDeviation < _minYieldToEntry.ValueDecimal)
             {
                 return;
             }
@@ -392,7 +392,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                decimal curDeviation = CalculateDeviationContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                decimal curDeviation = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
                 if (curDeviation > bestDeviation)
                 {
@@ -407,7 +407,7 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            decimal curDev = CalculateDeviationContango(baseInPosition, futuresInPosition, GetMultByBase(baseInPosition));
+            decimal curDev = CalculateAnnualizedYieldContango(baseInPosition, futuresInPosition, GetMultByBase(baseInPosition));
 
             if (curDev >= bestDeviation
                 || bestDeviation <= 0
@@ -418,14 +418,14 @@ namespace OsEngine.Robots.SyntheticBond
 
             decimal diff = bestDeviation - curDev;
 
-            if (diff > _minDeviationToEntry.ValueDecimal)
+            if (diff > _minYieldToEntry.ValueDecimal)
             {
                 ExitFromPosition(baseInPosition, futuresInPosition);
                 EntryInPositionContango(bestBase, bestFutures);
             }
         }
 
-        private decimal CalculateDeviationContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
+        private decimal CalculateAnnualizedYieldContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
         {
             List<Candle> baseCandles = baseSource.CandlesAll;
             List<Candle> futCandles = futuresSource.CandlesAll;
@@ -456,10 +456,23 @@ namespace OsEngine.Robots.SyntheticBond
                 return 0;
             }
 
+            if (futuresSource.Security == null
+                || futuresSource.Security.Expiration == DateTime.MinValue)
+            {
+                return 0;
+            }
+
+            int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
+
+            if (daysToExpiration <= 0)
+            {
+                return 0;
+            }
+
             decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
             deviation = deviation / (baseSource.PriceBestAsk / 100);
 
-            return deviation;
+            return deviation * 365 / daysToExpiration;
         }
 
         #endregion
@@ -570,7 +583,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = 0; i < bases.Length; i++)
             {
-                if (string.IsNullOrEmpty(bases[i].Connector.SecurityName))
+                if (string.IsNullOrEmpty(bases[i].Connector?.SecurityName))
                 {
                     continue;
                 }
@@ -636,7 +649,7 @@ namespace OsEngine.Robots.SyntheticBond
         private void AddPairsInPositionsBySecurity(
             BotTabSimple baseSource, BotTabScreener screener, List<PairInPosition> result)
         {
-            if (string.IsNullOrEmpty(baseSource.Connector.SecurityName))
+            if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
             {
                 return;
             }
@@ -681,9 +694,9 @@ namespace OsEngine.Robots.SyntheticBond
         }
 
         private void AddPretenderBySecurity(
-            BotTabSimple baseSource, BotTabScreener screener, decimal mult, List<Pretender> result)
+             BotTabSimple baseSource, BotTabScreener screener, decimal mult, List<Pretender> result)
         {
-            if (string.IsNullOrEmpty(baseSource.Connector.SecurityName))
+            if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
             {
                 return;
             }
@@ -903,6 +916,17 @@ namespace OsEngine.Robots.SyntheticBond
 
         public void SetTSecurities()
         {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                "Eng:Auto deploy will set the standard securities. 10 pairs of MOEX stock and futures via the T-Invest connector will be assigned to the sources. Current sources settings will be overwritten. Continue_" +
+                "Ru:Авто-развёртывание установит стандартные бумаги. В источники будут прописаны 10 пар акция плюс фьючерсы MOEX через коннектор Т-Инвестиции. Текущие настройки источников будут перезаписаны. Продолжить_"));
+
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
             List<AServer> servers = ServerMaster.GetAServers();
 
             if (servers == null
@@ -922,6 +946,10 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (string.IsNullOrEmpty(portfolioName) == true)
             {
+                CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                    "Eng:First set the portfolio number in the Auto deploy tab_" +
+                    "Ru:Сначала укажите номер портфеля на вкладке Auto deploy_"));
+                uiInfo.ShowDialog();
                 SendNewLogMessage("Не указан портфель для развёртывания источников", LogMessageType.Error);
                 return;
             }
@@ -962,6 +990,10 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (myServer == null)
             {
+                CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                    "Eng:Portfolio not found. Check the portfolio number and the T-Invest connector_" +
+                    "Ru:Портфель не найден. Проверьте номер портфеля и коннектор Т-Инвестиции_"));
+                uiInfo.ShowDialog();
                 SendNewLogMessage("Не найден портфель и сервер. Возможно указан не верный портфель", LogMessageType.Error);
                 return;
             }
@@ -1116,6 +1148,70 @@ namespace OsEngine.Robots.SyntheticBond
 
             tabFutures.SaveSettings();
             tabFutures.NeedToReloadTabs = true;
+
+            SetMultByBase(tabSpot, GetAutoMult(spotSecurity, DateTime.Now));
+        }
+
+        private void SetMultByBase(BotTabSimple baseSource, decimal mult)
+        {
+            if (baseSource == _base1) _futuresMult1.ValueDecimal = mult;
+            if (baseSource == _base2) _futuresMult2.ValueDecimal = mult;
+            if (baseSource == _base3) _futuresMult3.ValueDecimal = mult;
+            if (baseSource == _base4) _futuresMult4.ValueDecimal = mult;
+            if (baseSource == _base5) _futuresMult5.ValueDecimal = mult;
+            if (baseSource == _base6) _futuresMult6.ValueDecimal = mult;
+            if (baseSource == _base7) _futuresMult7.ValueDecimal = mult;
+            if (baseSource == _base8) _futuresMult8.ValueDecimal = mult;
+            if (baseSource == _base9) _futuresMult9.ValueDecimal = mult;
+            if (baseSource == _base10) _futuresMult10.ValueDecimal = mult;
+            if (baseSource == _base11) _futuresMult11.ValueDecimal = mult;
+            if (baseSource == _base12) _futuresMult12.ValueDecimal = mult;
+            if (baseSource == _base13) _futuresMult13.ValueDecimal = mult;
+            if (baseSource == _base14) _futuresMult14.ValueDecimal = mult;
+            if (baseSource == _base15) _futuresMult15.ValueDecimal = mult;
+        }
+
+        private decimal GetAutoMult(Security spotSecurity, DateTime time)
+        {
+            decimal coeff = 1;
+
+            if (spotSecurity.Name.Contains("MGNT") == false
+                && spotSecurity.Name.Contains("VTB") == false
+                && spotSecurity.Name.Contains("GMKN") == false)
+            {
+                for (int i = 0; i < spotSecurity.Decimals; i++)
+                {
+                    coeff = coeff * 10;
+                }
+            }
+            else if (spotSecurity.Name.Contains("VTB") == true)
+            {
+                if (time.Year < 2024
+                    || (time.Year == 2024 && time.Month < 7)
+                    || (time.Year == 2024 && time.Month == 7 && time.Day < 15))
+                {
+                    coeff = 20;
+                }
+                else
+                {
+                    coeff = 100;
+                }
+            }
+            else if (spotSecurity.Name.Contains("GMKN") == true)
+            {
+                if (time.Year < 2024
+                    || (time.Year == 2024 && time.Month < 4)
+                    || (time.Year == 2024 && time.Month == 4 && time.Day < 4))
+                {
+                    coeff = 100;
+                }
+                else
+                {
+                    coeff = 10;
+                }
+            }
+
+            return coeff;
         }
 
         #endregion
@@ -1129,6 +1225,17 @@ namespace OsEngine.Robots.SyntheticBond
 
         public void SetTesterSecurities()
         {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                "Eng:Auto deploy will set the securities from the set selected in the tester to the sources. Current sources settings will be overwritten. Continue_" +
+                "Ru:Авто-развёртывание пропишет в источники бумаги из выбранного в тестере сета. Текущие настройки источников будут перезаписаны. Продолжить_"));
+
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
             List<IServer> servers = ServerMaster.GetServers();
 
             if (servers == null
@@ -1288,6 +1395,18 @@ namespace OsEngine.Robots.SyntheticBond
 
             tabFutures.SaveSettings();
             tabFutures.NeedToReloadTabs = true;
+
+            DateTime multTime = DateTime.Now;
+
+            TesterServer testerServer = server as TesterServer;
+
+            if (testerServer != null
+                && testerServer.TimeStart != DateTime.MinValue)
+            {
+                multTime = testerServer.TimeStart;
+            }
+
+            SetMultByBase(tabSpot, GetAutoMult(spotSecurity, multTime));
         }
 
         #endregion

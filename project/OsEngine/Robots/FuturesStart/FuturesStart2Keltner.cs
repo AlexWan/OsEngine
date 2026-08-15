@@ -1113,6 +1113,17 @@ namespace OsEngine.Robots.FuturesStart
 
         public void SetTSecurities()
         {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                "Eng:Auto deploy will set the standard securities. 10 pairs of MOEX stock and futures via the T-Invest connector will be assigned to the sources. Current sources settings will be overwritten. Continue_" +
+                "Ru:Авто-развёртывание установит стандартные бумаги. В источники будут прописаны 10 пар акция плюс фьючерсы MOEX через коннектор Т-Инвестиции. Текущие настройки источников будут перезаписаны. Продолжить_"));
+
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
             // 1 сервер Т-Банк должен быть включен
 
             List<AServer> servers = ServerMaster.GetAServers();
@@ -1136,6 +1147,11 @@ namespace OsEngine.Robots.FuturesStart
 
             if (string.IsNullOrEmpty(portfolioName) == true)
             {
+                CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                    "Eng:First set the portfolio number in the Auto deploy tab_" +
+                    "Ru:Сначала укажите номер портфеля на вкладке Auto deploy_"));
+                uiInfo.ShowDialog();
+
                 SendNewLogMessage("Не указан портфель для развёртывания источников", Logging.LogMessageType.Error);
                 return;
             }
@@ -1176,6 +1192,11 @@ namespace OsEngine.Robots.FuturesStart
 
             if (myServer == null)
             {
+                CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                    "Eng:Portfolio not found. Check the portfolio number and the T-Invest connector_" +
+                    "Ru:Портфель не найден. Проверьте номер портфеля и коннектор Т-Инвестиции_"));
+                uiInfo.ShowDialog();
+
                 SendNewLogMessage("Не найден портфель и сервер. Возможно указан не верный портфель", Logging.LogMessageType.Error);
                 return;
             }

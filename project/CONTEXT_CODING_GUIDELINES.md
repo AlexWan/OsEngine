@@ -384,6 +384,34 @@ if (_host != null)
 
 WinForms-контент внутри `WindowsFormsHost` всегда рисуется поверх любых WPF-элементов в той же области — z-order не работает. WPF-кнопки и подписи размещай только в полосах, свободных от хоста (отдельные строки или колонки `Grid`), иначе они будут невидимы.
 
+### 4.11. Диалоги подтверждения и информационные сообщения
+
+Для диалогов с пользователем используй штатные окна движка из `OsEngine/Entity/` — они в теме приложения и локализованы. `MessageBox` (WPF или WinForms) в новом коде не используй.
+
+- **Подтверждение действия** — `AcceptDialogUi`. Результат — в поле `UserAcceptAction` после `ShowDialog()`:
+
+```csharp
+AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+    "Eng:Sources settings will be overwritten. Continue_" +
+    "Ru:Настройки источников будут перезаписаны. Продолжить_"));
+ui.ShowDialog();
+
+if (ui.UserAcceptAction == false)
+{
+    return;
+}
+```
+
+- **Информационное сообщение** (одна кнопка) — `CustomMessageBoxUi`:
+
+```csharp
+CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+    "Eng:First set the portfolio number_Ru:Сначала укажите номер портфеля_"));
+uiInfo.ShowDialog();
+```
+
+Тексты передавай через `OsLocalization.ConvertToLocString` (ограничения из 9.1). Ошибку дополнительно дублируй в лог через `SendNewLogMessage`.
+
 ---
 
 ## 5. Потокобезопасность

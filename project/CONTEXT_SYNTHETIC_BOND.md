@@ -1,6 +1,6 @@
-# CONTEXT_SYNTHETIC_BOND — Синтетические облигации в OsEngine
+﻿# CONTEXT_SYNTHETIC_BOND — Синтетические облигации в OsEngine
 
-> Постоянный контекст для ИИ-агентов, работающих с роботами сборника «Синтетические облигации» (`OsEngine/Robots/SyntheticBond/`). Здесь объяснено, что такое синтетическая облигация в терминах OsEngine, из каких источников строятся пары, как устроены авто-развёртывание и синхронизация логики, и как создавать новых роботов сборника.
+> Постоянный контекст для ИИ-агентов, работающих с роботами сборника «Синтетические облигации» (`OsEngine/Robots/SyntheticBond/`). Здесь объяснено, что такое синтетическая облигация в терминах OsEngine, как устроены существующие роботы сборника, какие инфраструктурные паттерны и UI-приёмы в них использованы, и как создавать новых роботов сборника.
 
 ---
 
@@ -12,23 +12,23 @@
 
 Типовые элементы роботов сборника:
 
-- отклонение фьючерса от базы в процентах с мультипликатором на пару (`Fut mult N`);
-- выбор лучшей пары из всех по максимальному отклонению;
+- доходность контанго, пересчитанная в % годовых (глава 2), с мультипликатором на пару (`Fut mult N`);
+- выбор лучшей пары из всех по максимальной доходности;
 - перенос позиции на более доходный контракт и выход перед экспирацией;
-- авто-развёртывание бумаг кнопкой: в реале — через коннектор Т-Инвестиций, в тестере — из выбранного пользователем сета;
-- синхронный вход в торговую логику: в тестере и оптимизаторе — по событию `EndNextMinuteWithCandlesEvent`, в реале — через 5 секунд после закрытия свечи на любом скринере (один вход на границу свечи, флаг под `lock` + одноразовый `Timer`).
+- авто-развёртывание бумаг кнопкой с диалогами подтверждения (глава 3);
+- синхронный вход в торговую логику: в тестере и оптимизаторе — по событию `EndNextMinuteWithCandlesEvent`, в реале — через 5 секунд после закрытия свечи на любом скринере (один вход на границу свечи, флаг под `lock` + одноразовый `System.Threading.Timer`).
 
 ---
 
 ## 1. Примеры роботов
 
-### 1.1. ArbSyntheticBonds
+### 1.1. SyntheticBondsArbitrage
 
-- **Файл:** `OsEngine/Robots/SyntheticBond/ArbSyntheticBonds.cs`
+- **Файл:** `OsEngine/Robots/SyntheticBond/SyntheticBondsArbitrage.cs`
 - **Направление:** контанго-арбитраж (лонг база + шорт фьючерс).
 - **Источники:** 15 пар `BotTabSimple` (акция) + `BotTabScreener` (фьючерсы). Первые 10 — авто-развёртывание, последние 5 — запасные слоты ручной настройки.
-- **Вход:** отклонение контанго (`PriceBestBid фьючерса / mult − PriceBestAsk базы`, в % от базы) не меньше `Min Deviation To Entry`; выбирается пара с максимальным отклонением.
-- **Перенос позиции:** если у претендента отклонение превышает текущее на `Min Deviation To Entry` — позиция переносится на него.
+- **Вход:** доходность контанго в % годовых не меньше `Min Yield To Entry % ann`; выбирается пара с максимальной доходностью.
+- **Перенос позиции:** если у претендента доходность превышает текущую на `Min Yield To Entry % ann` — позиция переносится на него.
 - **Выход:**
   - накануне экспирации фьючерса;
   - аварийно, если открылась только одна нога;
@@ -36,8 +36,125 @@
 - **Выбор фьючерса в пару:** ближайшая серия с экспирацией от 5 до 100 дней.
 - **Авто-развёртывание:**
   - реал — кнопка `Deploy standard securities` (группа `Auto deploy`), сервер Т-Инвестиции + номер портфеля; бумаги SBER, SBERP, GAZP, ROSN, LKOH, VTBR, GMKN, ALRS, AFLT, MGNT и их фьючерсы;
-  - тестер — кнопка `Deploy tester securities` (группа `Tester deploy`), бумаги из `IServer.Securities` выбранного сета (имена с суффиксом `.txt`), портфель `GodMode`.
+  - тестер — кнопка `Deploy tester securities` (группа `Auto deploy`), бумаги из `IServer.Securities` выбранного сета (имена с суффиксом `.txt`), портфель `GodMode`.
 - **Особенности:**
-  - класса-обёртки нет: пары и претенденты — кортежи `PairInPosition` / `Pretender`, расчёт отклонения — метод `CalculateDeviationContango`;
-  - ненастроенные пары пропускаются, робот продолжает работу;
+  - класса-обёртки нет: пары и претенденты — кортежи `PairInPosition` / `Pretender`, расчёт доходности — метод `CalculateAnnualizedYieldContango`;
+  - ненастроенные пары пропускаются (null-conditional чтение `Connector?.SecurityName`), робот продолжает работу;
   - вся торговая логика обёрнута в try-catch с выводом в лог.
+
+### 1.2. SyntheticBondsCurveMonitor
+
+- **Файл:** `OsEngine/Robots/SyntheticBond/SyntheticBondsCurveMonitor.cs` (+ окно `SyntheticBondsCurveMonitorOpenUi.xaml(.cs)`)
+- **Назначение:** монитор ближайших серий фьючерсов по всем облигациям с расчётом контанго и доходности, сигналы по порогам, ручное управление парами из таблицы, автоматическая торговля (`Regime`).
+- **Источники:** 15 пар `BotTabSimple` (акция) + `BotTabScreener` (фьючерсы), мультипликаторы и оба авто-развёртывания — как в `SyntheticBondsArbitrage`.
+- **Окно монитора:** кастомная вкладка `Monitor` в окне параметров (`ParamGuiSettings.CreateCustomTab` + `WindowsFormsHost` + `DataGridView` через `DataGridFactory`, паттерн роботов `Robots/Monitors/`). Одна строка на облигацию, три ближайшие по экспирации серии отдельными колонками:
+
+| Колонка | Содержимое |
+|---|---|
+| Bond | имя базы. Кнопка — открывает график ближайшей серии (`screener.ShowChart`) |
+| Mult | мультипликатор пары. Редактируемая ячейка — правится прямо из таблицы, изменение пишется в параметр `Fut mult N` (парсинг через `.ToDecimal()`) |
+| Series 1–3 | имя фьючерса + доходность % годовых |
+| Open | кнопка — окно `SyntheticBondsCurveMonitorOpenUi` с выбором пары для ручного открытия |
+| Close | кнопка — закрывает все позиции по этой облигации по маркету |
+
+- **Обновление таблицы:** по таймеру (`Table update interval, sec`) из стаканов, перерисовываются только изменённые ячейки; ненастроенные пары не показываются.
+- **Сигналы:** вкладка `Signals`. Три булевых (`Series 1/2/3 signal is on`) включают сигнал по конкретной серии. Порог `Min yield % ann`, звук (файл) и запись в лог — общие. Сигнал срабатывает один раз и перезаряжается, когда доходность уходит ниже порога.
+- **Окно Open** (`SyntheticBondsCurveMonitorOpenUi`): выбор базы (combobox), радио-кнопки трёх ближайших серий, объём с типом (`Contract currency` / `Deposit percent`, значения по умолчанию из параметров), живое обновление bid/ask/контанго/доходности по `DispatcherTimer`. Кнопка «Открыть» — лонг база + шорт фьючерс по маркету.
+- **Торговая логика** (при `Regime = On`):
+  1. **Первый вход:** среди претендентов по включённым сериям (`Trade series 1/2/3 is on`) берётся пара с максимальной доходностью ≥ `Min yield to entry % ann`.
+  2. **Перекладывание:** позиция переносится на серию/пару, чья доходность выше текущей на `Min yield diff to move % ann`.
+  3. **Выход:** за `Days before expiration to exit` дней до экспирации (по умолчанию 2); аварийный выход при открытой одной ноге (`Exit on error entry is on`); при появлении второй позиции закрывается худшая.
+  4. Объёмы — из вкладки `Base`.
+
+#### Параметры робота
+
+| Группа | Параметр | Тип | По умолчанию |
+|---|---|---|---|
+| Base | Regime | Off / On | Off |
+| Base | Non trade periods | кнопка (NonTradePeriods) | — |
+| Base | Table update interval, sec | Int | 5 |
+| Base | Volume type | Contract currency / Deposit percent | Deposit percent |
+| Base | Volume | Decimal | 0.5 |
+| Fut mults | Fut mult 1 … 15 | Decimal | 1. Правится также из таблицы монитора (колонка Mult) |
+| Signals | Series 1/2/3 signal is on | Bool | false |
+| Signals | Min yield % ann | Decimal | 20 |
+| Signals | Music | String (файл) | — |
+| Signals | Error log is on | Bool | true |
+| Trading | Trade series 1/2/3 is on | Bool | true / true / false |
+| Trading | Min yield to entry % ann | Decimal | 20 |
+| Trading | Min yield diff to move % ann | Decimal | 3 |
+| Trading | Days before expiration to exit | Int | 2 |
+| Trading | Exit on error entry is on | Bool | true |
+| Auto deploy | Portfolio number | String | —. Только в реале |
+| Auto deploy | Deploy standard securities | кнопка | —. Только в реале |
+| Auto deploy | Deploy tester securities | кнопка | —. Только в тестере |
+
+---
+
+## 2. Метрики
+
+**Контанго %** — отклонение фьючерса от базы с мультипликатором:
+
+```
+contango% = (PriceBestBid фьючерса / mult − PriceBestAsk базы) / (PriceBestAsk базы / 100)
+```
+
+**Доходность % годовых** — контанго, приведённое к году (простой процент):
+
+```
+yield% ann = contango% × 365 / дней до экспирации
+```
+
+- Стороны цен консервативные: фьючерс продаём по биду, базу покупаем по аску.
+- Сравнивать серии и базы между собой корректно только по годовым — сырое контанго % систематически смещает выбор в дальние серии.
+- В торговой логике (`CalculateAnnualizedYieldContango`) есть проверка синхронности последних свечей базы и фьючерса (`lastBaseC.TimeStart == lastFutC.TimeStart`) и отсечка бэквордации (yield = 0). В таблице монитора (`CalculateYieldForMonitor`) проверки свечей нет — там нужен живой снимок стакана.
+- Мультипликатор нужен, потому что фьючерс на акцию MOEX торгуется не в масштабе акции (обычно ×100). Авто-установка — `GetAutoMult` (глава 3).
+
+## 3. Инфраструктура сборника
+
+### Источники и серии
+
+- 15 пар `BotTabSimple` + `BotTabScreener` создаются в конструкторе. Пары-претенденты и пары в позиции — кортежи с алиасами `PairInPosition` / `Pretender`, без классов-обёрток.
+- `GetNearestSeries(screener, time, 3)` — три ближайшие серии с валидной экспирацией и `days > 0`, сортировка по `Security.Expiration`.
+- Ненастроенные пары пропускаются везде: у ненастроенной вкладки `Connector` может быть `null` — чтение только через `Connector?.SecurityName`.
+- Время сервера — `GetCurrentServerTime()`: первая настроенная пара с непустым временем; если такой нет, логика не работает.
+
+### Синхронизация входа в логику
+
+- **Реал:** подписка на `CandleFinishedEvent` всех 15 скринеров → первый вызов взводит флаг под `lock` и запускает одноразовый `System.Threading.Timer` на 5 сек → один вход в `Logic()` на границу свечи, когда все вкладки уже закрыли свечи.
+- **Тестер:** `TesterServer.EndNextMinuteWithCandlesEvent`.
+- **Оптимизатор:** по первому событию свечи скринера цепляемся к `OptimizerServer.EndNextMinuteWithCandlesEvent` (паттерн из `SectorsKeltner`).
+- `Logic()` — обёртка с try-catch, тело в `LogicInternal()`.
+
+### Авто-развёртывание бумаг
+
+- **Реал (`SetTSecurities`):** подтверждение `AcceptDialogUi` → проверки сервера Т-Инвестиций, портфеля (инфо-окна `CustomMessageBoxUi` при отсутствии/ненахождении) → 10 стандартных пар (SBER, SBERP, GAZP, ROSN, LKOH, VTBR, GMKN, ALRS, AFLT, MGNT; фьючерсы по префиксам SR*/SP*/GZ*/RN*/LK*/VB*/GK*/AL*/AF*/MN*) → запись в коннекторы вкладок + `SaveSettings()` + `NeedToReloadTabs`.
+- **Тестер (`SetTesterSecurities`):** бумаги из `IServer.Securities` выбранного пользователем сета (тестер сканирует их в фоне после выбора сета). Имена бумаг с суффиксом `.txt` (`"SBER.txt"`), класс `TestClass`, портфель `Portfolios[0]` = `GodMode`.
+- **Авто-мультипликаторы (`GetAutoMult`):** большинство — 10^Decimals базы (SBER, GAZP, ROSN, ALRS, AFLT → 100; LKOH → 1); VTB — 20 до 15.07.2024, после — 100; GMKN — 100 до 04.04.2024, после — 10; MGNT — 1. Дата для VTB/GMKN: в реале текущая, в тестере `TesterServer.TimeStart` (если загружена). Правило заимствовано из `Robots/FuturesStart/`.
+
+## 4. UI-паттерны
+
+- **Таблица монитора:** `ParamGuiSettings.CreateCustomTab` + `WindowsFormsHost` + `DataGridFactory.GetDataGridView`; колонки `AutoSizeMode.Fill`; обязательные подписки `DataError`, `CellClick`, `CellEndEdit`; обновление только через `Invoke`.
+- **Окна роботов:** пара XAML + code-behind; `Style="{StaticResource WindowStyleCanResize}"` и `Icon="/Images/OsLogo.ico"`. Неявные тёмные стили в App.xaml есть для `Label`, `ComboBox`, `TextBox`, `Button`, но **нет для `TextBlock` и `RadioButton`** — статические тексты только `Label`, у `RadioButton` задавать `Foreground="{DynamicResource LabelForegroundBrush}"`.
+- **Диалоги:** подтверждение — `AcceptDialogUi` (`UserAcceptAction`), информация — `CustomMessageBoxUi`. `MessageBox` не использовать (правило 4.11 в `CONTEXT_CODING_GUIDELINES.md`).
+- **Локализация:** все тексты окон через `OsLocalization.ConvertToLocString("Eng:..._Ru:..._")` без `:` и `_` внутри текста.
+
+## 5. Грабли
+
+- `Connector` у ненастроенной вкладки равен `null` → NullReferenceException. Чтения только `Connector?.SecurityName`.
+- `using System.Windows.Forms` + `using System.Threading` дают конфликт `Timer` — объявлять поля как `System.Threading.Timer`.
+- `ServerMaster` живёт в `OsEngine.Market` (не `OsEngine.Market.Servers`).
+
+## 6. Известные ограничения
+
+- **Дивиденды загрязняют контанго:** серия, захватывающая отсечку, показывает заниженную доходность (фьючерс уже вычел дивиденд). Корректировки пока нет.
+- **Leg risk:** ноги уходят двумя рыночными ордерами последовательно; между ними позиция не захеджирована. Есть аварийный выход при одной ноге.
+- **Тестер без стакана:** bid/ask в свечном тестере — цены свечи, спред не моделируется, доходности завышены.
+- **Стоимость перекладывания** (4 сделки) не вычитается из порога переноса — порог должен покрывать издержки.
+- **Один статический mult на пару:** если период теста пересекает дату смены режима VTB/GMKN, мультипликатор — приближение.
+
+## 7. Как добавить нового робота сборника
+
+1. За основу копировать каркас `SyntheticBondsArbitrage`: источники (15 пар), `CreateSources`, `GetMultByBase`/`SetMultByBase`, `GetCurrentServerTime`, синхронизацию входа в логику, оба авто-деплоя с `GetAutoMult`, `GetVolume`, шапку-описание и `Description` (Eng+Ru).
+2. Логику входа/выхода писать на метрике % годовых (глава 2), через кортежи пар, без классов-обёрток.
+3. Окна и таблицы — по паттернам главы 4.
