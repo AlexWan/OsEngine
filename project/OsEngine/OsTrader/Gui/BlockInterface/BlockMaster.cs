@@ -1,51 +1,103 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Market;
+using System;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace OsEngine.OsTrader.Gui.BlockInterface
 {
     public static class BlockMaster
     {
-        public static string Password
+        private const string PasswordFilePath = @"Engine\PrimeSettingss.txt";
+        private const string BlockFlagFilePath = @"Engine\PrimeSettingsss.txt";
+
+        private const int Iterations = 100000;
+        private const int SaltSize = 16;
+        private const int HashSize = 32;
+
+        public static bool HasPassword
         {
             get
             {
-                if (!File.Exists(@"Engine\PrimeSettingss.txt"))
-                {
-                    return "";
-                }
-                try
-                {
-                    using (StreamReader reader = new StreamReader(@"Engine\PrimeSettingss.txt"))
-                    {
-                        return Decrypt(reader.ReadLine());
-                    }
-                }
-                catch (Exception)
-                {
-                    // ignore
-                }
-
-                return "";
+                return TryReadHash(out _, out _, out _);
             }
-            set
+        }
+
+        public static void SetPassword(string newPassword)
+        {
+            try
             {
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettingss.txt", false))
-                    {
-                        string saveStr = Encrypt(value);
+                byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+                byte[] hash = Rfc2898DeriveBytes.Pbkdf2(newPassword, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
 
-                        writer.WriteLine(saveStr);
+                string saveStr = "PBKDF2$" + Iterations + "$"
+                    + Convert.ToBase64String(salt) + "$"
+                    + Convert.ToBase64String(hash);
 
-                        writer.Close();
-                    }
-                }
-                catch (Exception)
+                File.WriteAllText(PasswordFilePath, saveStr);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        public static bool CheckPassword(string password)
+        {
+            if (TryReadHash(out int iterations, out byte[] salt, out byte[] expectedHash) == false)
+            {
+                return false;
+            }
+
+            try
+            {
+                byte[] actualHash = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, expectedHash.Length);
+
+                return CryptographicOperations.FixedTimeEquals(expectedHash, actualHash);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                return false;
+            }
+        }
+
+        private static bool TryReadHash(out int iterations, out byte[] salt, out byte[] hash)
+        {
+            iterations = 0;
+            salt = null;
+            hash = null;
+
+            try
+            {
+                if (!File.Exists(PasswordFilePath))
                 {
-                    // ignore
+                    return false;
                 }
+
+                string line = File.ReadAllText(PasswordFilePath).Trim();
+
+                string[] parts = line.Split('$');
+
+                if (parts.Length != 4 || parts[0] != "PBKDF2")
+                {
+                    return false;
+                }
+
+                iterations = Convert.ToInt32(parts[1]);
+                salt = Convert.FromBase64String(parts[2]);
+                hash = Convert.FromBase64String(parts[3]);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                return false;
             }
         }
 
@@ -53,103 +105,44 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
         {
             get
             {
-                if (!File.Exists(@"Engine\PrimeSettingsss.txt"))
-                {
-                    return false;
-                }
                 try
                 {
-                    using (StreamReader reader = new StreamReader(@"Engine\PrimeSettingsss.txt"))
+                    if (!File.Exists(BlockFlagFilePath))
                     {
-                        string res = reader.ReadLine();
-
-                        if(res == null)
-                        {
-                            return false;
-                        }
-
-                        return Convert.ToBoolean(Decrypt(res));
+                        return false;
                     }
-                }
-                catch (Exception)
-                {
-                    // ignore
-                }
 
-                return false;
+                    string res = File.ReadAllText(BlockFlagFilePath).Trim();
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        return false;
+                    }
+
+                    if (bool.TryParse(res, out bool result))
+                    {
+                        return result;
+                    }
+
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    return false;
+                }
             }
             set
             {
                 try
                 {
-                    using (StreamWriter writer = new StreamWriter(@"Engine\PrimeSettingsss.txt", false))
-                    {
-                        string saveStr = Encrypt(value.ToString());
-
-                        writer.WriteLine(saveStr);
-
-                        writer.Close();
-                    }
+                    File.WriteAllText(BlockFlagFilePath, value.ToString());
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // ignore
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
             }
-        }
-
-        public static string Encrypt(string clearText)
-        {
-            string EncryptionKey = "dfg2335";
-            byte[] clearBytes = Encoding.Unicode.GetBytes(clearText);
-            using (Aes encryptor = Aes.Create())
-            {
-                #pragma warning disable SYSLIB0060
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 },1,HashAlgorithmName.SHA256);
-                #pragma warning restore SYSLIB0060
-                encryptor.Key = pdb.GetBytes(32);
-                encryptor.IV = pdb.GetBytes(16);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(clearBytes, 0, clearBytes.Length);
-                        cs.Close();
-                    }
-                    clearText = Convert.ToBase64String(ms.ToArray());
-                }
-            }
-            return clearText;
-        }
-
-        public static string Decrypt(string cipherText)
-        {
-            if(cipherText == null)
-            {
-                return null;
-            }
-
-            string EncryptionKey = "dfg2335";
-            cipherText = cipherText.Replace(" ", "+");
-            byte[] cipherBytes = Convert.FromBase64String(cipherText);
-            using (Aes encryptor = Aes.Create())
-            {
-                #pragma warning disable SYSLIB0060
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 }, 1, HashAlgorithmName.SHA256);
-                #pragma warning restore SYSLIB0060
-                encryptor.Key = pdb.GetBytes(32);
-                encryptor.IV = pdb.GetBytes(16);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateDecryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(cipherBytes, 0, cipherBytes.Length);
-                        cs.Close();
-                    }
-                    cipherText = Encoding.Unicode.GetString(ms.ToArray());
-                }
-            }
-            return cipherText;
         }
     }
 }

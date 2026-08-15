@@ -41,20 +41,25 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            string password = TextBoxPassword.Text;
-
-            string passwordInReal = BlockMaster.Password;
-
-            if(passwordInReal == password)
+            try
             {
-                IsUnBlocked = true;
-                BlockMaster.IsBlocked = false;
-                Close();
+                string password = TextBoxPassword.Text;
+
+                if (BlockMaster.CheckPassword(password))
+                {
+                    IsUnBlocked = true;
+                    BlockMaster.IsBlocked = false;
+                    Close();
+                }
+                else
+                {
+                    ServerMaster.SendNewLogMessage("Error password. ", Logging.LogMessageType.Error);
+                    Close();
+                }
             }
-            else
+            catch (Exception error)
             {
-                ServerMaster.SendNewLogMessage("Error password. ",Logging.LogMessageType.Error);
-                Close();
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
     }

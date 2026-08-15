@@ -674,6 +674,8 @@ namespace OsEngine
             ButtonLocal_Ru.IsEnabled = false;
             ButtonLocal_Eng.IsEnabled = false;
             ButtonNewCommits.IsEnabled = false;
+            ButtonTheme.IsEnabled = false;
+            ButtonPostsMenu.IsEnabled = false;
         }
 
         private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -727,6 +729,8 @@ namespace OsEngine
             ButtonLocal_Ru.IsEnabled = true;
             ButtonLocal_Eng.IsEnabled = true;
             ButtonNewCommits.IsEnabled = true;
+            ButtonTheme.IsEnabled = true;
+            ButtonPostsMenu.IsEnabled = true;
         }
 
         #endregion

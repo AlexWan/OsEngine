@@ -2838,5 +2838,9 @@ namespace OsEngine.Language
         public string Label756 => OsLocalization.ConvertToLocString(
           "Eng:Preset loaded: {0}_" +
           "Ru:Preset загружен: {0}_");
+
+        public string Label757 => OsLocalization.ConvertToLocString(
+          "Eng:Change password_" +
+          "Ru:Сменить пароль_");
     }
 }
