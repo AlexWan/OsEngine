@@ -189,6 +189,13 @@ namespace OsEngine.McpApi.TestStand
                 catch (Exception error)
                 {
                     lastError = error.Message;
+
+                    if (lastError.Contains("Encryptor is locked"))
+                    {
+                        // хост поднялся в locked-режиме (ключ API зашифрован) - это валидное состояние готовности
+                        return;
+                    }
+
                     Thread.Sleep(500);
                 }
             }

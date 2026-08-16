@@ -501,6 +501,14 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, 19, "Optimizer", "-optimizer", () => new OptimizerTests(context).RunAll());
 
+                // Модуль: Encryption
+                // MCP API: encryption_get_status, encryption_unlock, encryption_enable, encryption_disable.
+                // Запускает OsEngine перед собой: да, в режиме BotStationLight (-robotslight).
+                // Если шифрование выключено — включает тестовым паролем 11111111 и выключает обратно через API.
+                // Если включено — только разблокирует паролем 11111111, файлы не меняются.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 20, "Encryption", "-robotslight", () => new EncryptionTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

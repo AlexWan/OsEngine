@@ -2191,5 +2191,125 @@ namespace OsEngine.Language
         public string LabelAcceptRemoveNonTradePeriod => OsLocalization.ConvertToLocString(
          "Eng:Are you sure you want to remove the non trade period?_" +
          "Ru:Вы уверены, что хотите удалить неторговый период?_");
+
+        public string Label341 => OsLocalization.ConvertToLocString(
+         "Eng:Encryption_" +
+         "Ru:Шифрование_");
+
+        public string Label342 => OsLocalization.ConvertToLocString(
+         "Eng:Server passwords encryption_" +
+         "Ru:Шифрование паролей серверов_");
+
+        public string Label343 => OsLocalization.ConvertToLocString(
+         "Eng:Do you want to encrypt server passwords (API keys) stored on this computer?_" +
+         "Ru:Зашифровать пароли серверов (ключи API), хранящиеся на этом компьютере?_");
+
+        public string Label344 => OsLocalization.ConvertToLocString(
+         "Eng:Current password_" +
+         "Ru:Текущий пароль_");
+
+        public string Label345 => OsLocalization.ConvertToLocString(
+         "Eng:New password_" +
+         "Ru:Новый пароль_");
+
+        public string Label346 => OsLocalization.ConvertToLocString(
+         "Eng:Repeat password_" +
+         "Ru:Повторите пароль_");
+
+        public string Label347 => OsLocalization.ConvertToLocString(
+         "Eng:Enable_" +
+         "Ru:Включить_");
+
+        public string Label348 => OsLocalization.ConvertToLocString(
+         "Eng:Disable_" +
+         "Ru:Выключить_");
+
+        public string Label349 => OsLocalization.ConvertToLocString(
+         "Eng:Change password_" +
+         "Ru:Сменить пароль_");
+
+        public string Label350 => OsLocalization.ConvertToLocString(
+         "Eng:Wrong password. Try again_" +
+         "Ru:Неверный пароль. Попробуйте ещё_");
+
+        public string Label351 => OsLocalization.ConvertToLocString(
+         "Eng:Password must be at least 8 characters_" +
+         "Ru:Пароль должен быть не короче 8 символов_");
+
+        public string Label352 => OsLocalization.ConvertToLocString(
+         "Eng:Passwords do not match_" +
+         "Ru:Пароли не совпадают_");
+
+        public string Label353 => OsLocalization.ConvertToLocString(
+         "Eng:Status_" +
+         "Ru:Статус_");
+
+        public string Label354 => OsLocalization.ConvertToLocString(
+         "Eng:Encryption is on_" +
+         "Ru:Шифрование включено_");
+
+        public string Label355 => OsLocalization.ConvertToLocString(
+         "Eng:Encryption is off_" +
+         "Ru:Шифрование выключено_");
+
+        public string Label356 => OsLocalization.ConvertToLocString(
+         "Eng:Unlock_" +
+         "Ru:Разблокировать_");
+
+        public string Label357 => OsLocalization.ConvertToLocString(
+         "Eng:Close_" +
+         "Ru:Закрыть_");
+
+        public string Label358 => OsLocalization.ConvertToLocString(
+         "Eng:Passwords are encrypted. Enter the master password to unlock_" +
+         "Ru:Пароли зашифрованы. Введите мастер-пароль для разблокировки_");
+
+        public string Label362 => OsLocalization.ConvertToLocString(
+         "Eng:Forgotten password cannot be recovered. API keys must be re-entered_" +
+         "Ru:Забытый пароль восстановить невозможно. Ключи API придётся ввести заново_");
+
+        public string Label363 => OsLocalization.ConvertToLocString(
+         "Eng:Cancel_" +
+         "Ru:Отмена_");
+
+        public string Label364 => OsLocalization.ConvertToLocString(
+         "Eng: Setup _" +
+         "Ru: Установка _");
+
+        public string Label365 => OsLocalization.ConvertToLocString(
+         "Eng: Unlock _" +
+         "Ru: Разблокировка _");
+
+        public string Label366 => OsLocalization.ConvertToLocString(
+         "Eng: Change _" +
+         "Ru: Смена _");
+
+        public string Label367 => OsLocalization.ConvertToLocString(
+         "Eng: Disable _" +
+         "Ru: Отключение _");
+
+        public string Label368 => OsLocalization.ConvertToLocString(
+         "Eng:Encryption will be disabled. All keys will be decrypted to plain text_" +
+         "Ru:Шифрование будет выключено. Все ключи расшифруются в открытый вид_");
+
+        public string Label369 => OsLocalization.ConvertToLocString(
+         "Eng:Operation failed. See the log for details_" +
+         "Ru:Операция не выполнена. Подробности в логе_");
+
+        public string Label370 => OsLocalization.ConvertToLocString(
+         "Eng:Here you can enable encryption of server passwords (API keys) stored on this computer.\n\nCreate a master password of at least 8 characters. All keys of all connectors will be encrypted with it. After the program starts, you will need to enter the master password once - all connectors will be decrypted for the session.\n\nThe master password is not stored anywhere and cannot be recovered. If you forget it, you will have to re-enter all API keys manually._" +
+         "Ru:Здесь включается шифрование паролей серверов (ключей API), хранящихся на этом компьютере.\n\nПридумайте мастер-пароль не короче 8 символов. Все ключи всех коннекторов будут зашифрованы им. После запуска программы мастер-пароль нужно будет ввести один раз - все коннекторы расшифруются на время сессии.\n\nМастер-пароль нигде не хранится и не восстанавливается. Если Вы его забудете, все ключи API придётся ввести заново вручную_");
+
+        public string Label371 => OsLocalization.ConvertToLocString(
+         "Eng:Server passwords on this computer are encrypted. Enter the master password you created when enabling encryption.\n\nAfter a successful entry, all connectors will be decrypted until the program is closed. You will not need to enter the password again in this session.\n\nIf the password is wrong, nothing will happen - you can try again. If you close the window without entering the password, encrypted connectors will not receive their keys and will not connect._" +
+         "Ru:Пароли серверов на этом компьютере зашифрованы. Введите мастер-пароль, который Вы создавали при включении шифрования.\n\nПосле успешного ввода все коннекторы расшифруются до закрытия программы. Повторно вводить пароль в этой сессии не потребуется.\n\nЕсли пароль неверный, ничего страшного - попробуйте ещё. Если закрыть окно без ввода, зашифрованные коннекторы не получат свои ключи и не подключатся_");
+
+        public string Label372 => OsLocalization.ConvertToLocString(
+         "Eng:Here you can change the master password that encrypts server passwords.\n\nEnter the current master password and the new one twice. All keys of all connectors will be decrypted with the old password and immediately re-encrypted with the new one. The operation is safe - if anything goes wrong, the files will remain encrypted with the old password._" +
+         "Ru:Здесь меняется мастер-пароль, которым зашифрованы пароли серверов.\n\nВведите текущий мастер-пароль и дважды новый. Все ключи всех коннекторов будут расшифрованы старым паролем и сразу зашифрованы новым. Операция безопасна - если что-то пойдёт не так, файлы останутся зашифрованы старым паролем_");
+
+        public string Label373 => OsLocalization.ConvertToLocString(
+         "Eng:Here you can completely disable encryption of server passwords.\n\nEnter the current master password. All keys of all connectors will be decrypted and stored in plain text, as before encryption was enabled. The master password will be forgotten by the program.\n\nThis operation is available only locally in this window. It cannot be performed through the API._" +
+         "Ru:Здесь можно полностью выключить шифрование паролей серверов.\n\nВведите текущий мастер-пароль. Все ключи всех коннекторов будут расшифрованы и сохранены в открытом виде, как до включения шифрования. Мастер-пароль будет забыт программой.\n\nЭта операция доступна только локально в этом окне. Через API её выполнить нельзя_");
     }
 }

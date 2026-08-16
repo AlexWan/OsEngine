@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.ServerEncryption;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -45,6 +46,7 @@ namespace OsEngine.MCP
 
             ButtonSave.Click += ButtonSave_Click;
             ButtonRestart.Click += ButtonRestart_Click;
+            ButtonEncryption.Click += ButtonEncryption_Click;
             ButtonAddIp.Click += ButtonAddIp_Click;
             CheckBoxEnabled.Checked += CheckBoxEnabled_CheckedChanged;
             CheckBoxEnabled.Unchecked += CheckBoxEnabled_CheckedChanged;
@@ -58,8 +60,33 @@ namespace OsEngine.MCP
 
             Closed += McpApiUi_Closed;
 
+            Loaded += McpApiUi_Loaded;
+
             this.Activate();
             this.Focus();
+        }
+
+        private void McpApiUi_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Loaded -= McpApiUi_Loaded;
+
+                // шифрование включено, шифрователь не разблокирован - сразу предлагаем разблокировать
+                if (ServerEncryptionMaster.GetStatus() == ServerEncryptionStatus.Encrypted
+                    && ServerEncryptionMaster.IsUnlocked == false)
+                {
+                    ServerEncryptionUi ui = new ServerEncryptionUi(true);
+                    ui.ShowDialog();
+
+                    McpSettings.ReloadKeyAfterUnlock();
+                    LoadSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
         }
 
         private void McpApiUi_Closed(object sender, EventArgs e)
@@ -67,10 +94,12 @@ namespace OsEngine.MCP
             try
             {
                 Closed -= McpApiUi_Closed;
+                Loaded -= McpApiUi_Loaded;
                 OsLocalization.LocalizationTypeChangeEvent -= ChangeText;
 
                 ButtonSave.Click -= ButtonSave_Click;
                 ButtonRestart.Click -= ButtonRestart_Click;
+                ButtonEncryption.Click -= ButtonEncryption_Click;
                 ButtonAddIp.Click -= ButtonAddIp_Click;
                 CheckBoxEnabled.Checked -= CheckBoxEnabled_CheckedChanged;
                 CheckBoxEnabled.Unchecked -= CheckBoxEnabled_CheckedChanged;
@@ -347,6 +376,22 @@ namespace OsEngine.MCP
             }
         }
 
+        private void ButtonEncryption_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ServerEncryptionUi ui = new ServerEncryptionUi(false);
+                ui.ShowDialog();
+
+                McpSettings.ReloadKeyAfterUnlock();
+                LoadSettings();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
         private void ButtonRestart_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -398,6 +443,7 @@ namespace OsEngine.MCP
                 LabelApiKey.Content = OsLocalization.McpApi.LabelApiKey;
                 ButtonSave.Content = OsLocalization.McpApi.ButtonSave;
                 ButtonRestart.Content = OsLocalization.McpApi.ButtonRestart;
+                ButtonEncryption.Content = OsLocalization.Market.Label341;
                 ButtonAddIp.Content = OsLocalization.McpApi.ButtonAddIp;
                 TabItemLog.Header = OsLocalization.McpApi.TabLog;
                 TabItemAllowedIps.Header = OsLocalization.McpApi.TabAllowedIps;

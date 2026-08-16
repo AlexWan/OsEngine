@@ -2842,5 +2842,9 @@ namespace OsEngine.Language
         public string Label757 => OsLocalization.ConvertToLocString(
           "Eng:Change password_" +
           "Ru:Сменить пароль_");
+
+        public string Label758 => OsLocalization.ConvertToLocString(
+          "Eng:Wrong password. Try again_" +
+          "Ru:Неверный пароль. Попробуйте ещё_");
     }
 }

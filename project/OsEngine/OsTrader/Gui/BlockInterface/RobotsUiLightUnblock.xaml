@@ -11,6 +11,7 @@
         <Button Name="ButtonAccept" Content="Unblock interface" FontWeight="Bold" Margin="5,0,5,10" VerticalAlignment="Bottom" Click="ButtonAccept_Click"/>
         <Label Name="LabelPassword" Content="Password" HorizontalAlignment="Left" Margin="26,0,0,79" VerticalAlignment="Bottom" FontSize="16" />
         <TextBox Name="TextBoxPassword" Margin="119,0,81,79" TextWrapping="Wrap" VerticalAlignment="Bottom"/>
+        <Label Name="LabelError" Content="" HorizontalAlignment="Left" Margin="26,0,0,52" VerticalAlignment="Bottom" Foreground="#FFFF5050"/>
         <Image Name="ImageEye" Source="/Images/padlockOpened.png"  Height="52" Margin="199,10,199,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

@@ -33,5 +33,6 @@
                 <Image Name="WhiteCollectionServerParameter" Source="/Images/InstructionPosts/WhitePostCollection.png" Width="22" Height="17" Opacity="0"/>
             </Grid>
         </Button>
+        <Button Name="ButtonEncryption" HorizontalAlignment="Left" Margin="40,0,0,5" VerticalAlignment="Bottom" Height="25" Width="120" Grid.Row="1" Click="ButtonEncryption_Click"/>
     </Grid>
 </Window>

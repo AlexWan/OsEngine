@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Instructions;
 using OsEngine.Language;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.ServerEncryption;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -64,6 +65,7 @@ namespace OsEngine.Market.Servers
             Label21.Content = OsLocalization.Market.Label21;
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+            ButtonEncryption.Content = OsLocalization.Market.Label341;
             LabelCurrentConnectionName.Content = OsLocalization.Market.Label164;
             LabelPreConfiguredConnection.Content = OsLocalization.Market.Label166;
 
@@ -107,6 +109,21 @@ namespace OsEngine.Market.Servers
             }
 
             StartButtonBlinkAnimation();
+
+            Loaded += AServerParameterUi_Loaded;
+        }
+
+        private void AServerParameterUi_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Loaded -= AServerParameterUi_Loaded;
+                TryShowEncryptionOffer();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void AServerParameterUi_Closed(object sender, EventArgs e)
@@ -125,6 +142,8 @@ namespace OsEngine.Market.Servers
                 ButtonConnect.Click -= ButtonConnect_Click;
                 ButtonAbort.Click -= ButtonAbort_Click;
                 ButtonPostsServerParameter.Click -= ButtonPostsAServerParameter_Click;
+
+                Loaded -= AServerParameterUi_Loaded;
 
                 ServerMaster.ServerDeleteEvent -= ServerMaster_ServerDeleteEvent;
 
@@ -503,6 +522,7 @@ namespace OsEngine.Market.Servers
                     && row < _gridConnections.Rows.Count - 1)
                 {// Connect
                     ChangeActiveServer(row);
+                    TryShowEncryptionOffer();
                     _server.StartServer();
                 }
             }
@@ -1355,7 +1375,65 @@ namespace OsEngine.Market.Servers
 
         private void ButtonConnect_Click(object sender, RoutedEventArgs e)
         {
+            TryShowEncryptionOffer();
             _server.StartServer();
+        }
+
+        private void ButtonEncryption_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ServerEncryptionUi ui = new ServerEncryptionUi(false);
+                ui.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TryShowEncryptionOffer()
+        {
+            try
+            {
+                if (ServerEncryptionMaster.GetStatus() != ServerEncryptionStatus.NotChosen)
+                {
+                    return;
+                }
+
+                bool hasPasswordParameters = false;
+
+                for (int i = 0; i < _server.ServerParameters.Count; i++)
+                {
+                    if (_server.ServerParameters[i].Type == ServerParameterType.Password)
+                    {
+                        hasPasswordParameters = true;
+                        break;
+                    }
+                }
+
+                if (hasPasswordParameters == false)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label343);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction)
+                {
+                    ServerEncryptionUi encryptionUi = new ServerEncryptionUi(false);
+                    encryptionUi.ShowDialog();
+                }
+                else
+                {
+                    ServerEncryptionMaster.SetDeclined();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonAbort_Click(object sender, RoutedEventArgs e)

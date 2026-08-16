@@ -42,6 +42,7 @@ OsEngine/MCP/
     ComparePositionsApi.cs  // compare_positions_* (robots vs exchange positions + synchronization)
     ProxyApi.cs             // proxy_* (proxy router: list, create, delete, settings, status, ping)
     OptimizerApi.cs         // optimizer_* (OptimizerMaster: data, bot, params, phases, execution, report)
+    EncryptionApi.cs        // encryption_* (глобальный шифрователь паролей серверов: status, unlock, enable, disable)
     TesterApi.cs            // tester_* configuration
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
@@ -77,7 +78,7 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     OptimizerTests.cs       // optimizer_* via Optimizer mode
 ```
 
-По умолчанию стенд прогоняет все 19 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–19) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 20 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–20) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -139,6 +140,18 @@ X-Api-Key: <ключ>
 
 6. **Не создавайте временные `.py` / `.sh` / `.ps1` файлы.**  
    MCP API существует для того, чтобы ИИ делал запросы к OsEngine напрямую из чата. Для повторяющихся проверок используйте `mcp_call.sh` или `curl | powershell`, а не самописные скрипты.
+
+### 2.2.2. Locked-режим: ключ API зашифрован
+
+Если глобальный шифрователь включён (см. `CONTEXT_SECURITY.md`, Уровень 2/3), ключ API в `Engine\McpSettings.txt` хранится зашифрованным (`ENC1:...`). После старта OsEngine и до разблокировки шифрователя хост работает в **locked-режиме**:
+
+- На все запросы (с любым `X-Api-Key`, включая `GET /api/v1/events`) — `401 Encryptor is locked. Call encryption_unlock first (no API key required)`.
+- Единственное исключение: `tools/call` с `name = "encryption_unlock"` принимается **без заголовка `X-Api-Key`** (bootstrap). В `arguments` передаётся мастер-пароль.
+- После успешного `encryption_unlock` хост расшифровывает ключ и дальше работает обычная авторизация по `X-Api-Key`.
+- **Rate-limit:** 5 неверных попыток `encryption_unlock` подряд → бан на 5 минут (ошибка «Too many failed unlock attempts»). Каждая попытка дополнительно стоит ~0.3 сек серверного PBKDF2.
+- Оверрайд ключа из командной строки (`-mcpApiKey`) отключает locked-режим: ключ известен хосту сразу.
+
+Типовой headless-сценарий: старт OsEngine → любой вызов отклонён (401) → `encryption_unlock` без ключа → обычные вызовы с `X-Api-Key`.
 
 ### 2.3. JSON-RPC endpoint: только протокольные методы
 
@@ -320,6 +333,10 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `optimizer_get_status` | `is_running`, прогресс по фазе и потокам, оценка времени до конца |
 | `optimizer_get_report` | Результаты по фазам: полные параметры + метрики, `is_partial`, `sort_type`, `limit` |
 | `optimizer_save_report` / `optimizer_load_report` | Сохранение/загрузка результатов в файл |
+| `encryption_get_status` | Статус глобального шифрователя паролей серверов: `status` (`Plain`/`Encrypted`/`Declined`), `unlocked` |
+| `encryption_unlock` | Разблокировать шифрователь мастер-паролем (`password`) на текущую сессию. Можно вызвать в любой момент, в т.ч. сразу после старта — тогда UI-окна ввода пароля не появятся |
+| `encryption_enable` | Включить шифрование с новым мастер-паролем (`password`, минимум 8 символов) + перешифровка всех `Engine\*Params.txt`. Работает только когда шифрование выключено; смена пароля через API недоступна (только локально) |
+| `encryption_disable` | Деструктивная операция: выключить шифрование и расшифровать все ключи в открытый вид. Требует текущий мастер-пароль (`password`) |
 
 **Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов данных **с расширением**: `SBER.txt`, а не `SBER`. Это видно и в диалоге хранилища оптимизатора (колонка «Бумага»). Во вкладки робота через `optimizer_bot_tab_set_config` надо передавать имя точно как в хранилище — с `.txt`. Если передать имя, которого нет в хранилище, инструмент вернёт ошибку со списком доступных имён; UI оптимизатора при перерисовке молча очищает вкладку с неизвестной бумагой.
 
@@ -1139,6 +1156,42 @@ curl -s -H "X-Api-Key: osengine-mcp-default-key" \
 curl -s -H "X-Api-Key: osengine-mcp-default-key" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"bot_journal_get_closed_positions","arguments":{"bot_name":"ParabolicBollinger","include_failed":false,"limit":100,"offset":0}},"id":48}' \
+  http://localhost:6500/api/v1/mcp
+```
+
+**tools/call (encryption_get_status):**
+
+```bash
+curl -s -H "X-Api-Key: osengine-mcp-default-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"encryption_get_status","arguments":{}},"id":49}' \
+  http://localhost:6500/api/v1/mcp
+```
+
+**tools/call (encryption_unlock):**
+
+```bash
+curl -s -H "X-Api-Key: osengine-mcp-default-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"encryption_unlock","arguments":{"password":"myMasterPassword"}},"id":50}' \
+  http://localhost:6500/api/v1/mcp
+```
+
+**tools/call (encryption_enable):**
+
+```bash
+curl -s -H "X-Api-Key: osengine-mcp-default-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"encryption_enable","arguments":{"password":"myMasterPassword"}},"id":51}' \
+  http://localhost:6500/api/v1/mcp
+```
+
+**tools/call (encryption_disable):**
+
+```bash
+curl -s -H "X-Api-Key: osengine-mcp-default-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"encryption_disable","arguments":{"password":"myMasterPassword"}},"id":52}' \
   http://localhost:6500/api/v1/mcp
 ```
 

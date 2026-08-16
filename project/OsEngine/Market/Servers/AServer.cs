@@ -15,6 +15,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.ServerEncryption;
 using OsEngine.OsTrader.SystemAnalyze;
 using System.Net.Sockets;
 using System.Text;
@@ -698,7 +699,29 @@ namespace OsEngine.Market.Servers
                 {
                     for (int i = 0; i < ServerParameters.Count; i++)
                     {
-                        writer.WriteLine(ServerParameters[i].GetStringToSave());
+                        IServerParameter param = ServerParameters[i];
+
+                        if (param.Type == ServerParameterType.Password
+                            && ServerEncryptionMaster.GetStatus() == ServerEncryptionStatus.Encrypted)
+                        {
+                            if (ServerEncryptionMaster.IsUnlocked == false)
+                            {
+                                ServerEncryptionMaster.RequestUnlock();
+                            }
+
+                            if (ServerEncryptionMaster.IsUnlocked == false)
+                            {
+                                // шифрование включено, но пароль не введён. Не перезаписываем файл открытыми значениями
+                                SendLogMessage("Encryption is enabled, but master password is not entered. Parameters are not saved. Server: " + ServerNameUnique, LogMessageType.Error);
+                                return;
+                            }
+
+                            string encryptedValue = ServerEncryptionMaster.Encrypt(((ServerParameterPassword)param).Value);
+                            writer.WriteLine(param.Type + "^" + param.Name + "^" + encryptedValue);
+                            continue;
+                        }
+
+                        writer.WriteLine(param.GetStringToSave());
                     }
 
                     writer.Close();
@@ -786,6 +809,11 @@ namespace OsEngine.Market.Servers
                         if (oldParam.Name == param.Name &&
                             oldParam.Type == param.Type)
                         {
+                            if (type == ServerParameterType.Password)
+                            {
+                                DecryptLoadedPasswordValue((ServerParameterPassword)oldParam);
+                            }
+
                             return oldParam;
                         }
                     }
@@ -798,6 +826,55 @@ namespace OsEngine.Market.Servers
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
             return param;
+        }
+
+        /// <summary>
+        /// decrypt the value of the password parameter loaded from the file
+        /// расшифровать значение парольного параметра, загруженное из файла
+        /// </summary>
+        private void DecryptLoadedPasswordValue(ServerParameterPassword param)
+        {
+            try
+            {
+                string value = param.Value;
+
+                if (ServerEncryptionMaster.IsEncryptedValue(value) == false)
+                {
+                    return;
+                }
+
+                if (ServerEncryptionMaster.GetStatus() != ServerEncryptionStatus.Encrypted)
+                {
+                    // файл состояния шифрования удалён - расшифровать нечем, сверять пароль не с чем
+                    SendLogMessage("Encrypted password parameter found, but encryption state file is missing. Re-enter the key. Server: " + ServerNameUnique + ", parameter: " + param.Name, LogMessageType.Error);
+                    param.LoadFromStr(ServerParameterType.Password + "^" + param.Name + "^" + "");
+                    return;
+                }
+
+                if (ServerEncryptionMaster.IsUnlocked == false
+                    && ServerEncryptionMaster.UnlockDeclinedThisSession == false)
+                {
+                    ServerEncryptionMaster.RequestUnlock();
+                }
+
+                string plain = null;
+
+                if (ServerEncryptionMaster.IsUnlocked)
+                {
+                    ServerEncryptionMaster.TryDecrypt(value, out plain);
+                }
+
+                if (plain == null)
+                {
+                    plain = "";
+                }
+
+                param.LoadFromStr(ServerParameterType.Password + "^" + param.Name + "^" + plain);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         /// <summary>

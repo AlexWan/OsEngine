@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.ServerEncryption;
 using OsEngine.MCP.Json;
 using OsEngine.MCP.Modules;
 using OsEngine.OsData;
@@ -63,6 +64,7 @@ namespace OsEngine.MCP
         private readonly ComparePositionsApi _comparePositionsApi;
         private readonly ProxyApi _proxyApi;
         private readonly OptimizerApi _optimizerApi;
+        private readonly EncryptionApi _encryptionApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -161,6 +163,9 @@ namespace OsEngine.MCP
             _optimizerApi = new OptimizerApi(publishEvent);
             _optimizerApi.NewLogMessageEvent += OptimizerApi_NewLogMessageEvent;
 
+            _encryptionApi = new EncryptionApi();
+            _encryptionApi.NewLogMessageEvent += EncryptionApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -181,6 +186,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_comparePositionsApi);
             _protocolApi.RegisterToolProvider(_proxyApi);
             _protocolApi.RegisterToolProvider(_optimizerApi);
+            _protocolApi.RegisterToolProvider(_encryptionApi);
         }
 
         #endregion
@@ -377,6 +383,11 @@ namespace OsEngine.MCP
             Log.ProcessMessage(message, type);
         }
 
+        private void EncryptionApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
         private void ProtocolApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
@@ -514,6 +525,29 @@ namespace OsEngine.MCP
                     return;
                 }
 
+                if (McpSettings.KeyIsLocked
+                    && ServerEncryptionMaster.IsUnlocked)
+                {
+                    // шифрователь разблокировали через bootstrap или UI - дочитываем ключ
+                    McpSettings.ReloadKeyAfterUnlock();
+                }
+
+                if (IsLockedMode)
+                {
+                    // ключ API зашифрован и не расшифрован: без авторизации пропускаем только encryption_unlock
+                    if (request.HttpMethod == "POST" && path == "/api/v1/mcp")
+                    {
+                        ProcessJsonRpc(request, response, true);
+                    }
+                    else
+                    {
+                        SendError(response, 401, "Encryptor is locked. Call encryption_unlock first (no API key required)");
+                    }
+
+                    LogRequest(request, response, path);
+                    return;
+                }
+
                 if (!IsAuthorized(request))
                 {
                     SendError(response, 401, "Unauthorized");
@@ -578,10 +612,32 @@ namespace OsEngine.MCP
             }
         }
 
+        private bool IsLockedMode
+        {
+            get
+            {
+                // если ключ задан извне (командная строка) - locked-режим не нужен
+                return string.IsNullOrEmpty(_apiKey)
+                    && McpSettings.KeyIsLocked;
+            }
+        }
+
         private bool IsAuthorized(HttpListenerRequest request)
         {
+            string effectiveKey = _apiKey;
+
+            if (string.IsNullOrEmpty(effectiveKey))
+            {
+                effectiveKey = McpSettings.ApiKey;
+            }
+
+            if (string.IsNullOrEmpty(effectiveKey))
+            {
+                return false;
+            }
+
             string apiKey = request.Headers["X-Api-Key"];
-            return apiKey == _apiKey;
+            return apiKey == effectiveKey;
         }
 
         private bool IsIpAllowed(HttpListenerRequest request)
@@ -636,7 +692,7 @@ namespace OsEngine.MCP
             return false;
         }
 
-        private void ProcessJsonRpc(HttpListenerRequest request, HttpListenerResponse response)
+        private void ProcessJsonRpc(HttpListenerRequest request, HttpListenerResponse response, bool lockedMode = false)
         {
             string body;
             using (StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
@@ -667,6 +723,19 @@ namespace OsEngine.MCP
                 {
                     // JSON-RPC notification: no response required
                     _protocolApi.HandleNotification(rpcRequest);
+                }
+                else if (lockedMode && IsUnlockCallAllowed(rpcRequest) == false)
+                {
+                    rpcResponse = new McpJsonRpcResponse
+                    {
+                        JsonRpc = "2.0",
+                        Id = rpcRequest.Id,
+                        Error = new McpJsonRpcError
+                        {
+                            Code = -32601,
+                            Message = "Encryptor is locked. Only encryption_unlock is available (no API key required)"
+                        }
+                    };
                 }
                 else
                 {
@@ -709,6 +778,26 @@ namespace OsEngine.MCP
             }
 
             SendJson(response, 200, rpcResponse);
+        }
+
+        private bool IsUnlockCallAllowed(McpJsonRpcRequest request)
+        {
+            if (request.Method != "tools/call")
+            {
+                return false;
+            }
+
+            if (request.Params.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            if (request.Params.TryGetProperty("name", out JsonElement nameElement) == false)
+            {
+                return false;
+            }
+
+            return nameElement.GetString() == "encryption_unlock";
         }
 
         private McpJsonRpcResponse HandleMethod(McpJsonRpcRequest request)
@@ -904,6 +993,13 @@ namespace OsEngine.MCP
                     case "proxy_get_status":
                     case "proxy_ping":
                         response = _proxyApi.Handle(request);
+                        break;
+
+                    case "encryption_get_status":
+                    case "encryption_unlock":
+                    case "encryption_enable":
+                    case "encryption_disable":
+                        response = _encryptionApi.Handle(request);
                         break;
 
                     case "optimizer_data_get_config":

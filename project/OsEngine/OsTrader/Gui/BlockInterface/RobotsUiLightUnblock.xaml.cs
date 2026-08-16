@@ -54,7 +54,8 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
                 else
                 {
                     ServerMaster.SendNewLogMessage("Error password. ", Logging.LogMessageType.Error);
-                    Close();
+                    LabelError.Content = OsLocalization.Trader.Label758;
+                    TextBoxPassword.Text = "";
                 }
             }
             catch (Exception error)

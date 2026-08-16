@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using OsEngine.Logging;
+using OsEngine.Market;
+using OsEngine.Market.ServerEncryption;
 
 namespace OsEngine.MCP
 {
@@ -67,10 +70,28 @@ namespace OsEngine.MCP
                     return;
                 }
                 _apiKey = value;
+                _keyIsLocked = false;
                 Save();
             }
         }
         private static string _apiKey = DefaultApiKey;
+
+        /// <summary>
+        /// API key on disk is encrypted, but the encryptor is not unlocked - the key is not available
+        /// ключ на диске зашифрован, но шифрователь не разблокирован - ключ недоступен
+        /// </summary>
+        public static bool KeyIsLocked
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _keyIsLocked;
+            }
+        }
+        private static bool _keyIsLocked;
 
         public static bool IsEnabled
         {
@@ -154,15 +175,30 @@ namespace OsEngine.MCP
         {
             try
             {
+                if (_keyIsLocked)
+                {
+                    // ключ на диске зашифрован и не расшифрован - не перезаписываем файл
+                    ServerMaster.SendNewLogMessage("MCP settings are not saved: API key is encrypted and encryptor is locked", LogMessageType.Error);
+                    return;
+                }
+
                 if (!Directory.Exists("Engine"))
                 {
                     Directory.CreateDirectory("Engine");
                 }
 
+                string keyToSave = _apiKey;
+
+                if (ServerEncryptionMaster.GetStatus() == ServerEncryptionStatus.Encrypted
+                    && ServerEncryptionMaster.IsUnlocked)
+                {
+                    keyToSave = ServerEncryptionMaster.Encrypt(_apiKey);
+                }
+
                 using (StreamWriter writer = new StreamWriter(@"Engine\McpSettings.txt", false))
                 {
                     writer.WriteLine(_port);
-                    writer.WriteLine(_apiKey);
+                    writer.WriteLine(keyToSave);
                     writer.WriteLine(_isEnabled);
                     writer.WriteLine(_isFullLogEnabled);
                     writer.WriteLine(SerializeAllowedIps(_allowedIps));
@@ -198,7 +234,26 @@ namespace OsEngine.MCP
                     string keyLine = reader.ReadLine();
                     if (!string.IsNullOrWhiteSpace(keyLine))
                     {
-                        _apiKey = keyLine;
+                        if (ServerEncryptionMaster.IsEncryptedValue(keyLine))
+                        {
+                            if (ServerEncryptionMaster.TryDecrypt(keyLine, out string decryptedKey))
+                            {
+                                _apiKey = decryptedKey;
+                                _keyIsLocked = false;
+                            }
+                            else
+                            {
+                                // ключ зашифрован, но шифрователь не разблокирован - MCP стартует в locked-режиме
+                                _apiKey = null;
+                                _keyIsLocked = true;
+                                ServerMaster.SendNewLogMessage("MCP API key is encrypted. Unlock the encryptor to use MCP API", LogMessageType.System);
+                            }
+                        }
+                        else
+                        {
+                            _apiKey = keyLine;
+                            _keyIsLocked = false;
+                        }
                     }
 
                     string enabledLine = reader.ReadLine();
@@ -224,6 +279,47 @@ namespace OsEngine.MCP
             catch (Exception)
             {
                 // ignore, use defaults
+            }
+        }
+
+        /// <summary>
+        /// re-read and decrypt the API key after the encryptor is unlocked
+        /// перечитать и расшифровать ключ API после разблокировки шифрователя
+        /// </summary>
+        public static void ReloadKeyAfterUnlock()
+        {
+            try
+            {
+                if (_keyIsLocked == false)
+                {
+                    return;
+                }
+
+                if (!File.Exists(@"Engine\McpSettings.txt"))
+                {
+                    return;
+                }
+
+                using (StreamReader reader = new StreamReader(@"Engine\McpSettings.txt"))
+                {
+                    reader.ReadLine();
+
+                    string keyLine = reader.ReadLine();
+
+                    reader.Close();
+
+                    if (ServerEncryptionMaster.IsEncryptedValue(keyLine)
+                        && ServerEncryptionMaster.TryDecrypt(keyLine, out string decryptedKey))
+                    {
+                        _apiKey = decryptedKey;
+                        _keyIsLocked = false;
+                        ServerMaster.SendNewLogMessage("MCP API key decrypted after unlock", LogMessageType.System);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

@@ -28,6 +28,7 @@
             <Label Name="LabelFullLog" Content="Full log (log every request and response)" HorizontalAlignment="Left" Margin="28,49,0,0" VerticalAlignment="Top"/>
 
             <Button Name="ButtonSave" Content="Save" Height="22" Margin="575,14,135,0" VerticalAlignment="Top"/>
+            <Button Name="ButtonEncryption" Content="Encryption" Height="22" Margin="0,46,6,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="124"/>
             <Button Name="ButtonRestart" Content="Restart" Height="22" Margin="0,14,6,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="124"/>
         </Grid>
 

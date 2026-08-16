@@ -33,6 +33,7 @@
 | Коннекторы | `CONTEXT_CONNECTORS.md` |
 | MCP API | `CONTEXT_MCP.md` |
 | Сценарии MCP | `CONTEXT_MCP_SCENARIO.md` |
+| Защита / пароли / блокировка | `CONTEXT_SECURITY.md` |
 | Дорожная карта MCP | `TempContext/CONTEXT_MCP_API_DEVELOPMENT.md` |
 | Дивиденды в роботах | `CONTEXT_DIVIDENDS.md` |
 | Синтетические облигации | `CONTEXT_SYNTHETIC_BOND.md` |
