@@ -17,7 +17,10 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 
 using PairInPosition = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures);
 using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures, decimal Mult);
@@ -63,6 +66,7 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterButton _tradePeriodButton;
 
         private StrategyParameterDecimal _minYieldToEntry;
+        private StrategyParameterInt _tableUpdateIntervalSec;
 
         private StrategyParameterDecimal _futuresMult1;
         private StrategyParameterDecimal _futuresMult2;
@@ -88,6 +92,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
             _minYieldToEntry = CreateParameter("Min Yield To Entry % ann", 20m, 1.0m, 100, 1, "Base");
+            _tableUpdateIntervalSec = CreateParameter("Table update interval, sec", 5, 1, 60, 1, "Base");
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Execution");
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4, "Execution");
@@ -119,7 +124,7 @@ namespace OsEngine.Robots.SyntheticBond
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
 
-                _logicTimer = new Timer(LogicTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+                _logicTimer = new System.Threading.Timer(LogicTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 
                 _futs1.CandleFinishedEvent += Screener_CandleFinishedEvent;
                 _futs2.CandleFinishedEvent += Screener_CandleFinishedEvent;
@@ -162,6 +167,18 @@ namespace OsEngine.Robots.SyntheticBond
             Description = OsLocalization.ConvertToLocString(
               "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures when the annualized contango yield exceeds the threshold. The position is moved to a more profitable contract and closed before expiration_" +
               "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс при превышении доходностью контанго в годовых заданного порога. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
+
+            if (startProgram != StartProgram.IsOsOptimizer)
+            {
+                this.ParamGuiSettings.Height = 800;
+                this.ParamGuiSettings.Width = 700;
+
+                CustomTabToParametersUi customTabMonitor = ParamGuiSettings.CreateCustomTab(" Monitor ");
+                CreateColumnsTable();
+                customTabMonitor.AddChildren(_hostTable);
+
+                _monitorTimer = new System.Threading.Timer(MonitorTimerCallback, null, 2000, Timeout.Infinite);
+            }
         }
 
         private bool _optimizerEventSubscribed = false;
@@ -200,7 +217,7 @@ namespace OsEngine.Robots.SyntheticBond
 
         #region Logic entry synchronization in real
 
-        private Timer _logicTimer;
+        private System.Threading.Timer _logicTimer;
         private readonly object _logicTimerLocker = new object();
         private bool _logicTimerStarted = false;
 
@@ -906,6 +923,401 @@ namespace OsEngine.Robots.SyntheticBond
 
             return volume;
         }
+
+        #region Monitor table
+
+        private WindowsFormsHost _hostTable;
+        private DataGridView _tableDataGrid;
+        private System.Threading.Timer _monitorTimer;
+        private bool _monitorUpdateInProgress = false;
+        private List<BondMonitorRow> _monitorRows = new List<BondMonitorRow>();
+
+        private void CreateColumnsTable()
+        {
+            try
+            {
+                if (MainWindow.GetDispatcher.CheckAccess() == false)
+                {
+                    MainWindow.GetDispatcher.Invoke(new Action(CreateColumnsTable));
+                    return;
+                }
+
+                _hostTable = new WindowsFormsHost();
+
+                _tableDataGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                       DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+                _tableDataGrid.ScrollBars = ScrollBars.Vertical;
+                _tableDataGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                _tableDataGrid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                _tableDataGrid.RowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                DataGridViewTextBoxCell cellParam0 = new DataGridViewTextBoxCell();
+                cellParam0.Style = _tableDataGrid.DefaultCellStyle;
+                cellParam0.Style.WrapMode = DataGridViewTriState.True;
+
+                DataGridViewColumn newColumn0 = new DataGridViewColumn();
+                newColumn0.CellTemplate = cellParam0;
+                newColumn0.HeaderText = "Bond";
+                _tableDataGrid.Columns.Add(newColumn0);
+                newColumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn1 = new DataGridViewColumn();
+                newColumn1.CellTemplate = cellParam0;
+                newColumn1.HeaderText = "Mult";
+                _tableDataGrid.Columns.Add(newColumn1);
+                newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn2 = new DataGridViewColumn();
+                newColumn2.CellTemplate = cellParam0;
+                newColumn2.HeaderText = "Series 1";
+                _tableDataGrid.Columns.Add(newColumn2);
+                newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                _tableDataGrid.DataError += _tableDataGrid_DataError;
+                _tableDataGrid.CellClick += _tableDataGrid_CellClick;
+                _tableDataGrid.CellEndEdit += _tableDataGrid_CellEndEdit;
+
+                _hostTable.Child = _tableDataGrid;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _tableDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            SendNewLogMessage(e.ToString(), LogMessageType.Error);
+        }
+
+        private void _tableDataGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row < 0
+                    || row >= _monitorRows.Count)
+                {
+                    return;
+                }
+
+                if (column == 0)
+                {
+                    ShowBondChart(_monitorRows[row]);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _tableDataGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row < 0
+                    || row >= _monitorRows.Count
+                    || column != 1)
+                {
+                    return;
+                }
+
+                object value = _tableDataGrid.Rows[row].Cells[column].Value;
+
+                if (value == null)
+                {
+                    return;
+                }
+
+                decimal newMult = value.ToString().ToDecimal();
+
+                if (newMult <= 0)
+                {
+                    return;
+                }
+
+                SetMultByBase(_monitorRows[row].Base, newMult);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ShowBondChart(BondMonitorRow rowData)
+        {
+            if (rowData.Series.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < rowData.Futs.Tabs.Count; i++)
+            {
+                if (rowData.Futs.Tabs[i] == rowData.Series[0].Tab)
+                {
+                    rowData.Futs.ShowChart(i);
+                    return;
+                }
+            }
+        }
+
+        private void MonitorTimerCallback(object state)
+        {
+            try
+            {
+                if (_monitorUpdateInProgress)
+                {
+                    return;
+                }
+
+                _monitorUpdateInProgress = true;
+
+                RefreshMonitorData();
+                UpdateTable();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+            finally
+            {
+                _monitorUpdateInProgress = false;
+
+                try
+                {
+                    int interval = _tableUpdateIntervalSec.ValueInt;
+
+                    if (interval < 1)
+                    {
+                        interval = 1;
+                    }
+
+                    _monitorTimer?.Change(interval * 1000, Timeout.Infinite);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private void RefreshMonitorData()
+        {
+            List<BondMonitorRow> rows = new List<BondMonitorRow>();
+
+            AddBondMonitorRow(_base1, _futs1, rows);
+            AddBondMonitorRow(_base2, _futs2, rows);
+            AddBondMonitorRow(_base3, _futs3, rows);
+            AddBondMonitorRow(_base4, _futs4, rows);
+            AddBondMonitorRow(_base5, _futs5, rows);
+            AddBondMonitorRow(_base6, _futs6, rows);
+            AddBondMonitorRow(_base7, _futs7, rows);
+            AddBondMonitorRow(_base8, _futs8, rows);
+            AddBondMonitorRow(_base9, _futs9, rows);
+            AddBondMonitorRow(_base10, _futs10, rows);
+            AddBondMonitorRow(_base11, _futs11, rows);
+            AddBondMonitorRow(_base12, _futs12, rows);
+            AddBondMonitorRow(_base13, _futs13, rows);
+            AddBondMonitorRow(_base14, _futs14, rows);
+            AddBondMonitorRow(_base15, _futs15, rows);
+
+            _monitorRows = rows;
+        }
+
+        private void AddBondMonitorRow(BotTabSimple baseSource, BotTabScreener screener, List<BondMonitorRow> rows)
+        {
+            if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
+            {
+                return;
+            }
+
+            BondMonitorRow newRow = new BondMonitorRow();
+            newRow.Base = baseSource;
+            newRow.Futs = screener;
+            newRow.BaseName = baseSource.Connector.SecurityName;
+
+            DateTime time = baseSource.TimeServerCurrent;
+
+            if (time == DateTime.MinValue)
+            {
+                rows.Add(newRow);
+                return;
+            }
+
+            decimal mult = GetMultByBase(baseSource);
+
+            List<BotTabSimple> nearestSeries = GetNearestSeries(screener, time, 1);
+
+            for (int i = 0; i < nearestSeries.Count; i++)
+            {
+                BotTabSimple seriesTab = nearestSeries[i];
+
+                SeriesInfo info = new SeriesInfo();
+                info.Tab = seriesTab;
+                info.Name = seriesTab.Connector?.SecurityName;
+                info.Expiration = seriesTab.Security.Expiration;
+                info.DaysToExpiration = (info.Expiration - time).Days;
+                info.YieldPercent = CalculateYieldForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
+
+                newRow.Series.Add(info);
+            }
+
+            rows.Add(newRow);
+        }
+
+        private List<BotTabSimple> GetNearestSeries(BotTabScreener screener, DateTime time, int count)
+        {
+            List<BotTabSimple> result = new List<BotTabSimple>();
+
+            for (int i = 0; i < screener.Tabs.Count; i++)
+            {
+                BotTabSimple curTab = screener.Tabs[i];
+
+                if (curTab.Security == null
+                    || curTab.Security.Expiration == DateTime.MinValue)
+                {
+                    continue;
+                }
+
+                int daysToExpiration = (curTab.Security.Expiration - time).Days;
+
+                if (daysToExpiration <= 0)
+                {
+                    continue;
+                }
+
+                result.Add(curTab);
+            }
+
+            if (result.Count > 1)
+            {
+                result = result.OrderBy(tab => tab.Security.Expiration).ToList();
+            }
+
+            if (result.Count > count)
+            {
+                result = result.GetRange(0, count);
+            }
+
+            return result;
+        }
+
+        private decimal CalculateYieldForMonitor(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult, int daysToExpiration)
+        {
+            if (baseSource.PriceBestAsk == 0
+                || futuresSource.PriceBestBid == 0
+                || daysToExpiration <= 0)
+            {
+                return 0;
+            }
+
+            decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
+            deviation = deviation / (baseSource.PriceBestAsk / 100);
+
+            return deviation * 365 / daysToExpiration;
+        }
+
+        private void UpdateTable()
+        {
+            // 0 Bond
+            // 1 Mult
+            // 2 Series 1
+
+            try
+            {
+                if (_tableDataGrid.InvokeRequired)
+                {
+                    _tableDataGrid.Invoke(new Action(UpdateTable));
+                    return;
+                }
+
+                bool needRebuild = _tableDataGrid.Rows.Count != _monitorRows.Count;
+
+                if (needRebuild == false)
+                {
+                    for (int i = 0; i < _monitorRows.Count; i++)
+                    {
+                        if (_tableDataGrid.Rows[i].Cells[0].Value == null
+                            || _tableDataGrid.Rows[i].Cells[0].Value.ToString() != _monitorRows[i].BaseName)
+                        {
+                            needRebuild = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (needRebuild)
+                {
+                    _tableDataGrid.Rows.Clear();
+
+                    for (int i = 0; i < _monitorRows.Count; i++)
+                    {
+                        _tableDataGrid.Rows.Add(GetRow(_monitorRows[i]));
+                    }
+
+                    return;
+                }
+
+                for (int i = 0; i < _monitorRows.Count; i++)
+                {
+                    DataGridViewRow currentRow = _tableDataGrid.Rows[i];
+                    DataGridViewRow newRow = GetRow(_monitorRows[i]);
+
+                    for (int col = 1; col <= 2; col++)
+                    {
+                        if (currentRow.Cells[col].Value == null
+                            || currentRow.Cells[col].Value.ToString() != newRow.Cells[col].Value.ToString())
+                        {
+                            if (col == 1 && currentRow.Cells[col].IsInEditMode)
+                            {
+                                continue;
+                            }
+
+                            currentRow.Cells[col].Value = newRow.Cells[col].Value;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DataGridViewRow GetRow(BondMonitorRow data)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = data.BaseName;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].ReadOnly = false;
+            row.Cells[^1].Value = GetMultByBase(data.Base);
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].ReadOnly = true;
+
+            if (data.Series.Count > 0)
+            {
+                row.Cells[^1].Value = data.Series[0].Name + "  " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+            }
+            else
+            {
+                row.Cells[^1].Value = "";
+            }
+
+            return row;
+        }
+
+        #endregion
 
         #region Auto-set securities to T-Investment
 
