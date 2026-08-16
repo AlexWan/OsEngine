@@ -94,6 +94,7 @@ using OsEngine.Market.Servers.TData;
 using OsEngine.Market.Servers.BitGetUnified;
 using OsEngine.Market.Servers.TwelveData;
 using OsEngine.Market.Servers.BCS;
+using OsEngine.Market.ServerEncryption;
 
 namespace OsEngine.Market
 {
@@ -105,6 +106,37 @@ namespace OsEngine.Market
     {
 
         #region Service
+
+        static ServerMaster()
+        {
+            ServerEncryptionMaster.UnlockedEvent += ServerEncryptionMaster_UnlockedEvent;
+        }
+
+        private static void ServerEncryptionMaster_UnlockedEvent()
+        {
+            try
+            {
+                // шифрователь разблокировали позже старта - дозагружаем пароли уже созданных серверов
+                List<IServer> servers = GetServers();
+
+                if (servers == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i] is AServer aServer)
+                    {
+                        aServer.ReloadPasswordParams();
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         public static void Activate()
         {
@@ -1310,6 +1342,12 @@ namespace OsEngine.Market
         private static List<ServerType> _tryActivateServerTypes;
 
         /// <summary>
+        /// the "auto deployment is not possible, encryptor locked" error has already been reported this session
+        /// ошибка «авто-развёртывание невозможно, шифрователь заблокирован» уже выдавалась в этой сессии
+        /// </summary>
+        private static bool _encryptLockedErrorReported;
+
+        /// <summary>
         /// work place of the thread that connects our servers in auto mode
         /// </summary>
         private static async void ThreadStarterWorkArea()
@@ -1362,6 +1400,28 @@ namespace OsEngine.Market
         {
             try
             {
+                // гейт шифрователя: не разворачиваем серверы с пустыми ключами
+                if (ServerEncryptionMaster.GetStatus() == ServerEncryptionStatus.Encrypted
+                    && ServerEncryptionMaster.IsUnlocked == false)
+                {
+                    if (ServerEncryptionMaster.UnlockDeclinedThisSession == false)
+                    {
+                        ServerEncryptionMaster.RequestUnlock();
+                    }
+
+                    if (ServerEncryptionMaster.IsUnlocked == false)
+                    {
+                        if (_encryptLockedErrorReported == false)
+                        {
+                            _encryptLockedErrorReported = true;
+                            SendNewLogMessage("Auto deployment is not possible: encryption is enabled. Unlock the encryptor first (Encryption button in any connector window or via MCP) / " +
+                                "Авто-развёртывание невозможно: включено шифрование. Сначала разблокируйте шифрователь (кнопка «Шифрование» в любом коннекторе или через MCP)", LogMessageType.Error);
+                        }
+
+                        return;
+                    }
+                }
+
                 for (int i = 0; i < _tryActivateServerTypes.Count; i++)
                 {
                     if (_tryActivateServerTypes[i] == type)

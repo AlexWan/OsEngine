@@ -60,6 +60,12 @@ namespace OsEngine.Market.ServerEncryption
 
         #region Properties
 
+        /// <summary>
+        /// encryptor was successfully unlocked (fired on TryUnlock success)
+        /// шифрователь успешно разблокирован (вызывается при успешном TryUnlock)
+        /// </summary>
+        public static event Action UnlockedEvent;
+
         public static bool IsUnlocked
         {
             get
@@ -343,6 +349,18 @@ namespace OsEngine.Market.ServerEncryption
                 {
                     _key = GetPart(derived, 0, KeySize);
                     _unlockDeclinedThisSession = false;
+                }
+
+                try
+                {
+                    if (UnlockedEvent != null)
+                    {
+                        UnlockedEvent();
+                    }
+                }
+                catch (Exception error)
+                {
+                    ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
 
                 return true;

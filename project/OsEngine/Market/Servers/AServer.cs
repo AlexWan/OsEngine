@@ -829,6 +829,41 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
+        /// reload password parameters from the file. Used after the encryptor is unlocked -
+        /// servers created while locked had empty password values
+        /// перезагрузить парольные параметры из файла. Используется после разблокировки шифрователя -
+        /// у серверов, созданных в заблокированном состоянии, пароли были пустыми
+        /// </summary>
+        public void ReloadPasswordParams()
+        {
+            try
+            {
+                for (int i = 0; i < ServerParameters.Count; i++)
+                {
+                    if (ServerParameters[i].Type != ServerParameterType.Password)
+                    {
+                        continue;
+                    }
+
+                    IServerParameter loaded = LoadParam(ServerParameters[i]);
+
+                    if (loaded == null
+                        || loaded.Type != ServerParameterType.Password
+                        || loaded.Name != ServerParameters[i].Name)
+                    {
+                        continue;
+                    }
+
+                    ((ServerParameterPassword)ServerParameters[i]).Value = ((ServerParameterPassword)loaded).Value;
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
         /// decrypt the value of the password parameter loaded from the file
         /// расшифровать значение парольного параметра, загруженное из файла
         /// </summary>

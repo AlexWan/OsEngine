@@ -90,6 +90,13 @@ namespace OsEngine.Market.ServerEncryption
         {
             try
             {
+                if (_unlockMode
+                    && ServerEncryptionMaster.IsUnlocked == false)
+                {
+                    // окно закрыли без разблокировки (крестик, Esc, кнопка) - больше не спрашиваем в этой сессии
+                    ServerEncryptionMaster.SetUnlockDeclined();
+                }
+
                 ButtonSetup.Click -= ButtonSetup_Click;
                 ButtonUnlock.Click -= ButtonUnlock_Click;
                 ButtonChange.Click -= ButtonChange_Click;
