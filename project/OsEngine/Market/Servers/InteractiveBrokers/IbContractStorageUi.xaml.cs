@@ -110,9 +110,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         {
             try
             {
-                DeleteGrid();
-
                 SaveInServer();
+
+                DeleteGrid();
 
                 _server = null;
                 SecToSubscribe = null;

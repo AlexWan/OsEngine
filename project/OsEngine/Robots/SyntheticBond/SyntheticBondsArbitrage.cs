@@ -17,6 +17,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -38,17 +39,22 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 Последние 5 пар - запасные слоты, настраиваются вручную
 
 ВХОД в позицию
-Доходность синтетической облигации (контанго, пересчитанное в % годовых) больше Min Yield To Entry.
-Из всех претендентов выбирается пара с максимальной доходностью
+Из всех претендентов выбирается пара с максимальным контанго,
+если оно не меньше Min yield to entry %
 
 ПЕРЕНОС позиции
-Если доходность у претендента больше текущего на Min Yield To Entry,
+Если доходность у претендента больше текущего на Min Yield Diff To Move,
 позиция закрывается и открывается на более доходной паре
 
 ВЫХОД из позиции
 1) Накануне экспирации фьючерса
 2) Аварийный выход, если открылась только одна нога
 3) Если позиций стало больше одной, закрывается худшая
+4) Если пара ушла в бэквордацию (Exit on backwardation is on)
+
+Режим OnlyShortFutures
+Голый шорт фьючерса без хеджа акцией. Та же логика выбора лучшей доходности
+и перекладывания, но торгуется только фьючерсная нога
 
 */
 
@@ -65,8 +71,36 @@ namespace OsEngine.Robots.SyntheticBond
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodButton;
 
-        private StrategyParameterDecimal _minYieldToEntry;
+        private StrategyParameterDecimal _minYieldDiffToMove;
         private StrategyParameterInt _tableUpdateIntervalSec;
+        private StrategyParameterString _multRegime;
+        private StrategyParameterBool _fullLogIsOn;
+        private StrategyParameterBool _exitOnBackwardationIsOn;
+        private StrategyParameterInt _minDaysToExpiration;
+        private StrategyParameterDecimal _minYieldToEntry;
+
+        private StrategyParameterBool _tradePair1;
+        private StrategyParameterBool _tradePair2;
+        private StrategyParameterBool _tradePair3;
+        private StrategyParameterBool _tradePair4;
+        private StrategyParameterBool _tradePair5;
+        private StrategyParameterBool _tradePair6;
+        private StrategyParameterBool _tradePair7;
+        private StrategyParameterBool _tradePair8;
+        private StrategyParameterBool _tradePair9;
+        private StrategyParameterBool _tradePair10;
+        private StrategyParameterBool _tradePair11;
+        private StrategyParameterBool _tradePair12;
+        private StrategyParameterBool _tradePair13;
+        private StrategyParameterBool _tradePair14;
+        private StrategyParameterBool _tradePair15;
+
+        private StrategyParameterBool _LqdtRegimeIsOn;
+        private StrategyParameterDecimal _minYieldDiffOverLqdt;
+        private StrategyParameterInt _LqdtYieldDays;
+        private StrategyParameterDecimal _LqdtVolumePercent;
+
+        private StrategyParameterInt _daysBeforeExpirationToExit;
 
         private StrategyParameterDecimal _futuresMult1;
         private StrategyParameterDecimal _futuresMult2;
@@ -85,23 +119,69 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterDecimal _futuresMult15;
 
         private StrategyParameterString _portfolioNum;
+        private StrategyParameterString _testerDeployTimeFrame;
 
         public SyntheticBondsArbitrage(string name, StartProgram startProgram) : base(name, startProgram)
         {
             CreateSources();
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-            _minYieldToEntry = CreateParameter("Min Yield To Entry % ann", 20m, 1.0m, 100, 1, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyShortFutures" }, "Base");
+            _minYieldDiffToMove = CreateParameter("Min Yield Diff To Move % ann", 1.1m, 1.0m, 100, 1, "Base");
             _tableUpdateIntervalSec = CreateParameter("Table update interval, sec", 5, 1, 60, 1, "Base");
+            _fullLogIsOn = CreateParameter("Full log is on", false, "Base");
+            _exitOnBackwardationIsOn = CreateParameter("Exit on backwardation is on", true, "Base");
+            _minDaysToExpiration = CreateParameter("Min days to expiration", 7, 1, 60, 1, "Base");
+            _minYieldToEntry = CreateParameter("Min yield to entry %", 1m, 0.1m, 50, 0.1m, "Base");
 
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Execution");
-            _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4, "Execution");
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Execution");
+            _tradePair1 = CreateParameter("Trade pair 1", true, "Trade pairs");
+            _tradePair2 = CreateParameter("Trade pair 2", true, "Trade pairs");
+            _tradePair3 = CreateParameter("Trade pair 3", true, "Trade pairs");
+            _tradePair4 = CreateParameter("Trade pair 4", true, "Trade pairs");
+            _tradePair5 = CreateParameter("Trade pair 5", true, "Trade pairs");
+            _tradePair6 = CreateParameter("Trade pair 6", true, "Trade pairs");
+            _tradePair7 = CreateParameter("Trade pair 7", true, "Trade pairs");
+            _tradePair8 = CreateParameter("Trade pair 8", true, "Trade pairs");
+            _tradePair9 = CreateParameter("Trade pair 9", true, "Trade pairs");
+            _tradePair10 = CreateParameter("Trade pair 10", true, "Trade pairs");
+            _tradePair11 = CreateParameter("Trade pair 11", true, "Trade pairs");
+            _tradePair12 = CreateParameter("Trade pair 12", true, "Trade pairs");
+            _tradePair13 = CreateParameter("Trade pair 13", true, "Trade pairs");
+            _tradePair14 = CreateParameter("Trade pair 14", true, "Trade pairs");
+            _tradePair15 = CreateParameter("Trade pair 15", true, "Trade pairs");
+            _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 0, 0, 10, 1, "Base");
+
+            _LqdtRegimeIsOn = CreateParameter("LQDT regime is on", true, "LQDT");
+            _minYieldDiffOverLqdt = CreateParameter("Min yield diff over LQDT % ann", 0.75m, 0.1m, 100, 1, "LQDT");
+            _LqdtYieldDays = CreateParameter("LQDT yield days", 10, 5, 60, 5, "LQDT");
+            _LqdtVolumePercent = CreateParameter("LQDT volume % of free money", 99m, 0m, 100m, 1, "LQDT");
+
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 85m, 1.0m, 100, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             _tradePeriodsSettings = new NonTradePeriods(name);
-            _tradePeriodButton = CreateParameterButton("Clearing", "No trade periods");
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 30 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 24, Minute = 00 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
+            _tradePeriodButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodButton.UserClickOnButtonEvent += _tradePeriodButton_UserClickOnButtonEvent;
 
+            _multRegime = CreateParameter("Mult regime", "Auto", new[] { "Auto", "Manual" }, "Fut mults");
             _futuresMult1 = CreateParameter("Fut mult 2", 1m, 1.0m, 50, 4, "Fut mults");
             _futuresMult2 = CreateParameter("Fut mult 4", 1m, 1.0m, 50, 4, "Fut mults");
             _futuresMult3 = CreateParameter("Fut mult 6", 1m, 1.0m, 50, 4, "Fut mults");
@@ -145,7 +225,10 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (startProgram == StartProgram.IsTester)
             {
-                StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Tester deploy");
+                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min15",
+                    new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
+
+                StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
                 buttonAutoDeployTester.UserClickOnButtonEvent += ButtonAutoDeployTester_UserClickOnButtonEvent;
 
                 List<IServer> server = ServerMaster.GetServers();
@@ -156,6 +239,8 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     TesterServer serverT = (TesterServer)server[0];
                     serverT.EndNextMinuteWithCandlesEvent += ServerT_EndNextMinuteWithCandlesEvent;
+                    serverT.TestingEndEvent += ServerT_TestingEndEvent;
+                    serverT.TestingStartEvent += ServerT_TestingStartEvent;
                 }
             }
 
@@ -165,8 +250,8 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures when the annualized contango yield exceeds the threshold. The position is moved to a more profitable contract and closed before expiration_" +
-              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс при превышении доходностью контанго в годовых заданного порога. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
+              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures in the pair with the highest annualized contango yield. The position is moved to a more profitable contract and closed before expiration_" +
+              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс в паре с максимальной доходностью контанго в годовых. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
 
             if (startProgram != StartProgram.IsOsOptimizer)
             {
@@ -210,6 +295,258 @@ namespace OsEngine.Robots.SyntheticBond
             Logic();
         }
 
+        private void ServerT_TestingEndEvent()
+        {
+            LogYearSummary();
+        }
+
+        private void ServerT_TestingStartEvent()
+        {
+            try
+            {
+                string date = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day;
+                string path = @"Engine\Log\" + NameStrategyUniq + @"Log_" + date + ".txt";
+
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            LogFull("Test started");
+        }
+
+        private void LogYearSummary()
+        {
+            try
+            {
+                Dictionary<int, decimal> profitByYear = new Dictionary<int, decimal>();
+
+                List<IIBotTab> tabs = GetTabs();
+
+                for (int i = 0; tabs != null && i < tabs.Count; i++)
+                {
+                    List<Position> closed = null;
+
+                    if (tabs[i] is BotTabSimple simple)
+                    {
+                        closed = simple.PositionsCloseAll;
+                    }
+                    else if (tabs[i] is BotTabScreener screener)
+                    {
+                        for (int j = 0; j < screener.Tabs.Count; j++)
+                        {
+                            AddPositionsProfitByYear(screener.Tabs[j].PositionsCloseAll, profitByYear);
+                        }
+
+                        continue;
+                    }
+
+                    AddPositionsProfitByYear(closed, profitByYear);
+                }
+
+                decimal portfolioStart = 0;
+
+                if (_tabLqdt.Portfolio != null)
+                {
+                    portfolioStart = _tabLqdt.Portfolio.ValueBegin;
+                }
+
+                Dictionary<int, decimal> lqdtByYear = GetLqdtYearReturns();
+
+                List<int> years = new List<int>();
+
+                foreach (int year in profitByYear.Keys)
+                {
+                    if (years.Contains(year) == false)
+                    {
+                        years.Add(year);
+                    }
+                }
+                foreach (int year in lqdtByYear.Keys)
+                {
+                    if (years.Contains(year) == false)
+                    {
+                        years.Add(year);
+                    }
+                }
+
+                years.Sort();
+
+                if (years.Count > 0)
+                {
+                    int lastYear = years[years.Count - 1];
+                    decimal floatingProfit = GetFloatingProfit();
+
+                    if (floatingProfit != 0)
+                    {
+                        if (profitByYear.ContainsKey(lastYear) == false)
+                        {
+                            profitByYear.Add(lastYear, 0);
+                        }
+
+                        profitByYear[lastYear] += floatingProfit;
+                    }
+                }
+
+                decimal alphaSum = 0;
+                int yearsCount = 0;
+                decimal capital = portfolioStart;
+
+                for (int i = 0; i < years.Count; i++)
+                {
+                    int year = years[i];
+
+                    decimal robotProfit = 0;
+                    profitByYear.TryGetValue(year, out robotProfit);
+
+                    decimal lqdtReturn = 0;
+                    lqdtByYear.TryGetValue(year, out lqdtReturn);
+
+                    decimal robotPercent = 0;
+
+                    if (capital != 0)
+                    {
+                        robotPercent = robotProfit / capital * 100;
+                    }
+
+                    capital += robotProfit;
+
+                    if (year == 2022)
+                    {
+                        continue;
+                    }
+
+                    yearsCount++;
+
+                    decimal alpha = robotPercent - lqdtReturn;
+                    alphaSum += alpha;
+
+                    SendNewLogMessage(
+                        "YearSummary: " + year
+                        + " | LQDT " + Math.Round(lqdtReturn, 1) + "%"
+                        + " | Robot " + Math.Round(robotProfit, 0) + " (" + Math.Round(robotPercent, 1)
+                        + "% on " + Math.Round(capital / 1000000, 2) + "M)"
+                        + " | alpha " + Math.Round(alpha, 1) + " pp", LogMessageType.Error);
+                }
+
+                if (yearsCount > 0)
+                {
+                    SendNewLogMessage(
+                        "YearSummary: AVERAGE alpha "
+                        + Math.Round(alphaSum / yearsCount, 1) + " pp over " + yearsCount + " years", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void AddPositionsProfitByYear(List<Position> positions, Dictionary<int, decimal> profitByYear)
+        {
+            if (positions == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                int year = positions[i].TimeClose.Year;
+
+                if (year < 2000)
+                {
+                    continue;
+                }
+
+                if (profitByYear.ContainsKey(year) == false)
+                {
+                    profitByYear.Add(year, 0);
+                }
+
+                profitByYear[year] += positions[i].ProfitPortfolioAbs;
+            }
+        }
+
+        private decimal GetFloatingProfit()
+        {
+            decimal result = 0;
+
+            List<IIBotTab> tabs = GetTabs();
+
+            for (int i = 0; tabs != null && i < tabs.Count; i++)
+            {
+                if (tabs[i] is BotTabSimple simple)
+                {
+                    result += GetOpenPositionsProfit(simple.PositionsOpenAll);
+                }
+                else if (tabs[i] is BotTabScreener screener)
+                {
+                    for (int j = 0; j < screener.Tabs.Count; j++)
+                    {
+                        result += GetOpenPositionsProfit(screener.Tabs[j].PositionsOpenAll);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private decimal GetOpenPositionsProfit(List<Position> positions)
+        {
+            decimal result = 0;
+
+            for (int i = 0; positions != null && i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Open)
+                {
+                    result += positions[i].ProfitPortfolioAbs;
+                }
+            }
+
+            return result;
+        }
+
+        private Dictionary<int, decimal> GetLqdtYearReturns()
+        {
+            Dictionary<int, decimal> result = new Dictionary<int, decimal>();
+            Dictionary<int, decimal> firstCloseByYear = new Dictionary<int, decimal>();
+
+            List<Candle> candles = _tabLqdt.CandlesAll;
+
+            if (candles == null
+                || candles.Count < 2)
+            {
+                return result;
+            }
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                int year = candles[i].TimeStart.Year;
+
+                if (firstCloseByYear.ContainsKey(year) == false)
+                {
+                    firstCloseByYear.Add(year, candles[i].Close);
+                    result.Add(year, 0);
+                }
+                else
+                {
+                    decimal firstClose = firstCloseByYear[year];
+
+                    if (firstClose != 0)
+                    {
+                        result[year] = (candles[i].Close / firstClose - 1) * 100;
+                    }
+                }
+            }
+
+            return result;
+        }
+
         private void _tradePeriodButton_UserClickOnButtonEvent()
         {
             _tradePeriodsSettings.ShowDialog();
@@ -247,6 +584,40 @@ namespace OsEngine.Robots.SyntheticBond
 
         #endregion
 
+        #region Full logging
+
+        private void LogFull(string message)
+        {
+            if (_fullLogIsOn.ValueBool)
+            {
+                SendNewLogMessage(message, LogMessageType.System);
+            }
+        }
+
+        private string LastCandleTimeStr(BotTabSimple tab)
+        {
+            List<Candle> candles = tab.CandlesAll;
+
+            if (candles == null
+                || candles.Count == 0)
+            {
+                return "no candles";
+            }
+
+            return candles[^1].TimeStart.ToString("dd.MM.yyyy HH:mm");
+        }
+
+        private string PairDescription(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
+        {
+            return baseSource.Connector?.SecurityName + " / " + futuresSource.Connector?.SecurityName
+                + " | mult " + mult
+                + " | futBid " + futuresSource.PriceBestBid + " baseAsk " + baseSource.PriceBestAsk
+                + " | lastCandle base " + LastCandleTimeStr(baseSource)
+                + " fut " + LastCandleTimeStr(futuresSource);
+        }
+
+        #endregion
+
         #region Logic
 
         private void Logic()
@@ -268,6 +639,12 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            if (_regime.ValueString == "OnlyShortFutures")
+            {
+                ShortFuturesLogic();
+                return;
+            }
+
             DateTime currentTime = GetCurrentServerTime();
 
             if (currentTime == DateTime.MinValue)
@@ -280,6 +657,11 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            if (_LqdtRegimeIsOn.ValueBool)
+            {
+                TryResetLqdtByYear(currentTime);
+            }
+
             List<PairInPosition> pairsInPosition = GetPairsInPositions();
 
             if (pairsInPosition.Count > 1)
@@ -289,22 +671,32 @@ namespace OsEngine.Robots.SyntheticBond
                     if (HaveClosingPosition(pairsInPosition[i].Base)
                         || HaveClosingPosition(pairsInPosition[i].Futures))
                     {
+                        LogFull("More than 1 position. Waiting: closing in progress on "
+                            + PairDescription(pairsInPosition[i].Base, pairsInPosition[i].Futures, GetMultByBase(pairsInPosition[i].Base)));
                         return;
                     }
                 }
 
-                decimal dev0 = CalculateAnnualizedYieldContango(
-                    pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base));
-                decimal dev1 = CalculateAnnualizedYieldContango(
-                    pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base));
+                decimal dev0 = CalculateContango(
+                    pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base)).ContangoAbs;
+                decimal dev1 = CalculateContango(
+                    pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base)).ContangoAbs;
 
                 if (dev0 > dev1)
                 {
-                    ExitFromPosition(pairsInPosition[1].Base, pairsInPosition[1].Futures);
+                    LogFull("More than 1 position. Closing worst: "
+                        + PairDescription(pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base))
+                        + " | yield " + dev1 + " vs " + dev0);
+
+                    ExitFromPosition(pairsInPosition[1].Base, pairsInPosition[1].Futures, "worst of two");
                 }
                 else
                 {
-                    ExitFromPosition(pairsInPosition[0].Base, pairsInPosition[0].Futures);
+                    LogFull("More than 1 position. Closing worst: "
+                        + PairDescription(pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base))
+                        + " | yield " + dev0 + " vs " + dev1);
+
+                    ExitFromPosition(pairsInPosition[0].Base, pairsInPosition[0].Futures, "worst of two");
                 }
 
                 return;
@@ -316,9 +708,39 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 PairInPosition pair = pairsInPosition[0];
 
+                if (StartProgram == StartProgram.IsTester)
+                {
+                    if (TryResetArbPositionByYear(pair.Base, pair.Futures, currentTime))
+                    {
+                        return;
+                    }
+                }
+
                 if (TryExitByErrorEntry(pair.Base, pair.Futures))
                 {
                     return;
+                }
+
+                if (_exitOnBackwardationIsOn.ValueBool
+                    && IsBackwardation(pair.Base, pair.Futures))
+                {
+                    if (currentTime.Hour < 10)
+                    {
+                        LogFull("Exit by backwardation skipped: too early. Time: " + currentTime.ToString("dd.MM.yyyy HH:mm"));
+                        return;
+                    }
+
+                    if (pair.Base.CandlesFinishedOnly[^1].TimeStart != currentTime
+                        || pair.Futures.CandlesFinishedOnly[^1].TimeStart != currentTime)
+                    {
+                        return;
+                    }
+
+                    LogFull("Exit by backwardation: " + PairDescription(pair.Base, pair.Futures, GetMultByBase(pair.Base)));
+
+                    ExitFromPosition(pair.Base, pair.Futures, "backwardation");
+                    return;
+
                 }
 
                 if (TryExitByExpiration(pair.Base, pair.Futures))
@@ -330,6 +752,15 @@ namespace OsEngine.Robots.SyntheticBond
             }
             else
             {
+                if (_LqdtRegimeIsOn.ValueBool)
+                {
+                    if (HaveGoodPretender(pretenders) == false)
+                    {
+                        TryBuyLqdt();
+                        return;
+                    }
+                }
+
                 TryFirstEntry(pretenders);
             }
         }
@@ -339,42 +770,156 @@ namespace OsEngine.Robots.SyntheticBond
             if (pretenders == null
                 || pretenders.Count == 0)
             {
+                LogFull("First entry: pretenders list is empty");
+                return;
+            }
+
+            if(this.TimeServer.Hour < 10)
+            {
+                LogFull("Method TryFirstEntry Error. Time: " + this.TimeServer.Hour);
                 return;
             }
 
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
             decimal bestDeviation = 0;
+            decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                decimal curDeviation = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
-                if (curDeviation > bestDeviation)
+                LogFull("Entry candidate: " + PairDescription(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult)
+                    + " | yield " + contangoAbs + " | ann " + yieldAnn);
+
+                if (PassLqdtGate(yieldAnn) == false)
                 {
-                    bestDeviation = curDeviation;
+                    continue;
+                }
+
+                if (contangoAbs > bestDeviation)
+                {
+                    bestDeviation = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
+                    bestMult = pretenders[i].Mult;
                 }
             }
 
-            if (bestBase == null
-                || bestDeviation < _minYieldToEntry.ValueDecimal)
+            if (bestBase == null)
             {
+                LogFull("First entry: no valid pretenders (all yields are 0)");
                 return;
             }
 
+            if (bestDeviation < _minYieldToEntry.ValueDecimal)
+            {
+                LogFull("First entry: best yield " + bestDeviation + " < min to entry " + _minYieldToEntry.ValueDecimal);
+                return;
+            }
+
+            LogFull("First entry: " + PairDescription(bestBase, bestFutures, bestMult) + " | yield " + bestDeviation);
+
             EntryInPositionContango(bestBase, bestFutures);
+        }
+
+        private bool TryResetArbPositionByYear(BotTabSimple baseSource, BotTabSimple futuresSource, DateTime currentTime)
+        {
+            if (currentTime.Hour < 10)
+            {
+                LogFull("Year reset skipped: too early. Time: " + currentTime.ToString("dd.MM.yyyy HH:mm"));
+                return false;
+            }
+
+            if(baseSource.CandlesFinishedOnly[^1].TimeStart != currentTime
+                || futuresSource.CandlesFinishedOnly[^1].TimeStart != currentTime)
+            {
+                return false;
+            }
+
+            List<Position> basePos = baseSource.PositionsOpenAll;
+            List<Position> futPos = futuresSource.PositionsOpenAll;
+
+            if (basePos == null
+                || futPos == null
+                || basePos.Count != 1
+                || futPos.Count != 1)
+            {
+                return false;
+            }
+
+            if (basePos[0].State != PositionStateType.Open
+                || futPos[0].State != PositionStateType.Open)
+            {
+                return false;
+            }
+
+            if (currentTime.Year <= basePos[0].TimeOpen.Year
+                && currentTime.Year <= futPos[0].TimeOpen.Year)
+            {
+                return false;
+            }
+
+            if (baseSource.IsReadyToTrade == false
+                || futuresSource.IsReadyToTrade == false)
+            {
+                return false;
+            }
+
+            decimal baseVolume = basePos[0].OpenVolume;
+            decimal futVolume = futPos[0].OpenVolume;
+
+            if (baseVolume <= 0
+                || futVolume <= 0)
+            {
+                return false;
+            }
+
+            LogFull("Year reset arb position: " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                + " | volBase " + baseVolume + " volFut " + futVolume);
+
+            ExitFromPosition(baseSource, futuresSource, "year reset");
+
+            futuresSource.SellAtMarket(futVolume);
+            baseSource.BuyAtMarket(baseVolume);
+
+            return true;
+        }
+
+        private bool IsBackwardation(BotTabSimple baseSource, BotTabSimple futuresSource)
+        {
+            List<Candle> baseCandles = baseSource.CandlesAll;
+            List<Candle> futCandles = futuresSource.CandlesAll;
+
+            if (baseCandles == null
+                || baseCandles.Count == 0
+                || futCandles == null
+                || futCandles.Count == 0)
+            {
+                return false;
+            }
+
+            Candle lastBaseC = baseCandles[^1];
+            Candle lastFutC = futCandles[^1];
+
+            if (lastBaseC.TimeStart != lastFutC.TimeStart)
+            {
+                return false;
+            }
+
+            return lastFutC.Close / GetMultByBase(baseSource) < lastBaseC.Close;
         }
 
         private bool TryExitByExpiration(BotTabSimple baseSource, BotTabSimple futuresSource)
         {
             int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
 
-            if (daysToExpiration <= 1
-                && futuresSource.TimeServerCurrent.Hour == 10)
+            if (daysToExpiration <= _daysBeforeExpirationToExit.ValueInt)
             {
-                ExitFromPosition(baseSource, futuresSource);
+                LogFull("Exit by expiration: " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                    + " | daysToExpiration " + daysToExpiration);
+
+                ExitFromPosition(baseSource, futuresSource, "expiration");
                 return true;
             }
 
@@ -388,7 +933,10 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (basePos.Count + futPos.Count != 2)
             {
-                ExitFromPosition(baseSource, futuresSource);
+                LogFull("Exit by error entry (one leg): " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                    + " | basePos " + basePos.Count + " futPos " + futPos.Count);
+
+                ExitFromPosition(baseSource, futuresSource, "error entry");
                 return true;
             }
 
@@ -400,49 +948,90 @@ namespace OsEngine.Robots.SyntheticBond
             if (pretenders == null
                 || pretenders.Count == 0)
             {
+                LogFull("Move check: pretenders list is empty. Position: "
+                    + PairDescription(baseInPosition, futuresInPosition, GetMultByBase(baseInPosition)));
+                return;
+            }
+
+            if (this.TimeServer.Hour < 10)
+            {
+                LogFull("Method TryFirstEntry Error. Time: " + this.TimeServer.Hour);
                 return;
             }
 
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
             decimal bestDeviation = 0;
+            decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                decimal curDeviation = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
-                if (curDeviation > bestDeviation)
+                LogFull("Move candidate: " + PairDescription(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult)
+                    + " | yield " + contangoAbs + " | ann " + yieldAnn);
+
+                if (PassLqdtGate(yieldAnn) == false)
                 {
-                    bestDeviation = curDeviation;
+                    continue;
+                }
+
+                if (contangoAbs > bestDeviation)
+                {
+                    bestDeviation = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
+                    bestMult = pretenders[i].Mult;
                 }
             }
 
             if (bestBase == null)
             {
+                LogFull("Move check: no valid pretenders (all yields are 0)");
                 return;
             }
 
-            decimal curDev = CalculateAnnualizedYieldContango(baseInPosition, futuresInPosition, GetMultByBase(baseInPosition));
+            if (bestDeviation < _minYieldToEntry.ValueDecimal)
+            {
+                LogFull("Move check: best pretender yield " + bestDeviation + " < min to entry " + _minYieldToEntry.ValueDecimal);
+                return;
+            }
+
+            decimal curMult = GetMultByBase(baseInPosition);
+            decimal curDev = CalculateContango(baseInPosition, futuresInPosition, curMult).ContangoAbs;
 
             if (curDev >= bestDeviation
                 || bestDeviation <= 0
                 || curDev == 0)
             {
+                LogFull("Move check skipped: current yield " + curDev + " best pretender yield " + bestDeviation);
                 return;
             }
 
             decimal diff = bestDeviation - curDev;
 
-            if (diff > _minYieldToEntry.ValueDecimal)
+            LogFull("Move decision: current " + PairDescription(baseInPosition, futuresInPosition, curMult)
+                + " | yield " + curDev
+                + " || best pretender " + PairDescription(bestBase, bestFutures, bestMult)
+                + " | yield " + bestDeviation
+                + " || diff " + diff + " need > " + _minYieldDiffToMove.ValueDecimal
+                + " => " + (diff > _minYieldDiffToMove.ValueDecimal ? "MOVE" : "HOLD"));
+
+            if (diff > _minYieldDiffToMove.ValueDecimal)
             {
-                ExitFromPosition(baseInPosition, futuresInPosition);
+                if(baseInPosition.CandlesFinishedOnly[^1].TimeStart != futuresInPosition.CandlesFinishedOnly[^1].TimeStart
+                   || bestBase.CandlesFinishedOnly[^1].TimeStart != bestFutures.CandlesFinishedOnly[^1].TimeStart
+                   || bestBase.CandlesFinishedOnly[^1].TimeStart != futuresInPosition.CandlesFinishedOnly[^1].TimeStart)
+                {// где-то рассинхрон. не переносим позицию, ждем следующей свечи
+                    return;
+                }
+
+                ExitFromPosition(baseInPosition, futuresInPosition, "move");
                 EntryInPositionContango(bestBase, bestFutures);
             }
         }
 
-        private decimal CalculateAnnualizedYieldContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
+        private (decimal ContangoAbs, decimal YieldAnn) CalculateContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
         {
             List<Candle> baseCandles = baseSource.CandlesAll;
             List<Candle> futCandles = futuresSource.CandlesAll;
@@ -452,7 +1041,7 @@ namespace OsEngine.Robots.SyntheticBond
                 || futCandles == null
                 || futCandles.Count == 0)
             {
-                return 0;
+                return (0, 0);
             }
 
             Candle lastBaseC = baseCandles[^1];
@@ -460,36 +1049,568 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (lastBaseC.TimeStart != lastFutC.TimeStart)
             {
-                return 0;
+                return (0, 0);
             }
 
             if (lastFutC.Close / mult <= lastBaseC.Close)
             {
-                return 0;
+                return (0, 0);
             }
 
             if (baseSource.PriceBestAsk == 0)
             {
-                return 0;
+                return (0, 0);
             }
 
             if (futuresSource.Security == null
                 || futuresSource.Security.Expiration == DateTime.MinValue)
             {
-                return 0;
-            }
-
-            int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
-
-            if (daysToExpiration <= 0)
-            {
-                return 0;
+                return (0, 0);
             }
 
             decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
             deviation = deviation / (baseSource.PriceBestAsk / 100);
 
-            return deviation * 365 / daysToExpiration;
+            int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
+
+            decimal yieldAnn = 0;
+
+            if (daysToExpiration > 0)
+            {
+                yieldAnn = deviation * 365 / daysToExpiration;
+            }
+
+            return (deviation, yieldAnn);
+        }
+
+        #endregion
+
+        #region OnlyShortFutures regime
+
+        private void ShortFuturesLogic()
+        {
+            DateTime currentTime = GetCurrentServerTime();
+
+            if (currentTime == DateTime.MinValue)
+            {
+                return;
+            }
+
+            if (_tradePeriodsSettings.CanTradeThisTime(currentTime) == false)
+            {
+                return;
+            }
+
+            List<BotTabSimple> futsInPosition = GetFuturesInPositions();
+
+            if (futsInPosition.Count > 1)
+            {
+                for (int i = 0; i < futsInPosition.Count; i++)
+                {
+                    if (HaveClosingPosition(futsInPosition[i]))
+                    {
+                        return;
+                    }
+                }
+
+                BotTabSimple base0 = GetBaseByFuturesTab(futsInPosition[0]);
+                BotTabSimple base1 = GetBaseByFuturesTab(futsInPosition[1]);
+
+                if (base0 == null
+                    || base1 == null)
+                {
+                    return;
+                }
+
+                decimal dev0 = CalculateContango(base0, futsInPosition[0], GetMultByBase(base0)).ContangoAbs;
+                decimal dev1 = CalculateContango(base1, futsInPosition[1], GetMultByBase(base1)).ContangoAbs;
+
+                if (dev0 > dev1)
+                {
+                    LogFull("ShortFutures. More than 1 position. Closing worst: "
+                        + PairDescription(base1, futsInPosition[1], GetMultByBase(base1)) + " | yield " + dev1 + " vs " + dev0);
+                    ClosePosAtMarket(futsInPosition[1], futsInPosition[1].PositionsOpenAll[0]);
+                }
+                else
+                {
+                    LogFull("ShortFutures. More than 1 position. Closing worst: "
+                        + PairDescription(base0, futsInPosition[0], GetMultByBase(base0)) + " | yield " + dev0 + " vs " + dev1);
+                    ClosePosAtMarket(futsInPosition[0], futsInPosition[0].PositionsOpenAll[0]);
+                }
+
+                return;
+            }
+
+            List<Pretender> pretenders = GetPretenders();
+
+            if (futsInPosition.Count > 0)
+            {
+                BotTabSimple futTab = futsInPosition[0];
+                BotTabSimple baseTab = GetBaseByFuturesTab(futTab);
+
+                if (baseTab == null)
+                {
+                    return;
+                }
+
+                int daysToExpiration = (futTab.Security.Expiration - futTab.TimeServerCurrent).Days;
+
+                if (daysToExpiration <= _daysBeforeExpirationToExit.ValueInt)
+                {
+                    LogFull("ShortFutures. Exit by expiration: "
+                        + PairDescription(baseTab, futTab, GetMultByBase(baseTab)) + " | daysToExpiration " + daysToExpiration);
+                    ClosePosAtMarket(futTab, futTab.PositionsOpenAll[0]);
+                    return;
+                }
+
+                TryMoveShortFutures(baseTab, futTab, pretenders);
+            }
+            else
+            {
+                TryFirstEntryShortFutures(pretenders);
+            }
+        }
+
+        private void TryFirstEntryShortFutures(List<Pretender> pretenders)
+        {
+            if (pretenders == null
+                || pretenders.Count == 0)
+            {
+                return;
+            }
+
+            Pretender best = FindBestPretender(pretenders);
+
+            if (best.Base == null)
+            {
+                LogFull("ShortFutures. First entry: no valid pretenders (all yields are 0)");
+                return;
+            }
+
+            decimal bestYield = CalculateContango(best.Base, best.Futures, best.Mult).ContangoAbs;
+
+            if (bestYield < _minYieldToEntry.ValueDecimal)
+            {
+                LogFull("ShortFutures. First entry: best yield " + bestYield + " < min to entry " + _minYieldToEntry.ValueDecimal);
+                return;
+            }
+
+            LogFull("ShortFutures. First entry: " + PairDescription(best.Base, best.Futures, best.Mult));
+
+            decimal shortVolume = GetVolume(best.Futures);
+
+            if (shortVolume > 0)
+            {
+                best.Futures.SellAtMarket(shortVolume);
+            }
+        }
+
+        private void TryMoveShortFutures(BotTabSimple baseInPosition, BotTabSimple futuresInPosition, List<Pretender> pretenders)
+        {
+            if (pretenders == null
+                || pretenders.Count == 0)
+            {
+                return;
+            }
+
+            Pretender best = FindBestPretender(pretenders);
+
+            if (best.Base == null)
+            {
+                return;
+            }
+
+            if (best.Futures == futuresInPosition)
+            {
+                return;
+            }
+
+            decimal curMult = GetMultByBase(baseInPosition);
+            decimal curDev = CalculateContango(baseInPosition, futuresInPosition, curMult).ContangoAbs;
+            decimal bestDev = CalculateContango(best.Base, best.Futures, best.Mult).ContangoAbs;
+
+            if (curDev >= bestDev
+                || bestDev <= 0
+                || curDev == 0)
+            {
+                return;
+            }
+
+            decimal diff = bestDev - curDev;
+
+            LogFull("ShortFutures. Move decision: current " + PairDescription(baseInPosition, futuresInPosition, curMult)
+                + " | yield " + curDev
+                + " || best pretender " + PairDescription(best.Base, best.Futures, best.Mult)
+                + " | yield " + bestDev
+                + " || diff " + diff + " need > " + _minYieldDiffToMove.ValueDecimal
+                + " => " + (diff > _minYieldDiffToMove.ValueDecimal ? "MOVE" : "HOLD"));
+
+            if (diff > _minYieldDiffToMove.ValueDecimal)
+            {
+                ClosePosAtMarket(futuresInPosition, futuresInPosition.PositionsOpenAll[0]);
+                decimal shortVolume = GetVolume(best.Futures);
+
+            if (shortVolume > 0)
+            {
+                best.Futures.SellAtMarket(shortVolume);
+            }
+            }
+        }
+
+        private Pretender FindBestPretender(List<Pretender> pretenders)
+        {
+            Pretender best = (null, null, 1);
+            decimal bestDeviation = 0;
+
+            for (int i = 0; i < pretenders.Count; i++)
+            {
+                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+
+                LogFull("ShortFutures. Candidate: " + PairDescription(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult)
+                    + " | yield " + contangoAbs + " | ann " + yieldAnn);
+
+                if (PassLqdtGate(yieldAnn) == false)
+                {
+                    continue;
+                }
+
+                if (contangoAbs > bestDeviation)
+                {
+                    bestDeviation = contangoAbs;
+                    best = pretenders[i];
+                }
+            }
+
+            return best;
+        }
+
+        private List<BotTabSimple> GetFuturesInPositions()
+        {
+            List<BotTabSimple> result = new List<BotTabSimple>();
+
+            BotTabScreener[] screeners = new BotTabScreener[]
+            {
+                _futs1, _futs2, _futs3, _futs4, _futs5,
+                _futs6, _futs7, _futs8, _futs9, _futs10,
+                _futs11, _futs12, _futs13, _futs14, _futs15
+            };
+
+            for (int i = 0; i < screeners.Length; i++)
+            {
+                for (int j = 0; j < screeners[i].Tabs.Count; j++)
+                {
+                    if (screeners[i].Tabs[j].PositionsOpenAll.Count > 0)
+                    {
+                        result.Add(screeners[i].Tabs[j]);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private BotTabSimple GetBaseByFuturesTab(BotTabSimple futuresTab)
+        {
+            if (_futs1.Tabs.Contains(futuresTab)) return _base1;
+            if (_futs2.Tabs.Contains(futuresTab)) return _base2;
+            if (_futs3.Tabs.Contains(futuresTab)) return _base3;
+            if (_futs4.Tabs.Contains(futuresTab)) return _base4;
+            if (_futs5.Tabs.Contains(futuresTab)) return _base5;
+            if (_futs6.Tabs.Contains(futuresTab)) return _base6;
+            if (_futs7.Tabs.Contains(futuresTab)) return _base7;
+            if (_futs8.Tabs.Contains(futuresTab)) return _base8;
+            if (_futs9.Tabs.Contains(futuresTab)) return _base9;
+            if (_futs10.Tabs.Contains(futuresTab)) return _base10;
+            if (_futs11.Tabs.Contains(futuresTab)) return _base11;
+            if (_futs12.Tabs.Contains(futuresTab)) return _base12;
+            if (_futs13.Tabs.Contains(futuresTab)) return _base13;
+            if (_futs14.Tabs.Contains(futuresTab)) return _base14;
+            if (_futs15.Tabs.Contains(futuresTab)) return _base15;
+
+            return null;
+        }
+
+        #endregion
+
+        #region LQDT branch
+
+        private bool PassLqdtGate(decimal yieldAnn)
+        {
+            if (_LqdtRegimeIsOn.ValueBool == false)
+            {
+                return true;
+            }
+
+            decimal LqdtYield = GetLqdtYieldAnn();
+
+            if(LqdtYield <= 0)
+            {
+                LogFull("ERROR. LQDT profit is Zero!!! ");
+                return false;
+            }
+
+            return yieldAnn > LqdtYield + _minYieldDiffOverLqdt.ValueDecimal;
+        }
+
+        private decimal GetLqdtYieldAnn()
+        {
+            List<Candle> candles = _tabLqdt.CandlesAll;
+
+            if (candles == null
+                || candles.Count < 2)
+            {
+                return 0;
+            }
+
+            Candle last = candles[^1];
+            DateTime border = last.TimeStart.AddDays(-_LqdtYieldDays.ValueInt);
+
+            decimal oldPrice = 0;
+            int daysReal = 0;
+
+            for (int i = candles.Count - 1; i >= 0; i--)
+            {
+                if (candles[i].TimeStart <= border)
+                {
+                    oldPrice = candles[i].Close;
+                    daysReal = (last.TimeStart - candles[i].TimeStart).Days;
+                    break;
+                }
+            }
+
+            if (oldPrice == 0
+                || daysReal <= 0)
+            {
+                return 0;
+            }
+
+            return (last.Close / oldPrice - 1) * 365 / daysReal * 100;
+        }
+
+        private bool HaveGoodPretender(List<Pretender> pretenders)
+        {
+            for (int i = 0; pretenders != null && i < pretenders.Count; i++)
+            {
+                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+
+                if (contangoAbs > 0
+                    && PassLqdtGate(yieldAnn))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool HaveAnyPositions()
+        {
+            List<IIBotTab> tabs = GetTabs();
+
+            for (int i = 0; tabs != null && i < tabs.Count; i++)
+            {
+                if (tabs[i] is BotTabSimple simple)
+                {
+                    if (simple.PositionsOpenAll != null
+                        && simple.PositionsOpenAll.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                else if (tabs[i] is BotTabScreener screener)
+                {
+                    for (int j = 0; j < screener.Tabs.Count; j++)
+                    {
+                        if (screener.Tabs[j].PositionsOpenAll != null
+                            && screener.Tabs[j].PositionsOpenAll.Count > 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void TryBuyLqdt()
+        {
+            if (HaveAnyPositions())
+            {
+                return;
+            }
+
+            BuyLqdtOnFreeMoney();
+        }
+
+        private void CloseLqdtIfAny()
+        {
+            Position LqdtPos = GetLqdtPosition();
+
+            if (LqdtPos == null
+                || LqdtPos.State != PositionStateType.Open
+                || LqdtPos.OpenVolume <= 0)
+            {
+                return;
+            }
+
+            if (_tabLqdt.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            LogFull("LQDT: sell at arb entry. Volume " + LqdtPos.OpenVolume);
+
+            _tabLqdt.CloseAtMarket(LqdtPos, LqdtPos.OpenVolume);
+        }
+
+        private Position GetLqdtPosition()
+        {
+            List<Position> positions = _tabLqdt.PositionsOpenAll;
+
+            if (positions == null
+                || positions.Count == 0)
+            {
+                return null;
+            }
+
+            return positions[0];
+        }
+
+        private void TryResetLqdtByYear(DateTime currentTime)
+        {
+            Position LqdtPos = GetLqdtPosition();
+
+            if (LqdtPos == null)
+            {
+                return;
+            }
+
+            if (currentTime.Year <= LqdtPos.TimeOpen.Year)
+            {
+                return;
+            }
+
+            if (LqdtPos.State != PositionStateType.Open
+                || LqdtPos.OpenVolume <= 0)
+            {
+                return;
+            }
+
+            if (_tabLqdt.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            LogFull("LQDT: year reset. Close volume " + LqdtPos.OpenVolume);
+
+            _tabLqdt.CloseAtMarket(LqdtPos, LqdtPos.OpenVolume);
+        }
+
+        private void BuyLqdtOnFreeMoney()
+        {
+            if (_tabLqdt.IsReadyToTrade == false
+                || _tabLqdt.PriceBestAsk == 0
+                || _tabLqdt.Security == null)
+            {
+                return;
+            }
+
+            decimal freeMoney = GetFreeMoney();
+
+            if (freeMoney <= 1000)
+            {
+                return;
+            }
+
+            freeMoney = freeMoney * _LqdtVolumePercent.ValueDecimal / 100;
+
+            decimal volume = freeMoney / _tabLqdt.PriceBestAsk;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                if (_tabLqdt.Security.Lot > 1)
+                {
+                    volume = freeMoney / (_tabLqdt.PriceBestAsk * _tabLqdt.Security.Lot);
+                }
+
+                volume = Math.Round(volume, _tabLqdt.Security.DecimalsVolume);
+            }
+            else
+            {
+                volume = Math.Round(volume, 6);
+            }
+
+            if (volume <= 0)
+            {
+                return;
+            }
+
+            LogFull("LQDT: buy on free money " + freeMoney + " volume " + volume);
+
+            _tabLqdt.BuyAtMarket(volume);
+        }
+
+        private decimal GetFreeMoney()
+        {
+            Portfolio portfolio = _tabLqdt.Portfolio;
+
+            if (portfolio == null)
+            {
+                return 0;
+            }
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                List<PositionOnBoard> positions = portfolio.GetPositionOnBoard();
+
+                if (positions == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    if (positions[i].SecurityNameCode == "rub"
+                        || positions[i].SecurityNameCode == "RUB")
+                    {
+                        return positions[i].ValueCurrent;
+                    }
+                }
+
+                return 0;
+            }
+
+            decimal moneyInPositions = 0;
+
+            List<IIBotTab> tabs = GetTabs();
+
+            for (int i = 0; tabs != null && i < tabs.Count; i++)
+            {
+                if (tabs[i] is BotTabSimple simple)
+                {
+                    List<Position> positions = simple.PositionsOpenAll;
+
+                    for (int j = 0; positions != null && j < positions.Count; j++)
+                    {
+                        moneyInPositions += positions[j].OpenVolume * positions[j].EntryPrice * positions[j].Lots;
+                    }
+                }
+                else if (tabs[i] is BotTabScreener screener)
+                {
+                    for (int j = 0; j < screener.Tabs.Count; j++)
+                    {
+                        List<Position> positions = screener.Tabs[j].PositionsOpenAll;
+
+                        for (int k = 0; positions != null && k < positions.Count; k++)
+                        {
+                            moneyInPositions += positions[k].OpenVolume * positions[k].EntryPrice * positions[k].Lots;
+                        }
+                    }
+                }
+            }
+
+            return portfolio.ValueCurrent - moneyInPositions;
         }
 
         #endregion
@@ -541,6 +1662,8 @@ namespace OsEngine.Robots.SyntheticBond
         private BotTabSimple _base15;
         private BotTabScreener _futs15;
 
+        private BotTabSimple _tabLqdt;
+
         private void CreateSources()
         {
             _base1 = (BotTabSimple)TabCreate(BotTabType.Simple);
@@ -587,37 +1710,31 @@ namespace OsEngine.Robots.SyntheticBond
 
             _base15 = (BotTabSimple)TabCreate(BotTabType.Simple);
             _futs15 = (BotTabScreener)TabCreate(BotTabType.Screener);
+
+            _tabLqdt = (BotTabSimple)TabCreate(BotTabType.Simple);
         }
 
         private DateTime GetCurrentServerTime()
         {
-            BotTabSimple[] bases = new BotTabSimple[]
-            {
-                _base1, _base2, _base3, _base4, _base5,
-                _base6, _base7, _base8, _base9, _base10,
-                _base11, _base12, _base13, _base14, _base15
-            };
-
-            for (int i = 0; i < bases.Length; i++)
-            {
-                if (string.IsNullOrEmpty(bases[i].Connector?.SecurityName))
-                {
-                    continue;
-                }
-
-                DateTime time = bases[i].TimeServerCurrent;
-
-                if (time != DateTime.MinValue)
-                {
-                    return time;
-                }
-            }
-
-            return DateTime.MinValue;
+            return this.TimeServer;
         }
 
         private decimal GetMultByBase(BotTabSimple baseSource)
-        {            if (baseSource == _base1) return _futuresMult1.ValueDecimal;
+        {
+            if (_multRegime.ValueString == "Auto"
+                && baseSource.Security != null)
+            {
+                DateTime time = baseSource.TimeServerCurrent;
+
+                if (time == DateTime.MinValue)
+                {
+                    time = DateTime.Now;
+                }
+
+                return GetAutoMult(baseSource.Security, time);
+            }
+
+            if (baseSource == _base1) return _futuresMult1.ValueDecimal;
             if (baseSource == _base2) return _futuresMult2.ValueDecimal;
             if (baseSource == _base3) return _futuresMult3.ValueDecimal;
             if (baseSource == _base4) return _futuresMult4.ValueDecimal;
@@ -691,29 +1808,57 @@ namespace OsEngine.Robots.SyntheticBond
         {
             List<Pretender> result = new List<Pretender>();
 
-            AddPretenderBySecurity(_base1, _futs1, _futuresMult1.ValueDecimal, result);
-            AddPretenderBySecurity(_base2, _futs2, _futuresMult2.ValueDecimal, result);
-            AddPretenderBySecurity(_base3, _futs3, _futuresMult3.ValueDecimal, result);
-            AddPretenderBySecurity(_base4, _futs4, _futuresMult4.ValueDecimal, result);
-            AddPretenderBySecurity(_base5, _futs5, _futuresMult5.ValueDecimal, result);
-            AddPretenderBySecurity(_base6, _futs6, _futuresMult6.ValueDecimal, result);
-            AddPretenderBySecurity(_base7, _futs7, _futuresMult7.ValueDecimal, result);
-            AddPretenderBySecurity(_base8, _futs8, _futuresMult8.ValueDecimal, result);
-            AddPretenderBySecurity(_base9, _futs9, _futuresMult9.ValueDecimal, result);
-            AddPretenderBySecurity(_base10, _futs10, _futuresMult10.ValueDecimal, result);
-            AddPretenderBySecurity(_base11, _futs11, _futuresMult11.ValueDecimal, result);
-            AddPretenderBySecurity(_base12, _futs12, _futuresMult12.ValueDecimal, result);
-            AddPretenderBySecurity(_base13, _futs13, _futuresMult13.ValueDecimal, result);
-            AddPretenderBySecurity(_base14, _futs14, _futuresMult14.ValueDecimal, result);
-            AddPretenderBySecurity(_base15, _futs15, _futuresMult15.ValueDecimal, result);
+            DateTime timeServer = this.TimeServer;
+
+            AddPretenderBySecurity(_base1, _futs1, GetMultByBase(_base1), result, timeServer);
+            AddPretenderBySecurity(_base2, _futs2, GetMultByBase(_base2), result, timeServer);
+            AddPretenderBySecurity(_base3, _futs3, GetMultByBase(_base3), result, timeServer);
+            AddPretenderBySecurity(_base4, _futs4, GetMultByBase(_base4), result, timeServer);
+            AddPretenderBySecurity(_base5, _futs5, GetMultByBase(_base5), result, timeServer);
+            AddPretenderBySecurity(_base6, _futs6, GetMultByBase(_base6), result, timeServer);
+            AddPretenderBySecurity(_base7, _futs7, GetMultByBase(_base7), result, timeServer);
+            AddPretenderBySecurity(_base8, _futs8, GetMultByBase(_base8), result, timeServer);
+            AddPretenderBySecurity(_base9, _futs9, GetMultByBase(_base9), result, timeServer);
+            AddPretenderBySecurity(_base10, _futs10, GetMultByBase(_base10), result, timeServer);
+            AddPretenderBySecurity(_base11, _futs11, GetMultByBase(_base11), result, timeServer);
+            AddPretenderBySecurity(_base12, _futs12, GetMultByBase(_base12), result, timeServer);
+            AddPretenderBySecurity(_base13, _futs13, GetMultByBase(_base13), result, timeServer);
+            AddPretenderBySecurity(_base14, _futs14, GetMultByBase(_base14), result, timeServer);
+            AddPretenderBySecurity(_base15, _futs15, GetMultByBase(_base15), result, timeServer);
 
             return result;
         }
 
+        private bool CanTradeThisPair(BotTabSimple baseSource)
+        {
+            if (baseSource == _base1) return _tradePair1.ValueBool;
+            if (baseSource == _base2) return _tradePair2.ValueBool;
+            if (baseSource == _base3) return _tradePair3.ValueBool;
+            if (baseSource == _base4) return _tradePair4.ValueBool;
+            if (baseSource == _base5) return _tradePair5.ValueBool;
+            if (baseSource == _base6) return _tradePair6.ValueBool;
+            if (baseSource == _base7) return _tradePair7.ValueBool;
+            if (baseSource == _base8) return _tradePair8.ValueBool;
+            if (baseSource == _base9) return _tradePair9.ValueBool;
+            if (baseSource == _base10) return _tradePair10.ValueBool;
+            if (baseSource == _base11) return _tradePair11.ValueBool;
+            if (baseSource == _base12) return _tradePair12.ValueBool;
+            if (baseSource == _base13) return _tradePair13.ValueBool;
+            if (baseSource == _base14) return _tradePair14.ValueBool;
+            if (baseSource == _base15) return _tradePair15.ValueBool;
+
+            return false;
+        }
+
         private void AddPretenderBySecurity(
-             BotTabSimple baseSource, BotTabScreener screener, decimal mult, List<Pretender> result)
+             BotTabSimple baseSource, BotTabScreener screener, decimal mult, List<Pretender> result, DateTime serverTimeToTester)
         {
             if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
+            {
+                return;
+            }
+
+            if (CanTradeThisPair(baseSource) == false)
             {
                 return;
             }
@@ -739,12 +1884,12 @@ namespace OsEngine.Robots.SyntheticBond
 
                 int daysToExpiration = (curTab.Security.Expiration - time).Days;
 
-                if (daysToExpiration <= 5)
+                if (daysToExpiration <= _minDaysToExpiration.ValueInt)
                 {
                     continue;
                 }
 
-                if (daysToExpiration > 100)
+                if (daysToExpiration > 120)
                 {
                     continue;
                 }
@@ -760,6 +1905,31 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (nearestFutures != null)
             {
+                List<Candle> baseCandles = baseSource.CandlesAll;
+                List<Candle> futCandles = nearestFutures.CandlesAll;
+
+                if (baseCandles == null
+                    || baseCandles.Count == 0
+                    || futCandles == null
+                    || futCandles.Count == 0)
+                {
+                    return;
+                }
+
+                if (baseCandles[^1].TimeStart != futCandles[^1].TimeStart)
+                {
+                    return;
+                }
+
+                if(StartProgram == StartProgram.IsTester
+                    || StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    if(baseCandles[^1].TimeStart != serverTimeToTester)
+                    {
+                        return;
+                    }
+                }
+
                 result.Add((baseSource, nearestFutures, mult));
             }
         }
@@ -770,17 +1940,55 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void EntryInPositionContango(BotTabSimple baseSource, BotTabSimple futuresSource)
         {
+            if (_LqdtRegimeIsOn.ValueBool)
+            {
+                CloseLqdtIfAny();
+            }
+
+            if (baseSource.CandlesFinishedOnly[^1].TimeStart != futuresSource.CandlesFinishedOnly[^1].TimeStart)
+            {
+                LogFull("ENTRY ERROR. Time is not equal!!!!!");
+                return;
+            }
+
             decimal volumeFutures = GetVolume(futuresSource);
             decimal volumeBase = GetVolume(baseSource);
+
+            (decimal entryContangoAbs, decimal entryYieldAnn) = CalculateContango(baseSource, futuresSource, GetMultByBase(baseSource));
+
+            LogFull("ENTRY: " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                + " | yield " + entryContangoAbs + " | ann " + entryYieldAnn
+                + " | lqdtAnn " + GetLqdtYieldAnn()
+                + " | volFut " + volumeFutures + " volBase " + volumeBase);
+
+            if (volumeFutures <= 0
+                || volumeBase <= 0)
+            {
+                LogFull("ENTRY skipped: zero or negative volume. "
+                    + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                    + " | volFut " + volumeFutures + " volBase " + volumeBase);
+                return;
+            }
 
             futuresSource.SellAtMarket(volumeFutures);
             baseSource.BuyAtMarket(volumeBase);
         }
 
-        private void ExitFromPosition(BotTabSimple baseSource, BotTabSimple futuresSource)
+        private void ExitFromPosition(BotTabSimple baseSource, BotTabSimple futuresSource, string reason = "")
         {
+            if (baseSource.CandlesFinishedOnly[^1].TimeStart != futuresSource.CandlesFinishedOnly[^1].TimeStart)
+            {
+                LogFull("EXIT ERROR. Time is not equal!!!!!");
+                return;
+            }
+
             List<Position> positionsFut = futuresSource.PositionsOpenAll;
             List<Position> positionsBase = baseSource.PositionsOpenAll;
+
+            LogFull("EXIT: " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                + " | futPosCount " + positionsFut.Count + " basePosCount " + positionsBase.Count);
+
+            LogPositionClose(baseSource, futuresSource, reason);
 
             if (positionsFut.Count > 0)
             {
@@ -792,6 +2000,86 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
+        private void LogPositionClose(BotTabSimple baseSource, BotTabSimple futuresSource, string reason)
+        {
+            if (_fullLogIsOn.ValueBool == false)
+            {
+                return;
+            }
+
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            try
+            {
+                List<Position> positionsBase = baseSource.PositionsOpenAll;
+                List<Position> positionsFut = futuresSource.PositionsOpenAll;
+
+                if (positionsBase == null
+                    || positionsFut == null
+                    || positionsBase.Count == 0
+                    || positionsFut.Count == 0)
+                {
+                    return;
+                }
+
+                Position basePos = positionsBase[0];
+                Position futPos = positionsFut[0];
+
+                if (basePos.State != PositionStateType.Open
+                    || futPos.State != PositionStateType.Open)
+                {
+                    return;
+                }
+
+                decimal mult = GetMultByBase(baseSource);
+
+                decimal baseExitPrice = baseSource.PriceBestBid;
+                decimal futExitPrice = futuresSource.PriceBestAsk;
+
+                decimal spreadIn = 0;
+
+                if (basePos.EntryPrice != 0)
+                {
+                    spreadIn = (futPos.EntryPrice / mult - basePos.EntryPrice) / (basePos.EntryPrice / 100);
+                }
+
+                decimal spreadOut = 0;
+
+                if (baseExitPrice != 0)
+                {
+                    spreadOut = (futExitPrice / mult - baseExitPrice) / (baseExitPrice / 100);
+                }
+
+                int daysInPosition = (futuresSource.TimeServerCurrent - basePos.TimeOpen).Days;
+
+                decimal totalProfit = basePos.ProfitPortfolioAbs + futPos.ProfitPortfolioAbs;
+
+                string message =
+                    "CLOSE " + reason + ": " + baseSource.Connector?.SecurityName + " / " + futuresSource.Connector?.SecurityName
+                    + " | open " + basePos.TimeOpen.ToString("dd.MM.yyyy HH:mm")
+                    + " close " + futuresSource.TimeServerCurrent.ToString("dd.MM.yyyy HH:mm")
+                    + " | base in " + basePos.EntryPrice + " out " + baseExitPrice + " profit " + Math.Round(basePos.ProfitPortfolioAbs, 0)
+                    + " | fut in " + futPos.EntryPrice + " out " + futExitPrice + " profit " + Math.Round(futPos.ProfitPortfolioAbs, 0)
+                    + " | total " + Math.Round(totalProfit, 0)
+                    + " | spreadIn " + Math.Round(spreadIn, 2) + "% spreadOut " + Math.Round(spreadOut, 2) + "%"
+                    + " | days " + daysInPosition;
+
+                SendNewLogMessage(message, LogMessageType.System);
+
+                if (totalProfit < 0)
+                {
+                    SendNewLogMessage(message, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         private void ClosePosAtMarket(BotTabSimple tab, Position pos)
         {
             if (tab.IsReadyToTrade == false)
@@ -800,6 +2088,11 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             if (pos.State != PositionStateType.Open)
+            {
+                return;
+            }
+
+            if (pos.OpenVolume <= 0)
             {
                 return;
             }
@@ -957,7 +2250,7 @@ namespace OsEngine.Robots.SyntheticBond
 
                 DataGridViewColumn newColumn0 = new DataGridViewColumn();
                 newColumn0.CellTemplate = cellParam0;
-                newColumn0.HeaderText = "Bond";
+                newColumn0.HeaderText = "Stock";
                 _tableDataGrid.Columns.Add(newColumn0);
                 newColumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -972,6 +2265,12 @@ namespace OsEngine.Robots.SyntheticBond
                 newColumn2.HeaderText = "Series 1";
                 _tableDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn3 = new DataGridViewColumn();
+                newColumn3.CellTemplate = cellParam0;
+                newColumn3.HeaderText = "Fut Chart";
+                _tableDataGrid.Columns.Add(newColumn3);
+                newColumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 _tableDataGrid.DataError += _tableDataGrid_DataError;
                 _tableDataGrid.CellClick += _tableDataGrid_CellClick;
@@ -1005,7 +2304,11 @@ namespace OsEngine.Robots.SyntheticBond
 
                 if (column == 0)
                 {
-                    ShowBondChart(_monitorRows[row]);
+                    ShowChartForTab(_monitorRows[row].Base);
+                }
+                else if (column == 3)
+                {
+                    ShowFuturesChart(_monitorRows[row]);
                 }
             }
             catch (Exception ex)
@@ -1050,7 +2353,25 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private void ShowBondChart(BondMonitorRow rowData)
+        private void ShowChartForTab(BotTabSimple tab)
+        {
+            try
+            {
+                if (tab == null)
+                {
+                    return;
+                }
+
+                ActiveTab = tab;
+                ShowChartDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ShowFuturesChart(BondMonitorRow rowData)
         {
             if (rowData.Series.Count == 0)
             {
@@ -1163,7 +2484,9 @@ namespace OsEngine.Robots.SyntheticBond
                 info.Name = seriesTab.Connector?.SecurityName;
                 info.Expiration = seriesTab.Security.Expiration;
                 info.DaysToExpiration = (info.Expiration - time).Days;
-                info.YieldPercent = CalculateYieldForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
+                (decimal contangoAbs, decimal yieldAnn) = CalculateContangoForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
+                info.YieldPercent = yieldAnn;
+                info.ContangoAbsPercent = contangoAbs;
 
                 newRow.Series.Add(info);
             }
@@ -1208,26 +2531,33 @@ namespace OsEngine.Robots.SyntheticBond
             return result;
         }
 
-        private decimal CalculateYieldForMonitor(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult, int daysToExpiration)
+        private (decimal ContangoAbs, decimal YieldAnn) CalculateContangoForMonitor(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult, int daysToExpiration)
         {
             if (baseSource.PriceBestAsk == 0
-                || futuresSource.PriceBestBid == 0
-                || daysToExpiration <= 0)
+                || futuresSource.PriceBestBid == 0)
             {
-                return 0;
+                return (0, 0);
             }
 
             decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
             deviation = deviation / (baseSource.PriceBestAsk / 100);
 
-            return deviation * 365 / daysToExpiration;
+            decimal yieldAnn = 0;
+
+            if (daysToExpiration > 0)
+            {
+                yieldAnn = deviation * 365 / daysToExpiration;
+            }
+
+            return (deviation, yieldAnn);
         }
 
         private void UpdateTable()
         {
-            // 0 Bond
+            // 0 Stock
             // 1 Mult
             // 2 Series 1
+            // 3 Fut Chart
 
             try
             {
@@ -1307,12 +2637,18 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (data.Series.Count > 0)
             {
-                row.Cells[^1].Value = data.Series[0].Name + "  " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+                row.Cells[^1].Value = data.Series[0].Name
+                    + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 1) + "%"
+                    + " | " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
             }
             else
             {
                 row.Cells[^1].Value = "";
             }
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = "Fut Chart";
 
             return row;
         }
@@ -1510,6 +2846,19 @@ namespace OsEngine.Robots.SyntheticBond
                 || s.Name.StartsWith("MNZ") || s.Name.StartsWith("MNU")));
 
             SetSecurities(_base10, _futs10, spotMgnt, futuresMgnt, myPortfolio, myServer);
+
+            Security lqdt = securitiesAll.Find(s => s.Name.StartsWith("TMON") && s.SecurityType == SecurityType.Stock);
+
+            if (lqdt != null
+                && _tabLqdt.Connector != null)
+            {
+                _tabLqdt.Connector.ServerType = myServer.ServerType;
+                _tabLqdt.Connector.ServerFullName = myServer.ServerNameAndPrefix;
+                _tabLqdt.Connector.TimeFrame = TimeFrame.Min15;
+                _tabLqdt.Connector.SecurityName = lqdt.Name;
+                _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
+                _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+            }
         }
 
         private void SetSecurities(BotTabSimple tabSpot, BotTabScreener tabFutures,
@@ -1757,6 +3106,26 @@ namespace OsEngine.Robots.SyntheticBond
                 || s.Name.StartsWith("MNZ") || s.Name.StartsWith("MNU"));
 
             SetSecuritiesInTester(_base10, _futs10, spotMgnt, futuresMgnt, myPortfolio, server);
+
+            Security lqdt = securitiesAll.Find(s => s.Name.StartsWith("LQDT"));
+
+            if (lqdt != null
+                && _tabLqdt.Connector != null)
+            {
+                TimeFrame timeFrame = TimeFrame.Min15;
+
+                if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
+                {
+                    timeFrame = parsedFrame;
+                }
+
+                _tabLqdt.Connector.ServerType = server.ServerType;
+                _tabLqdt.Connector.ServerFullName = server.ServerNameAndPrefix;
+                _tabLqdt.Connector.TimeFrame = timeFrame;
+                _tabLqdt.Connector.SecurityName = lqdt.Name;
+                _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
+                _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+            }
         }
 
         private void SetSecuritiesInTester(BotTabSimple tabSpot, BotTabScreener tabFutures,
@@ -1769,22 +3138,33 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            TimeFrame timeFrame = TimeFrame.Min15;
+
+            if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
             tabSpot.Connector.ServerType = server.ServerType;
             tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
-            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.TimeFrame = timeFrame;
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.CommissionType = CommissionType.Percent;
+            tabSpot.Connector.CommissionValue = 0.04m;
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
-            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.TimeFrame = timeFrame;
             tabFutures.PortfolioName = portfolio.Number;
             tabFutures.ServerType = server.ServerType;
             tabFutures.ServerName = server.ServerNameAndPrefix;
+            tabFutures.CommissionType = CommissionType.Percent;
+            tabFutures.CommissionValue = 0.04m;
 
             tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = TimeFrame.Min15;
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Min15.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
 
             List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
 

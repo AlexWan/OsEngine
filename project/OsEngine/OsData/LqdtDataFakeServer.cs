@@ -339,7 +339,7 @@ namespace OsEngine.OsData
 
                 currentPrice = _lastCandlePreRie.Close;
 
-                if (currentCandleStart.Date == _lastCandlePreRie.TimeStart.Date.AddDays(1) && currentCandleStart.DayOfWeek != DayOfWeek.Sunday)
+                if (currentCandleStart.Date == _lastCandlePreRie.TimeStart.Date.AddDays(1))
                 {
                     double currRate = GetRateForDate(currentCandleStart);
 
@@ -363,7 +363,7 @@ namespace OsEngine.OsData
 
                 currentCandleStart = currentCandleStart + timeFrameBuilder.TimeFrameTimeSpan;
 
-                if (currentCandleStart.Date == candle.TimeStart.Date.AddDays(1) && currentCandleStart.DayOfWeek != DayOfWeek.Sunday)
+                if (currentCandleStart.Date == candle.TimeStart.Date.AddDays(1))
                 {
                     double currRate = GetRateForDate(currentCandleStart);
 
@@ -413,7 +413,7 @@ namespace OsEngine.OsData
 
                 currentTradeTime = currentTradeTime + tradeTf;
 
-                if (currentTradeTime.Date == trade.Time.Date.AddDays(1) && currentTradeTime.DayOfWeek != DayOfWeek.Sunday)
+                if (currentTradeTime.Date == trade.Time.Date.AddDays(1))
                 {
                     double currRate = GetRateForDate(currentTradeTime);
 

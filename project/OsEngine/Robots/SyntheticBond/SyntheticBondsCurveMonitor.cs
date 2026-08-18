@@ -57,6 +57,7 @@ namespace OsEngine.Robots.SyntheticBond
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodButton;
 
+        private StrategyParameterString _multRegime;
         private StrategyParameterDecimal _futuresMult1;
         private StrategyParameterDecimal _futuresMult2;
         private StrategyParameterDecimal _futuresMult3;
@@ -89,6 +90,7 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _exitOnErrorEntryIsOn;
 
         private StrategyParameterString _portfolioNum;
+        private StrategyParameterString _testerDeployTimeFrame;
 
         public SyntheticBondsCurveMonitor(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -97,13 +99,32 @@ namespace OsEngine.Robots.SyntheticBond
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
 
             _tradePeriodsSettings = new NonTradePeriods(name);
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
+
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 30 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 24, Minute = 00 };
+            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
+
+            _tradePeriodsSettings.TradeInSunday = false;
+            _tradePeriodsSettings.TradeInSaturday = false;
+
+            _tradePeriodsSettings.Load();
+
             _tradePeriodButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodButton.UserClickOnButtonEvent += _tradePeriodButton_UserClickOnButtonEvent;
 
             _tableUpdateIntervalSec = CreateParameter("Table update interval, sec", 5, 1, 60, 1, "Base");
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 80m, 1.0m, 100, 4, "Base");
 
+            _multRegime = CreateParameter("Mult regime", "Auto", new[] { "Auto", "Manual" }, "Fut mults");
             _futuresMult1 = CreateParameter("Fut mult 1", 1m, 1.0m, 50, 4, "Fut mults");
             _futuresMult2 = CreateParameter("Fut mult 2", 1m, 1.0m, 50, 4, "Fut mults");
             _futuresMult3 = CreateParameter("Fut mult 3", 1m, 1.0m, 50, 4, "Fut mults");
@@ -162,6 +183,9 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (startProgram == StartProgram.IsTester)
             {
+                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min15",
+                    new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
+
                 StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
                 buttonAutoDeployTester.UserClickOnButtonEvent += ButtonAutoDeployTester_UserClickOnButtonEvent;
 
@@ -387,6 +411,19 @@ namespace OsEngine.Robots.SyntheticBond
 
         private decimal GetMultByBase(BotTabSimple baseSource)
         {
+            if (_multRegime.ValueString == "Auto"
+                && baseSource.Security != null)
+            {
+                DateTime time = baseSource.TimeServerCurrent;
+
+                if (time == DateTime.MinValue)
+                {
+                    time = DateTime.Now;
+                }
+
+                return GetAutoMult(baseSource.Security, time);
+            }
+
             if (baseSource == _base1) return _futuresMult1.ValueDecimal;
             if (baseSource == _base2) return _futuresMult2.ValueDecimal;
             if (baseSource == _base3) return _futuresMult3.ValueDecimal;
@@ -963,22 +1000,33 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            TimeFrame timeFrame = TimeFrame.Min15;
+
+            if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
             tabSpot.Connector.ServerType = server.ServerType;
             tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
-            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.TimeFrame = timeFrame;
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.CommissionType = CommissionType.Percent;
+            tabSpot.Connector.CommissionValue = 0.04m;
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
-            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.TimeFrame = timeFrame;
             tabFutures.PortfolioName = portfolio.Number;
             tabFutures.ServerType = server.ServerType;
             tabFutures.ServerName = server.ServerNameAndPrefix;
+            tabFutures.CommissionType = CommissionType.Percent;
+            tabFutures.CommissionValue = 0.04m;
 
             tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = TimeFrame.Min15;
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Min15.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
 
             List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
 
@@ -1050,7 +1098,7 @@ namespace OsEngine.Robots.SyntheticBond
 
                 DataGridViewColumn newColumn0 = new DataGridViewColumn();
                 newColumn0.CellTemplate = cellParam0;
-                newColumn0.HeaderText = "Bond";
+                newColumn0.HeaderText = "Stock";
                 _tableDataGrid.Columns.Add(newColumn0);
                 newColumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -1080,15 +1128,21 @@ namespace OsEngine.Robots.SyntheticBond
 
                 DataGridViewColumn newColumn5 = new DataGridViewColumn();
                 newColumn5.CellTemplate = cellParam0;
-                newColumn5.HeaderText = "Open";
+                newColumn5.HeaderText = "Fut Chart";
                 _tableDataGrid.Columns.Add(newColumn5);
                 newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn6 = new DataGridViewColumn();
                 newColumn6.CellTemplate = cellParam0;
-                newColumn6.HeaderText = "Close";
+                newColumn6.HeaderText = "Open";
                 _tableDataGrid.Columns.Add(newColumn6);
                 newColumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn7 = new DataGridViewColumn();
+                newColumn7.CellTemplate = cellParam0;
+                newColumn7.HeaderText = "Close";
+                _tableDataGrid.Columns.Add(newColumn7);
+                newColumn7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 _tableDataGrid.DataError += _tableDataGrid_DataError;
                 _tableDataGrid.CellClick += _tableDataGrid_CellClick;
@@ -1124,13 +1178,17 @@ namespace OsEngine.Robots.SyntheticBond
 
                 if (column == 0)
                 {
-                    ShowBondChart(rowData);
+                    ShowChartForTab(rowData.Base);
                 }
                 else if (column == 5)
                 {
-                    ShowOpenPairWindow(rowData.BaseName);
+                    ShowFuturesChart(rowData);
                 }
                 else if (column == 6)
+                {
+                    ShowOpenPairWindow(rowData.BaseName);
+                }
+                else if (column == 7)
                 {
                     CloseAllByBond(rowData);
                 }
@@ -1177,7 +1235,25 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private void ShowBondChart(BondMonitorRow rowData)
+        private void ShowChartForTab(BotTabSimple tab)
+        {
+            try
+            {
+                if (tab == null)
+                {
+                    return;
+                }
+
+                ActiveTab = tab;
+                ShowChartDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ShowFuturesChart(BondMonitorRow rowData)
         {
             if (rowData.Series.Count == 0)
             {
@@ -1354,13 +1430,14 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void UpdateTable()
         {
-            // 0 Bond
+            // 0 Stock
             // 1 Mult
             // 2 Series 1
             // 3 Series 2
             // 4 Series 3
-            // 5 Open
-            // 6 Close
+            // 5 Fut Chart
+            // 6 Open
+            // 7 Close
 
             try
             {
@@ -1449,6 +1526,10 @@ namespace OsEngine.Robots.SyntheticBond
                     row.Cells[^1].Value = "";
                 }
             }
+
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[^1].ReadOnly = true;
+            row.Cells[^1].Value = "Fut Chart";
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
@@ -1997,21 +2078,21 @@ namespace OsEngine.Robots.SyntheticBond
         {
             List<Pretender> result = new List<Pretender>();
 
-            AddPretendersBySecurity(_base1, _futs1, _futuresMult1.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base2, _futs2, _futuresMult2.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base3, _futs3, _futuresMult3.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base4, _futs4, _futuresMult4.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base5, _futs5, _futuresMult5.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base6, _futs6, _futuresMult6.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base7, _futs7, _futuresMult7.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base8, _futs8, _futuresMult8.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base9, _futs9, _futuresMult9.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base10, _futs10, _futuresMult10.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base11, _futs11, _futuresMult11.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base12, _futs12, _futuresMult12.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base13, _futs13, _futuresMult13.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base14, _futs14, _futuresMult14.ValueDecimal, time, result);
-            AddPretendersBySecurity(_base15, _futs15, _futuresMult15.ValueDecimal, time, result);
+            AddPretendersBySecurity(_base1, _futs1, GetMultByBase(_base1), time, result);
+            AddPretendersBySecurity(_base2, _futs2, GetMultByBase(_base2), time, result);
+            AddPretendersBySecurity(_base3, _futs3, GetMultByBase(_base3), time, result);
+            AddPretendersBySecurity(_base4, _futs4, GetMultByBase(_base4), time, result);
+            AddPretendersBySecurity(_base5, _futs5, GetMultByBase(_base5), time, result);
+            AddPretendersBySecurity(_base6, _futs6, GetMultByBase(_base6), time, result);
+            AddPretendersBySecurity(_base7, _futs7, GetMultByBase(_base7), time, result);
+            AddPretendersBySecurity(_base8, _futs8, GetMultByBase(_base8), time, result);
+            AddPretendersBySecurity(_base9, _futs9, GetMultByBase(_base9), time, result);
+            AddPretendersBySecurity(_base10, _futs10, GetMultByBase(_base10), time, result);
+            AddPretendersBySecurity(_base11, _futs11, GetMultByBase(_base11), time, result);
+            AddPretendersBySecurity(_base12, _futs12, GetMultByBase(_base12), time, result);
+            AddPretendersBySecurity(_base13, _futs13, GetMultByBase(_base13), time, result);
+            AddPretendersBySecurity(_base14, _futs14, GetMultByBase(_base14), time, result);
+            AddPretendersBySecurity(_base15, _futs15, GetMultByBase(_base15), time, result);
 
             return result;
         }
@@ -2137,6 +2218,8 @@ namespace OsEngine.Robots.SyntheticBond
         public string Name;
 
         public decimal YieldPercent;
+
+        public decimal ContangoAbsPercent;
 
         public int DaysToExpiration;
 

@@ -764,8 +764,6 @@ namespace OsEngine.Market.Servers.Tester
 
                 Thread.Sleep(2000);
 
-                TesterRegime = TesterRegime.Play;
-
                 if (TestingStartEvent != null)
                 {
                     try
@@ -777,6 +775,8 @@ namespace OsEngine.Market.Servers.Tester
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                     }
                 }
+
+                TesterRegime = TesterRegime.Play;
             }
             catch (Exception ex)
             {
