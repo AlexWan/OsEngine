@@ -38,10 +38,13 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 Источники
 10 пар источников. В каждой паре BotTabSimple - базовая акция, BotTabScreener - фьючерсы на неё.
 Все 10 пар разворачиваются кнопками авто-развёртывания (Т-Банк в реале, выбранный сет в тестере).
+По каждой паре торгуются две серии фьючерсов: ближайшая (до 120 дней) и следующая (до 180 дней,
+вторая серия - по флагам группы Second series, по умолчанию выключена). Выбор пары - по годовой
+доходности контанго (yieldAnn)
 
 ВХОД в позицию
-Из всех претендентов выбирается пара с максимальным контанго,
-если оно не меньше Min yield to entry %
+Из всех претендентов (обе разрешённые серии всех пар) выбирается пара с максимальной годовой
+доходностью контанго, если её абсолютное контанго не меньше Min yield to entry %
 
 ПЕРЕНОС позиции
 Если доходность у претендента больше текущего на Min Yield Diff To Move,
@@ -88,6 +91,17 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _tradePair9;
         private StrategyParameterBool _tradePair10;
 
+        private StrategyParameterBool _tradeSecondSeries1;
+        private StrategyParameterBool _tradeSecondSeries2;
+        private StrategyParameterBool _tradeSecondSeries3;
+        private StrategyParameterBool _tradeSecondSeries4;
+        private StrategyParameterBool _tradeSecondSeries5;
+        private StrategyParameterBool _tradeSecondSeries6;
+        private StrategyParameterBool _tradeSecondSeries7;
+        private StrategyParameterBool _tradeSecondSeries8;
+        private StrategyParameterBool _tradeSecondSeries9;
+        private StrategyParameterBool _tradeSecondSeries10;
+
         private StrategyParameterBool _LqdtRegimeIsOn;
         private StrategyParameterDecimal _minYieldDiffOverLqdt;
         private StrategyParameterInt _LqdtYieldDays;
@@ -131,6 +145,17 @@ namespace OsEngine.Robots.SyntheticBond
             _tradePair8 = CreateParameter("Trade pair 8", true, "Trade pairs");
             _tradePair9 = CreateParameter("Trade pair 9", true, "Trade pairs");
             _tradePair10 = CreateParameter("Trade pair 10", true, "Trade pairs");
+
+            _tradeSecondSeries1 = CreateParameter("Trade second series 1", false, "Second series");
+            _tradeSecondSeries2 = CreateParameter("Trade second series 2", false, "Second series");
+            _tradeSecondSeries3 = CreateParameter("Trade second series 3", false, "Second series");
+            _tradeSecondSeries4 = CreateParameter("Trade second series 4", false, "Second series");
+            _tradeSecondSeries5 = CreateParameter("Trade second series 5", false, "Second series");
+            _tradeSecondSeries6 = CreateParameter("Trade second series 6", false, "Second series");
+            _tradeSecondSeries7 = CreateParameter("Trade second series 7", false, "Second series");
+            _tradeSecondSeries8 = CreateParameter("Trade second series 8", false, "Second series");
+            _tradeSecondSeries9 = CreateParameter("Trade second series 9", false, "Second series");
+            _tradeSecondSeries10 = CreateParameter("Trade second series 10", false, "Second series");
             _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 7, 0, 10, 1, "Base");
 
             _LqdtRegimeIsOn = CreateParameter("LQDT regime is on", true, "LQDT");
@@ -225,8 +250,8 @@ namespace OsEngine.Robots.SyntheticBond
 
             /*
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures (equal number of shares in both legs, delta-neutral) in the pair with the highest annualized contango yield among 10 blue chips. Free money is parked in LQDT. The position is moved to a more profitable contract and closed before expiration_" +
-              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс (равное число акций в ногах, дельта-нейтрально) в паре с максимальной доходностью контанго в годовых среди 10 голубых фишек. Свободные деньги паркуются в LQDT. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
+              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures (equal number of shares in both legs, delta-neutral) in the pair with the highest annualized contango yield among 10 blue chips. Two futures series per pair can trade (nearest and next one), selection by annualized yield. Free money is parked in LQDT. The position is moved to a more profitable contract and closed before expiration_" +
+              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс (равное число акций в ногах, дельта-нейтрально) в паре с максимальной доходностью контанго в годовых среди 10 голубых фишек. По каждой паре могут торговаться две серии фьючерсов (ближайшая и следующая), выбор по годовой доходности. Свободные деньги паркуются в LQDT. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
             */
 
             if (startProgram != StartProgram.IsOsOptimizer)
@@ -704,7 +729,8 @@ namespace OsEngine.Robots.SyntheticBond
 
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
-            decimal bestDeviation = 0;
+            decimal bestYieldAnn = 0;
+            decimal bestContangoAbs = 0;
             decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
@@ -719,9 +745,10 @@ namespace OsEngine.Robots.SyntheticBond
                     continue;
                 }
 
-                if (contangoAbs > bestDeviation)
+                if (yieldAnn > bestYieldAnn)
                 {
-                    bestDeviation = contangoAbs;
+                    bestYieldAnn = yieldAnn;
+                    bestContangoAbs = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
                     bestMult = pretenders[i].Mult;
@@ -734,13 +761,13 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if (bestDeviation < _minYieldToEntry.ValueDecimal)
+            if (bestContangoAbs < _minYieldToEntry.ValueDecimal)
             {
-                LogFull("First entry: best yield " + bestDeviation + " < min to entry " + _minYieldToEntry.ValueDecimal);
+                LogFull("First entry: best yield " + bestContangoAbs + " < min to entry " + _minYieldToEntry.ValueDecimal);
                 return;
             }
 
-            LogFull("First entry: " + PairDescription(bestBase, bestFutures, bestMult) + " | yield " + bestDeviation);
+            LogFull("First entry: " + PairDescription(bestBase, bestFutures, bestMult) + " | yield " + bestContangoAbs + " | ann " + bestYieldAnn);
 
             EntryInPositionContango(bestBase, bestFutures);
         }
@@ -910,7 +937,8 @@ namespace OsEngine.Robots.SyntheticBond
 
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
-            decimal bestDeviation = 0;
+            decimal bestYieldAnn = 0;
+            decimal bestContangoAbs = 0;
             decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
@@ -925,9 +953,10 @@ namespace OsEngine.Robots.SyntheticBond
                     continue;
                 }
 
-                if (contangoAbs > bestDeviation)
+                if (yieldAnn > bestYieldAnn)
                 {
-                    bestDeviation = contangoAbs;
+                    bestYieldAnn = yieldAnn;
+                    bestContangoAbs = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
                     bestMult = pretenders[i].Mult;
@@ -940,29 +969,29 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if (bestDeviation < _minYieldToEntry.ValueDecimal)
+            if (bestContangoAbs < _minYieldToEntry.ValueDecimal)
             {
-                LogFull("Move check: best pretender yield " + bestDeviation + " < min to entry " + _minYieldToEntry.ValueDecimal);
+                LogFull("Move check: best pretender yield " + bestContangoAbs + " < min to entry " + _minYieldToEntry.ValueDecimal);
                 return;
             }
 
             decimal curMult = GetMultByBase(baseInPosition);
-            decimal curDev = CalculateContango(baseInPosition, futuresInPosition, curMult).ContangoAbs;
+            decimal curYieldAnn = CalculateContango(baseInPosition, futuresInPosition, curMult).YieldAnn;
 
-            if (curDev >= bestDeviation
-                || bestDeviation <= 0
-                || curDev == 0)
+            if (curYieldAnn >= bestYieldAnn
+                || bestYieldAnn <= 0
+                || curYieldAnn == 0)
             {
-                LogFull("Move check skipped: current yield " + curDev + " best pretender yield " + bestDeviation);
+                LogFull("Move check skipped: current ann yield " + curYieldAnn + " best pretender ann yield " + bestYieldAnn);
                 return;
             }
 
-            decimal diff = bestDeviation - curDev;
+            decimal diff = bestYieldAnn - curYieldAnn;
 
             LogFull("Move decision: current " + PairDescription(baseInPosition, futuresInPosition, curMult)
-                + " | yield " + curDev
+                + " | ann yield " + curYieldAnn
                 + " || best pretender " + PairDescription(bestBase, bestFutures, bestMult)
-                + " | yield " + bestDeviation
+                + " | ann yield " + bestYieldAnn
                 + " || diff " + diff + " need > " + _minYieldDiffToMove.ValueDecimal
                 + " => " + (diff > _minYieldDiffToMove.ValueDecimal ? "MOVE" : "HOLD"));
 
@@ -1514,6 +1543,22 @@ namespace OsEngine.Robots.SyntheticBond
             return false;
         }
 
+        private bool CanTradeSecondSeries(BotTabSimple baseSource)
+        {
+            if (baseSource == _base1) return _tradeSecondSeries1.ValueBool;
+            if (baseSource == _base2) return _tradeSecondSeries2.ValueBool;
+            if (baseSource == _base3) return _tradeSecondSeries3.ValueBool;
+            if (baseSource == _base4) return _tradeSecondSeries4.ValueBool;
+            if (baseSource == _base5) return _tradeSecondSeries5.ValueBool;
+            if (baseSource == _base6) return _tradeSecondSeries6.ValueBool;
+            if (baseSource == _base7) return _tradeSecondSeries7.ValueBool;
+            if (baseSource == _base8) return _tradeSecondSeries8.ValueBool;
+            if (baseSource == _base9) return _tradeSecondSeries9.ValueBool;
+            if (baseSource == _base10) return _tradeSecondSeries10.ValueBool;
+
+            return false;
+        }
+
         private void AddPretenderBySecurity(
              BotTabSimple baseSource, BotTabScreener screener, decimal mult, List<Pretender> result, DateTime serverTimeToTester)
         {
@@ -1534,55 +1579,59 @@ namespace OsEngine.Robots.SyntheticBond
 
             DateTime time = baseSource.TimeServerCurrent;
 
-            BotTabSimple nearestFutures = null;
+            List<BotTabSimple> series = GetNearestSeries(screener, time, screener.Tabs.Count);
 
-            for (int i = 0; i < screener.Tabs.Count; i++)
+            int seriesNumber = 0;
+
+            for (int i = 0; i < series.Count; i++)
             {
-                BotTabSimple curTab = screener.Tabs[i];
+                BotTabSimple curFutures = series[i];
 
-                if (curTab.Security == null
-                    || curTab.Security.Expiration == DateTime.MinValue)
-                {
-                    continue;
-                }
-
-                int daysToExpiration = (curTab.Security.Expiration - time).Days;
+                int daysToExpiration = (curFutures.Security.Expiration - time).Days;
 
                 if (daysToExpiration <= _minDaysToExpiration.ValueInt)
                 {
                     continue;
                 }
 
-                if (daysToExpiration > 120)
+                if (seriesNumber == 0)
                 {
-                    continue;
+                    if (daysToExpiration > 120)
+                    {
+                        continue;
+                    }
+                }
+                else if (seriesNumber == 1)
+                {
+                    if (CanTradeSecondSeries(baseSource) == false)
+                    {
+                        break;
+                    }
+
+                    if (daysToExpiration > 180)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
                 }
 
-                if (nearestFutures != null
-                    && nearestFutures.Security.Expiration < curTab.Security.Expiration)
-                {
-                    continue;
-                }
-
-                nearestFutures = curTab;
-            }
-
-            if (nearestFutures != null)
-            {
                 List<Candle> baseCandles = baseSource.CandlesAll;
-                List<Candle> futCandles = nearestFutures.CandlesAll;
+                List<Candle> futCandles = curFutures.CandlesAll;
 
                 if (baseCandles == null
                     || baseCandles.Count == 0
                     || futCandles == null
                     || futCandles.Count == 0)
                 {
-                    return;
+                    continue;
                 }
 
                 if (baseCandles[^1].TimeStart != futCandles[^1].TimeStart)
                 {
-                    return;
+                    continue;
                 }
 
                 if(StartProgram == StartProgram.IsTester
@@ -1590,11 +1639,13 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     if(baseCandles[^1].TimeStart != serverTimeToTester)
                     {
-                        return;
+                        continue;
                     }
                 }
 
-                result.Add((baseSource, nearestFutures, mult));
+                result.Add((baseSource, curFutures, mult));
+
+                seriesNumber++;
             }
         }
 
@@ -1940,6 +1991,12 @@ namespace OsEngine.Robots.SyntheticBond
                 _tableDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
+                DataGridViewColumn newColumnSeries2 = new DataGridViewColumn();
+                newColumnSeries2.CellTemplate = cellParam0;
+                newColumnSeries2.HeaderText = "Series 2";
+                _tableDataGrid.Columns.Add(newColumnSeries2);
+                newColumnSeries2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
                 DataGridViewColumn newColumn3 = new DataGridViewColumn();
                 newColumn3.CellTemplate = cellParam0;
                 newColumn3.HeaderText = "Fut Chart";
@@ -1980,7 +2037,7 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     ShowChartForTab(_monitorRows[row].Base);
                 }
-                else if (column == 3)
+                else if (column == 4)
                 {
                     ShowFuturesChart(_monitorRows[row]);
                 }
@@ -2142,7 +2199,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             decimal mult = GetMultByBase(baseSource);
 
-            List<BotTabSimple> nearestSeries = GetNearestSeries(screener, time, 1);
+            List<BotTabSimple> nearestSeries = GetNearestSeries(screener, time, 2);
 
             for (int i = 0; i < nearestSeries.Count; i++)
             {
@@ -2309,6 +2366,20 @@ namespace OsEngine.Robots.SyntheticBond
                 row.Cells[^1].Value = data.Series[0].Name
                     + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 1) + "%"
                     + " | " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+            }
+            else
+            {
+                row.Cells[^1].Value = "";
+            }
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[^1].ReadOnly = true;
+
+            if (data.Series.Count > 1)
+            {
+                row.Cells[^1].Value = data.Series[1].Name
+                    + "  " + Math.Round(data.Series[1].ContangoAbsPercent, 1) + "%"
+                    + " | " + Math.Round(data.Series[1].YieldPercent, 1) + "%";
             }
             else
             {

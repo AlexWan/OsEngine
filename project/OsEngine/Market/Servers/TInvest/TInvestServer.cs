@@ -2472,7 +2472,11 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         try
                         {
-                            streamWrapper.StreamClient.RequestStream.CompleteAsync().Wait(_streamWaitTimeout);
+                            Task completeTask = streamWrapper.StreamClient.RequestStream.CompleteAsync();
+                            if (completeTask.Wait(_streamWaitTimeout) == false)
+                            {
+                                ObserveTaskFault(completeTask);
+                            }
                             streamWrapper.StreamClient.ResponseStream.ReadAllAsync();
                             streamWrapper.StreamClient.Dispose();
                         }
@@ -2525,8 +2529,10 @@ namespace OsEngine.Market.Servers.TInvest
                         if (tradesToResubscribe.Instruments.Any())
                         {
                             var batchTradeRequest = new MarketDataRequest { SubscribeTradesRequest = tradesToResubscribe };
-                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeTradeTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest);
+                            if (writeTradeTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeTradeTask);
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
@@ -2535,8 +2541,10 @@ namespace OsEngine.Market.Servers.TInvest
                         if (orderBooksToResubscribe.Instruments.Any())
                         {
                             var batchOrderBookRequest = new MarketDataRequest { SubscribeOrderBookRequest = orderBooksToResubscribe };
-                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeOrderBookTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest);
+                            if (writeOrderBookTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeOrderBookTask);
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
@@ -2545,8 +2553,10 @@ namespace OsEngine.Market.Servers.TInvest
                         if (lastPricesToResubscribe.Instruments.Any())
                         {
                             var batchLastPriceRequest = new MarketDataRequest { SubscribeLastPriceRequest = lastPricesToResubscribe };
-                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeLastPriceTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest);
+                            if (writeLastPriceTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeLastPriceTask);
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
@@ -2555,8 +2565,10 @@ namespace OsEngine.Market.Servers.TInvest
                         if (candlesToResubscribe.Instruments.Any())
                         {
                             var batchCandlesRequest = new MarketDataRequest { SubscribeCandlesRequest = candlesToResubscribe };
-                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchCandlesRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeCandlesTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchCandlesRequest);
+                            if (writeCandlesTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeCandlesTask);
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
@@ -2603,6 +2615,22 @@ namespace OsEngine.Market.Servers.TInvest
         private string _marketDataStreamLocker = "_marketDataStreamLocker";
 
         private static readonly TimeSpan _streamWaitTimeout = TimeSpan.FromSeconds(5);
+
+        private void ObserveTaskFault(Task task)
+        {
+            // наблюдаем возможный фолт брошенной задачи, чтобы она не стала UnobservedTaskException
+            task.ContinueWith(t =>
+            {
+                try
+                {
+                    _ = t.Exception;
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+        }
 
         public void Subscribe(Security security)
         {
@@ -2703,8 +2731,10 @@ namespace OsEngine.Market.Servers.TInvest
                             streamWrapperCommon.Subscriptions.Add(marketDataRequest);
 
                             _rateGateSubscribeCommon.WaitToProceed();
-                            if (streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeIndexTask = streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest);
+                            if (writeIndexTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeIndexTask);
                                 streamWrapperCommon.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
@@ -2731,8 +2761,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                             streamWrapperCommon.Subscriptions.Add(marketDataRequest);
                             _rateGateSubscribeCommon.WaitToProceed();
-                            if (streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeTradesTask = streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest);
+                            if (writeTradesTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeTradesTask);
                                 streamWrapperCommon.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
@@ -2753,8 +2785,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                             streamWrapperMarketDepth.Subscriptions.Add(marketDataRequest);
                             _rateGateSubscribeMd.WaitToProceed();
-                            if (streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            Task writeMdTask = streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(marketDataRequest);
+                            if (writeMdTask.Wait(_streamWaitTimeout) == false)
                             {
+                                ObserveTaskFault(writeMdTask);
                                 streamWrapperMarketDepth.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
