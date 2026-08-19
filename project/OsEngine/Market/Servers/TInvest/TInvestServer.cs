@@ -2472,7 +2472,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         try
                         {
-                            streamWrapper.StreamClient.RequestStream.CompleteAsync().Wait();
+                            streamWrapper.StreamClient.RequestStream.CompleteAsync().Wait(_streamWaitTimeout);
                             streamWrapper.StreamClient.ResponseStream.ReadAllAsync();
                             streamWrapper.StreamClient.Dispose();
                         }
@@ -2525,25 +2525,41 @@ namespace OsEngine.Market.Servers.TInvest
                         if (tradesToResubscribe.Instruments.Any())
                         {
                             var batchTradeRequest = new MarketDataRequest { SubscribeTradesRequest = tradesToResubscribe };
-                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest).Wait();
+                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapper.IsConnected = false;
+                                return false;
+                            }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
                         if (orderBooksToResubscribe.Instruments.Any())
                         {
                             var batchOrderBookRequest = new MarketDataRequest { SubscribeOrderBookRequest = orderBooksToResubscribe };
-                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest).Wait();
+                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapper.IsConnected = false;
+                                return false;
+                            }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
                         if (lastPricesToResubscribe.Instruments.Any())
                         {
                             var batchLastPriceRequest = new MarketDataRequest { SubscribeLastPriceRequest = lastPricesToResubscribe };
-                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest).Wait();
+                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchLastPriceRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapper.IsConnected = false;
+                                return false;
+                            }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
                         if (candlesToResubscribe.Instruments.Any())
                         {
                             var batchCandlesRequest = new MarketDataRequest { SubscribeCandlesRequest = candlesToResubscribe };
-                            streamWrapper.StreamClient.RequestStream.WriteAsync(batchCandlesRequest).Wait();
+                            if (streamWrapper.StreamClient.RequestStream.WriteAsync(batchCandlesRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapper.IsConnected = false;
+                                return false;
+                            }
                         }
                     }
                 }
@@ -2585,6 +2601,8 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
         private string _marketDataStreamLocker = "_marketDataStreamLocker";
+
+        private static readonly TimeSpan _streamWaitTimeout = TimeSpan.FromSeconds(5);
 
         public void Subscribe(Security security)
         {
@@ -2685,7 +2703,11 @@ namespace OsEngine.Market.Servers.TInvest
                             streamWrapperCommon.Subscriptions.Add(marketDataRequest);
 
                             _rateGateSubscribeCommon.WaitToProceed();
-                            streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+                            if (streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapperCommon.IsConnected = false;
+                                throw new TimeoutException("Market data stream write timeout");
+                            }
                         }
                         else
                         { // Обычный инструмент
@@ -2709,7 +2731,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                             streamWrapperCommon.Subscriptions.Add(marketDataRequest);
                             _rateGateSubscribeCommon.WaitToProceed();
-                            streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+                            if (streamWrapperCommon.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapperCommon.IsConnected = false;
+                                throw new TimeoutException("Market data stream write timeout");
+                            }
 
                             // 2 Подписка на стакан
 
@@ -2727,7 +2753,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                             streamWrapperMarketDepth.Subscriptions.Add(marketDataRequest);
                             _rateGateSubscribeMd.WaitToProceed();
-                            streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait();
+                            if (streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(marketDataRequest).Wait(_streamWaitTimeout) == false)
+                            {
+                                streamWrapperMarketDepth.IsConnected = false;
+                                throw new TimeoutException("Market data stream write timeout");
+                            }
                         }
                         _securityStreamMap.Add(security.NameId, streamWrapperMarketDepth);
                     }
