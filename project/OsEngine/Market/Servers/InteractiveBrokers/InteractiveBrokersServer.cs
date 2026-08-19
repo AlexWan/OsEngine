@@ -204,8 +204,13 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         {
             IbContractStorageUi ui = new IbContractStorageUi(_secIB, this);
             ui.ShowDialog();
-            _secIB = ui.SecToSubscribe;
+            //_secIB = ui.SecToSubscribe;
             GetSecurities();
+        }
+
+        public void SetSecuritiesInSecIB(List<SecurityIb> sec)
+        {
+            _secIB = sec;
         }
 
         private List<SecurityIb> _secIB = new List<SecurityIb>();
