@@ -618,6 +618,16 @@ namespace OsEngine.Robots.SpeculantSet
                 return false;
             }
 
+            // индикатор может пересчитываться в фоне и серия значений в этот момент
+            // короче списка свечей - проверяем границы, иначе ArgumentOutOfRangeException
+            if (atr.DataSeries[0].Values == null
+                || atr.DataSeries[0].Values.Count == 0
+                || lastIndex >= atr.DataSeries[0].Values.Count
+                || backIndex >= atr.DataSeries[0].Values.Count)
+            {
+                return false;
+            }
+
             decimal atrPercentLast = atr.DataSeries[0].Values[lastIndex];
             decimal atrPercentBack = atr.DataSeries[0].Values[backIndex];
 

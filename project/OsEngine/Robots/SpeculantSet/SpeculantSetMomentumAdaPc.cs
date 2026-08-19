@@ -484,6 +484,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             // условия входа проверяем по линиям канала вторым с конца:
             // последнее значение линий перестраивается по экстремумам текущей свечи
+            if (adpc.DataSeries[0].Values.Count < 2
+                || adpc.DataSeries[1].Values.Count < 2)
+            {
+                return;
+            }
+
             decimal adpcUpPrev = adpc.DataSeries[0].Values[adpc.DataSeries[0].Values.Count - 2];
             decimal adpcDownPrev = adpc.DataSeries[1].Values[adpc.DataSeries[1].Values.Count - 2];
 
@@ -561,6 +567,12 @@ namespace OsEngine.Robots.SpeculantSet
 
             // условия входа проверяем по линиям канала вторым с конца:
             // последнее значение линий перестраивается по экстремумам текущей свечи
+            if (adpc.DataSeries[0].Values.Count < 2
+                || adpc.DataSeries[1].Values.Count < 2)
+            {
+                return;
+            }
+
             decimal adpcUpPrev = adpc.DataSeries[0].Values[adpc.DataSeries[0].Values.Count - 2];
             decimal adpcDownPrev = adpc.DataSeries[1].Values[adpc.DataSeries[1].Values.Count - 2];
 
