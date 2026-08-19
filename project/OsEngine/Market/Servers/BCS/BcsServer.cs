@@ -381,6 +381,11 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (securities != null && securities.Count > 0)
                     UpdateSecuritiesFromServer(securities);
+
+                securities = GetSecuritiesByType("ETF");
+
+                if (securities != null && securities.Count > 0)
+                    UpdateSecuritiesFromServer(securities);
             }
 
             if (_useOptions)
@@ -504,7 +509,7 @@ namespace OsEngine.Market.Servers.BCS
                         continue;
                     }
 
-                    if (instrumentType == SecurityType.Stock && item.boards[0].classCode != "TQBR")
+                    if ((instrumentType == SecurityType.Stock || instrumentType == SecurityType.Fund) && item.boards[0].classCode != "TQBR")
                     {
                         continue;
                     }
@@ -593,7 +598,7 @@ namespace OsEngine.Market.Servers.BCS
             {
                 return SecurityType.Bond;
             }
-            else if (secType.Equals("MUTUAL_FUNDS"))
+            else if (secType.Equals("MUTUAL_FUNDS") || secType.Equals("ETF"))
             {
                 return SecurityType.Fund;
             }
