@@ -1881,9 +1881,15 @@ namespace OsEngine.Journal
 
                     if (maxYVal != minYval)
                     {
-                        _chartEquity.ChartAreas[0].AxisY2.Maximum = Math.Round((double)maxYVal, 3);
-                        _chartEquity.ChartAreas[0].AxisY2.Minimum = Math.Round((double)minYval, 3);
-                        _chartEquity.ChartAreas[0].AxisY2.LabelStyle.Format = "F3";
+                        double axisMax = Math.Round((double)maxYVal, 3);
+                        double axisMin = Math.Round((double)minYval, 3);
+
+                        if (axisMax > axisMin)
+                        {
+                            _chartEquity.ChartAreas[0].AxisY2.Maximum = axisMax;
+                            _chartEquity.ChartAreas[0].AxisY2.Minimum = axisMin;
+                            _chartEquity.ChartAreas[0].AxisY2.LabelStyle.Format = "F3";
+                        }
                     }
                 }
 
@@ -1897,9 +1903,15 @@ namespace OsEngine.Journal
 
                     if (maxYValBars != minYvalBars)
                     {
-                        _chartEquity.ChartAreas[1].AxisY2.Maximum = Math.Round((double)maxYValBars, 3);
-                        _chartEquity.ChartAreas[1].AxisY2.Minimum = Math.Round((double)minYvalBars, 3);
-                        _chartEquity.ChartAreas[1].AxisY2.LabelStyle.Format = "F3";
+                        double axisMax = Math.Round((double)maxYValBars, 3);
+                        double axisMin = Math.Round((double)minYvalBars, 3);
+
+                        if (axisMax > axisMin)
+                        {
+                            _chartEquity.ChartAreas[1].AxisY2.Maximum = axisMax;
+                            _chartEquity.ChartAreas[1].AxisY2.Minimum = axisMin;
+                            _chartEquity.ChartAreas[1].AxisY2.LabelStyle.Format = "F3";
+                        }
                     }
                 }
 
@@ -1913,9 +1925,15 @@ namespace OsEngine.Journal
 
                     if (maxYValMonBars != minYValMonBars)
                     {
-                        _chartEquity.ChartAreas[2].AxisY2.Maximum = Math.Round((double)maxYValMonBars, 3);
-                        _chartEquity.ChartAreas[2].AxisY2.Minimum = Math.Round((double)minYValMonBars, 3);
-                        _chartEquity.ChartAreas[2].AxisY2.LabelStyle.Format = "F3";
+                        double axisMax = Math.Round((double)maxYValMonBars, 3);
+                        double axisMin = Math.Round((double)minYValMonBars, 3);
+
+                        if (axisMax > axisMin)
+                        {
+                            _chartEquity.ChartAreas[2].AxisY2.Maximum = axisMax;
+                            _chartEquity.ChartAreas[2].AxisY2.Minimum = axisMin;
+                            _chartEquity.ChartAreas[2].AxisY2.LabelStyle.Format = "F3";
+                        }
                     }
                 }
 
@@ -1929,9 +1947,15 @@ namespace OsEngine.Journal
 
                     if (maxYValYearBars != minYValYearBars)
                     {
-                        _chartEquity.ChartAreas[3].AxisY2.Maximum = Math.Round((double)maxYValYearBars, 3);
-                        _chartEquity.ChartAreas[3].AxisY2.Minimum = Math.Round((double)minYValYearBars, 3);
-                        _chartEquity.ChartAreas[3].AxisY2.LabelStyle.Format = "F3";
+                        double axisMax = Math.Round((double)maxYValYearBars, 3);
+                        double axisMin = Math.Round((double)minYValYearBars, 3);
+
+                        if (axisMax > axisMin)
+                        {
+                            _chartEquity.ChartAreas[3].AxisY2.Maximum = axisMax;
+                            _chartEquity.ChartAreas[3].AxisY2.Minimum = axisMin;
+                            _chartEquity.ChartAreas[3].AxisY2.LabelStyle.Format = "F3";
+                        }
                     }
                 }
 
@@ -3555,10 +3579,16 @@ namespace OsEngine.Journal
                 if (minOnY != decimal.MaxValue &&
                     minOnY != 0)
                 {
-                    _chartDd.ChartAreas[0].AxisY2.IntervalType = DateTimeIntervalType.Number;
-                    _chartDd.ChartAreas[0].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
-                    _chartDd.ChartAreas[0].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY) * 0.05, 6);
-                    _chartDd.ChartAreas[0].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY) + Convert.ToDouble(minOnY) * 0.05, 6);
+                    double axisMax = Math.Round(-Convert.ToDouble(minOnY) * 0.05, 6);
+                    double axisMin = Math.Round(Convert.ToDouble(minOnY) + Convert.ToDouble(minOnY) * 0.05, 6);
+
+                    if (axisMax > axisMin)
+                    {
+                        _chartDd.ChartAreas[0].AxisY2.IntervalType = DateTimeIntervalType.Number;
+                        _chartDd.ChartAreas[0].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
+                        _chartDd.ChartAreas[0].AxisY2.Maximum = axisMax;
+                        _chartDd.ChartAreas[0].AxisY2.Minimum = axisMin;
+                    }
                 }
 
                 // dd in %
@@ -3644,10 +3674,16 @@ namespace OsEngine.Journal
                 if (minOnY2 != decimal.MaxValue &&
                     minOnY2 != 0)
                 {
-                    _chartDd.ChartAreas[1].AxisY2.IntervalType = DateTimeIntervalType.Number;
-                    _chartDd.ChartAreas[1].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
-                    _chartDd.ChartAreas[1].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY2) * 0.05, 6);
-                    _chartDd.ChartAreas[1].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY2) + Convert.ToDouble(minOnY2) * 0.05, 6);
+                    double axisMax = Math.Round(-Convert.ToDouble(minOnY2) * 0.05, 6);
+                    double axisMin = Math.Round(Convert.ToDouble(minOnY2) + Convert.ToDouble(minOnY2) * 0.05, 6);
+
+                    if (axisMax > axisMin)
+                    {
+                        _chartDd.ChartAreas[1].AxisY2.IntervalType = DateTimeIntervalType.Number;
+                        _chartDd.ChartAreas[1].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
+                        _chartDd.ChartAreas[1].AxisY2.Maximum = axisMax;
+                        _chartDd.ChartAreas[1].AxisY2.Minimum = axisMin;
+                    }
                 }
             }
             catch (Exception ex)
