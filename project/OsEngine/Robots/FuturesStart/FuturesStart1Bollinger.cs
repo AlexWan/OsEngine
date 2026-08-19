@@ -10,6 +10,7 @@ using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -179,6 +180,7 @@ namespace OsEngine.Robots.FuturesStart
         // Auto connection securities
 
         private StrategyParameterString _portfolioNum;
+        private StrategyParameterString _testerDeployTimeFrame;
 
         public FuturesStart1Bollinger(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -254,6 +256,15 @@ namespace OsEngine.Robots.FuturesStart
                 _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
+            }
+
+            if (startProgram == StartProgram.IsTester)
+            {
+                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min15",
+                    new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
+
+                StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
+                buttonAutoDeployTester.UserClickOnButtonEvent += ButtonAutoDeployTester_UserClickOnButtonEvent;
             }
 
             // Source creation
@@ -955,63 +966,7 @@ namespace OsEngine.Robots.FuturesStart
 
             if(_contangoFilterRegime.ValueString == "On_MOEXStocksAuto")
             {
-                if (baseSource.Security.Name.Contains("MGNT") == false
-                    && baseSource.Security.Name.Contains("VTB") == false
-                     && baseSource.Security.Name.Contains("GMKN") == false)
-                {
-                    for (int i = 0; i < baseSource.Security.Decimals; i++)
-                    {
-                        coeff = coeff * 10;
-                    }
-                }
-                else if (baseSource.Security.Name.Contains("VTB") == true)
-                {
-                    DateTime time = baseSource.TimeServerCurrent;
-
-                    if (time.Year < 2024)
-                    {
-                        coeff = 20;
-                    }
-                    else if (time.Year == 2024
-                        && time.Month < 7)
-                    {
-                        coeff = 20;
-                    }
-                    else if (time.Year == 2024
-                            && time.Month == 7
-                            && time.Day < 15)
-                    {
-                        coeff = 20;
-                    }
-                    else
-                    {
-                        coeff = 100;
-                    }
-                }
-                else if (baseSource.Security.Name.Contains("GMKN") == true)
-                {
-                    DateTime time = baseSource.TimeServerCurrent;
-
-                    if (time.Year < 2024)
-                    {
-                        coeff = 100;
-                    }
-                    else if (time.Year == 2024
-                        && time.Month < 4)
-                    {
-                        coeff = 100;
-                    }
-                    else if (time.Year == 2024
-                            && time.Month == 4
-                            && time.Day < 4)
-                    {
-                        coeff = 100;
-                    }
-                    else
-                    {
-                        coeff = 10;
-                    }
-                }
+                coeff = GetAutoCoeff(baseSource.Security, baseSource.TimeServerCurrent);
             }
             else if (_contangoFilterRegime.ValueString == "On_Manual") 
             {
@@ -1351,6 +1306,256 @@ namespace OsEngine.Robots.FuturesStart
 
             tabFutures.SaveSettings();
             tabFutures.NeedToReloadTabs = true;
+        }
+
+        private decimal GetAutoCoeff(Security security, DateTime time)
+        {
+            decimal coeff = 1;
+
+            if (security.Name.Contains("MGNT") == false
+                && security.Name.Contains("VTB") == false
+                && security.Name.Contains("GMKN") == false)
+            {
+                for (int i = 0; i < security.Decimals; i++)
+                {
+                    coeff = coeff * 10;
+                }
+            }
+            else if (security.Name.Contains("VTB") == true)
+            {
+                if (time.Year < 2024
+                    || (time.Year == 2024 && time.Month < 7)
+                    || (time.Year == 2024 && time.Month == 7 && time.Day < 15))
+                {
+                    coeff = 20;
+                }
+                else
+                {
+                    coeff = 100;
+                }
+            }
+            else if (security.Name.Contains("GMKN") == true)
+            {
+                if (time.Year < 2024
+                    || (time.Year == 2024 && time.Month < 4)
+                    || (time.Year == 2024 && time.Month == 4 && time.Day < 4))
+                {
+                    coeff = 100;
+                }
+                else
+                {
+                    coeff = 10;
+                }
+            }
+
+            return coeff;
+        }
+
+        #endregion
+
+        #region SetSecurities in tester
+
+        private void ButtonAutoDeployTester_UserClickOnButtonEvent()
+        {
+            SetTesterSecurities();
+        }
+
+        public void SetTesterSecurities()
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                "Eng:Auto deploy will set the securities from the set selected in the tester to the sources. Current sources settings will be overwritten. Continue_" +
+                "Ru:Авто-развёртывание пропишет в источники бумаги из выбранного в тестере сета. Текущие настройки источников будут перезаписаны. Продолжить_"));
+
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
+            List<IServer> servers = ServerMaster.GetServers();
+
+            if (servers == null
+                || servers.Count == 0
+                || servers[0].ServerType != ServerType.Tester)
+            {
+                SendNewLogMessage("Сначала подключите тестер", Logging.LogMessageType.Error);
+                return;
+            }
+
+            IServer server = servers[0];
+
+            List<Security> securitiesAll = server.Securities;
+
+            if (securitiesAll == null
+                || securitiesAll.Count == 0)
+            {
+                SendNewLogMessage("В тестере не найдены бумаги. Сначала выберите сет и дождитесь загрузки", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (server.Portfolios == null
+                || server.Portfolios.Count == 0)
+            {
+                SendNewLogMessage("В тестере не найден портфель", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Portfolio myPortfolio = server.Portfolios[0];
+
+            Security spotSber = securitiesAll.Find(s => s.Name == "SBER.txt");
+            List<Security> futuresSber =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("SRH") || s.Name.StartsWith("SRM")
+                || s.Name.StartsWith("SRZ") || s.Name.StartsWith("SRU"));
+
+            SetSecuritiesInTester(_base1, _futs1, spotSber, futuresSber, myPortfolio, server, _contangoCoefficient1);
+
+            Security spotSberPref = securitiesAll.Find(s => s.Name == "SBERP.txt");
+            List<Security> futuresSberPref =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("SPH") || s.Name.StartsWith("SPM")
+                || s.Name.StartsWith("SPZ") || s.Name.StartsWith("SPU"));
+
+            SetSecuritiesInTester(_base2, _futs2, spotSberPref, futuresSberPref, myPortfolio, server, _contangoCoefficient2);
+
+            Security spotGazp = securitiesAll.Find(s => s.Name == "GAZP.txt");
+            List<Security> futuresGazp =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("GZH") || s.Name.StartsWith("GZM")
+                || s.Name.StartsWith("GZZ") || s.Name.StartsWith("GZU"));
+
+            SetSecuritiesInTester(_base3, _futs3, spotGazp, futuresGazp, myPortfolio, server, _contangoCoefficient3);
+
+            Security spotRosn = securitiesAll.Find(s => s.Name == "ROSN.txt");
+            List<Security> futuresRosn =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("RNH") || s.Name.StartsWith("RNM")
+                || s.Name.StartsWith("RNZ") || s.Name.StartsWith("RNU"));
+
+            SetSecuritiesInTester(_base4, _futs4, spotRosn, futuresRosn, myPortfolio, server, _contangoCoefficient4);
+
+            Security spotLkoh = securitiesAll.Find(s => s.Name == "LKOH.txt");
+            List<Security> futuresLkoh =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("LKH") || s.Name.StartsWith("LKM")
+                || s.Name.StartsWith("LKZ") || s.Name.StartsWith("LKU"));
+
+            SetSecuritiesInTester(_base5, _futs5, spotLkoh, futuresLkoh, myPortfolio, server, _contangoCoefficient5);
+
+            Security spotVtb = securitiesAll.Find(s => s.Name == "VTBR.txt");
+            List<Security> futuresVtb =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("VBH") || s.Name.StartsWith("VBM")
+                || s.Name.StartsWith("VBZ") || s.Name.StartsWith("VBU"));
+
+            SetSecuritiesInTester(_base6, _futs6, spotVtb, futuresVtb, myPortfolio, server, _contangoCoefficient6);
+
+            Security spotGmk = securitiesAll.Find(s => s.Name == "GMKN.txt");
+            List<Security> futuresGmk =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("GKH") || s.Name.StartsWith("GKM")
+                || s.Name.StartsWith("GKZ") || s.Name.StartsWith("GKU"));
+
+            SetSecuritiesInTester(_base7, _futs7, spotGmk, futuresGmk, myPortfolio, server, _contangoCoefficient7);
+
+            Security spotAlrs = securitiesAll.Find(s => s.Name == "ALRS.txt");
+            List<Security> futuresAlrs =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("ALH") || s.Name.StartsWith("ALM")
+                || s.Name.StartsWith("ALZ") || s.Name.StartsWith("ALU"));
+
+            SetSecuritiesInTester(_base8, _futs8, spotAlrs, futuresAlrs, myPortfolio, server, _contangoCoefficient8);
+
+            Security spotAflt = securitiesAll.Find(s => s.Name == "AFLT.txt");
+            List<Security> futuresAflt =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("AFH") || s.Name.StartsWith("AFM")
+                || s.Name.StartsWith("AFZ") || s.Name.StartsWith("AFU"));
+
+            SetSecuritiesInTester(_base9, _futs9, spotAflt, futuresAflt, myPortfolio, server, _contangoCoefficient9);
+
+            Security spotMgnt = securitiesAll.Find(s => s.Name == "MGNT.txt");
+            List<Security> futuresMgnt =
+                securitiesAll.FindAll(s =>
+                s.Name.StartsWith("MNH") || s.Name.StartsWith("MNM")
+                || s.Name.StartsWith("MNZ") || s.Name.StartsWith("MNU"));
+
+            SetSecuritiesInTester(_base10, _futs10, spotMgnt, futuresMgnt, myPortfolio, server, _contangoCoefficient10);
+        }
+
+        private void SetSecuritiesInTester(BotTabSimple tabSpot, BotTabScreener tabFutures,
+            Security spotSecurity, List<Security> futuresSecurity, Portfolio portfolio, IServer server,
+            StrategyParameterDecimal coeffParam)
+        {
+            if (spotSecurity == null
+                || futuresSecurity == null
+                || futuresSecurity.Count == 0)
+            {
+                return;
+            }
+
+            TimeFrame timeFrame = TimeFrame.Min15;
+
+            if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
+            tabSpot.Connector.ServerType = server.ServerType;
+            tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
+            tabSpot.Connector.TimeFrame = timeFrame;
+            tabSpot.Connector.SecurityName = spotSecurity.Name;
+            tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
+            tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.CommissionType = CommissionType.Percent;
+            tabSpot.Connector.CommissionValue = 0.04m;
+
+            tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
+            tabFutures.TimeFrame = timeFrame;
+            tabFutures.PortfolioName = portfolio.Number;
+            tabFutures.ServerType = server.ServerType;
+            tabFutures.ServerName = server.ServerNameAndPrefix;
+            tabFutures.CommissionType = CommissionType.Percent;
+            tabFutures.CommissionValue = 0.04m;
+
+            tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
+
+            List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
+
+            for (int i = 0; i < futuresSecurity.Count; i++)
+            {
+                ActivatedSecurity sec = new ActivatedSecurity();
+                sec.SecurityClass = futuresSecurity[i].NameClass;
+                sec.SecurityName = futuresSecurity[i].Name;
+                sec.IsOn = true;
+                securitiesToScreener.Add(sec);
+            }
+
+            for (int i = 0; i < securitiesToScreener.Count; i++)
+            {
+                if (tabFutures.SecuritiesNames.Find(s => s.SecurityName == securitiesToScreener[i].SecurityName) == null)
+                {
+                    tabFutures.SecuritiesNames.Add(securitiesToScreener[i]);
+                }
+            }
+
+            tabFutures.SaveSettings();
+            tabFutures.NeedToReloadTabs = true;
+
+            DateTime coeffTime = DateTime.Now;
+
+            TesterServer testerServer = server as TesterServer;
+
+            if (testerServer != null
+                && testerServer.TimeStart != DateTime.MinValue)
+            {
+                coeffTime = testerServer.TimeStart;
+            }
+
+            coeffParam.ValueDecimal = GetAutoCoeff(spotSecurity, coeffTime);
         }
 
         #endregion
