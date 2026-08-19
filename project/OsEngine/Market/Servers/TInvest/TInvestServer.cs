@@ -29,7 +29,6 @@ using System.Security.Cryptography.X509Certificates;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using OsEngine.Market.Servers.Bybit.Entities;
 
 namespace OsEngine.Market.Servers.TInvest
@@ -3813,7 +3812,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void LogOrderInFullLog(Order order, [CallerMemberName] string source = "")
+        private void LogOrderInFullLog(Order order, string source = "")
         {
             if (_fullLog)
             {
@@ -3822,7 +3821,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void LogTradeInFullLog(MyTrade trade, [CallerMemberName] string source = "")
+        private void LogTradeInFullLog(MyTrade trade, string source = "")
         {
             if (_fullLog)
             {
@@ -4745,7 +4744,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades, [CallerMemberName] string source = "")
+        public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades, string source = "")
         {
             lock (_rageGateOrdersLocker)
             {
@@ -5368,7 +5367,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private bool CancelStopOrder(Order order, [CallerMemberName] string source = "")
+        private bool CancelStopOrder(Order order, string source = "")
         {
             _rateGateStopOrders.WaitToProceed();
 
@@ -5409,7 +5408,7 @@ namespace OsEngine.Market.Servers.TInvest
             return true;
         }
 
-        private OrderStateType GetStopOrderStatus(Order order, [CallerMemberName] string source = "")
+        private OrderStateType GetStopOrderStatus(Order order, string source = "")
         {
             try
             {
