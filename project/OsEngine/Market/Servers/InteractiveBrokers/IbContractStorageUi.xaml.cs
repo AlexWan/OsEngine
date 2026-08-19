@@ -298,6 +298,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         private void SaveInServer()
         {
             SaveSecFromTable();
+            _server.SetSecuritiesInSecIB(SecToSubscribe);
             _server.GetSecurities();
             _server.SaveIbSecurities();
         }
