@@ -332,10 +332,7 @@ namespace OsEngine.OsTrader
 
                         botIterator++;
 
-                        bot.NewTabCreateEvent += () =>
-                        {
-                            ReloadRiskJournals();
-                        };
+                        bot.NewTabCreateEvent += _bot_NewTabCreateEvent;
                     }
                 }
             }
@@ -391,11 +388,17 @@ namespace OsEngine.OsTrader
             {
                 if (PanelsArray == null || PanelsArray.Count == 0)
                 {
-                    MessageBox.Show(OsLocalization.Trader.Label750);
+                    CustomMessageBoxUi uiNoBots = new CustomMessageBoxUi(OsLocalization.Trader.Label750);
+                    uiNoBots.ShowDialog();
                     return;
                 }
 
-                using (StreamWriter writer = new StreamWriter(filePath, false))
+                // пишем во временный файл, чтобы при сбое не оставить половинчатый пресет
+                string tempFilePath = filePath + ".tmp";
+
+                List<string> botsWithoutParams = new List<string>();
+
+                using (StreamWriter writer = new StreamWriter(tempFilePath, false))
                 {
                     writer.WriteLine("OsEngine Bots Preset v1");
 
@@ -428,24 +431,58 @@ namespace OsEngine.OsTrader
 
                         if (!File.Exists(paramsPath))
                         {
+                            botsWithoutParams.Add(botName);
+                            continue;
+                        }
+
+                        List<string> paramsContent = null;
+
+                        try
+                        {
+                            paramsContent = new List<string>();
+
+                            using (StreamReader reader = new StreamReader(paramsPath))
+                            {
+                                while (!reader.EndOfStream)
+                                {
+                                    paramsContent.Add(reader.ReadLine());
+                                }
+                            }
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                            botsWithoutParams.Add(botName);
                             continue;
                         }
 
                         writer.WriteLine("PARAMS_START:" + botName);
 
-                        using (StreamReader reader = new StreamReader(paramsPath))
+                        for (int j = 0; j < paramsContent.Count; j++)
                         {
-                            while (!reader.EndOfStream)
-                            {
-                                writer.WriteLine(reader.ReadLine());
-                            }
+                            writer.WriteLine(paramsContent[j]);
                         }
 
                         writer.WriteLine("PARAMS_END:" + botName);
                     }
                 }
 
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                File.Move(tempFilePath, filePath);
+
                 SendNewLogMessage(string.Format(OsLocalization.Trader.Label755, filePath), LogMessageType.System);
+
+                if (botsWithoutParams.Count > 0)
+                {
+                    string namesLine = string.Join(", ", botsWithoutParams);
+
+                    SendNewLogMessage(string.Format(OsLocalization.Trader.Label761, botsWithoutParams.Count)
+                        + ". " + namesLine, LogMessageType.Error);
+                }
             }
             catch (Exception error)
             {
@@ -463,13 +500,15 @@ namespace OsEngine.OsTrader
             {
                 if (!File.Exists(filePath))
                 {
-                    MessageBox.Show(OsLocalization.Trader.Label751);
+                    CustomMessageBoxUi uiNoFile = new CustomMessageBoxUi(OsLocalization.Trader.Label751);
+                    uiNoFile.ShowDialog();
                     return;
                 }
 
                 if (_startProgram != StartProgram.IsOsTrader)
                 {
-                    MessageBox.Show(OsLocalization.Trader.Label752);
+                    CustomMessageBoxUi uiWrongProgram = new CustomMessageBoxUi(OsLocalization.Trader.Label752);
+                    uiWrongProgram.ShowDialog();
                     return;
                 }
 
@@ -482,10 +521,19 @@ namespace OsEngine.OsTrader
                     }
                 }
 
+                if (allLines.Count == 0
+                    || allLines[0].StartsWith("OsEngine Bots Preset v") == false)
+                {
+                    CustomMessageBoxUi uiBadFormat = new CustomMessageBoxUi(OsLocalization.Trader.Label753);
+                    uiBadFormat.ShowDialog();
+                    return;
+                }
+
                 int separatorIndex = allLines.FindIndex(l => l == "---");
                 if (separatorIndex == -1)
                 {
-                    MessageBox.Show(OsLocalization.Trader.Label753);
+                    CustomMessageBoxUi uiNoSeparator = new CustomMessageBoxUi(OsLocalization.Trader.Label753);
+                    uiNoSeparator.ShowDialog();
                     return;
                 }
 
@@ -537,6 +585,8 @@ namespace OsEngine.OsTrader
 
                 int botIterator = PanelsArray.Count;
 
+                List<string> loadErrors = new List<string>();
+
                 for (int i = 1; i < robotLines.Count; i++)
                 {
                     string robotLine = robotLines[i];
@@ -547,8 +597,12 @@ namespace OsEngine.OsTrader
 
                     robotLine = robotLine.Substring("ROBOT:".Length);
                     string[] names = robotLine.Split('@');
-                    if (names.Length == 0)
+
+                    if (names.Length < 2
+                        || string.IsNullOrEmpty(names[0])
+                        || string.IsNullOrEmpty(names[1]))
                     {
+                        SendNewLogMessage(string.Format(OsLocalization.Trader.Label759, robotLine), LogMessageType.Error);
                         continue;
                     }
 
@@ -578,21 +632,40 @@ namespace OsEngine.OsTrader
 
                     BotPanel bot = null;
 
-                    if (names.Length > 2)
+                    try
                     {
+                        bool isScript = false;
+
+                        if (names.Length > 2)
+                        {
+                            isScript = Convert.ToBoolean(names[2]);
+                        }
+
+                        bot = BotFactory.GetStrategyForName(names[1], targetName, _startProgram, isScript);
+                    }
+                    catch (Exception e)
+                    {
+                        SendNewLogMessage("Error on bot creation. Bot Name: " + names[1] + "\n" + e.ToString(), LogMessageType.Error);
+                    }
+
+                    if (bot == null)
+                    {
+                        // робот не создан — удаляем записанный для него файл параметров
                         try
                         {
-                            bot = BotFactory.GetStrategyForName(names[1], targetName, _startProgram, Convert.ToBoolean(names[2]));
+                            if (File.Exists(paramsPath))
+                            {
+                                File.Delete(paramsPath);
+                            }
                         }
-                        catch (Exception e)
+                        catch (Exception error)
                         {
-                            MessageBox.Show(" Error on bot creation. Bot Name: " + names[1] + " \n" + e.ToString());
-                            continue;
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
                         }
-                    }
-                    else if (names.Length > 1)
-                    {
-                        bot = BotFactory.GetStrategyForName(names[1], targetName, _startProgram, false);
+
+                        usedTargetNames.Remove(targetName);
+                        loadErrors.Add(originalName);
+                        continue;
                     }
 
                     if (names.Length >= 4 && string.IsNullOrEmpty(names[3]) == false)
@@ -604,29 +677,23 @@ namespace OsEngine.OsTrader
                         bot.PublicName = originalName;
                     }
 
-                    if (bot != null)
+                    PanelsArray.Add(bot);
+
+                    if (BotCreateEvent != null)
                     {
-                        PanelsArray.Add(bot);
-
-                        if (BotCreateEvent != null)
-                        {
-                            BotCreateEvent(bot);
-                        }
-
-                        if (_tabBotNames != null)
-                        {
-                            _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
-                            SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
-                                LogMessageType.System);
-                        }
-
-                        botIterator++;
-
-                        bot.NewTabCreateEvent += () =>
-                        {
-                            ReloadRiskJournals();
-                        };
+                        BotCreateEvent(bot);
                     }
+
+                    if (_tabBotNames != null)
+                    {
+                        _tabBotNames.Items.Add(" " + PanelsArray[botIterator].NameStrategyUniq + " ");
+                        SendNewLogMessage(OsLocalization.Trader.Label2 + PanelsArray[botIterator].NameStrategyUniq,
+                            LogMessageType.System);
+                    }
+
+                    botIterator++;
+
+                    bot.NewTabCreateEvent += _bot_NewTabCreateEvent;
                 }
 
                 if (PanelsArray.Count != 0)
@@ -637,6 +704,14 @@ namespace OsEngine.OsTrader
                 Save();
 
                 SendNewLogMessage(string.Format(OsLocalization.Trader.Label756, filePath), LogMessageType.System);
+
+                if (loadErrors.Count > 0)
+                {
+                    string namesLine = string.Join(", ", loadErrors);
+
+                    SendNewLogMessage(string.Format(OsLocalization.Trader.Label760, loadErrors.Count)
+                        + ". " + namesLine, LogMessageType.Error);
+                }
             }
             catch (Exception error)
             {
@@ -792,6 +867,14 @@ namespace OsEngine.OsTrader
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
+        }
+
+        /// <summary>
+        /// Bot created a new tab - reload risk manager logs
+        /// </summary>
+        private void _bot_NewTabCreateEvent()
+        {
+            ReloadRiskJournals();
         }
 
         /// <summary>
@@ -1756,6 +1839,8 @@ namespace OsEngine.OsTrader
 
                 _activePanel.StopPaint();
 
+                _activePanel.NewTabCreateEvent -= _bot_NewTabCreateEvent;
+
                 _activePanel.Delete();
 
                 SendNewLogMessage(OsLocalization.Trader.Label5 + _activePanel.NameStrategyUniq, LogMessageType.System);
@@ -1876,10 +1961,7 @@ namespace OsEngine.OsTrader
                     BotCreateEvent(newRobot);
                 }
 
-                newRobot.NewTabCreateEvent += () =>
-                {
-                    ReloadRiskJournals();
-                };
+                newRobot.NewTabCreateEvent += _bot_NewTabCreateEvent;
 
                 SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
 
@@ -1917,10 +1999,7 @@ namespace OsEngine.OsTrader
                     BotCreateEvent(newRobot);
                 }
 
-                newRobot.NewTabCreateEvent += () =>
-                {
-                    ReloadRiskJournals();
-                };
+                newRobot.NewTabCreateEvent += _bot_NewTabCreateEvent;
 
                 SendNewLogMessage(OsLocalization.Trader.Label9 + newRobot.NameStrategyUniq, LogMessageType.System);
 
