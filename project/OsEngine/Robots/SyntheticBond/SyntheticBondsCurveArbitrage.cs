@@ -24,7 +24,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
 using PairInPosition = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures);
-using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures, decimal Mult);
+using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures, decimal Mult, bool IsSecondSeries);
 
 /*
 
@@ -32,19 +32,20 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 
 Конструкция позиции (синтетическая облигация в контанго)
 Лонг акция (база) + Шорт фьючерс
-Объёмы равно-штучные: акций = контрактов фьючерса × мульт, дельта-нейтрально.
-Свободные деньги паркуются в LQDT
+Объёмы в лотах: база = контракты фьючерса × мульт / лот акции (в тестере лот = 1),
+дельта-нейтрально. Свободные деньги паркуются в LQDT
 
 Источники
 10 пар источников. В каждой паре BotTabSimple - базовая акция, BotTabScreener - фьючерсы на неё.
 Все 10 пар разворачиваются кнопками авто-развёртывания (Т-Банк в реале, выбранный сет в тестере).
 По каждой паре торгуются две серии фьючерсов: ближайшая (до 120 дней) и следующая (до 180 дней,
-вторая серия - по флагам группы Second series, по умолчанию выключена). Выбор пары - по годовой
-доходности контанго (yieldAnn)
+вторая серия - по флагам группы Second series, по умолчанию включена для пар 1-7).
+Выбор пары - по годовой доходности контанго (yieldAnn)
 
 ВХОД в позицию
 Из всех претендентов (обе разрешённые серии всех пар) выбирается пара с максимальной годовой
-доходностью контанго, если её абсолютное контанго не меньше Min yield to entry %
+доходностью контанго. Вход разрешён, если доходность выше LQDT + Min yield diff over LQDT
+(отдельные пороги для первой и второй серии)
 
 ПЕРЕНОС позиции
 Если доходность у претендента больше текущего на Min Yield Diff To Move,
@@ -78,7 +79,6 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _fullLogIsOn;
         private StrategyParameterBool _exitOnBackwardationIsOn;
         private StrategyParameterInt _minDaysToExpiration;
-        private StrategyParameterDecimal _minYieldToEntry;
 
         private StrategyParameterBool _tradePair1;
         private StrategyParameterBool _tradePair2;
@@ -102,6 +102,8 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _tradeSecondSeries9;
         private StrategyParameterBool _tradeSecondSeries10;
 
+        private StrategyParameterDecimal _minYieldDiffOverLqdtSeries2;
+
         private StrategyParameterBool _LqdtRegimeIsOn;
         private StrategyParameterDecimal _minYieldDiffOverLqdt;
         private StrategyParameterInt _LqdtYieldDays;
@@ -122,18 +124,18 @@ namespace OsEngine.Robots.SyntheticBond
 
         private StrategyParameterString _portfolioNum;
         private StrategyParameterString _testerDeployTimeFrame;
+        private StrategyParameterString _deployTimeFrame;
 
         public SyntheticBondsCurveArbitrage(string name, StartProgram startProgram) : base(name, startProgram)
         {
             CreateSources();
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-            _minYieldDiffToMove = CreateParameter("Min Yield Diff To Move % ann", 0.7m, 1.0m, 100, 1, "Base");
+            _minYieldDiffToMove = CreateParameter("Min Yield Diff To Move % ann", 5.5m, 1.0m, 100, 1, "Base");
             _tableUpdateIntervalSec = CreateParameter("Table update interval, sec", 5, 1, 60, 1, "Base");
             _fullLogIsOn = CreateParameter("Full log is on", false, "Base");
             _exitOnBackwardationIsOn = CreateParameter("Exit on backwardation is on", true, "Base");
             _minDaysToExpiration = CreateParameter("Min days to expiration", 18, 1, 60, 1, "Base");
-            _minYieldToEntry = CreateParameter("Min yield to entry %", 0.9m, 0.1m, 50, 0.1m, "Base");
 
             _tradePair1 = CreateParameter("Trade pair 1", true, "Trade pairs");
             _tradePair2 = CreateParameter("Trade pair 2", true, "Trade pairs");
@@ -146,22 +148,24 @@ namespace OsEngine.Robots.SyntheticBond
             _tradePair9 = CreateParameter("Trade pair 9", true, "Trade pairs");
             _tradePair10 = CreateParameter("Trade pair 10", true, "Trade pairs");
 
-            _tradeSecondSeries1 = CreateParameter("Trade second series 1", false, "Second series");
-            _tradeSecondSeries2 = CreateParameter("Trade second series 2", false, "Second series");
-            _tradeSecondSeries3 = CreateParameter("Trade second series 3", false, "Second series");
-            _tradeSecondSeries4 = CreateParameter("Trade second series 4", false, "Second series");
-            _tradeSecondSeries5 = CreateParameter("Trade second series 5", false, "Second series");
-            _tradeSecondSeries6 = CreateParameter("Trade second series 6", false, "Second series");
-            _tradeSecondSeries7 = CreateParameter("Trade second series 7", false, "Second series");
+            _tradeSecondSeries1 = CreateParameter("Trade second series 1", true, "Second series");
+            _tradeSecondSeries2 = CreateParameter("Trade second series 2", true, "Second series");
+            _tradeSecondSeries3 = CreateParameter("Trade second series 3", true, "Second series");
+            _tradeSecondSeries4 = CreateParameter("Trade second series 4", true, "Second series");
+            _tradeSecondSeries5 = CreateParameter("Trade second series 5", true, "Second series");
+            _tradeSecondSeries6 = CreateParameter("Trade second series 6", true, "Second series");
+            _tradeSecondSeries7 = CreateParameter("Trade second series 7", true, "Second series");
             _tradeSecondSeries8 = CreateParameter("Trade second series 8", false, "Second series");
             _tradeSecondSeries9 = CreateParameter("Trade second series 9", false, "Second series");
             _tradeSecondSeries10 = CreateParameter("Trade second series 10", false, "Second series");
-            _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 7, 0, 10, 1, "Base");
 
+            
+            _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 7, 0, 10, 1, "Base");
             _LqdtRegimeIsOn = CreateParameter("LQDT regime is on", true, "LQDT");
-            _minYieldDiffOverLqdt = CreateParameter("Min yield diff over LQDT % ann", 3.75m, 0.1m, 100, 1, "LQDT");
+            _minYieldDiffOverLqdt = CreateParameter("Min yield diff over LQDT %. Series 1", 3.5m, 0.1m, 100, 1, "LQDT");
+            _minYieldDiffOverLqdtSeries2 = CreateParameter("Min yield diff over LQDT %. Series 2", 2.5m, 0.1m, 100, 1, "LQDT");
             _LqdtYieldDays = CreateParameter("LQDT yield days", 10, 5, 60, 5, "LQDT");
-            _LqdtVolumePercent = CreateParameter("LQDT volume % of free money", 99m, 0m, 100m, 1, "LQDT");
+            _LqdtVolumePercent = CreateParameter("LQDT volume % of free money", 100m, 0m, 100m, 1, "LQDT");
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
             _volume = CreateParameter("Volume", 85m, 1.0m, 100, 4, "Base");
@@ -204,6 +208,7 @@ namespace OsEngine.Robots.SyntheticBond
             if (startProgram == StartProgram.IsOsTrader)
             {
                 _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
+                _deployTimeFrame = CreateParameter("Deploy time frame", "Min5", new[] { "Min1", "Min5", "Min15", "Min30" }, "Auto deploy");
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
 
@@ -374,11 +379,6 @@ namespace OsEngine.Robots.SyntheticBond
                 for (int i = 0; i < years.Count; i++)
                 {
                     int year = years[i];
-
-                    if (year == 2022)
-                    {
-                        continue;
-                    }
 
                     yearsCount++;
 
@@ -609,9 +609,9 @@ namespace OsEngine.Robots.SyntheticBond
                 }
 
                 decimal dev0 = CalculateContango(
-                    pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base)).ContangoAbs;
+                    pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base));
                 decimal dev1 = CalculateContango(
-                    pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base)).ContangoAbs;
+                    pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base));
 
                 if (dev0 > dev1)
                 {
@@ -730,17 +730,16 @@ namespace OsEngine.Robots.SyntheticBond
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
             decimal bestYieldAnn = 0;
-            decimal bestContangoAbs = 0;
             decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                decimal yieldAnn = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
                 LogFull("Entry candidate: " + PairDescription(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult)
-                    + " | yield " + contangoAbs + " | ann " + yieldAnn);
+                    + " | ann " + yieldAnn);
 
-                if (PassLqdtGate(yieldAnn, serverTime) == false)
+                if (PassLqdtGate(yieldAnn, serverTime, pretenders[i].IsSecondSeries) == false)
                 {
                     continue;
                 }
@@ -748,7 +747,6 @@ namespace OsEngine.Robots.SyntheticBond
                 if (yieldAnn > bestYieldAnn)
                 {
                     bestYieldAnn = yieldAnn;
-                    bestContangoAbs = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
                     bestMult = pretenders[i].Mult;
@@ -761,13 +759,7 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if (bestContangoAbs < _minYieldToEntry.ValueDecimal)
-            {
-                LogFull("First entry: best yield " + bestContangoAbs + " < min to entry " + _minYieldToEntry.ValueDecimal);
-                return;
-            }
-
-            LogFull("First entry: " + PairDescription(bestBase, bestFutures, bestMult) + " | yield " + bestContangoAbs + " | ann " + bestYieldAnn);
+            LogFull("First entry: " + PairDescription(bestBase, bestFutures, bestMult) + " | ann " + bestYieldAnn);
 
             EntryInPositionContango(bestBase, bestFutures);
         }
@@ -938,17 +930,16 @@ namespace OsEngine.Robots.SyntheticBond
             BotTabSimple bestBase = null;
             BotTabSimple bestFutures = null;
             decimal bestYieldAnn = 0;
-            decimal bestContangoAbs = 0;
             decimal bestMult = 1;
 
             for (int i = 0; i < pretenders.Count; i++)
             {
-                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                decimal yieldAnn = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
                 LogFull("Move candidate: " + PairDescription(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult)
-                    + " | yield " + contangoAbs + " | ann " + yieldAnn);
+                    + " | ann " + yieldAnn);
 
-                if (PassLqdtGate(yieldAnn, serverTime) == false)
+                if (PassLqdtGate(yieldAnn, serverTime, pretenders[i].IsSecondSeries) == false)
                 {
                     continue;
                 }
@@ -956,7 +947,6 @@ namespace OsEngine.Robots.SyntheticBond
                 if (yieldAnn > bestYieldAnn)
                 {
                     bestYieldAnn = yieldAnn;
-                    bestContangoAbs = contangoAbs;
                     bestBase = pretenders[i].Base;
                     bestFutures = pretenders[i].Futures;
                     bestMult = pretenders[i].Mult;
@@ -969,14 +959,8 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if (bestContangoAbs < _minYieldToEntry.ValueDecimal)
-            {
-                LogFull("Move check: best pretender yield " + bestContangoAbs + " < min to entry " + _minYieldToEntry.ValueDecimal);
-                return;
-            }
-
             decimal curMult = GetMultByBase(baseInPosition);
-            decimal curYieldAnn = CalculateContango(baseInPosition, futuresInPosition, curMult).YieldAnn;
+            decimal curYieldAnn = CalculateContango(baseInPosition, futuresInPosition, curMult);
 
             if (curYieldAnn >= bestYieldAnn
                 || bestYieldAnn <= 0
@@ -1009,7 +993,7 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private (decimal ContangoAbs, decimal YieldAnn) CalculateContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
+        private decimal CalculateContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
         {
             List<Candle> baseCandles = baseSource.CandlesAll;
             List<Candle> futCandles = futuresSource.CandlesAll;
@@ -1019,7 +1003,7 @@ namespace OsEngine.Robots.SyntheticBond
                 || futCandles == null
                 || futCandles.Count == 0)
             {
-                return (0, 0);
+                return 0;
             }
 
             Candle lastBaseC = baseCandles[^1];
@@ -1027,23 +1011,23 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (lastBaseC.TimeStart != lastFutC.TimeStart)
             {
-                return (0, 0);
+                return 0;
             }
 
             if (lastFutC.Close / mult <= lastBaseC.Close)
             {
-                return (0, 0);
+                return 0;
             }
 
             if (baseSource.PriceBestAsk == 0)
             {
-                return (0, 0);
+                return 0;
             }
 
             if (futuresSource.Security == null
                 || futuresSource.Security.Expiration == DateTime.MinValue)
             {
-                return (0, 0);
+                return 0;
             }
 
             decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
@@ -1058,7 +1042,7 @@ namespace OsEngine.Robots.SyntheticBond
                 yieldAnn = deviation * 365 / daysToExpiration;
             }
 
-            return (deviation, yieldAnn);
+            return yieldAnn;
         }
 
         #endregion
@@ -1066,7 +1050,7 @@ namespace OsEngine.Robots.SyntheticBond
 
         #region LQDT branch
 
-        private bool PassLqdtGate(decimal yieldAnn, DateTime serverTime)
+        private bool PassLqdtGate(decimal yieldAnn, DateTime serverTime, bool isSecondSeries = false)
         {
             if (_LqdtRegimeIsOn.ValueBool == false)
             {
@@ -1081,7 +1065,14 @@ namespace OsEngine.Robots.SyntheticBond
                 return false;
             }
 
-            return yieldAnn > LqdtYield + _minYieldDiffOverLqdt.ValueDecimal;
+            decimal minDiffOverLqdt = _minYieldDiffOverLqdt.ValueDecimal;
+
+            if (isSecondSeries)
+            {
+                minDiffOverLqdt = _minYieldDiffOverLqdtSeries2.ValueDecimal;
+            }
+
+            return yieldAnn > LqdtYield + minDiffOverLqdt;
         }
 
         private DateTime _lastLqdtGetTime;
@@ -1127,6 +1118,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             _lqdtProfitValue = (last.Close / oldPrice - 1) * 365 / daysReal * 100;
 
+            _lastLqdtGetTime = serverTime;
             return _lqdtProfitValue;
         }
 
@@ -1134,10 +1126,10 @@ namespace OsEngine.Robots.SyntheticBond
         {
             for (int i = 0; pretenders != null && i < pretenders.Count; i++)
             {
-                (decimal contangoAbs, decimal yieldAnn) = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
+                decimal yieldAnn = CalculateContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
 
-                if (contangoAbs > 0
-                    && PassLqdtGate(yieldAnn, serverTime))
+                if (yieldAnn > 0
+                    && PassLqdtGate(yieldAnn, serverTime, pretenders[i].IsSecondSeries))
                 {
                     return true;
                 }
@@ -1596,9 +1588,9 @@ namespace OsEngine.Robots.SyntheticBond
 
                 if (seriesNumber == 0)
                 {
-                    if (daysToExpiration > 120)
+                    if (daysToExpiration > 100)
                     {
-                        continue;
+                        break;
                     }
                 }
                 else if (seriesNumber == 1)
@@ -1643,9 +1635,14 @@ namespace OsEngine.Robots.SyntheticBond
                     }
                 }
 
-                result.Add((baseSource, curFutures, mult));
+                result.Add((baseSource, curFutures, mult, seriesNumber == 1));
 
                 seriesNumber++;
+
+                if(seriesNumber == 2)
+                {
+                    break;
+                }
             }
         }
 
@@ -1667,7 +1664,16 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             decimal volumeFutures = GetVolume(futuresSource);
-            decimal volumeBase = volumeFutures * GetMultByBase(baseSource);
+
+            decimal baseLot = 1;
+
+            if (baseSource.Security != null
+                && baseSource.Security.Lot > 1)
+            {
+                baseLot = baseSource.Security.Lot;
+            }
+
+            decimal volumeBase = volumeFutures * GetMultByBase(baseSource) / baseLot;
 
             if (StartProgram == StartProgram.IsOsTrader
                 && baseSource.Security != null)
@@ -1679,10 +1685,10 @@ namespace OsEngine.Robots.SyntheticBond
                 volumeBase = Math.Round(volumeBase, 6);
             }
 
-            (decimal entryContangoAbs, decimal entryYieldAnn) = CalculateContango(baseSource, futuresSource, GetMultByBase(baseSource));
+            decimal entryYieldAnn = CalculateContango(baseSource, futuresSource, GetMultByBase(baseSource));
 
             LogFull("ENTRY: " + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
-                + " | yield " + entryContangoAbs + " | ann " + entryYieldAnn
+                + " | ann " + entryYieldAnn
                 + " | lqdtAnn " + GetLqdtYieldAnn(futuresSource.CandlesFinishedOnly[^1].TimeStart)
                 + " | volFut " + volumeFutures + " volBase " + volumeBase);
 
@@ -1997,12 +2003,6 @@ namespace OsEngine.Robots.SyntheticBond
                 _tableDataGrid.Columns.Add(newColumnSeries2);
                 newColumnSeries2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                DataGridViewColumn newColumn3 = new DataGridViewColumn();
-                newColumn3.CellTemplate = cellParam0;
-                newColumn3.HeaderText = "Fut Chart";
-                _tableDataGrid.Columns.Add(newColumn3);
-                newColumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
                 _tableDataGrid.DataError += _tableDataGrid_DataError;
                 _tableDataGrid.CellClick += _tableDataGrid_CellClick;
                 _tableDataGrid.CellEndEdit += _tableDataGrid_CellEndEdit;
@@ -2037,9 +2037,13 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     ShowChartForTab(_monitorRows[row].Base);
                 }
-                else if (column == 4)
+                else if (column == 2)
                 {
-                    ShowFuturesChart(_monitorRows[row]);
+                    ShowFuturesChart(_monitorRows[row], 0);
+                }
+                else if (column == 3)
+                {
+                    ShowFuturesChart(_monitorRows[row], 1);
                 }
             }
             catch (Exception ex)
@@ -2102,16 +2106,16 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private void ShowFuturesChart(BondMonitorRow rowData)
+        private void ShowFuturesChart(BondMonitorRow rowData, int seriesIndex = 0)
         {
-            if (rowData.Series.Count == 0)
+            if (rowData.Series.Count <= seriesIndex)
             {
                 return;
             }
 
             for (int i = 0; i < rowData.Futs.Tabs.Count; i++)
             {
-                if (rowData.Futs.Tabs[i] == rowData.Series[0].Tab)
+                if (rowData.Futs.Tabs[i] == rowData.Series[seriesIndex].Tab)
                 {
                     rowData.Futs.ShowChart(i);
                     return;
@@ -2189,6 +2193,8 @@ namespace OsEngine.Robots.SyntheticBond
             newRow.Futs = screener;
             newRow.BaseName = baseSource.Connector.SecurityName;
 
+            SetTabPosInfo(baseSource, newRow);
+
             DateTime time = baseSource.TimeServerCurrent;
 
             if (time == DateTime.MinValue)
@@ -2210,14 +2216,50 @@ namespace OsEngine.Robots.SyntheticBond
                 info.Name = seriesTab.Connector?.SecurityName;
                 info.Expiration = seriesTab.Security.Expiration;
                 info.DaysToExpiration = (info.Expiration - time).Days;
-                (decimal contangoAbs, decimal yieldAnn) = CalculateContangoForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
-                info.YieldPercent = yieldAnn;
-                info.ContangoAbsPercent = contangoAbs;
+                info.YieldPercent = CalculateContangoForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
+
+                SetTabPosInfo(seriesTab, info);
 
                 newRow.Series.Add(info);
             }
 
             rows.Add(newRow);
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, BondMonitorRow row)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    row.BaseHasPosition = true;
+                    row.BasePosVolume = positions[i].OpenVolume;
+                    row.BasePosSide = positions[i].Direction;
+                    return;
+                }
+            }
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, SeriesInfo info)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    info.HasPosition = true;
+                    info.PosVolume = positions[i].OpenVolume;
+                    info.PosSide = positions[i].Direction;
+                    return;
+                }
+            }
         }
 
         private List<BotTabSimple> GetNearestSeries(BotTabScreener screener, DateTime time, int count)
@@ -2257,12 +2299,12 @@ namespace OsEngine.Robots.SyntheticBond
             return result;
         }
 
-        private (decimal ContangoAbs, decimal YieldAnn) CalculateContangoForMonitor(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult, int daysToExpiration)
+        private decimal CalculateContangoForMonitor(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult, int daysToExpiration)
         {
             if (baseSource.PriceBestAsk == 0
                 || futuresSource.PriceBestBid == 0)
             {
-                return (0, 0);
+                return 0;
             }
 
             decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
@@ -2275,7 +2317,7 @@ namespace OsEngine.Robots.SyntheticBond
                 yieldAnn = deviation * 365 / daysToExpiration;
             }
 
-            return (deviation, yieldAnn);
+            return yieldAnn;
         }
 
         private void UpdateTable()
@@ -2283,7 +2325,7 @@ namespace OsEngine.Robots.SyntheticBond
             // 0 Stock
             // 1 Mult
             // 2 Series 1
-            // 3 Fut Chart
+            // 3 Series 2
 
             try
             {
@@ -2299,8 +2341,11 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     for (int i = 0; i < _monitorRows.Count; i++)
                     {
-                        if (_tableDataGrid.Rows[i].Cells[0].Value == null
-                            || _tableDataGrid.Rows[i].Cells[0].Value.ToString() != _monitorRows[i].BaseName)
+                        object cellValue = _tableDataGrid.Rows[i].Cells[0].Value;
+
+                        if (cellValue == null
+                            || (cellValue.ToString() != _monitorRows[i].BaseName
+                                && cellValue.ToString().StartsWith(_monitorRows[i].BaseName + " (") == false))
                         {
                             needRebuild = true;
                             break;
@@ -2325,7 +2370,7 @@ namespace OsEngine.Robots.SyntheticBond
                     DataGridViewRow currentRow = _tableDataGrid.Rows[i];
                     DataGridViewRow newRow = GetRow(_monitorRows[i]);
 
-                    for (int col = 1; col <= 2; col++)
+                    for (int col = 0; col <= 3; col++)
                     {
                         if (currentRow.Cells[col].Value == null
                             || currentRow.Cells[col].Value.ToString() != newRow.Cells[col].Value.ToString())
@@ -2336,6 +2381,11 @@ namespace OsEngine.Robots.SyntheticBond
                             }
 
                             currentRow.Cells[col].Value = newRow.Cells[col].Value;
+                        }
+
+                        if (currentRow.Cells[col].Style.ForeColor != newRow.Cells[col].Style.ForeColor)
+                        {
+                            currentRow.Cells[col].Style.ForeColor = newRow.Cells[col].Style.ForeColor;
                         }
                     }
                 }
@@ -2352,34 +2402,40 @@ namespace OsEngine.Robots.SyntheticBond
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = data.BaseName;
+
+            if (data.BaseHasPosition)
+            {
+                row.Cells[^1].Value = data.BaseName + " (" + data.BasePosVolume + ")";
+                row.Cells[^1].Style.ForeColor = data.BasePosSide == Side.Buy
+                    ? System.Drawing.Color.LimeGreen
+                    : System.Drawing.Color.OrangeRed;
+            }
+            else
+            {
+                row.Cells[^1].Value = data.BaseName;
+            }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].ReadOnly = false;
             row.Cells[^1].Value = GetMultByBase(data.Base);
 
-            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
 
             if (data.Series.Count > 0)
             {
-                row.Cells[^1].Value = data.Series[0].Name
-                    + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 1) + "%"
-                    + " | " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
-            }
-            else
-            {
-                row.Cells[^1].Value = "";
-            }
+                string text = data.Series[0].Name
+                    + "  " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
 
-            row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].ReadOnly = true;
+                if (data.Series[0].HasPosition)
+                {
+                    text += " (" + data.Series[0].PosVolume + ")";
+                    row.Cells[^1].Style.ForeColor = data.Series[0].PosSide == Side.Buy
+                        ? System.Drawing.Color.LimeGreen
+                        : System.Drawing.Color.OrangeRed;
+                }
 
-            if (data.Series.Count > 1)
-            {
-                row.Cells[^1].Value = data.Series[1].Name
-                    + "  " + Math.Round(data.Series[1].ContangoAbsPercent, 1) + "%"
-                    + " | " + Math.Round(data.Series[1].YieldPercent, 1) + "%";
+                row.Cells[^1].Value = text;
             }
             else
             {
@@ -2388,7 +2444,26 @@ namespace OsEngine.Robots.SyntheticBond
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = "Fut Chart";
+
+            if (data.Series.Count > 1)
+            {
+                string text = data.Series[1].Name
+                    + "  " + Math.Round(data.Series[1].YieldPercent, 1) + "%";
+
+                if (data.Series[1].HasPosition)
+                {
+                    text += " (" + data.Series[1].PosVolume + ")";
+                    row.Cells[^1].Style.ForeColor = data.Series[1].PosSide == Side.Buy
+                        ? System.Drawing.Color.LimeGreen
+                        : System.Drawing.Color.OrangeRed;
+                }
+
+                row.Cells[^1].Value = text;
+            }
+            else
+            {
+                row.Cells[^1].Value = "";
+            }
 
             return row;
         }
@@ -2594,11 +2669,23 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 _tabLqdt.Connector.ServerType = myServer.ServerType;
                 _tabLqdt.Connector.ServerFullName = myServer.ServerNameAndPrefix;
-                _tabLqdt.Connector.TimeFrame = TimeFrame.Min15;
+                _tabLqdt.Connector.TimeFrame = GetDeployTimeFrame();
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
             }
+        }
+
+        private TimeFrame GetDeployTimeFrame()
+        {
+            TimeFrame timeFrame = TimeFrame.Min5;
+
+            if (Enum.TryParse(_deployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
+            return timeFrame;
         }
 
         private void SetSecurities(BotTabSimple tabSpot, BotTabScreener tabFutures,
@@ -2611,22 +2698,24 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            TimeFrame timeFrame = GetDeployTimeFrame();
+
             tabSpot.Connector.ServerType = server.ServerType;
             tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
-            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.TimeFrame = timeFrame;
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
-            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.TimeFrame = timeFrame;
             tabFutures.PortfolioName = portfolio.Number;
             tabFutures.ServerType = server.ServerType;
             tabFutures.ServerName = server.ServerNameAndPrefix;
 
             tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = TimeFrame.Min15;
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Min15.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
 
             List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
 

@@ -1119,6 +1119,11 @@ namespace OsEngine
         {
             try
             {
+                if (BlockMaster.IsBlocked == true)
+                {
+                    return;
+                }
+
                 string[] args = Environment.GetCommandLineArgs();
 
                 if (Array.Exists(args, a => a.Equals("-robots")))

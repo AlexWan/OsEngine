@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Alerts;
 using OsEngine.Candles.Series;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -10,11 +11,11 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,22 +25,29 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
-using PairInPosition = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures);
-using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTrader.Panels.Tab.BotTabSimple Futures, decimal Mult);
-
 /*
 
 Монитор синтетических облигаций по кривой фьючерсов на акции MOEX
 
-Показывает три ближайшие серии фьючерсов по каждой облигации с доходностью в % годовых.
-Сигналы при превышении доходностью порога (по каждой серии отдельно).
-Ручное открытие/закрытие пар из таблицы монитора.
-Торговая логика: первый вход в лучшую пару, перекладывание между сериями,
-выход перед экспирацией
+Таблица: три ближайшие серии фьючерсов по каждой облигации с доходностью в % годовых.
+Серии - кнопки, открывают чарт соответствующего фьючерса. Мульт редактируется в таблице.
+Позиции подсвечиваются: лонг базы - зелёным, шорт фьючерса - красным, объёмы в скобках.
+
+Сигналы: срабатывают по закрытию свечи, если доходность серии превысила порог
+(по каждой серии отдельный флаг). Все сигналы за свечу собираются в одно
+сводное сообщение с одним звуком (Duck/Wolf).
+
+Ручное управление парами из таблицы. Кнопка Open - окно открытия синтетической
+облигации: выбор серии, объёмы в лотах (база = контракты x мульт / лот),
+подтверждение перед отправкой ордеров, инструкция по кнопке "?".
+Кнопка Close - подтверждение со списком позиций или сообщение, что позиций нет.
+
+Автоматической торговли нет.
 
 Источники
 15 пар источников. В каждой паре BotTabSimple - базовая акция, BotTabScreener - фьючерсы на неё.
-Первые 10 пар разворачиваются кнопками авто-развёртывания (Т-Банк в реале, выбранный сет в тестере).
+Первые 10 пар разворачиваются кнопками авто-развёртывания (Т-Банк в реале - с выбором
+таймфрейма Min1/5/15/30, выбранный сет в тестере).
 Последние 5 пар - запасные слоты, настраиваются вручную
 
 */
@@ -49,13 +57,9 @@ namespace OsEngine.Robots.SyntheticBond
     [Bot("SyntheticBondsCurveMonitor")]
     public class SyntheticBondsCurveMonitor : BotPanel
     {
-        private StrategyParameterString _regime;
         private StrategyParameterInt _tableUpdateIntervalSec;
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
-
-        private NonTradePeriods _tradePeriodsSettings;
-        private StrategyParameterButton _tradePeriodButton;
 
         private StrategyParameterString _multRegime;
         private StrategyParameterDecimal _futuresMult1;
@@ -81,44 +85,13 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterString _signalMusic;
         private StrategyParameterBool _signalErrorLogIsOn;
 
-        private StrategyParameterBool _tradeSeries1IsOn;
-        private StrategyParameterBool _tradeSeries2IsOn;
-        private StrategyParameterBool _tradeSeries3IsOn;
-        private StrategyParameterDecimal _minYieldToEntry;
-        private StrategyParameterDecimal _minYieldDiffToMove;
-        private StrategyParameterInt _daysBeforeExpirationToExit;
-        private StrategyParameterBool _exitOnErrorEntryIsOn;
-
         private StrategyParameterString _portfolioNum;
+        private StrategyParameterString _deployTimeFrame;
         private StrategyParameterString _testerDeployTimeFrame;
 
         public SyntheticBondsCurveMonitor(string name, StartProgram startProgram) : base(name, startProgram)
         {
             CreateSources();
-
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-
-            _tradePeriodsSettings = new NonTradePeriods(name);
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 30 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 24, Minute = 00 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
-
-            _tradePeriodsSettings.TradeInSunday = false;
-            _tradePeriodsSettings.TradeInSaturday = false;
-
-            _tradePeriodsSettings.Load();
-
-            _tradePeriodButton = CreateParameterButton("Non trade periods", "Base");
-            _tradePeriodButton.UserClickOnButtonEvent += _tradePeriodButton_UserClickOnButtonEvent;
 
             _tableUpdateIntervalSec = CreateParameter("Table update interval, sec", 5, 1, 60, 1, "Base");
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contract currency", "Deposit percent" }, "Base");
@@ -145,24 +118,15 @@ namespace OsEngine.Robots.SyntheticBond
             _series2SignalIsOn = CreateParameter("Series 2 signal is on", false, "Signals");
             _series3SignalIsOn = CreateParameter("Series 3 signal is on", false, "Signals");
             _signalMinYieldPercent = CreateParameter("Min yield % ann", 20m, 1.0m, 100, 1, "Signals");
-            _signalMusic = CreateParameter("Music", "", "Signals");
-            _signalErrorLogIsOn = CreateParameter("Error log is on", true, "Signals");
-
-            _tradeSeries1IsOn = CreateParameter("Trade series 1 is on", true, "Trading");
-            _tradeSeries2IsOn = CreateParameter("Trade series 2 is on", true, "Trading");
-            _tradeSeries3IsOn = CreateParameter("Trade series 3 is on", false, "Trading");
-            _minYieldToEntry = CreateParameter("Min yield to entry % ann", 20m, 1.0m, 100, 1, "Trading");
-            _minYieldDiffToMove = CreateParameter("Min yield diff to move % ann", 3m, 1.0m, 100, 1, "Trading");
-            _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 2, 1, 10, 1, "Trading");
-            _exitOnErrorEntryIsOn = CreateParameter("Exit on error entry is on", true, "Trading");
+            _signalMusic = CreateParameter("Music", "Duck", new[] { "Duck", "Wolf" }, "Signals");
+            _signalErrorLogIsOn = CreateParameter("Error log is on", false, "Signals");
 
             if (startProgram == StartProgram.IsOsTrader)
             {
                 _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
+                _deployTimeFrame = CreateParameter("Deploy time frame", "Min30", new[] { "Min1", "Min5", "Min15", "Min30" }, "Auto deploy");
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
-
-                _logicTimer = new System.Threading.Timer(LogicTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 
                 _futs1.CandleFinishedEvent += Screener_CandleFinishedEvent;
                 _futs2.CandleFinishedEvent += Screener_CandleFinishedEvent;
@@ -189,25 +153,20 @@ namespace OsEngine.Robots.SyntheticBond
                 StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
                 buttonAutoDeployTester.UserClickOnButtonEvent += ButtonAutoDeployTester_UserClickOnButtonEvent;
 
-                List<IServer> server = ServerMaster.GetServers();
+                List<IServer> servers = ServerMaster.GetServers();
 
-                if (server != null &&
-                    server.Count > 0
-                    && server[0].ServerType == ServerType.Tester)
+                if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
                 {
-                    TesterServer serverT = (TesterServer)server[0];
+                    TesterServer serverT = (TesterServer)servers[0];
                     serverT.EndNextMinuteWithCandlesEvent += ServerT_EndNextMinuteWithCandlesEvent;
                 }
             }
 
-            if (startProgram == StartProgram.IsOsOptimizer)
-            {
-                _futs1.CandleFinishedEvent += Screener_CandleFinishedEventInOptimizer;
-            }
-
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Monitor of synthetic bonds on the MOEX stock futures curve. Shows the three nearest futures series with annualized yield for each bond, signals by yield thresholds, manual pair management from the table and automatic trading with position moving between series_" +
-              "Ru:Монитор синтетических облигаций на кривой фьючерсов на акции MOEX. Показывает три ближайшие серии фьючерсов с доходностью в годовых по каждой облигации, сигналы по порогам доходности, ручное управление парами из таблицы и автоматическую торговлю с перекладыванием между сериями_");
+              "Eng:Monitor of synthetic bonds on the MOEX stock futures curve. Shows the three nearest futures series with annualized yield for each bond, consolidated signals on candle close, position highlighting and manual pair management from the table (volumes in lots, confirmation dialogs). No automatic trading_" +
+              "Ru:Монитор синтетических облигаций на кривой фьючерсов на акции MOEX. Показывает три ближайшие серии фьючерсов с доходностью в годовых по каждой облигации, сводные сигналы по закрытию свечи, подсветку позиций и ручное управление парами из таблицы (объёмы в лотах, окна подтверждения). Автоматической торговли нет_");
 
             if (startProgram != StartProgram.IsOsOptimizer)
             {
@@ -222,97 +181,53 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private void _tradePeriodButton_UserClickOnButtonEvent()
-        {
-            _tradePeriodsSettings.ShowDialog();
-        }
-
-        #region Logic entry synchronization
-
-        private System.Threading.Timer _logicTimer;
-        private readonly object _logicTimerLocker = new object();
-        private bool _logicTimerStarted = false;
+        private DateTime _lastSignalCandleTime = DateTime.MinValue;
 
         private void Screener_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            lock (_logicTimerLocker)
+            if (candles == null
+                || candles.Count == 0)
             {
-                if (_logicTimerStarted)
-                {
-                    return;
-                }
-
-                _logicTimerStarted = true;
-                _logicTimer.Change(5000, Timeout.Infinite);
-            }
-        }
-
-        private void LogicTimerCallback(object state)
-        {
-            lock (_logicTimerLocker)
-            {
-                _logicTimerStarted = false;
+                return;
             }
 
-            Logic();
+            DateTime candleTime = candles[^1].TimeStart;
+
+            if (candleTime <= _lastSignalCandleTime)
+            {
+                return;
+            }
+
+            _lastSignalCandleTime = candleTime;
+
+            RunSignals();
         }
 
         private void ServerT_EndNextMinuteWithCandlesEvent()
         {
-            Logic();
-        }
+            DateTime time = this.TimeServer;
 
-        private bool _optimizerEventSubscribed = false;
-
-        private void Screener_CandleFinishedEventInOptimizer(List<Candle> candles, BotTabSimple source)
-        {
-            if (_optimizerEventSubscribed)
+            if (time <= _lastSignalCandleTime)
             {
                 return;
             }
 
-            if (source.Connector.ServerType != ServerType.Optimizer)
-            {
-                return;
-            }
+            _lastSignalCandleTime = time;
 
-            _optimizerEventSubscribed = true;
-
-            OptimizerServer server = source.Connector.MyServer as OptimizerServer;
-
-            if (server != null)
-            {
-                server.EndNextMinuteWithCandlesEvent += ServerT_EndNextMinuteWithCandlesEvent;
-            }
+            RunSignals();
         }
 
-        #endregion
-
-        #region Logic
-
-        private void Logic()
+        private void RunSignals()
         {
             try
             {
-                LogicInternal();
+                CheckSignals(_monitorRows);
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
-        private void LogicInternal()
-        {
-            if (_regime.ValueString == "Off")
-            {
-                return;
-            }
-
-            TradingLogic();
-        }
-
-        #endregion
 
         #region Sources
 
@@ -490,11 +405,6 @@ namespace OsEngine.Robots.SyntheticBond
         }
 
         #endregion
-
-        private decimal GetVolume(BotTabSimple tab)
-        {
-            return GetVolume(tab, _volumeType.ValueString, _volume.ValueDecimal);
-        }
 
         private decimal GetVolume(BotTabSimple tab, string volumeType, decimal volumeValue)
         {
@@ -772,22 +682,29 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            TimeFrame timeFrame = TimeFrame.Min30;
+
+            if (Enum.TryParse(_deployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
             tabSpot.Connector.ServerType = server.ServerType;
             tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
-            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.TimeFrame = timeFrame;
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
-            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.TimeFrame = timeFrame;
             tabFutures.PortfolioName = portfolio.Number;
             tabFutures.ServerType = server.ServerType;
             tabFutures.ServerName = server.ServerNameAndPrefix;
 
             tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = TimeFrame.Min15;
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Min15.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
 
             List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
 
@@ -1126,12 +1043,6 @@ namespace OsEngine.Robots.SyntheticBond
                 _tableDataGrid.Columns.Add(newColumn4);
                 newColumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                DataGridViewColumn newColumn5 = new DataGridViewColumn();
-                newColumn5.CellTemplate = cellParam0;
-                newColumn5.HeaderText = "Fut Chart";
-                _tableDataGrid.Columns.Add(newColumn5);
-                newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
                 DataGridViewColumn newColumn6 = new DataGridViewColumn();
                 newColumn6.CellTemplate = cellParam0;
                 newColumn6.HeaderText = "Open";
@@ -1180,17 +1091,25 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     ShowChartForTab(rowData.Base);
                 }
-                else if (column == 5)
+                else if (column == 2)
                 {
-                    ShowFuturesChart(rowData);
+                    ShowFuturesChart(rowData, 0);
                 }
-                else if (column == 6)
+                else if (column == 3)
+                {
+                    ShowFuturesChart(rowData, 1);
+                }
+                else if (column == 4)
+                {
+                    ShowFuturesChart(rowData, 2);
+                }
+                else if (column == 5)
                 {
                     ShowOpenPairWindow(rowData.BaseName);
                 }
-                else if (column == 7)
+                else if (column == 6)
                 {
-                    CloseAllByBond(rowData);
+                    CloseBondWithConfirm(rowData);
                 }
             }
             catch (Exception ex)
@@ -1253,16 +1172,16 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
-        private void ShowFuturesChart(BondMonitorRow rowData)
+        private void ShowFuturesChart(BondMonitorRow rowData, int seriesIndex = 0)
         {
-            if (rowData.Series.Count == 0)
+            if (rowData.Series.Count <= seriesIndex)
             {
                 return;
             }
 
             for (int i = 0; i < rowData.Futs.Tabs.Count; i++)
             {
-                if (rowData.Futs.Tabs[i] == rowData.Series[0].Tab)
+                if (rowData.Futs.Tabs[i] == rowData.Series[seriesIndex].Tab)
                 {
                     rowData.Futs.ShowChart(i);
                     return;
@@ -1331,8 +1250,6 @@ namespace OsEngine.Robots.SyntheticBond
             AddBondMonitorRow(_base15, _futs15, rows);
 
             _monitorRows = rows;
-
-            CheckSignals(rows);
         }
 
         private void AddBondMonitorRow(BotTabSimple baseSource, BotTabScreener screener, List<BondMonitorRow> rows)
@@ -1346,6 +1263,8 @@ namespace OsEngine.Robots.SyntheticBond
             newRow.Base = baseSource;
             newRow.Futs = screener;
             newRow.BaseName = baseSource.Connector.SecurityName;
+
+            SetTabPosInfo(baseSource, newRow);
 
             DateTime time = baseSource.TimeServerCurrent;
 
@@ -1370,10 +1289,48 @@ namespace OsEngine.Robots.SyntheticBond
                 info.DaysToExpiration = (info.Expiration - time).Days;
                 info.YieldPercent = CalculateYieldForMonitor(baseSource, seriesTab, mult, info.DaysToExpiration);
 
+                SetTabPosInfo(seriesTab, info);
+
                 newRow.Series.Add(info);
             }
 
             rows.Add(newRow);
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, BondMonitorRow row)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    row.BaseHasPosition = true;
+                    row.BasePosVolume = positions[i].OpenVolume;
+                    row.BasePosSide = positions[i].Direction;
+                    return;
+                }
+            }
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, SeriesInfo info)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    info.HasPosition = true;
+                    info.PosVolume = positions[i].OpenVolume;
+                    info.PosSide = positions[i].Direction;
+                    return;
+                }
+            }
         }
 
         private List<BotTabSimple> GetNearestSeries(BotTabScreener screener, DateTime time, int count)
@@ -1435,9 +1392,8 @@ namespace OsEngine.Robots.SyntheticBond
             // 2 Series 1
             // 3 Series 2
             // 4 Series 3
-            // 5 Fut Chart
-            // 6 Open
-            // 7 Close
+            // 5 Open
+            // 6 Close
 
             try
             {
@@ -1453,8 +1409,11 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     for (int i = 0; i < _monitorRows.Count; i++)
                     {
-                        if (_tableDataGrid.Rows[i].Cells[0].Value == null
-                            || _tableDataGrid.Rows[i].Cells[0].Value.ToString() != _monitorRows[i].BaseName)
+                        object cellValue = _tableDataGrid.Rows[i].Cells[0].Value;
+
+                        if (cellValue == null
+                            || (cellValue.ToString() != _monitorRows[i].BaseName
+                                && cellValue.ToString().StartsWith(_monitorRows[i].BaseName + " (") == false))
                         {
                             needRebuild = true;
                             break;
@@ -1479,7 +1438,7 @@ namespace OsEngine.Robots.SyntheticBond
                     DataGridViewRow currentRow = _tableDataGrid.Rows[i];
                     DataGridViewRow newRow = GetRow(_monitorRows[i]);
 
-                    for (int col = 1; col <= 4; col++)
+                    for (int col = 0; col <= 4; col++)
                     {
                         if (currentRow.Cells[col].Value == null
                             || currentRow.Cells[col].Value.ToString() != newRow.Cells[col].Value.ToString())
@@ -1490,6 +1449,11 @@ namespace OsEngine.Robots.SyntheticBond
                             }
 
                             currentRow.Cells[col].Value = newRow.Cells[col].Value;
+                        }
+
+                        if (currentRow.Cells[col].Style.ForeColor != newRow.Cells[col].Style.ForeColor)
+                        {
+                            currentRow.Cells[col].Style.ForeColor = newRow.Cells[col].Style.ForeColor;
                         }
                     }
                 }
@@ -1506,7 +1470,18 @@ namespace OsEngine.Robots.SyntheticBond
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = data.BaseName;
+
+            if (data.BaseHasPosition)
+            {
+                row.Cells[^1].Value = data.BaseName + " (" + data.BasePosVolume + ")";
+                row.Cells[^1].Style.ForeColor = data.BasePosSide == Side.Buy
+                    ? System.Drawing.Color.LimeGreen
+                    : System.Drawing.Color.OrangeRed;
+            }
+            else
+            {
+                row.Cells[^1].Value = data.BaseName;
+            }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].ReadOnly = false;
@@ -1514,22 +1489,28 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = 0; i < 3; i++)
             {
-                row.Cells.Add(new DataGridViewTextBoxCell());
+                row.Cells.Add(new DataGridViewButtonCell());
                 row.Cells[^1].ReadOnly = true;
 
                 if (data.Series.Count > i)
                 {
-                    row.Cells[^1].Value = data.Series[i].Name + "  " + Math.Round(data.Series[i].YieldPercent, 1) + "%";
+                    string text = data.Series[i].Name + "  " + Math.Round(data.Series[i].YieldPercent, 1) + "%";
+
+                    if (data.Series[i].HasPosition)
+                    {
+                        text += " (" + data.Series[i].PosVolume + ")";
+                        row.Cells[^1].Style.ForeColor = data.Series[i].PosSide == Side.Buy
+                            ? System.Drawing.Color.LimeGreen
+                            : System.Drawing.Color.OrangeRed;
+                    }
+
+                    row.Cells[^1].Value = text;
                 }
                 else
                 {
                     row.Cells[^1].Value = "";
                 }
             }
-
-            row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = "Fut Chart";
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
@@ -1546,12 +1527,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         #region Signals
 
-        private Dictionary<string, bool> _firedSignals = new Dictionary<string, bool>();
-
         private void CheckSignals(List<BondMonitorRow> rows)
         {
             try
             {
+                List<string> signals = new List<string>();
+
                 for (int i = 0; i < rows.Count; i++)
                 {
                     for (int rank = 0; rank < 3; rank++)
@@ -1561,29 +1542,22 @@ namespace OsEngine.Robots.SyntheticBond
                             continue;
                         }
 
-                        string signalKey = rows[i].BaseName + "#" + rank;
-
                         if (rows[i].Series.Count <= rank)
                         {
-                            _firedSignals.Remove(signalKey);
                             continue;
                         }
 
-                        decimal yield = rows[i].Series[rank].YieldPercent;
-
-                        if (yield >= _signalMinYieldPercent.ValueDecimal)
+                        if (rows[i].Series[rank].YieldPercent >= _signalMinYieldPercent.ValueDecimal)
                         {
-                            if (_firedSignals.ContainsKey(signalKey) == false)
-                            {
-                                _firedSignals.Add(signalKey, true);
-                                FireSignal(rows[i].BaseName, rows[i].Series[rank]);
-                            }
-                        }
-                        else
-                        {
-                            _firedSignals.Remove(signalKey);
+                            signals.Add(rows[i].BaseName + " / " + rows[i].Series[rank].Name
+                                + " yield " + Math.Round(rows[i].Series[rank].YieldPercent, 2) + "% ann");
                         }
                     }
+                }
+
+                if (signals.Count > 0)
+                {
+                    FireSignals(signals);
                 }
             }
             catch (Exception ex)
@@ -1601,11 +1575,14 @@ namespace OsEngine.Robots.SyntheticBond
             return false;
         }
 
-        private void FireSignal(string baseName, SeriesInfo series)
+        private void FireSignals(List<string> signals)
         {
-            string message = "Synthetic bond signal. " + baseName + " / " + series.Name
-                + " yield " + Math.Round(series.YieldPercent, 2) + "% ann"
-                + " >= " + _signalMinYieldPercent.ValueDecimal + "% ann";
+            string message = "Synthetic bond signals. Yield >= " + _signalMinYieldPercent.ValueDecimal + "% ann:";
+
+            for (int i = 0; i < signals.Count; i++)
+            {
+                message += "\n" + signals[i];
+            }
 
             if (_signalErrorLogIsOn.ValueBool)
             {
@@ -1616,20 +1593,33 @@ namespace OsEngine.Robots.SyntheticBond
                 SendNewLogMessage(message, LogMessageType.Signal);
             }
 
+            PlaySound(_signalMusic.ValueString);
+        }
+
+        private void PlaySound(string soundName)
+        {
             try
             {
-                string path = _signalMusic.ValueString;
+                UnmanagedMemoryStream stream = Resources.Bird;
 
-                if (string.IsNullOrEmpty(path) == false
-                    && File.Exists(path))
+                if (soundName == AlertMusic.Duck.ToString())
                 {
-                    SoundPlayer player = new SoundPlayer(path);
+                    stream = Resources.Duck;
+                }
+                if (soundName == AlertMusic.Wolf.ToString())
+                {
+                    stream = Resources.wolf01;
+                }
+
+                if (stream != null)
+                {
+                    SoundPlayer player = new SoundPlayer(stream);
                     player.Play();
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                // ignore
             }
         }
 
@@ -1641,27 +1631,41 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void ShowOpenPairWindow(string baseName)
         {
-            if (MainWindow.GetDispatcher.CheckAccess() == false)
+            try
             {
-                MainWindow.GetDispatcher.Invoke(new Action<string>(ShowOpenPairWindow), baseName);
-                return;
-            }
+                if (MainWindow.GetDispatcher.CheckAccess() == false)
+                {
+                    MainWindow.GetDispatcher.Invoke(new Action<string>(ShowOpenPairWindow), baseName);
+                    return;
+                }
 
-            if (_openPairWindow != null)
+                if (_openPairWindow != null)
+                {
+                    _openPairWindow.Activate();
+                    return;
+                }
+
+                _openPairWindow = new SyntheticBondsCurveMonitorOpenUi(this, baseName);
+                _openPairWindow.Closed += _openPairWindow_Closed;
+                _openPairWindow.Show();
+            }
+            catch (Exception ex)
             {
-                _openPairWindow.Activate();
-                return;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _openPairWindow = new SyntheticBondsCurveMonitorOpenUi(this, baseName);
-            _openPairWindow.Closed += _openPairWindow_Closed;
-            _openPairWindow.Show();
         }
 
         private void _openPairWindow_Closed(object sender, EventArgs e)
         {
-            _openPairWindow.Closed -= _openPairWindow_Closed;
-            _openPairWindow = null;
+            try
+            {
+                _openPairWindow.Closed -= _openPairWindow_Closed;
+                _openPairWindow = null;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         public List<string> GetConfiguredBondNames()
@@ -1727,6 +1731,67 @@ namespace OsEngine.Robots.SyntheticBond
             return (0, 0);
         }
 
+        public (decimal futVolume, decimal baseVolume, decimal baseDisplayLots) GetPairVolumes(string baseName, int seriesIndex, string volumeType, decimal volumeValue)
+        {
+            for (int i = 0; i < _monitorRows.Count; i++)
+            {
+                if (_monitorRows[i].BaseName != baseName
+                    || _monitorRows[i].Series.Count <= seriesIndex)
+                {
+                    continue;
+                }
+
+                BondMonitorRow row = _monitorRows[i];
+
+                decimal volumeFutures = GetVolume(row.Series[seriesIndex].Tab, volumeType, volumeValue);
+
+                if (volumeFutures <= 0)
+                {
+                    return (0, 0, 0);
+                }
+
+                decimal mult = GetMultByBase(row.Base);
+                decimal baseShares = volumeFutures * mult;
+                decimal baseLot = 1;
+
+                if (row.Base.Security != null
+                    && row.Base.Security.Lot > 1)
+                {
+                    baseLot = row.Base.Security.Lot;
+                }
+
+                decimal volumeBase = baseShares / baseLot;
+
+                if (StartProgram == StartProgram.IsOsTrader
+                    && row.Base.Security != null)
+                {
+                    volumeBase = Math.Round(volumeBase, row.Base.Security.DecimalsVolume);
+                }
+                else
+                {
+                    volumeBase = Math.Round(volumeBase, 6);
+                }
+
+                string secName = row.Base.Connector?.SecurityName ?? "";
+                decimal baseDisplayLots = Math.Round(baseShares / GetDisplayLotByName(secName), 2);
+
+                return (volumeFutures, volumeBase, baseDisplayLots);
+            }
+
+            return (0, 0, 0);
+        }
+
+        private decimal GetDisplayLotByName(string securityName)
+        {
+            if (securityName.Contains("SBER")) return 10;
+            if (securityName.Contains("GAZP")) return 10;
+            if (securityName.Contains("ALRS")) return 10;
+            if (securityName.Contains("AFLT")) return 10;
+            if (securityName.Contains("VTB")) return 10000;
+
+            return 1;
+        }
+
         public void OpenPairManually(string baseName, int seriesIndex, string volumeType, decimal volumeValue)
         {
             try
@@ -1741,8 +1806,19 @@ namespace OsEngine.Robots.SyntheticBond
 
                     BondMonitorRow row = _monitorRows[i];
 
-                    decimal volumeFutures = GetVolume(row.Series[seriesIndex].Tab, volumeType, volumeValue);
-                    decimal volumeBase = GetVolume(row.Base, volumeType, volumeValue);
+                    (decimal volumeFutures, decimal volumeBase, _) = GetPairVolumes(baseName, seriesIndex, volumeType, volumeValue);
+
+                    if (volumeFutures <= 0)
+                    {
+                        SendNewLogMessage("Open pair skipped: futures volume is zero. Not enough money for one contract. " + baseName, LogMessageType.Error);
+                        return;
+                    }
+
+                    if (volumeBase <= 0)
+                    {
+                        SendNewLogMessage("Open pair skipped: base volume is zero. " + baseName, LogMessageType.Error);
+                        return;
+                    }
 
                     row.Series[seriesIndex].Tab.SellAtMarket(volumeFutures);
                     row.Base.BuyAtMarket(volumeBase);
@@ -1753,6 +1829,79 @@ namespace OsEngine.Robots.SyntheticBond
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CloseBondWithConfirm(BondMonitorRow rowData)
+        {
+            try
+            {
+                List<string> positionsInfo = GetOpenPositionsInfo(rowData);
+
+                if (positionsInfo.Count == 0)
+                {
+                    CustomMessageBoxUi uiInfo = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                        "Eng:No open positions for " + rowData.BaseName + "_" +
+                        "Ru:Нет открытых позиций по " + rowData.BaseName + "_"));
+                    uiInfo.ShowDialog();
+                    return;
+                }
+
+                string message = OsLocalization.ConvertToLocString(
+                    "Eng:Closing positions for " + rowData.BaseName + "_Ru:Закрываем позиции по " + rowData.BaseName + "_") + "\n\n";
+
+                for (int i = 0; i < positionsInfo.Count; i++)
+                {
+                    message += positionsInfo[i] + "\n";
+                }
+
+                message += "\n" + OsLocalization.ConvertToLocString("Eng:Continue_Ru:Продолжить_") + "?";
+
+                AcceptDialogUi ui = new AcceptDialogUi(message);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                CloseAllByBond(rowData);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<string> GetOpenPositionsInfo(BondMonitorRow rowData)
+        {
+            List<string> info = new List<string>();
+
+            AddPositionsInfo(rowData.Base, info);
+
+            for (int i = 0; i < rowData.Futs.Tabs.Count; i++)
+            {
+                AddPositionsInfo(rowData.Futs.Tabs[i], info);
+            }
+
+            return info;
+        }
+
+        private void AddPositionsInfo(BotTabSimple tab, List<string> info)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State != PositionStateType.Open
+                    || positions[i].OpenVolume <= 0)
+                {
+                    continue;
+                }
+
+                info.Add(tab.Connector?.SecurityName
+                    + "  " + positions[i].Direction
+                    + "  " + positions[i].OpenVolume);
             }
         }
 
@@ -1795,409 +1944,6 @@ namespace OsEngine.Robots.SyntheticBond
 
         #endregion
 
-        #region Trading logic
-
-        private void TradingLogic()
-        {
-            DateTime currentTime = GetCurrentServerTime();
-
-            if (currentTime == DateTime.MinValue)
-            {
-                return;
-            }
-
-            if (_tradePeriodsSettings.CanTradeThisTime(currentTime) == false)
-            {
-                return;
-            }
-
-            List<PairInPosition> pairsInPosition = GetPairsInPositions();
-
-            if (pairsInPosition.Count > 1)
-            {
-                for (int i = 0; i < pairsInPosition.Count; i++)
-                {
-                    if (HaveClosingPosition(pairsInPosition[i].Base)
-                        || HaveClosingPosition(pairsInPosition[i].Futures))
-                    {
-                        return;
-                    }
-                }
-
-                decimal dev0 = CalculateAnnualizedYieldContango(
-                    pairsInPosition[0].Base, pairsInPosition[0].Futures, GetMultByBase(pairsInPosition[0].Base));
-                decimal dev1 = CalculateAnnualizedYieldContango(
-                    pairsInPosition[1].Base, pairsInPosition[1].Futures, GetMultByBase(pairsInPosition[1].Base));
-
-                if (dev0 > dev1)
-                {
-                    ExitFromPosition(pairsInPosition[1].Base, pairsInPosition[1].Futures);
-                }
-                else
-                {
-                    ExitFromPosition(pairsInPosition[0].Base, pairsInPosition[0].Futures);
-                }
-
-                return;
-            }
-
-            List<Pretender> pretenders = GetPretenders(currentTime);
-
-            if (pairsInPosition.Count > 0)
-            {
-                PairInPosition pair = pairsInPosition[0];
-
-                if (_exitOnErrorEntryIsOn.ValueBool
-                    && TryExitByErrorEntry(pair.Base, pair.Futures))
-                {
-                    return;
-                }
-
-                if (TryExitByExpiration(pair.Base, pair.Futures))
-                {
-                    return;
-                }
-
-                TryMovePosition(pair.Base, pair.Futures, pretenders);
-            }
-            else
-            {
-                TryFirstEntry(pretenders);
-            }
-        }
-
-        private void TryFirstEntry(List<Pretender> pretenders)
-        {
-            if (pretenders == null
-                || pretenders.Count == 0)
-            {
-                return;
-            }
-
-            BotTabSimple bestBase = null;
-            BotTabSimple bestFutures = null;
-            decimal bestYield = 0;
-
-            for (int i = 0; i < pretenders.Count; i++)
-            {
-                decimal curYield = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
-
-                if (curYield > bestYield)
-                {
-                    bestYield = curYield;
-                    bestBase = pretenders[i].Base;
-                    bestFutures = pretenders[i].Futures;
-                }
-            }
-
-            if (bestBase == null
-                || bestYield < _minYieldToEntry.ValueDecimal)
-            {
-                return;
-            }
-
-            EntryInPositionContango(bestBase, bestFutures);
-        }
-
-        private bool TryExitByExpiration(BotTabSimple baseSource, BotTabSimple futuresSource)
-        {
-            int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
-
-            if (daysToExpiration <= _daysBeforeExpirationToExit.ValueInt)
-            {
-                ExitFromPosition(baseSource, futuresSource);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool TryExitByErrorEntry(BotTabSimple baseSource, BotTabSimple futuresSource)
-        {
-            List<Position> basePos = baseSource.PositionsOpenAll;
-            List<Position> futPos = futuresSource.PositionsOpenAll;
-
-            if (basePos.Count + futPos.Count != 2)
-            {
-                ExitFromPosition(baseSource, futuresSource);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void TryMovePosition(BotTabSimple baseInPosition, BotTabSimple futuresInPosition, List<Pretender> pretenders)
-        {
-            if (pretenders == null
-                || pretenders.Count == 0)
-            {
-                return;
-            }
-
-            BotTabSimple bestBase = null;
-            BotTabSimple bestFutures = null;
-            decimal bestYield = 0;
-
-            for (int i = 0; i < pretenders.Count; i++)
-            {
-                decimal curYield = CalculateAnnualizedYieldContango(pretenders[i].Base, pretenders[i].Futures, pretenders[i].Mult);
-
-                if (curYield > bestYield)
-                {
-                    bestYield = curYield;
-                    bestBase = pretenders[i].Base;
-                    bestFutures = pretenders[i].Futures;
-                }
-            }
-
-            if (bestBase == null)
-            {
-                return;
-            }
-
-            decimal currentYield = CalculateAnnualizedYieldContango(baseInPosition, futuresInPosition, GetMultByBase(baseInPosition));
-
-            if (currentYield >= bestYield
-                || bestYield <= 0
-                || currentYield == 0)
-            {
-                return;
-            }
-
-            decimal diff = bestYield - currentYield;
-
-            if (diff > _minYieldDiffToMove.ValueDecimal)
-            {
-                ExitFromPosition(baseInPosition, futuresInPosition);
-                EntryInPositionContango(bestBase, bestFutures);
-            }
-        }
-
-        private decimal CalculateAnnualizedYieldContango(BotTabSimple baseSource, BotTabSimple futuresSource, decimal mult)
-        {
-            List<Candle> baseCandles = baseSource.CandlesAll;
-            List<Candle> futCandles = futuresSource.CandlesAll;
-
-            if (baseCandles == null
-                || baseCandles.Count == 0
-                || futCandles == null
-                || futCandles.Count == 0)
-            {
-                return 0;
-            }
-
-            Candle lastBaseC = baseCandles[^1];
-            Candle lastFutC = futCandles[^1];
-
-            if (lastBaseC.TimeStart != lastFutC.TimeStart)
-            {
-                return 0;
-            }
-
-            if (lastFutC.Close / mult <= lastBaseC.Close)
-            {
-                return 0;
-            }
-
-            if (baseSource.PriceBestAsk == 0)
-            {
-                return 0;
-            }
-
-            if (futuresSource.Security == null
-                || futuresSource.Security.Expiration == DateTime.MinValue)
-            {
-                return 0;
-            }
-
-            int daysToExpiration = (futuresSource.Security.Expiration - futuresSource.TimeServerCurrent).Days;
-
-            if (daysToExpiration <= 0)
-            {
-                return 0;
-            }
-
-            decimal deviation = futuresSource.PriceBestBid / mult - baseSource.PriceBestAsk;
-            deviation = deviation / (baseSource.PriceBestAsk / 100);
-
-            return deviation * 365 / daysToExpiration;
-        }
-
-        #endregion
-
-        #region Pairs creation
-
-        private List<PairInPosition> GetPairsInPositions()
-        {
-            List<PairInPosition> result = new List<PairInPosition>();
-
-            AddPairsInPositionsBySecurity(_base1, _futs1, result);
-            AddPairsInPositionsBySecurity(_base2, _futs2, result);
-            AddPairsInPositionsBySecurity(_base3, _futs3, result);
-            AddPairsInPositionsBySecurity(_base4, _futs4, result);
-            AddPairsInPositionsBySecurity(_base5, _futs5, result);
-            AddPairsInPositionsBySecurity(_base6, _futs6, result);
-            AddPairsInPositionsBySecurity(_base7, _futs7, result);
-            AddPairsInPositionsBySecurity(_base8, _futs8, result);
-            AddPairsInPositionsBySecurity(_base9, _futs9, result);
-            AddPairsInPositionsBySecurity(_base10, _futs10, result);
-            AddPairsInPositionsBySecurity(_base11, _futs11, result);
-            AddPairsInPositionsBySecurity(_base12, _futs12, result);
-            AddPairsInPositionsBySecurity(_base13, _futs13, result);
-            AddPairsInPositionsBySecurity(_base14, _futs14, result);
-            AddPairsInPositionsBySecurity(_base15, _futs15, result);
-
-            return result;
-        }
-
-        private void AddPairsInPositionsBySecurity(
-            BotTabSimple baseSource, BotTabScreener screener, List<PairInPosition> result)
-        {
-            if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
-            {
-                return;
-            }
-
-            if (baseSource.PositionsOpenAll.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < screener.Tabs.Count; i++)
-            {
-                BotTabSimple curTab = screener.Tabs[i];
-
-                if (curTab.PositionsOpenAll.Count > 0)
-                {
-                    result.Add((baseSource, curTab));
-                }
-            }
-        }
-
-        private List<Pretender> GetPretenders(DateTime time)
-        {
-            List<Pretender> result = new List<Pretender>();
-
-            AddPretendersBySecurity(_base1, _futs1, GetMultByBase(_base1), time, result);
-            AddPretendersBySecurity(_base2, _futs2, GetMultByBase(_base2), time, result);
-            AddPretendersBySecurity(_base3, _futs3, GetMultByBase(_base3), time, result);
-            AddPretendersBySecurity(_base4, _futs4, GetMultByBase(_base4), time, result);
-            AddPretendersBySecurity(_base5, _futs5, GetMultByBase(_base5), time, result);
-            AddPretendersBySecurity(_base6, _futs6, GetMultByBase(_base6), time, result);
-            AddPretendersBySecurity(_base7, _futs7, GetMultByBase(_base7), time, result);
-            AddPretendersBySecurity(_base8, _futs8, GetMultByBase(_base8), time, result);
-            AddPretendersBySecurity(_base9, _futs9, GetMultByBase(_base9), time, result);
-            AddPretendersBySecurity(_base10, _futs10, GetMultByBase(_base10), time, result);
-            AddPretendersBySecurity(_base11, _futs11, GetMultByBase(_base11), time, result);
-            AddPretendersBySecurity(_base12, _futs12, GetMultByBase(_base12), time, result);
-            AddPretendersBySecurity(_base13, _futs13, GetMultByBase(_base13), time, result);
-            AddPretendersBySecurity(_base14, _futs14, GetMultByBase(_base14), time, result);
-            AddPretendersBySecurity(_base15, _futs15, GetMultByBase(_base15), time, result);
-
-            return result;
-        }
-
-        private void AddPretendersBySecurity(
-            BotTabSimple baseSource, BotTabScreener screener, decimal mult, DateTime time, List<Pretender> result)
-        {
-            if (string.IsNullOrEmpty(baseSource.Connector?.SecurityName))
-            {
-                return;
-            }
-
-            if (baseSource.PositionsOpenAll.Count > 0)
-            {
-                return;
-            }
-
-            List<BotTabSimple> nearestSeries = GetNearestSeries(screener, time, 3);
-
-            for (int i = 0; i < nearestSeries.Count; i++)
-            {
-                if (IsTradeOnForRank(i) == false)
-                {
-                    continue;
-                }
-
-                int daysToExpiration = (nearestSeries[i].Security.Expiration - time).Days;
-
-                if (daysToExpiration <= _daysBeforeExpirationToExit.ValueInt)
-                {
-                    continue;
-                }
-
-                result.Add((baseSource, nearestSeries[i], mult));
-            }
-        }
-
-        private bool IsTradeOnForRank(int rank)
-        {
-            if (rank == 0) return _tradeSeries1IsOn.ValueBool;
-            if (rank == 1) return _tradeSeries2IsOn.ValueBool;
-            if (rank == 2) return _tradeSeries3IsOn.ValueBool;
-
-            return false;
-        }
-
-        #endregion
-
-        #region Position execution logic
-
-        private void EntryInPositionContango(BotTabSimple baseSource, BotTabSimple futuresSource)
-        {
-            decimal volumeFutures = GetVolume(futuresSource);
-            decimal volumeBase = GetVolume(baseSource);
-
-            futuresSource.SellAtMarket(volumeFutures);
-            baseSource.BuyAtMarket(volumeBase);
-        }
-
-        private void ExitFromPosition(BotTabSimple baseSource, BotTabSimple futuresSource)
-        {
-            List<Position> positionsFut = futuresSource.PositionsOpenAll;
-            List<Position> positionsBase = baseSource.PositionsOpenAll;
-
-            if (positionsFut.Count > 0)
-            {
-                ClosePosAtMarket(futuresSource, positionsFut[0]);
-            }
-            if (positionsBase.Count > 0)
-            {
-                ClosePosAtMarket(baseSource, positionsBase[0]);
-            }
-        }
-
-        private void ClosePosAtMarket(BotTabSimple tab, Position pos)
-        {
-            if (tab.IsReadyToTrade == false)
-            {
-                return;
-            }
-
-            if (pos.State != PositionStateType.Open)
-            {
-                return;
-            }
-
-            tab.CloseAtMarket(pos, pos.OpenVolume);
-        }
-
-        private bool HaveClosingPosition(BotTabSimple tab)
-        {
-            List<Position> positions = tab.PositionsOpenAll;
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                if (positions[i].State == PositionStateType.Closing)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        #endregion
     }
 
     public class BondMonitorRow
@@ -2207,6 +1953,12 @@ namespace OsEngine.Robots.SyntheticBond
         public BotTabScreener Futs;
 
         public string BaseName;
+
+        public bool BaseHasPosition;
+
+        public decimal BasePosVolume;
+
+        public Side BasePosSide;
 
         public List<SeriesInfo> Series = new List<SeriesInfo>();
     }
@@ -2224,5 +1976,11 @@ namespace OsEngine.Robots.SyntheticBond
         public int DaysToExpiration;
 
         public DateTime Expiration;
+
+        public bool HasPosition;
+
+        public decimal PosVolume;
+
+        public Side PosSide;
     }
 }

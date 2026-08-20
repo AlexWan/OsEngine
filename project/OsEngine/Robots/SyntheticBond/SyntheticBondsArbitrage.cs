@@ -32,8 +32,8 @@ using Pretender = (OsEngine.OsTrader.Panels.Tab.BotTabSimple Base, OsEngine.OsTr
 
 Конструкция позиции (синтетическая облигация в контанго)
 Лонг акция (база) + Шорт фьючерс
-Объёмы равно-штучные: акций = контрактов фьючерса × мульт, дельта-нейтрально.
-Свободные деньги паркуются в LQDT
+Объёмы в лотах: база = контракты фьючерса × мульт / лот акции (в тестере лот = 1),
+дельта-нейтрально. Свободные деньги паркуются в LQDT
 
 Источники
 10 пар источников. В каждой паре BotTabSimple - базовая акция, BotTabScreener - фьючерсы на неё.
@@ -108,6 +108,7 @@ namespace OsEngine.Robots.SyntheticBond
 
         private StrategyParameterString _portfolioNum;
         private StrategyParameterString _testerDeployTimeFrame;
+        private StrategyParameterString _deployTimeFrame;
 
         public SyntheticBondsArbitrage(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -179,6 +180,7 @@ namespace OsEngine.Robots.SyntheticBond
             if (startProgram == StartProgram.IsOsTrader)
             {
                 _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
+                _deployTimeFrame = CreateParameter("Deploy time frame", "Min5", new[] { "Min1", "Min5", "Min15", "Min30" }, "Auto deploy");
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
 
@@ -224,8 +226,8 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures (equal number of shares in both legs, delta-neutral) in the pair with the highest annualized contango yield among 10 blue chips. Free money is parked in LQDT. The position is moved to a more profitable contract and closed before expiration_" +
-              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс (равное число акций в ногах, дельта-нейтрально) в паре с максимальной доходностью контанго в годовых среди 10 голубых фишек. Свободные деньги паркуются в LQDT. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
+              "Eng:Arbitrage of synthetic bonds on the MOEX stock futures market. Long stock plus short futures (delta-neutral, base volume in lots) in the pair with the highest contango among 10 blue chips. Free money is parked in LQDT. The position is moved to a more profitable contract and closed before expiration_" +
+              "Ru:Арбитраж синтетических облигаций на рынке фьючерсов на акции MOEX. Лонг акция плюс шорт фьючерс (дельта-нейтрально, объём базы в лотах) в паре с максимальным контанго среди 10 голубых фишек. Свободные деньги паркуются в LQDT. Позиция переносится на более доходный контракт и закрывается перед экспирацией_");
 
             if (startProgram != StartProgram.IsOsOptimizer)
             {
@@ -347,11 +349,6 @@ namespace OsEngine.Robots.SyntheticBond
                 for (int i = 0; i < years.Count; i++)
                 {
                     int year = years[i];
-
-                    if (year == 2022)
-                    {
-                        continue;
-                    }
 
                     yearsCount++;
 
@@ -1614,7 +1611,16 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             decimal volumeFutures = GetVolume(futuresSource);
-            decimal volumeBase = volumeFutures * GetMultByBase(baseSource);
+
+            decimal baseLot = 1;
+
+            if (baseSource.Security != null
+                && baseSource.Security.Lot > 1)
+            {
+                baseLot = baseSource.Security.Lot;
+            }
+
+            decimal volumeBase = volumeFutures * GetMultByBase(baseSource) / baseLot;
 
             if (StartProgram == StartProgram.IsOsTrader
                 && baseSource.Security != null)
@@ -1938,12 +1944,6 @@ namespace OsEngine.Robots.SyntheticBond
                 _tableDataGrid.Columns.Add(newColumn2);
                 newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-                DataGridViewColumn newColumn3 = new DataGridViewColumn();
-                newColumn3.CellTemplate = cellParam0;
-                newColumn3.HeaderText = "Fut Chart";
-                _tableDataGrid.Columns.Add(newColumn3);
-                newColumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
                 _tableDataGrid.DataError += _tableDataGrid_DataError;
                 _tableDataGrid.CellClick += _tableDataGrid_CellClick;
                 _tableDataGrid.CellEndEdit += _tableDataGrid_CellEndEdit;
@@ -1978,7 +1978,7 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     ShowChartForTab(_monitorRows[row].Base);
                 }
-                else if (column == 3)
+                else if (column == 2)
                 {
                     ShowFuturesChart(_monitorRows[row]);
                 }
@@ -2130,6 +2130,8 @@ namespace OsEngine.Robots.SyntheticBond
             newRow.Futs = screener;
             newRow.BaseName = baseSource.Connector.SecurityName;
 
+            SetTabPosInfo(baseSource, newRow);
+
             DateTime time = baseSource.TimeServerCurrent;
 
             if (time == DateTime.MinValue)
@@ -2155,10 +2157,48 @@ namespace OsEngine.Robots.SyntheticBond
                 info.YieldPercent = yieldAnn;
                 info.ContangoAbsPercent = contangoAbs;
 
+                SetTabPosInfo(seriesTab, info);
+
                 newRow.Series.Add(info);
             }
 
             rows.Add(newRow);
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, BondMonitorRow row)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    row.BaseHasPosition = true;
+                    row.BasePosVolume = positions[i].OpenVolume;
+                    row.BasePosSide = positions[i].Direction;
+                    return;
+                }
+            }
+        }
+
+        private void SetTabPosInfo(BotTabSimple tab, SeriesInfo info)
+        {
+            List<Position> positions = tab.PositionsOpenAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i].State == PositionStateType.Opening
+                    || positions[i].State == PositionStateType.Open
+                    || positions[i].State == PositionStateType.Closing)
+                {
+                    info.HasPosition = true;
+                    info.PosVolume = positions[i].OpenVolume;
+                    info.PosSide = positions[i].Direction;
+                    return;
+                }
+            }
         }
 
         private List<BotTabSimple> GetNearestSeries(BotTabScreener screener, DateTime time, int count)
@@ -2224,7 +2264,6 @@ namespace OsEngine.Robots.SyntheticBond
             // 0 Stock
             // 1 Mult
             // 2 Series 1
-            // 3 Fut Chart
 
             try
             {
@@ -2240,8 +2279,11 @@ namespace OsEngine.Robots.SyntheticBond
                 {
                     for (int i = 0; i < _monitorRows.Count; i++)
                     {
-                        if (_tableDataGrid.Rows[i].Cells[0].Value == null
-                            || _tableDataGrid.Rows[i].Cells[0].Value.ToString() != _monitorRows[i].BaseName)
+                        object cellValue = _tableDataGrid.Rows[i].Cells[0].Value;
+
+                        if (cellValue == null
+                            || (cellValue.ToString() != _monitorRows[i].BaseName
+                                && cellValue.ToString().StartsWith(_monitorRows[i].BaseName + " (") == false))
                         {
                             needRebuild = true;
                             break;
@@ -2266,7 +2308,7 @@ namespace OsEngine.Robots.SyntheticBond
                     DataGridViewRow currentRow = _tableDataGrid.Rows[i];
                     DataGridViewRow newRow = GetRow(_monitorRows[i]);
 
-                    for (int col = 1; col <= 2; col++)
+                    for (int col = 0; col <= 2; col++)
                     {
                         if (currentRow.Cells[col].Value == null
                             || currentRow.Cells[col].Value.ToString() != newRow.Cells[col].Value.ToString())
@@ -2277,6 +2319,11 @@ namespace OsEngine.Robots.SyntheticBond
                             }
 
                             currentRow.Cells[col].Value = newRow.Cells[col].Value;
+                        }
+
+                        if (currentRow.Cells[col].Style.ForeColor != newRow.Cells[col].Style.ForeColor)
+                        {
+                            currentRow.Cells[col].Style.ForeColor = newRow.Cells[col].Style.ForeColor;
                         }
                     }
                 }
@@ -2293,29 +2340,46 @@ namespace OsEngine.Robots.SyntheticBond
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = data.BaseName;
+
+            if (data.BaseHasPosition)
+            {
+                row.Cells[^1].Value = data.BaseName + " (" + data.BasePosVolume + ")";
+                row.Cells[^1].Style.ForeColor = data.BasePosSide == Side.Buy
+                    ? System.Drawing.Color.LimeGreen
+                    : System.Drawing.Color.OrangeRed;
+            }
+            else
+            {
+                row.Cells[^1].Value = data.BaseName;
+            }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[^1].ReadOnly = false;
             row.Cells[^1].Value = GetMultByBase(data.Base);
 
-            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
 
             if (data.Series.Count > 0)
             {
-                row.Cells[^1].Value = data.Series[0].Name
+                string text = data.Series[0].Name
                     + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 1) + "%"
                     + " | " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+
+                if (data.Series[0].HasPosition)
+                {
+                    text += " (" + data.Series[0].PosVolume + ")";
+                    row.Cells[^1].Style.ForeColor = data.Series[0].PosSide == Side.Buy
+                        ? System.Drawing.Color.LimeGreen
+                        : System.Drawing.Color.OrangeRed;
+                }
+
+                row.Cells[^1].Value = text;
             }
             else
             {
                 row.Cells[^1].Value = "";
             }
-
-            row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[^1].ReadOnly = true;
-            row.Cells[^1].Value = "Fut Chart";
 
             return row;
         }
@@ -2521,11 +2585,23 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 _tabLqdt.Connector.ServerType = myServer.ServerType;
                 _tabLqdt.Connector.ServerFullName = myServer.ServerNameAndPrefix;
-                _tabLqdt.Connector.TimeFrame = TimeFrame.Min15;
+                _tabLqdt.Connector.TimeFrame = GetDeployTimeFrame();
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
             }
+        }
+
+        private TimeFrame GetDeployTimeFrame()
+        {
+            TimeFrame timeFrame = TimeFrame.Min5;
+
+            if (Enum.TryParse(_deployTimeFrame.ValueString, out TimeFrame parsedFrame))
+            {
+                timeFrame = parsedFrame;
+            }
+
+            return timeFrame;
         }
 
         private void SetSecurities(BotTabSimple tabSpot, BotTabScreener tabFutures,
@@ -2538,22 +2614,24 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            TimeFrame timeFrame = GetDeployTimeFrame();
+
             tabSpot.Connector.ServerType = server.ServerType;
             tabSpot.Connector.ServerFullName = server.ServerNameAndPrefix;
-            tabSpot.Connector.TimeFrame = TimeFrame.Min15;
+            tabSpot.Connector.TimeFrame = timeFrame;
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
-            tabFutures.TimeFrame = TimeFrame.Min15;
+            tabFutures.TimeFrame = timeFrame;
             tabFutures.PortfolioName = portfolio.Number;
             tabFutures.ServerType = server.ServerType;
             tabFutures.ServerName = server.ServerNameAndPrefix;
 
             tabFutures.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = TimeFrame.Min15;
-            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = TimeFrame.Min15.ToString();
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrame = timeFrame;
+            ((Simple)tabFutures.CandleSeriesRealization).TimeFrameParameter.ValueString = timeFrame.ToString();
 
             List<ActivatedSecurity> securitiesToScreener = new List<ActivatedSecurity>();
 

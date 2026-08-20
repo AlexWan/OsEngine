@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Open synthetic bond" Height="360" Width="520"
         Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="Manual">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -62,12 +62,14 @@
 
         <Grid Grid.Row="7" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="ButtonOpen" Grid.Column="1" Padding="10,5" Margin="0,0,10,0"/>
-            <Button x:Name="ButtonCancel" Grid.Column="2" Padding="10,5"/>
+            <Button x:Name="ButtonInfo" Grid.Column="0" Content="?" Padding="10,5" Margin="0,0,10,0"/>
+            <Button x:Name="ButtonOpen" Grid.Column="2" Padding="10,5" Margin="0,0,10,0"/>
+            <Button x:Name="ButtonCancel" Grid.Column="3" Padding="10,5"/>
         </Grid>
     </Grid>
 </Window>

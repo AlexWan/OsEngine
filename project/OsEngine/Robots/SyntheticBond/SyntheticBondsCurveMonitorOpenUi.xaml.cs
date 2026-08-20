@@ -1,5 +1,6 @@
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Layout;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
@@ -50,17 +51,20 @@ namespace OsEngine.Robots.SyntheticBond
             ComboBoxBase.SelectionChanged += ComboBoxBase_SelectionChanged;
             ButtonOpen.Click += ButtonOpen_Click;
             ButtonCancel.Click += ButtonCancel_Click;
-            Closed += SyntheticBondsCurveMonitorOpenUi_Closed;
+            ButtonInfo.Click += ButtonInfo_Click;
+            Closing += SyntheticBondsCurveMonitorOpenUi_Closing;
 
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += _timer_Tick;
             _timer.Start();
 
+            StartupLocation.Start_MouseInCorner(this);
+
             RefreshAll();
         }
 
-        private void SyntheticBondsCurveMonitorOpenUi_Closed(object sender, EventArgs e)
+        private void SyntheticBondsCurveMonitorOpenUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
             {
@@ -70,7 +74,8 @@ namespace OsEngine.Robots.SyntheticBond
                 ComboBoxBase.SelectionChanged -= ComboBoxBase_SelectionChanged;
                 ButtonOpen.Click -= ButtonOpen_Click;
                 ButtonCancel.Click -= ButtonCancel_Click;
-                Closed -= SyntheticBondsCurveMonitorOpenUi_Closed;
+                ButtonInfo.Click -= ButtonInfo_Click;
+                Closing -= SyntheticBondsCurveMonitorOpenUi_Closing;
 
                 _robot = null;
             }
@@ -211,10 +216,74 @@ namespace OsEngine.Robots.SyntheticBond
                 }
 
                 string volumeType = ComboBoxVolumeType.SelectedItem as string;
+                int seriesIndex = GetSelectedSeriesIndex();
 
-                _robot.OpenPairManually(baseName, GetSelectedSeriesIndex(), volumeType, volume);
+                (decimal futVolume, decimal baseVolume, decimal baseDisplayLots) = _robot.GetPairVolumes(baseName, seriesIndex, volumeType, volume);
+
+                if (futVolume <= 0
+                    || baseVolume <= 0)
+                {
+                    CustomMessageBoxUi uiError = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                        "Eng:Can not calculate volumes. Not enough money for one futures contract or no quotes_" +
+                        "Ru:Не удалось рассчитать объёмы. Не хватает денег на один фьючерсный контракт или нет котировок_"));
+                    uiError.ShowDialog();
+                    return;
+                }
+
+                List<SeriesInfo> series = _robot.GetSeriesQuotes(baseName);
+                string futName = series[seriesIndex].Name;
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                    "Eng:Opening synthetic bond_Ru:Открываем синтетическую облигацию_") + "\n\n"
+                    + OsLocalization.ConvertToLocString("Eng:LONG_Ru:ЛОНГ_") + " " + baseName + "  -  " + baseDisplayLots + "\n"
+                    + OsLocalization.ConvertToLocString("Eng:SHORT_Ru:ШОРТ_") + " " + futName + "  -  " + futVolume + "\n\n"
+                    + OsLocalization.ConvertToLocString("Eng:Continue_Ru:Продолжить_") + "?");
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                _robot.OpenPairManually(baseName, seriesIndex, volumeType, volume);
 
                 Close();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonInfo_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.ConvertToLocString(
+                    "Eng:Synthetic bond opening window (cash-and-carry arbitrage).\n\n" +
+                    "What happens on open. The stock (base) is bought and the futures on it is sold at the same time. The position is delta-neutral, profit is locked as contango (futures premium over the stock).\n\n" +
+                    "Window elements.\n" +
+                    "- Base - the stock from the monitor settings.\n" +
+                    "- Futures series - nearest, next or third one. Annualized yield and expiration date are shown nearby.\n" +
+                    "- Fut bid / Base ask - current leg prices.\n" +
+                    "- Contango - futures to stock spread in %.\n" +
+                    "- Yield - contango annualized to expiration.\n" +
+                    "- Volume - set for the futures leg. Deposit percent (% of portfolio) or Contract currency (money amount). Contracts are rounded down to whole. The stock leg is placed in lots, contracts x mult / stock lot (in the tester lot = 1, so in shares).\n\n" +
+                    "Minimum money is 1 contract x (base price x mult) + futures margin. If there is not enough money for one contract, the position will not open (error in the log).\n\n" +
+                    "Risk. Variation margin on the futures short requires free money if the market goes up_" +
+                    "Ru:Окно открытия синтетической облигации (кэш-энд-керри арбитраж).\n\n" +
+                    "Что происходит при открытии. Покупается акция (база) и одновременно продаётся фьючерс на неё же. Позиция дельта-нейтральна, доход фиксируется в виде контанго (премии фьючерса над акцией).\n\n" +
+                    "Элементы окна.\n" +
+                    "- База - акция из настроек монитора.\n" +
+                    "- Серия фьючерса - ближайшая, следующая или третья. Рядом показаны доходность в % годовых и дата экспирации.\n" +
+                    "- Фьюч бид / База аск - текущие цены ног.\n" +
+                    "- Контанго - спред фьючерса к акции в %.\n" +
+                    "- Доходность - контанго в % годовых до экспирации.\n" +
+                    "- Объём - задаётся для фьючерсной ноги. Deposit percent (% от портфеля) или Contract currency (сумма в рублях). Контракты округляются до целых. Нога акций выставляется в лотах, контракты x мульт / лот акции (в тестере лот = 1, то есть в штуках).\n\n" +
+                    "Минимум денег это 1 контракт x (цена базы x мульт) + ГО фьючерса. Если денег не хватает на один контракт - позиция не откроется (ошибка в логе).\n\n" +
+                    "Риск. Вариационная маржа по шорту фьючерса требует свободных денег при росте рынка_"));
+                ui.ShowDialog();
             }
             catch (Exception error)
             {
