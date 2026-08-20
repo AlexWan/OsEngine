@@ -2846,5 +2846,17 @@ namespace OsEngine.Language
         public string Label758 => OsLocalization.ConvertToLocString(
           "Eng:Wrong password. Try again_" +
           "Ru:Неверный пароль. Попробуйте ещё_");
+
+        public string Label759 => OsLocalization.ConvertToLocString(
+          "Eng:Bot line in the preset file is corrupted and was skipped. Line - {0}_" +
+          "Ru:Строка робота в файле preset повреждена и была пропущена. Строка - {0}_");
+
+        public string Label760 => OsLocalization.ConvertToLocString(
+          "Eng:Some bots from the preset could not be created. Count - {0}_" +
+          "Ru:Некоторые роботы из preset не были созданы. Количество - {0}_");
+
+        public string Label761 => OsLocalization.ConvertToLocString(
+          "Eng:Some bots were saved without parameters. Count - {0}_" +
+          "Ru:Некоторые роботы сохранены без параметров. Количество - {0}_");
     }
 }
