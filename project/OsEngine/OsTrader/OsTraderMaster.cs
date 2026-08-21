@@ -382,7 +382,8 @@ namespace OsEngine.OsTrader
         /// Save robots preset to file
         /// </summary>
         /// <param name="filePath">path to preset file</param>
-        public void SaveBotsPreset(string filePath)
+        /// <param name="prefix">prefix added to robot names in the preset file</param>
+        public void SaveBotsPreset(string filePath, string prefix)
         {
             try
             {
@@ -392,6 +393,22 @@ namespace OsEngine.OsTrader
                     uiNoBots.ShowDialog();
                     return;
                 }
+
+                if (prefix == null)
+                {
+                    prefix = "";
+                }
+
+                prefix = prefix.Trim();
+
+                if (prefix.Contains("@") || prefix.Contains(":"))
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label769, LogMessageType.Error);
+                    return;
+                }
+
+                // суффикс добавляется в конец имени как введён пользователем
+                string nameSuffix = prefix;
 
                 // пишем во временный файл, чтобы при сбое не оставить половинчатый пресет
                 string tempFilePath = filePath + ".tmp";
@@ -404,16 +421,18 @@ namespace OsEngine.OsTrader
 
                     for (int i = 0; i < PanelsArray.Count; i++)
                     {
+                        string botName = PanelsArray[i].NameStrategyUniq + nameSuffix;
+
                         if (PanelsArray[i].IsScript == false)
                         {
-                            writer.WriteLine("ROBOT:" + PanelsArray[i].NameStrategyUniq + "@" +
+                            writer.WriteLine("ROBOT:" + botName + "@" +
                                              PanelsArray[i].GetNameStrategyType() +
                                               "@" + false
                                               + "@" + PanelsArray[i].PublicName);
                         }
                         else
                         {
-                            writer.WriteLine("ROBOT:" + PanelsArray[i].NameStrategyUniq + "@" +
+                            writer.WriteLine("ROBOT:" + botName + "@" +
                             PanelsArray[i].FileName +
                             "@" + true
                              + "@" + PanelsArray[i].PublicName);
@@ -456,14 +475,17 @@ namespace OsEngine.OsTrader
                             continue;
                         }
 
-                        writer.WriteLine("PARAMS_START:" + botName);
+                        // маркеры параметров пишем с тем же именем, что и строка робота
+                        string botNameInPreset = botName + nameSuffix;
+
+                        writer.WriteLine("PARAMS_START:" + botNameInPreset);
 
                         for (int j = 0; j < paramsContent.Count; j++)
                         {
                             writer.WriteLine(paramsContent[j]);
                         }
 
-                        writer.WriteLine("PARAMS_END:" + botName);
+                        writer.WriteLine("PARAMS_END:" + botNameInPreset);
                     }
                 }
 
@@ -502,13 +524,6 @@ namespace OsEngine.OsTrader
                 {
                     CustomMessageBoxUi uiNoFile = new CustomMessageBoxUi(OsLocalization.Trader.Label751);
                     uiNoFile.ShowDialog();
-                    return;
-                }
-
-                if (_startProgram != StartProgram.IsOsTrader)
-                {
-                    CustomMessageBoxUi uiWrongProgram = new CustomMessageBoxUi(OsLocalization.Trader.Label752);
-                    uiWrongProgram.ShowDialog();
                     return;
                 }
 
@@ -585,6 +600,8 @@ namespace OsEngine.OsTrader
 
                 int botIterator = PanelsArray.Count;
 
+                int botsBeforeLoad = PanelsArray.Count;
+
                 List<string> loadErrors = new List<string>();
 
                 for (int i = 1; i < robotLines.Count; i++)
@@ -607,7 +624,7 @@ namespace OsEngine.OsTrader
                     }
 
                     string originalName = names[0];
-                    string targetName = originalName + "_R";
+                    string targetName = originalName;
 
                     if (usedTargetNames.Contains(targetName))
                     {
@@ -704,6 +721,11 @@ namespace OsEngine.OsTrader
                 Save();
 
                 SendNewLogMessage(string.Format(OsLocalization.Trader.Label756, filePath), LogMessageType.System);
+
+                if (PanelsArray.Count > botsBeforeLoad)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label765, LogMessageType.System);
+                }
 
                 if (loadErrors.Count > 0)
                 {

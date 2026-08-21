@@ -1,0 +1,38 @@
+<Window x:Class="OsEngine.OsTrader.Gui.BotsMigrationUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bots migration" Height="260" Width="340" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Rectangle Grid.Row="0" Margin="5,5,5,0"/>
+        <TextBox Name="TextBoxDescription" Grid.Row="0" Margin="5,5,5,0" TextWrapping="Wrap" IsReadOnly="True" TextAlignment="Center" FontSize="14" FontWeight="Bold" BorderThickness="0" Background="Transparent"/>
+        <TabControl Name="TabControlMigration" Grid.Row="1" Margin="5,15,5,5" BorderThickness="0">
+            <TabItem Name="TabItemSave" Header="Save">
+                <Grid Margin="-5,-5,-5,-5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Name="TextBlockPrefix" Grid.Row="0" Grid.Column="0" Text="Prefix" Margin="5,10,5,5" VerticalAlignment="Center"/>
+                    <TextBox Name="TextBoxPrefix" Grid.Row="0" Grid.Column="1" Height="24" Margin="0,5,5,5" VerticalContentAlignment="Center"/>
+                    <Button Name="ButtonSaveBots" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Height="28" FontWeight="Bold" Margin="5,5,5,5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemLoad" Header="Load">
+                <Grid Margin="-5,-5,-5,-5">
+                    <Button Name="ButtonLoadBots" Height="28" FontWeight="Bold" Margin="5,10,5,5" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button Name="ButtonHint" Grid.Row="2" Content="?" Width="20" Height="20" HorizontalAlignment="Left" Margin="5,0,0,10"/>
+        <Button Name="ButtonClose" Grid.Row="2" Width="120" HorizontalAlignment="Right" Margin="0,0,5,10"/>
+    </Grid>
+</Window>
