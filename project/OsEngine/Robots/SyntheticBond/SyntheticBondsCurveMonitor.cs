@@ -124,7 +124,7 @@ namespace OsEngine.Robots.SyntheticBond
             if (startProgram == StartProgram.IsOsTrader)
             {
                 _portfolioNum = CreateParameter("Portfolio number", "", "Auto deploy");
-                _deployTimeFrame = CreateParameter("Deploy time frame", "Min30", new[] { "Min1", "Min5", "Min15", "Min30" }, "Auto deploy");
+                _deployTimeFrame = CreateParameter("Deploy time frame", "Min5", new[] { "Min1", "Min5", "Min15", "Min30" }, "Auto deploy");
                 StrategyParameterButton buttonAutoDeploy = CreateParameterButton("Deploy standard securities", "Auto deploy");
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
 
@@ -147,7 +147,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (startProgram == StartProgram.IsTester)
             {
-                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min15",
+                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min5",
                     new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
 
                 StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
@@ -682,7 +682,7 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            TimeFrame timeFrame = TimeFrame.Min30;
+            TimeFrame timeFrame = TimeFrame.Min5;
 
             if (Enum.TryParse(_deployTimeFrame.ValueString, out TimeFrame parsedFrame))
             {
@@ -917,7 +917,7 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            TimeFrame timeFrame = TimeFrame.Min15;
+            TimeFrame timeFrame = TimeFrame.Min5;
 
             if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
             {

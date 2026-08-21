@@ -229,7 +229,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (startProgram == StartProgram.IsTester)
             {
-                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min15",
+                _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min5",
                     new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
 
                 StrategyParameterButton buttonAutoDeployTester = CreateParameterButton("Deploy tester securities", "Auto deploy");
@@ -1421,7 +1421,43 @@ namespace OsEngine.Robots.SyntheticBond
 
         private DateTime GetCurrentServerTime()
         {
-            return this.TimeServer;
+            DateTime result = DateTime.MinValue;
+
+            result = MaxDateTime(result, LastCandleTime(_base1));
+            result = MaxDateTime(result, LastCandleTime(_base2));
+            result = MaxDateTime(result, LastCandleTime(_base3));
+            result = MaxDateTime(result, LastCandleTime(_base4));
+            result = MaxDateTime(result, LastCandleTime(_base5));
+            result = MaxDateTime(result, LastCandleTime(_base6));
+            result = MaxDateTime(result, LastCandleTime(_base7));
+            result = MaxDateTime(result, LastCandleTime(_base8));
+            result = MaxDateTime(result, LastCandleTime(_base9));
+            result = MaxDateTime(result, LastCandleTime(_base10));
+
+            if (result == DateTime.MinValue)
+            {
+                result = this.TimeServer;
+            }
+
+            return result;
+        }
+
+        private DateTime LastCandleTime(BotTabSimple tab)
+        {
+            List<Candle> candles = tab?.CandlesFinishedOnly;
+
+            if (candles == null
+                || candles.Count == 0)
+            {
+                return DateTime.MinValue;
+            }
+
+            return candles[^1].TimeStart;
+        }
+
+        private DateTime MaxDateTime(DateTime a, DateTime b)
+        {
+            return a > b ? a : b;
         }
 
         private decimal GetMultByBase(BotTabSimple baseSource)
@@ -2936,7 +2972,7 @@ namespace OsEngine.Robots.SyntheticBond
             if (lqdt != null
                 && _tabLqdt.Connector != null)
             {
-                TimeFrame timeFrame = TimeFrame.Min15;
+                TimeFrame timeFrame = TimeFrame.Min5;
 
                 if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
                 {
@@ -2962,7 +2998,7 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            TimeFrame timeFrame = TimeFrame.Min15;
+            TimeFrame timeFrame = TimeFrame.Min5;
 
             if (Enum.TryParse(_testerDeployTimeFrame.ValueString, out TimeFrame parsedFrame))
             {
