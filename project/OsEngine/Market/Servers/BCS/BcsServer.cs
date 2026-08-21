@@ -109,14 +109,11 @@ namespace OsEngine.Market.Servers.BCS
                     return;
                 }
 
-                if (string.IsNullOrEmpty(_apiAccessToken))
+                if (GetAccess24HToken() == false)
                 {
-                    if (GetAccess24HToken() == false)
-                    {
-                        SendLogMessage("Authorization Error. Probably an invalid token is specified. You can see it on the Bcs website.",
+                    SendLogMessage("Authorization Error. Probably an invalid token is specified. You can see it on the Bcs website.",
                         LogMessageType.Error);
-                        return;
-                    }
+                    return;
                 }
 
                 ConfigureHandler();
