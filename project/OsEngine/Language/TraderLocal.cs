@@ -2858,5 +2858,49 @@ namespace OsEngine.Language
         public string Label761 => OsLocalization.ConvertToLocString(
           "Eng:Some bots were saved without parameters. Count - {0}_" +
           "Ru:Некоторые роботы сохранены без параметров. Количество - {0}_");
+
+        public string Label762 => OsLocalization.ConvertToLocString(
+          "Eng:Migration_" +
+          "Ru:Миграция_");
+
+        public string Label763 => OsLocalization.ConvertToLocString(
+          "Eng:Transfer robots with parameters_" +
+          "Ru:Перенос роботов с параметрами_");
+
+        public string Label764 => OsLocalization.ConvertToLocString(
+          "Eng:Close_" +
+          "Ru:Закрыть_");
+
+        public string Label765 => OsLocalization.ConvertToLocString(
+          "Eng:Check the data sources in the robot tabs_" +
+          "Ru:Проверьте источники данных в табах роботов_");
+
+        public string Label766 => OsLocalization.ConvertToLocString(
+          "Eng:Save_" +
+          "Ru:Сохранить_");
+
+        public string Label767 => OsLocalization.ConvertToLocString(
+          "Eng:Load_" +
+          "Ru:Загрузить_");
+
+        public string Label768 => OsLocalization.ConvertToLocString(
+          "Eng:Prefix_" +
+          "Ru:Префикс_");
+
+        public string Label769 => OsLocalization.ConvertToLocString(
+          "Eng:Invalid characters in the prefix_" +
+          "Ru:Недопустимые символы в префиксе_");
+
+        public string Label770 => OsLocalization.ConvertToLocString(
+          "Eng:Save tab - writes all robots with parameters to a file. " +
+          "The suffix from the field is appended to robot names, the field can be empty.\n\n" +
+          "Load tab - creates robots from the file. " +
+          "A robot whose name already exists in the table will be skipped. " +
+          "After loading, open the robot tabs and re-select the data source and instrument._" +
+          "Ru:Вкладка Сохранить - записывает всех роботов с параметрами в файл. " +
+          "Суффикс из поля дописывается в конец имён роботов, поле можно оставить пустым.\n\n" +
+          "Вкладка Загрузить - создаёт роботов из файла. " +
+          "Робот с именем, которое уже есть в таблице, будет пропущен. " +
+          "После загрузки откройте табы роботов и заново выберите источник данных и инструмент._");
     }
 }
