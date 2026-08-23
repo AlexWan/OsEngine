@@ -55,7 +55,12 @@ namespace OsEngine.Journal
             }
 
             ComboBoxChartType.Items.Add("Absolute");
-            ComboBoxChartType.Items.Add("Deposit percent");
+
+            if (_startProgram != StartProgram.IsOsTrader)
+            {
+                ComboBoxChartType.Items.Add("Deposit percent");
+            }
+
             ComboBoxChartType.Items.Add("Percent 1 contract");
 
             ComboBoxChartType.SelectedItem = "Absolute";
@@ -921,6 +926,16 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[28].Cells[0].Value = "";
                 _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
                 _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
+
+                if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    // в реале процентные метрики от капитала недостоверны — скрываем их
+                    _gridStatistics.Rows[1].Visible = false;
+                    _gridStatistics.Rows[11].Visible = false;
+                    _gridStatistics.Rows[18].Visible = false;
+                    _gridStatistics.Rows[26].Visible = false;
+                    _gridStatistics.Rows[29].Visible = false;
+                }
 
                 // ячейки созданы из шаблона колонки — присваиваем актуальный стиль темы принудительно
                 for (int i = 0; i < _gridStatistics.Rows.Count; i++)
@@ -5471,6 +5486,12 @@ namespace OsEngine.Journal
                 {
                     _leftPanelIsHide = Convert.ToBoolean(reader.ReadLine());
                     string profitType = reader.ReadLine();
+
+                    if (_startProgram == StartProgram.IsOsTrader
+                        && profitType == "Deposit percent")
+                    {
+                        profitType = "Absolute";
+                    }
 
                     if (string.IsNullOrEmpty(profitType) == false)
                     {
