@@ -291,6 +291,10 @@ namespace OsEngine.Language
             "Eng:Sharpe ratio_" +
             "Ru:Sharpe ratio_");
 
+        public string NotAvailable => OsLocalization.ConvertToLocString(
+            "Eng:n/a_" +
+            "Ru:н/д_");
+
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
             "Ru:Необходимо выбрать файл для сохранения!_");

@@ -796,16 +796,6 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
                 _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
 
-                if (_startProgram == StartProgram.IsOsTrader)
-                {
-                    // в реале процентные метрики от капитала недостоверны — скрываем их
-                    _gridStatistics.Rows[1].Visible = false;
-                    _gridStatistics.Rows[11].Visible = false;
-                    _gridStatistics.Rows[18].Visible = false;
-                    _gridStatistics.Rows[26].Visible = false;
-                    _gridStatistics.Rows[29].Visible = false;
-                }
-
                 // ячейки созданы из шаблона колонки — присваиваем актуальный стиль темы принудительно
                 for (int i = 0; i < _gridStatistics.Rows.Count; i++)
                 {
@@ -824,6 +814,21 @@ namespace OsEngine.Journal
         private void _gridStatistics_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private static readonly int[] _unreliableStatRows = new int[] { 1, 11, 18, 26, 29 };
+
+        private bool IsUnreliableStatRow(int index)
+        {
+            for (int i = 0; i < _unreliableStatRows.Length; i++)
+            {
+                if (_unreliableStatRows[i] == index)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool needShowTickState)
@@ -864,21 +869,42 @@ namespace OsEngine.Journal
                 {
                     for (int i = 0; i < 31; i++)
                     {
-                        _gridStatistics.Rows[i].Cells[2].Value = positionsLongState[i].ToString();
+                        string value = positionsLongState[i].ToString();
+
+                        if (_startProgram == StartProgram.IsOsTrader && IsUnreliableStatRow(i))
+                        {
+                            value = OsLocalization.Journal.NotAvailable;
+                        }
+
+                        _gridStatistics.Rows[i].Cells[2].Value = value;
                     }
                 }
                 if (positionsShortState != null)
                 {
                     for (int i = 0; i < 31; i++)
                     {
-                        _gridStatistics.Rows[i].Cells[3].Value = positionsShortState[i].ToString();
+                        string value = positionsShortState[i].ToString();
+
+                        if (_startProgram == StartProgram.IsOsTrader && IsUnreliableStatRow(i))
+                        {
+                            value = OsLocalization.Journal.NotAvailable;
+                        }
+
+                        _gridStatistics.Rows[i].Cells[3].Value = value;
                     }
                 }
                 if (positionsAllState != null)
                 {
                     for (int i = 0; i < 31; i++)
                     {
-                        _gridStatistics.Rows[i].Cells[1].Value = positionsAllState[i].ToString();
+                        string value = positionsAllState[i].ToString();
+
+                        if (_startProgram == StartProgram.IsOsTrader && IsUnreliableStatRow(i))
+                        {
+                            value = OsLocalization.Journal.NotAvailable;
+                        }
+
+                        _gridStatistics.Rows[i].Cells[1].Value = value;
                     }
                 }
 
