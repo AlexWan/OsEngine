@@ -14,6 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -37,10 +38,7 @@ namespace OsEngine.UpdateModule
         private bool _needUpdateUpdaterApp;
         private int _modifiedFilesCount;
 
-        private readonly HttpClient _httpClient = new HttpClient(new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-        });
+        private readonly HttpClient _httpClient = new HttpClient(UpdateServerTls.CreatePinnedHandler());
 
         public UpdateModuleUi(UpdateResponse response)
         {
@@ -705,78 +703,61 @@ namespace OsEngine.UpdateModule
                     insideVersionDate = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
                 }
 
-                string ip = "185.186.143.9";
-                int port = 49152;
+                SaveLogMessage($"{OsLocalization.Updater.Message21} {UpdateServerTls.ServerHost}:{UpdateServerTls.UpdateProtocolPort}...");
 
-                using (TcpClient client = new TcpClient())
+                using (SslStream stream = UpdateServerTls.ConnectPinned(UpdateServerTls.ServerHost, UpdateServerTls.UpdateProtocolPort, 5000))
                 {
-                    client.ReceiveTimeout = 5000;
-                    client.SendTimeout = 5000;
+                    SaveLogMessage(OsLocalization.Updater.Message22);
 
-                    SaveLogMessage($"{OsLocalization.Updater.Message21} {ip}:{port}...");
+                    string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
 
-                    client.Connect(ip, port);
+                    byte[] data = Encoding.UTF8.GetBytes(request);
 
-                    if (client.Connected)
+                    stream.Write(data, 0, data.Length);
+
+                    SaveLogMessage($"{OsLocalization.Updater.Message23}: {insideVersionDate:yyyy-MM-dd HH:mm:ss}");
+
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        SaveLogMessage(OsLocalization.Updater.Message22);
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
 
-                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
-
-                        byte[] data = Encoding.UTF8.GetBytes(request);
-
-                        NetworkStream stream = client.GetStream();
-                        stream.Write(data, 0, data.Length);
-
-                        SaveLogMessage($"{OsLocalization.Updater.Message23}: {insideVersionDate:yyyy-MM-dd HH:mm:ss}");
-
-                        using (MemoryStream ms = new MemoryStream())
+                        // Читаем пока есть данные
+                        while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            byte[] buffer = new byte[8192];
-                            int bytesRead;
+                            ms.Write(buffer, 0, bytesRead);
+                        }
 
-                            // Читаем пока есть данные
-                            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        string response = Encoding.UTF8.GetString(ms.ToArray());
+
+                        if (!string.IsNullOrEmpty(response))
+                        {
+                            SaveLogMessage(OsLocalization.Updater.Message24);
+
+                            UpdateResponse specResponse = JsonSerializer.Deserialize<UpdateResponse>(response);
+
+                            if (specResponse != null)
                             {
-                                ms.Write(buffer, 0, bytesRead);
-                            }
+                                _serverResp = specResponse;
 
-                            string response = Encoding.UTF8.GetString(ms.ToArray());
+                                _filesInDebug = GetFilesState(_serverResp.Files);
 
-                            if (!string.IsNullOrEmpty(response))
-                            {
-                                SaveLogMessage(OsLocalization.Updater.Message24);
+                                _filesInDebug.Sort((x, y) => x.State.CompareTo(y.State));
 
-                                UpdateResponse specResponse = JsonSerializer.Deserialize<UpdateResponse>(response);
+                                FilesDataGrid.ItemsSource = _filesInDebug;
 
-                                if (specResponse != null)
-                                {
-                                    _serverResp = specResponse;
+                                CommitsDataGrid.ItemsSource = _serverResp.Commits;
 
-                                    _filesInDebug = GetFilesState(_serverResp.Files);
+                                TabCommits.Header = $"{OsLocalization.Updater.TabItemCommits} ({_serverResp.Commits.Count})";
 
-                                    _filesInDebug.Sort((x, y) => x.State.CompareTo(y.State));
-
-                                    FilesDataGrid.ItemsSource = _filesInDebug;
-
-                                    CommitsDataGrid.ItemsSource = _serverResp.Commits;
-
-                                    TabCommits.Header = $"{OsLocalization.Updater.TabItemCommits} ({_serverResp.Commits.Count})";
-
-                                    SaveLogMessage($"{_serverResp.Commits.Count} {OsLocalization.Updater.Message25}");
-                                }
-                            }
-                            else
-                            {
-                                SaveLogMessage(OsLocalization.Updater.Message26);
-                                _status = UpdaterStatus.Disconnected;
+                                SaveLogMessage($"{_serverResp.Commits.Count} {OsLocalization.Updater.Message25}");
                             }
                         }
-                    }
-                    else
-                    {
-                        SaveLogMessage(OsLocalization.Updater.Message27);
-                        _status = UpdaterStatus.Disconnected;
+                        else
+                        {
+                            SaveLogMessage(OsLocalization.Updater.Message26);
+                            _status = UpdaterStatus.Disconnected;
+                        }
                     }
                 }
             }
@@ -1075,7 +1056,9 @@ namespace OsEngine.UpdateModule
 
                     string tempPath = Path.Combine(tempDir, tempFileName);
 
-                    using (HttpResponseMessage response = await _httpClient.GetAsync(files[i].Url, token))
+                    string secureUrl = UpdateServerTls.GetSecureFileUrl(files[i].Url); // скачиваем только по HTTPS
+
+                    using (HttpResponseMessage response = await _httpClient.GetAsync(secureUrl, token))
                     {
                         if (response.StatusCode != HttpStatusCode.OK)
                         {

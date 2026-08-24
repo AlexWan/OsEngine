@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -1562,74 +1563,59 @@ namespace OsEngine
                     insideVersionDate = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
                 }
 
-                // передать серверу дату 
+                // передать серверу дату по TLS с пиннингом сертификата
 
-                string ip = "185.186.143.9";
-                int port = 49152;
-
-                using (TcpClient client = new TcpClient())
+                using (SslStream stream = UpdateServerTls.ConnectPinned(UpdateServerTls.ServerHost, UpdateServerTls.UpdateProtocolPort, 5000))
                 {
-                    client.ReceiveTimeout = 5000;
-                    client.SendTimeout = 5000;
+                    string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
 
-                    await client.ConnectAsync(ip, port);
+                    byte[] data = Encoding.UTF8.GetBytes(request);
 
-                    if (client.Connected)
+                    stream.Write(data, 0, data.Length);
+
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
 
-                        byte[] data = Encoding.UTF8.GetBytes(request);
-
-                        using (NetworkStream stream = client.GetStream())
+                        while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
                         {
+                            ms.Write(buffer, 0, bytesRead);
+                        }
 
-                            stream.Write(data, 0, data.Length);
+                        string response = Encoding.UTF8.GetString(ms.ToArray());
 
-                            using (MemoryStream ms = new MemoryStream())
+                        if (!string.IsNullOrEmpty(response))
+                        {
+                            UpdateResponse firstResponse = JsonSerializer.Deserialize<UpdateResponse>(response);
+
+                            if (firstResponse != null)
                             {
-                                byte[] buffer = new byte[8192];
-                                int bytesRead;
-
-                                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                                if (firstResponse.Success)
                                 {
-                                    ms.Write(buffer, 0, bytesRead);
+                                    _updServerResp = firstResponse;
+
+                                    if (!File.Exists(@"Engine\Updater\FilesVersionsTime.txt"))
+                                    {
+                                        WriteFilesVersionsTime(insideVersionDate); // при первом запуске проекта с обновлятором записываем время версии файлов в Debug
+                                    }
+
+                                    _commitsCount = firstResponse.MissedCommitsCount;
+
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        ChangeButtonCommits();
+                                    });
                                 }
-
-                                string response = Encoding.UTF8.GetString(ms.ToArray());
-
-                                if (!string.IsNullOrEmpty(response))
+                                else
                                 {
-                                    UpdateResponse firstResponse = JsonSerializer.Deserialize<UpdateResponse>(response);
-
-                                    if (firstResponse != null)
-                                    {
-                                        if (firstResponse.Success)
-                                        {
-                                            _updServerResp = firstResponse;
-
-                                            if (!File.Exists(@"Engine\Updater\FilesVersionsTime.txt"))
-                                            {
-                                                WriteFilesVersionsTime(insideVersionDate); // при первом запуске проекта с обновлятором записываем время версии файлов в Debug
-                                            }
-
-                                            _commitsCount = firstResponse.MissedCommitsCount;
-
-                                            Application.Current.Dispatcher.Invoke(() =>
-                                            {
-                                                ChangeButtonCommits();
-                                            });
-                                        }
-                                        else
-                                        {
-                                            _updServerResp = firstResponse;
-                                            throw new Exception("Сервер ответил с ошибкой");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        throw new Exception("Нет ответа от сервера");
-                                    }
+                                    _updServerResp = firstResponse;
+                                    throw new Exception("Сервер ответил с ошибкой");
                                 }
+                            }
+                            else
+                            {
+                                throw new Exception("Нет ответа от сервера");
                             }
                         }
                     }
