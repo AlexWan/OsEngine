@@ -592,6 +592,13 @@ namespace OsEngine.Journal.Internal
 
             lock (_dealsLocker)
             {
+                if (string.IsNullOrEmpty(updateOrder.ParentOrderNumberMarket) == false)
+                {
+                    SetChildOrderInPositions(updateOrder);
+                    _needToSave = true;
+                    return;
+                }
+
                 for (int i = _deals.Count - 1; i > -1; i--)
                 {
                     Position curPosition = null;
@@ -727,6 +734,127 @@ namespace OsEngine.Journal.Internal
                 }
             }
             _needToSave = true;
+        }
+
+        private void SetChildOrderInPositions(Order updateOrder)
+        {
+            // вызывать только под lock (_dealsLocker).
+            // updateOrder - дочерний ордер активированного стоп-ордера
+
+            for (int i = _deals.Count - 1; i > -1; i--)
+            {
+                Position curPosition = _deals[i];
+
+                if (curPosition == null)
+                {
+                    continue;
+                }
+
+                // 1 ищем материнский ордер в позиции
+
+                Order parentOrder = null;
+                bool parentIsOpenOrder = false;
+
+                for (int j = 0; curPosition.OpenOrders != null && j < curPosition.OpenOrders.Count; j++)
+                {
+                    if (curPosition.OpenOrders[j] != null
+                        && curPosition.OpenOrders[j].NumberMarket == updateOrder.ParentOrderNumberMarket)
+                    {
+                        parentOrder = curPosition.OpenOrders[j];
+                        parentIsOpenOrder = true;
+                        break;
+                    }
+                }
+
+                if (parentOrder == null)
+                {
+                    for (int j = 0; curPosition.CloseOrders != null && j < curPosition.CloseOrders.Count; j++)
+                    {
+                        if (curPosition.CloseOrders[j] != null
+                            && curPosition.CloseOrders[j].NumberMarket == updateOrder.ParentOrderNumberMarket)
+                        {
+                            parentOrder = curPosition.CloseOrders[j];
+                            break;
+                        }
+                    }
+                }
+
+                if (parentOrder == null)
+                {
+                    continue;
+                }
+
+                // 2 ищем уже привязанного дочернего по ParentOrderNumberMarket:
+                // его NumberUser после рестарта приложения может быть новым
+
+                Order childInPosition = null;
+
+                for (int j = 0; curPosition.OpenOrders != null && j < curPosition.OpenOrders.Count; j++)
+                {
+                    if (curPosition.OpenOrders[j] != null
+                        && curPosition.OpenOrders[j].ParentOrderNumberMarket == updateOrder.ParentOrderNumberMarket)
+                    {
+                        childInPosition = curPosition.OpenOrders[j];
+                        break;
+                    }
+                }
+
+                if (childInPosition == null)
+                {
+                    for (int j = 0; curPosition.CloseOrders != null && j < curPosition.CloseOrders.Count; j++)
+                    {
+                        if (curPosition.CloseOrders[j] != null
+                            && curPosition.CloseOrders[j].ParentOrderNumberMarket == updateOrder.ParentOrderNumberMarket)
+                        {
+                            childInPosition = curPosition.CloseOrders[j];
+                            break;
+                        }
+                    }
+                }
+
+                PositionStateType positionState = curPosition.State;
+                decimal lastPosVolume = curPosition.OpenVolume;
+
+                if (childInPosition != null)
+                {   // дочерний уже в позиции. Обновляем
+                    childInPosition.NumberUser = updateOrder.NumberUser; // синхронизация номера для SetOrder
+                    curPosition.SetOrder(updateOrder);
+                }
+                else if (parentIsOpenOrder)
+                {
+                    curPosition.AddNewOpenOrder(updateOrder);
+                }
+                else
+                {
+                    curPosition.AddNewCloseOrder(updateOrder);
+                }
+
+                if (positionState != curPosition.State ||
+                    lastPosVolume != curPosition.OpenVolume)
+                {
+                    _openLongChanged = true;
+                    _openShortChanged = true;
+                    _closePositionChanged = true;
+                    _closeShortChanged = true;
+                    _closeLongChanged = true;
+
+                    UpdateOpenPositionArray(curPosition);
+                }
+
+                if (positionState != curPosition.State && PositionStateChangeEvent != null)
+                {
+                    PositionStateChangeEvent(curPosition);
+                }
+
+                if (lastPosVolume != curPosition.OpenVolume && PositionNetVolumeChangeEvent != null)
+                {
+                    PositionNetVolumeChangeEvent(curPosition);
+                }
+
+                ProcessPosition(curPosition);
+
+                return;
+            }
         }
 
         public bool SetNewTrade(MyTrade trade)

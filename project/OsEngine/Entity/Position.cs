@@ -803,6 +803,16 @@ namespace OsEngine.Entity
 
                 openOrder.NumberMarket = newOrder.NumberMarket;
 
+                if (string.IsNullOrEmpty(newOrder.ParentOrderNumberMarket) == false)
+                {
+                    openOrder.ParentOrderNumberMarket = newOrder.ParentOrderNumberMarket;
+                }
+
+                if (string.IsNullOrEmpty(newOrder.ChildOrderNumberMarket) == false)
+                {
+                    openOrder.ChildOrderNumberMarket = newOrder.ChildOrderNumberMarket;
+                }
+
                 if (openOrder.TimeCallBack == DateTime.MinValue)
                 {
                     openOrder.TimeCallBack = newOrder.TimeCallBack;
@@ -903,6 +913,16 @@ namespace OsEngine.Entity
                 }
 
                 closeOrder.NumberMarket = newOrder.NumberMarket;
+
+                if (string.IsNullOrEmpty(newOrder.ParentOrderNumberMarket) == false)
+                {
+                    closeOrder.ParentOrderNumberMarket = newOrder.ParentOrderNumberMarket;
+                }
+
+                if (string.IsNullOrEmpty(newOrder.ChildOrderNumberMarket) == false)
+                {
+                    closeOrder.ChildOrderNumberMarket = newOrder.ChildOrderNumberMarket;
+                }
 
                 if (closeOrder.TimeCallBack == DateTime.MinValue)
                 {

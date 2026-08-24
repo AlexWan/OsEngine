@@ -1429,6 +1429,27 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Does the server support stop orders (StopLimit/StopMarket)
+        /// </summary>
+        public bool ServerIsSupportStopOrders
+        {
+            get
+            {
+                if (_connector == null)
+                {
+                    return false;
+                }
+
+                return _connector.StopOrdersIsSupport;
+            }
+        }
+
+        /// <summary>
+        /// Whether the "server stop order" checkbox is checked for stop orders (StopLimit/StopMarket) in the trading windows
+        /// </summary>
+        public bool ServerStopOrdersIsOn;
+
+        /// <summary>
         /// Does the server support order price change
         /// </summary>
         public bool ServerIsSupportChangeOrderPrice
@@ -4606,21 +4627,31 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.StopOrderIsActive == false)
+                bool isChanged = false;
+
+                if (position.StopOrderIsActive)
                 {
-                    return;
+                    position.StopOrderIsActive = false;
+                    isChanged = true;
                 }
 
-                position.StopOrderIsActive = false;
+                if (StartProgram == StartProgram.IsOsTrader &&
+                    ServerIsSupportStopOrders)
+                {
+                    isChanged = CancelServerStopOrders(position) || isChanged;
+                }
 
                 if (_journal == null)
                 {
                     return;
                 }
 
-                _journal.PaintPosition(position);
-                _chartMaster.SetPosition(_journal.AllPosition);
-                _journal.Save();
+                if (isChanged)
+                {
+                    _journal.PaintPosition(position);
+                    _chartMaster.SetPosition(_journal.AllPosition);
+                    _journal.Save();
+                }
             }
             catch (Exception error)
             {
@@ -4659,15 +4690,25 @@ namespace OsEngine.OsTrader.Panels.Tab
                         continue;
                     }
 
-                    if (position.StopOrderIsActive == false)
+                    bool positionChanged = false;
+
+                    if (position.StopOrderIsActive)
                     {
-                        continue;
+                        position.StopOrderIsActive = false;
+                        positionChanged = true;
                     }
 
-                    position.StopOrderIsActive = false;
-                    isChanged = true;
+                    if (StartProgram == StartProgram.IsOsTrader &&
+                        ServerIsSupportStopOrders)
+                    {
+                        positionChanged = CancelServerStopOrders(position) || positionChanged;
+                    }
 
-                    _journal.PaintPosition(position);
+                    if (positionChanged)
+                    {
+                        _journal.PaintPosition(position);
+                        isChanged = true;
+                    }
                 }
 
                 if (isChanged == false)
@@ -5182,6 +5223,745 @@ namespace OsEngine.OsTrader.Panels.Tab
             position.SignalTypeClose = signalType;
             CloseAllOrderToPosition(position);
         }
+
+        #region Server stop orders
+
+        /// <summary>
+        /// Whether the order is a server stop order (StopLimit/StopMarket)
+        /// </summary>
+        private bool IsServerStopOrder(Order order)
+        {
+            if (order == null)
+            {
+                return false;
+            }
+
+            return order.TypeOrder == OrderPriceType.StopLimit
+                || order.TypeOrder == OrderPriceType.StopMarket;
+        }
+
+        /// <summary>
+        /// Place a server stop order (StopLimit) for a position. Falls back to a local stop when the server does not support stop orders
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">activation price (trigger) of the stop order</param>
+        /// <param name="priceOrder">limit price of the stop order</param>
+        public void CloseAtStopOnServer(Position position, decimal priceActivation, decimal priceOrder)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            TryPlaceStopOrderOnServer(position, priceActivation, priceOrder, position.OpenVolume, OrderPriceType.StopLimit);
+        }
+
+        /// <summary>
+        /// Place a server stop order (StopLimit) for a position with the given volume. Falls back to a local stop when the server does not support stop orders
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">activation price (trigger) of the stop order</param>
+        /// <param name="priceOrder">limit price of the stop order</param>
+        /// <param name="volume">volume to close</param>
+        public void CloseAtStopOnServer(Position position, decimal priceActivation, decimal priceOrder, decimal volume)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            TryPlaceStopOrderOnServer(position, priceActivation, priceOrder, volume, OrderPriceType.StopLimit);
+        }
+
+        /// <summary>
+        /// Place a server stop order (StopLimit) for a position with the given close signal name
+        /// </summary>
+        public void CloseAtStopOnServer(Position position, decimal priceActivation, decimal priceOrder, string signalType)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            position.SignalTypeStop = signalType;
+            CloseAtStopOnServer(position, priceActivation, priceOrder);
+        }
+
+        /// <summary>
+        /// Place a server stop order (StopLimit) for a position with the given volume and close signal name
+        /// </summary>
+        public void CloseAtStopOnServer(Position position, decimal priceActivation, decimal priceOrder, decimal volume, string signalType)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            position.SignalTypeStop = signalType;
+            CloseAtStopOnServer(position, priceActivation, priceOrder, volume);
+        }
+
+        /// <summary>
+        /// Place a server stop market order for a position. Falls back to a local stop market when the server does not support stop orders
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">activation price (trigger) of the stop order</param>
+        public void CloseAtStopMarketOnServer(Position position, decimal priceActivation)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            TryPlaceStopOrderOnServer(position, priceActivation, priceActivation, position.OpenVolume, OrderPriceType.StopMarket);
+        }
+
+        /// <summary>
+        /// Place a server stop market order for a position with the given volume
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="priceActivation">activation price (trigger) of the stop order</param>
+        /// <param name="volume">volume to close</param>
+        public void CloseAtStopMarketOnServer(Position position, decimal priceActivation, decimal volume)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            TryPlaceStopOrderOnServer(position, priceActivation, priceActivation, volume, OrderPriceType.StopMarket);
+        }
+
+        /// <summary>
+        /// Cancel server stop orders for a position
+        /// </summary>
+        /// <param name="position">position for which the server stop orders will be cancelled</param>
+        public void CloseAtStopOnServerCancel(Position position)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                bool isChanged = CancelServerStopOrders(position);
+
+                if (_journal == null)
+                {
+                    return;
+                }
+
+                if (isChanged)
+                {
+                    _journal.PaintPosition(position);
+                    _chartMaster.SetPosition(_journal.AllPosition);
+                    _journal.Save();
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Cancel server stop orders for all open positions on the tab
+        /// </summary>
+        public void CloseAtStopOnServerCancel()
+        {
+            try
+            {
+                if (_journal == null)
+                {
+                    return;
+                }
+
+                List<Position> positions = _journal.OpenPositions;
+
+                if (positions == null ||
+                    positions.Count == 0)
+                {
+                    return;
+                }
+
+                bool isChanged = false;
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    Position position = positions[i];
+
+                    if (position == null)
+                    {
+                        continue;
+                    }
+
+                    if (position.State == PositionStateType.Done ||
+                        position.State == PositionStateType.OpeningFail)
+                    {
+                        continue;
+                    }
+
+                    isChanged = CancelServerStopOrders(position) || isChanged;
+                }
+
+                if (isChanged == false)
+                {
+                    return;
+                }
+
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.Save();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Enter position Long by a server stop order (StopLimit). Falls back to a local stop opener when the server does not support stop orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">limit price of the order</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void BuyAtStopOnServer(decimal volume, decimal priceLimit, decimal priceActivation)
+        {
+            BuyAtStopOnServer(volume, priceLimit, priceActivation, "");
+        }
+
+        /// <summary>
+        /// Enter position Long by a server stop order (StopLimit) with the given opening signal name
+        /// </summary>
+        public void BuyAtStopOnServer(decimal volume, decimal priceLimit, decimal priceActivation, string signalType)
+        {
+            if (StartProgram != StartProgram.IsOsTrader ||
+                ServerIsSupportStopOrders == false)
+            {
+                BuyAtStop(volume, priceLimit, priceActivation, StopActivateType.HigherOrEqual, 1, signalType, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                return;
+            }
+
+            if (_connector.IsConnected == false ||
+                _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
+            OpenNewPositionByStopOnServer(Side.Buy, volume, priceLimit, priceActivation, OrderPriceType.StopLimit, signalType);
+        }
+
+        /// <summary>
+        /// Enter position Short by a server stop order (StopLimit). Falls back to a local stop opener when the server does not support stop orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">limit price of the order</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void SellAtStopOnServer(decimal volume, decimal priceLimit, decimal priceActivation)
+        {
+            SellAtStopOnServer(volume, priceLimit, priceActivation, "");
+        }
+
+        /// <summary>
+        /// Enter position Short by a server stop order (StopLimit) with the given opening signal name
+        /// </summary>
+        public void SellAtStopOnServer(decimal volume, decimal priceLimit, decimal priceActivation, string signalType)
+        {
+            if (StartProgram != StartProgram.IsOsTrader ||
+                ServerIsSupportStopOrders == false)
+            {
+                SellAtStop(volume, priceLimit, priceActivation, StopActivateType.LowerOrEqual, 1, signalType, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                return;
+            }
+
+            if (_connector.IsConnected == false ||
+                _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
+            OpenNewPositionByStopOnServer(Side.Sell, volume, priceLimit, priceActivation, OrderPriceType.StopLimit, signalType);
+        }
+
+        /// <summary>
+        /// Enter position Long by a server stop market order (StopMarket). Falls back to a local stop market opener when the server does not support stop orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void BuyAtStopMarketOnServer(decimal volume, decimal priceActivation)
+        {
+            BuyAtStopMarketOnServer(volume, priceActivation, "");
+        }
+
+        /// <summary>
+        /// Enter position Long by a server stop market order (StopMarket) with the given opening signal name
+        /// </summary>
+        public void BuyAtStopMarketOnServer(decimal volume, decimal priceActivation, string signalType)
+        {
+            if (StartProgram != StartProgram.IsOsTrader ||
+                ServerIsSupportStopOrders == false)
+            {
+                BuyAtStopMarket(volume, priceActivation, priceActivation, StopActivateType.HigherOrEqual, 1, signalType, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                return;
+            }
+
+            if (_connector.IsConnected == false ||
+                _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
+            OpenNewPositionByStopOnServer(Side.Buy, volume, priceActivation, priceActivation, OrderPriceType.StopMarket, signalType);
+        }
+
+        /// <summary>
+        /// Enter position Short by a server stop market order (StopMarket). Falls back to a local stop market opener when the server does not support stop orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void SellAtStopMarketOnServer(decimal volume, decimal priceActivation)
+        {
+            SellAtStopMarketOnServer(volume, priceActivation, "");
+        }
+
+        /// <summary>
+        /// Enter position Short by a server stop market order (StopMarket) with the given opening signal name
+        /// </summary>
+        public void SellAtStopMarketOnServer(decimal volume, decimal priceActivation, string signalType)
+        {
+            if (StartProgram != StartProgram.IsOsTrader ||
+                ServerIsSupportStopOrders == false)
+            {
+                SellAtStopMarket(volume, priceActivation, priceActivation, StopActivateType.LowerOrEqual, 1, signalType, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                return;
+            }
+
+            if (_connector.IsConnected == false ||
+                _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return;
+            }
+
+            OpenNewPositionByStopOnServer(Side.Sell, volume, priceActivation, priceActivation, OrderPriceType.StopMarket, signalType);
+        }
+
+        /// <summary>
+        /// Add a server stop order (StopLimit) to an existing long position. The side must match the position direction
+        /// </summary>
+        /// <param name="position">position to add volume to</param>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">limit price of the order</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void BuyAtStopOnServerToPosition(Position position, decimal volume, decimal priceLimit, decimal priceActivation)
+        {
+            TryPlaceOpenStopOnServerToPosition(position, Side.Buy, volume, priceLimit, priceActivation, OrderPriceType.StopLimit);
+        }
+
+        /// <summary>
+        /// Add a server stop order (StopLimit) to an existing short position. The side must match the position direction
+        /// </summary>
+        /// <param name="position">position to add volume to</param>
+        /// <param name="volume">volume</param>
+        /// <param name="priceLimit">limit price of the order</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void SellAtStopOnServerToPosition(Position position, decimal volume, decimal priceLimit, decimal priceActivation)
+        {
+            TryPlaceOpenStopOnServerToPosition(position, Side.Sell, volume, priceLimit, priceActivation, OrderPriceType.StopLimit);
+        }
+
+        /// <summary>
+        /// Add a server stop market order (StopMarket) to an existing long position. The side must match the position direction
+        /// </summary>
+        /// <param name="position">position to add volume to</param>
+        /// <param name="volume">volume</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void BuyAtStopMarketOnServerToPosition(Position position, decimal volume, decimal priceActivation)
+        {
+            TryPlaceOpenStopOnServerToPosition(position, Side.Buy, volume, priceActivation, priceActivation, OrderPriceType.StopMarket);
+        }
+
+        /// <summary>
+        /// Add a server stop market order (StopMarket) to an existing short position. The side must match the position direction
+        /// </summary>
+        /// <param name="position">position to add volume to</param>
+        /// <param name="volume">volume</param>
+        /// <param name="priceActivation">activation price (trigger)</param>
+        public void SellAtStopMarketOnServerToPosition(Position position, decimal volume, decimal priceActivation)
+        {
+            TryPlaceOpenStopOnServerToPosition(position, Side.Sell, volume, priceActivation, priceActivation, OrderPriceType.StopMarket);
+        }
+
+        /// <summary>
+        /// Place a closing server stop order (StopLimit/StopMarket) for a position
+        /// </summary>
+        private void TryPlaceStopOrderOnServer(Position position, decimal priceActivation, decimal priceOrder, decimal volume, OrderPriceType priceType)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader ||
+                    ServerIsSupportStopOrders == false)
+                {
+                    if (priceType == OrderPriceType.StopMarket)
+                    {
+                        CloseAtStopMarket(position, priceActivation);
+                    }
+                    else
+                    {
+                        CloseAtStop(position, priceActivation, priceOrder);
+                    }
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                if (_connector.IsConnected == false ||
+                    _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    return;
+                }
+
+                if (volume > position.OpenVolume)
+                {
+                    volume = position.OpenVolume;
+                }
+
+                if (volume == 0)
+                {
+                    return;
+                }
+
+                Side closeSide = Side.Buy;
+                if (position.Direction == Side.Buy)
+                {
+                    closeSide = Side.Sell;
+                }
+
+                priceOrder = RoundPrice(priceOrder, Security, closeSide);
+                priceActivation = RoundPrice(priceActivation, Security, closeSide);
+
+                Order order = _dealCreator.CreateOrder(
+                    Security, closeSide, priceOrder, volume, priceType,
+                    ManualPositionSupport.SecondToClose, StartProgram,
+                    OrderPositionConditionType.Close,
+                    OrderTypeTime.GTC,
+                    _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
+
+                order.StopPrice = priceActivation;
+                order.IsStopOrProfit = true;
+
+                position.AddNewCloseOrder(order);
+
+                _connector.OrderExecute(order);
+
+                if (_journal != null)
+                {
+                    _journal.PaintPosition(position);
+                    _chartMaster.SetPosition(_journal.AllPosition);
+                    _journal.Save();
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Create a new position by a server stop order (StopLimit/StopMarket)
+        /// </summary>
+        private void OpenNewPositionByStopOnServer(Side side, decimal volume, decimal priceLimit, decimal priceActivation, OrderPriceType priceType, string signalType)
+        {
+            try
+            {
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (priceLimit == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64 + "\n" + _connector.SecurityName, LogMessageType.System);
+                    return;
+                }
+
+                priceLimit = RoundPrice(priceLimit, Security, side);
+                priceActivation = RoundPrice(priceActivation, Security, side);
+
+                OrderTypeTime orderTypeTime = OrderTypeTime.GTC;
+
+                Position newDeal = _dealCreator.CreatePosition(
+                    TabName, side, priceLimit, volume, priceType,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram,
+                    orderTypeTime, ManualPositionSupport.LimitsMakerOnly);
+
+                newDeal.SignalTypeOpen = signalType;
+                newDeal.NameBotClass = BotClassName;
+
+                newDeal.OpenOrders[0].StopPrice = priceActivation;
+                newDeal.OpenOrders[0].IsStopOrProfit = true;
+
+                _journal.SetNewDeal(newDeal);
+
+                _connector.OrderExecute(newDeal.OpenOrders[0]);
+
+                _chartMaster.SetPosition(_journal.AllPosition);
+                _journal.Save();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Place an opening server stop order (StopLimit/StopMarket) to an existing position (doline)
+        /// </summary>
+        private void TryPlaceOpenStopOnServerToPosition(Position position, Side side, decimal volume, decimal priceLimit, decimal priceActivation, OrderPriceType priceType)
+        {
+            try
+            {
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader ||
+                    ServerIsSupportStopOrders == false)
+                {
+                    if (side == Side.Buy)
+                    {
+                        if (priceType == OrderPriceType.StopMarket)
+                        {
+                            BuyAtStopMarketToPosition(position, volume, priceActivation, StopActivateType.HigherOrEqual, 1, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
+                        else
+                        {
+                            BuyAtStopToPosition(position, volume, priceLimit, priceActivation, StopActivateType.HigherOrEqual, 1, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
+                    }
+                    else
+                    {
+                        if (priceType == OrderPriceType.StopMarket)
+                        {
+                            SellAtStopMarketToPosition(position, volume, priceActivation, StopActivateType.LowerOrEqual, 1, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
+                        else
+                        {
+                            SellAtStopToPosition(position, volume, priceLimit, priceActivation, StopActivateType.LowerOrEqual, 1, PositionOpenerToStopLifeTimeType.NoLifeTime);
+                        }
+                    }
+                    return;
+                }
+
+                if (position.State == PositionStateType.Done ||
+                    position.State == PositionStateType.OpeningFail)
+                {
+                    return;
+                }
+
+                if (_connector.IsConnected == false ||
+                    _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (position.Direction != side)
+                {
+                    SetNewLogMessage(Security.Name + " server stop order to position rejected: side does not match the position direction", LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    return;
+                }
+
+                priceLimit = RoundPrice(priceLimit, Security, side);
+                priceActivation = RoundPrice(priceActivation, Security, side);
+
+                Order order = _dealCreator.CreateOrder(
+                    Security, side, priceLimit, volume, priceType,
+                    ManualPositionSupport.SecondToOpen, StartProgram,
+                    OrderPositionConditionType.Open,
+                    OrderTypeTime.GTC,
+                    _connector.ServerFullName,
+                    ManualPositionSupport.LimitsMakerOnly, position.Number);
+
+                order.StopPrice = priceActivation;
+                order.IsStopOrProfit = true;
+
+                position.AddNewOpenOrder(order);
+
+                _connector.OrderExecute(order);
+
+                if (_journal != null)
+                {
+                    _journal.PaintPosition(position);
+                    _chartMaster.SetPosition(_journal.AllPosition);
+                    _journal.Save();
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Cancel active server stop orders (StopLimit/StopMarket) among open and close orders of a position
+        /// </summary>
+        private bool CancelServerStopOrders(Position position)
+        {
+            bool isChanged = false;
+
+            if (position == null)
+            {
+                return isChanged;
+            }
+
+            if (position.CloseOrders != null)
+            {
+                for (int i = 0; i < position.CloseOrders.Count; i++)
+                {
+                    Order order = position.CloseOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
+                    if (IsServerStopOrder(order) && order.State == OrderStateType.Active)
+                    {
+                        _connector.OrderCancel(order);
+                        isChanged = true;
+                    }
+                }
+            }
+
+            if (position.OpenOrders != null)
+            {
+                for (int i = 0; i < position.OpenOrders.Count; i++)
+                {
+                    Order order = position.OpenOrders[i];
+
+                    if (order == null)
+                    {
+                        continue;
+                    }
+
+                    if (IsServerStopOrder(order) && order.State == OrderStateType.Active)
+                    {
+                        _connector.OrderCancel(order);
+                        isChanged = true;
+                    }
+                }
+            }
+
+            return isChanged;
+        }
+
+        /// <summary>
+        /// Cancel the remaining active close stop orders of a position that has no open volume left
+        /// </summary>
+        private void TryCancelRestStopOrders(Position position)
+        {
+            if (position == null)
+            {
+                return;
+            }
+
+            if (position.OpenVolume != 0)
+            {
+                return;
+            }
+
+            if (position.CloseOrders == null)
+            {
+                return;
+            }
+
+            bool anyActive = false;
+
+            for (int i = 0; i < position.CloseOrders.Count; i++)
+            {
+                Order order = position.CloseOrders[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (IsServerStopOrder(order) == false)
+                {
+                    continue;
+                }
+
+                if (order.State == OrderStateType.Active ||
+                    order.State == OrderStateType.Pending ||
+                    order.State == OrderStateType.None ||
+                    order.State == OrderStateType.Partial)
+                {
+                    anyActive = true;
+                    break;
+                }
+            }
+
+            if (anyActive == false)
+            {
+                return;
+            }
+
+            for (int i = 0; i < position.CloseOrders.Count; i++)
+            {
+                Order order = position.CloseOrders[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (IsServerStopOrder(order) && order.State == OrderStateType.Active)
+                {
+                    _connector.OrderCancel(order);
+                }
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Withdraw order
@@ -7555,6 +8335,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 MyTradeEvent(trade);
             }
 
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                int positionNumber = 0;
+                if (int.TryParse(trade.NumberPosition, out positionNumber))
+                {
+                    Position position = GetOpenPositionByNumber(positionNumber);
+
+                    if (position != null)
+                    {
+                        TryCancelRestStopOrders(position);
+                    }
+                }
+            }
+
             if (StartProgram == StartProgram.IsTester)
             { // назначаем трейду номер свечи в тестере и оптимизаторе
                 List<Candle> candles = CandlesAll;
@@ -7652,6 +8446,75 @@ namespace OsEngine.OsTrader.Panels.Tab
                 OrderUpdateEvent(orderInJournal);
             }
             _chartMaster.SetPosition(PositionsAll);
+
+            ProcessServerStopOrderUpdate(orderInJournal);
+        }
+
+        /// <summary>
+        /// Fire the stop activate event for a done closing server stop order and cancel the remaining close stop orders of a position that has no open volume left
+        /// </summary>
+        private void ProcessServerStopOrderUpdate(Order orderInJournal)
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {
+                    return;
+                }
+
+                if (orderInJournal == null)
+                {
+                    return;
+                }
+
+                Position position = GetOpenPositionByNumber(orderInJournal.NumberPosition);
+
+                if (position == null)
+                {
+                    return;
+                }
+
+                if (IsServerStopOrder(orderInJournal) &&
+                    orderInJournal.PositionConditionType == OrderPositionConditionType.Close &&
+                    orderInJournal.State == OrderStateType.Done)
+                {
+                    PositionStopActivateEvent?.Invoke(position);
+                }
+
+                TryCancelRestStopOrders(position);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Find an open position by its number
+        /// </summary>
+        private Position GetOpenPositionByNumber(int number)
+        {
+            if (_journal == null)
+            {
+                return null;
+            }
+
+            List<Position> positions = _journal.OpenPositions;
+
+            if (positions == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (positions[i] != null && positions[i].Number == number)
+                {
+                    return positions[i];
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

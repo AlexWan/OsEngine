@@ -55,13 +55,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelLimitVolumeToClose.Content = OsLocalization.Trader.Label30;
             LabelMarketVolumeToClose.Content = OsLocalization.Trader.Label30;
             LabelFakeVolume.Content = OsLocalization.Trader.Label30;
+            LabelStopVolumeToClose.Content = OsLocalization.Trader.Label30;
+            LabelStopMarketVolumeToClose.Content = OsLocalization.Trader.Label30;
 
             LabelProfitActivationPrice.Content = OsLocalization.Trader.Label206;
             LabelStopActivationPrice.Content = OsLocalization.Trader.Label206;
+            LabelStopMarketActivationPrice.Content = OsLocalization.Trader.Label206;
 
             TabItemLimit.Header = OsLocalization.Trader.Label200;
             TabItemMarket.Header = OsLocalization.Trader.Label201;
             TabItemStop.Header = OsLocalization.Trader.Label202;
+            TabItemStopMarket.Header = OsLocalization.Trader.Label772;
             TabItemFake.Header = OsLocalization.Trader.Label203;
             TabItemProfit.Header = OsLocalization.Trader.Label222;
 
@@ -72,12 +76,28 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ButtonCloseAtLimit.Content = OsLocalization.Trader.Label217;
             ButtonCloseAtMarket.Content = OsLocalization.Trader.Label218;
             ButtonCloseAtStop.Content = OsLocalization.Trader.Label219;
+            ButtonCloseAtStopMarket.Content = OsLocalization.Trader.Label775;
             ButtonCloseAtProfit.Content = OsLocalization.Trader.Label220;
             ButtonCloseAtFake.Content = OsLocalization.Trader.Label221;
 
             ButtonRevokeLimit.Content = OsLocalization.Trader.Label419;
             ButtonRevokeProfit.Content = OsLocalization.Trader.Label419;
             ButtonRevokeStop.Content = OsLocalization.Trader.Label419;
+            ButtonRevokeStopMarket.Content = OsLocalization.Trader.Label419;
+
+            CheckBoxServerStopOrder.Content = OsLocalization.Trader.Label771;
+            CheckBoxServerStopMarket.Content = OsLocalization.Trader.Label771;
+
+            bool serverStopsSupported = Tab.ServerIsSupportStopOrders && Tab.StartProgram == StartProgram.IsOsTrader;
+
+            CheckBoxServerStopOrder.IsEnabled = serverStopsSupported;
+            CheckBoxServerStopMarket.IsEnabled = serverStopsSupported;
+
+            CheckBoxServerStopOrder.IsChecked = Tab.ServerStopOrdersIsOn;
+            CheckBoxServerStopMarket.IsChecked = Tab.ServerStopOrdersIsOn;
+
+            CheckBoxServerStopOrder.Click += CheckBoxServerStopOrder_Click;
+            CheckBoxServerStopMarket.Click += CheckBoxServerStopMarket_Click;
 
             GlobalGUILayout.Listen(this, "mD_ClosePos" + Tab.TabName + Position.Number);
 
@@ -98,19 +118,25 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 TabControlTypePosition.SelectedIndex = 2;
             }
-            else if (closePositionType == ClosePositionType.Profit)
+            else if (closePositionType == ClosePositionType.StopMarket)
             {
                 TabControlTypePosition.SelectedIndex = 3;
             }
-            else if (closePositionType == ClosePositionType.Fake)
+            else if (closePositionType == ClosePositionType.Profit)
             {
                 TabControlTypePosition.SelectedIndex = 4;
+            }
+            else if (closePositionType == ClosePositionType.Fake)
+            {
+                TabControlTypePosition.SelectedIndex = 5;
             }
 
             LabelOpenVolumeValue.Content = Position.OpenVolume.ToStringWithNoEndZero();
             TextBoxLimitVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
             TextBoxMarketVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
             TextBoxFakeVolume.Text = Position.OpenVolume.ToStringWithNoEndZero();
+            TextBoxStopVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+            TextBoxStopMarketVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
 
             LabelLimitAllOpenVolumeSend.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
             LabelLimitAllOpenVolumeSend.MouseLeftButtonDown += LabelLimitAllOpenVolumeSend_MouseLeftButtonDown;
@@ -126,6 +152,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             LabelFakeAllOpenVolume.MouseLeftButtonDown += LabelFakeAllOpenVolume_MouseLeftButtonDown;
             LabelFakeAllOpenVolume.MouseEnter += LabelFakeAllOpenVolume_MouseEnter;
             LabelFakeAllOpenVolume.MouseLeave += LabelFakeAllOpenVolume_MouseLeave;
+
+            LabelStopAllOpenVolumeSend.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+            LabelStopAllOpenVolumeSend.MouseLeftButtonDown += LabelStopAllOpenVolumeSend_MouseLeftButtonDown;
+
+            LabelStopMarketAllOpenVolumeSend.Content = OsLocalization.Trader.Label387 + Position.OpenVolume.ToStringWithNoEndZero();
+            LabelStopMarketAllOpenVolumeSend.MouseLeftButtonDown += LabelStopMarketAllOpenVolumeSend_MouseLeftButtonDown;
 
             LabelPosStateValue.Content = Position.State.ToString();
             LabelPosNumberValue.Content = Position.Number.ToString();
@@ -171,12 +203,16 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ButtonCloseAtLimit.Click -= ButtonCloseAtLimit_Click;
                 ButtonCloseAtMarket.Click -= ButtonCloseAtMarket_Click;
                 ButtonCloseAtStop.Click -= ButtonCloseAtStop_Click;
+                ButtonCloseAtStopMarket.Click -= ButtonCloseAtStopMarket_Click;
                 ButtonCloseAtProfit.Click -= ButtonCloseAtProfit_Click;
                 ButtonCloseAtFake.Click -= ButtonCloseAtFake_Click;
                 ButtonFakeTimeOpenNow.Click -= ButtonFakeTimeOpenNow_Click;
                 ButtonRevokeLimit.Click -= ButtonRevokeLimit_Click;
                 ButtonRevokeProfit.Click -= ButtonRevokeProfit_Click;
                 ButtonRevokeStop.Click -= ButtonRevokeStop_Click;
+                ButtonRevokeStopMarket.Click -= ButtonRevokeStopMarket_Click;
+                CheckBoxServerStopOrder.Click -= CheckBoxServerStopOrder_Click;
+                CheckBoxServerStopMarket.Click -= CheckBoxServerStopMarket_Click;
 
                 LabelLimitAllOpenVolumeSend.MouseLeftButtonDown -= LabelLimitAllOpenVolumeSend_MouseLeftButtonDown;
                 LabelLimitAllOpenVolumeSend.MouseEnter -= LabelLimitAllOpenVolumeSend_MouseEnter;
@@ -187,6 +223,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 LabelFakeAllOpenVolume.MouseLeftButtonDown -= LabelFakeAllOpenVolume_MouseLeftButtonDown;
                 LabelFakeAllOpenVolume.MouseEnter -= LabelFakeAllOpenVolume_MouseEnter;
                 LabelFakeAllOpenVolume.MouseLeave -= LabelFakeAllOpenVolume_MouseLeave;
+                LabelStopAllOpenVolumeSend.MouseLeftButtonDown -= LabelStopAllOpenVolumeSend_MouseLeftButtonDown;
+                LabelStopMarketAllOpenVolumeSend.MouseLeftButtonDown -= LabelStopMarketAllOpenVolumeSend_MouseLeftButtonDown;
 
                 if (_marketDepthPainter != null)
                 {
@@ -299,13 +337,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 TabControlTypePosition.SelectedIndex = 2;
             }
-            else if (closePositionType == ClosePositionType.Profit)
+            else if (closePositionType == ClosePositionType.StopMarket)
             {
                 TabControlTypePosition.SelectedIndex = 3;
             }
-            else if (closePositionType == ClosePositionType.Fake)
+            else if (closePositionType == ClosePositionType.Profit)
             {
                 TabControlTypePosition.SelectedIndex = 4;
+            }
+            else if (closePositionType == ClosePositionType.Fake)
+            {
+                TabControlTypePosition.SelectedIndex = 5;
             }
         }
 
@@ -375,6 +417,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxLimitPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
+            TextBoxStopMarketActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxProfitActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxProfitPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
 
@@ -509,7 +552,75 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
+            if (CheckBoxServerStopOrder.IsChecked.Value)
+            {
+                decimal volume = 0;
+
+                try
+                {
+                    volume = TextBoxStopVolumeToClose.Text.ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    return;
+                }
+
+                Tab.CloseAtStopOnServer(Position, priceActivation, priceOrder, volume);
+                return;
+            }
+
             Tab.CloseAtStop(Position, priceActivation, priceOrder);
+        }
+
+        private void ButtonCloseAtStopMarket_Click(object sender, RoutedEventArgs e)
+        {
+            decimal priceActivation = 0;
+
+            try
+            {
+                priceActivation = TextBoxStopMarketActivationPrice.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (priceActivation == 0)
+            {
+                return;
+            }
+
+            if (CheckBoxServerStopMarket.IsChecked.Value)
+            {
+                decimal volume = 0;
+
+                try
+                {
+                    volume = TextBoxStopMarketVolumeToClose.Text.ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    return;
+                }
+
+                Tab.CloseAtStopMarketOnServer(Position, priceActivation, volume);
+                return;
+            }
+
+            Tab.CloseAtStopMarket(Position, priceActivation);
         }
 
         private void ButtonCloseAtProfit_Click(object sender, RoutedEventArgs e)
@@ -700,6 +811,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                     LabelLimitAllOpenVolumeSend.Content = curPosAll;
                     LabelMarketAllOpenVolumeSend.Content = curPosAll;
                     LabelFakeAllOpenVolume.Content = curPosAll;
+                    LabelStopAllOpenVolumeSend.Content = curPosAll;
+                    LabelStopMarketAllOpenVolumeSend.Content = curPosAll;
                 }
             }
             catch
@@ -729,14 +842,62 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                Position.StopOrderIsActive = false;
-                Position.StopOrderPrice = 0;
-                Position.StopOrderRedLine = 0;
+                if (CheckBoxServerStopOrder.IsChecked.Value)
+                {
+                    Tab.CloseAtStopOnServerCancel(Position);
+                }
+                else
+                {
+                    Position.StopOrderIsActive = false;
+                    Position.StopOrderPrice = 0;
+                    Position.StopOrderRedLine = 0;
+                }
             }
             catch (Exception ex)
             {
                 Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+        }
+
+        private void ButtonRevokeStopMarket_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (CheckBoxServerStopMarket.IsChecked.Value)
+                {
+                    Tab.CloseAtStopOnServerCancel(Position);
+                }
+                else
+                {
+                    Position.StopOrderIsActive = false;
+                    Position.StopOrderPrice = 0;
+                    Position.StopOrderRedLine = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxServerStopOrder_Click(object sender, RoutedEventArgs e)
+        {
+            Tab.ServerStopOrdersIsOn = CheckBoxServerStopOrder.IsChecked.Value;
+        }
+
+        private void CheckBoxServerStopMarket_Click(object sender, RoutedEventArgs e)
+        {
+            Tab.ServerStopOrdersIsOn = CheckBoxServerStopMarket.IsChecked.Value;
+        }
+
+        private void LabelStopAllOpenVolumeSend_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TextBoxStopVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
+        }
+
+        private void LabelStopMarketAllOpenVolumeSend_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TextBoxStopMarketVolumeToClose.Text = Position.OpenVolume.ToStringWithNoEndZero();
         }
 
         private void ButtonRevokeLimit_Click(object sender, RoutedEventArgs e)
@@ -781,6 +942,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         Limit,
         Market,
         Stop,
+        StopMarket,
         Profit,
         Fake
     }

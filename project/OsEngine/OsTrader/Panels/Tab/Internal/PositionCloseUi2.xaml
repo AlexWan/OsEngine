@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.Internal"
         mc:Ignorable="d"
-         Title="Position close" Height="515" MinHeight="515" Width="520" MinWidth="520"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
+         Title="Position close" Height="560" MinHeight="560" Width="720" MinWidth="720"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
     <Grid>
-        <Grid HorizontalAlignment="Left" Width="187" Margin="0,0,0,215">
+        <Grid HorizontalAlignment="Left" Width="187" Margin="0,0,0,262">
             <Label Name="LabelServerType" Content="Server:" HorizontalAlignment="Left" Margin="1,30,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelServerTypeValue" Content="BinanceFutures" HorizontalAlignment="Left" Margin="72,30,0,0" VerticalAlignment="Top" Width="115"/>
             <Label Name="LabelSecurity" Content="Security:" HorizontalAlignment="Left" Margin="1,58,0,0" VerticalAlignment="Top"/>
@@ -30,25 +30,25 @@
             </Button>
 
         </Grid>
-        <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="212" VerticalAlignment="Bottom">
+        <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="260" VerticalAlignment="Bottom">
             <TabItem Header="Limit" Name ="TabItemLimit" Width="100">
                 <Grid>
                     <TextBox Name="TextBoxLimitPrice" HorizontalAlignment="Left" Margin="204,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelLimitPrice" Content="Price" HorizontalAlignment="Left" Margin="80,40,0,0" VerticalAlignment="Top"/>
-                    <Button Name="ButtonCloseAtLimit"  Height="45" Content="Close at limit" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtLimit_Click"/>
                     <TextBox Name="TextBoxLimitVolumeToClose" HorizontalAlignment="Left" Margin="204,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelLimitVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="80,68,0,0" VerticalAlignment="Top"/>
                     <Label Name="LabelLimitAllOpenVolumeSend" Content="All open volume: 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="255,91,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="148"/>
-                    <Button Name="ButtonRevokeLimit"  Height="45" Content="Revoke" Margin="356,118,71,0" VerticalAlignment="Top" Click="ButtonRevokeLimit_Click"/>
+                    <Button Name="ButtonCloseAtLimit"  Height="38" Content="Close at limit" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtLimit_Click"/>
+                    <Button Name="ButtonRevokeLimit"  Height="38" Content="Revoke" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,8" Width="90" Click="ButtonRevokeLimit_Click"/>
                 </Grid>
             </TabItem>
 
             <TabItem Header="Market" Name ="TabItemMarket" Width="100" HorizontalAlignment="Right">
                 <Grid>
-                    <Button Name="ButtonCloseAtMarket"  Height="45" Content="Close at market" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtMarket_Click"/>
                     <TextBox Name="TextBoxMarketVolumeToClose" HorizontalAlignment="Left" Margin="204,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelMarketVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="80,68,0,0" VerticalAlignment="Top"/>
                     <Label Name="LabelMarketAllOpenVolumeSend" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="255,91,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="148"/>
+                    <Button Name="ButtonCloseAtMarket"  Height="38" Content="Close at market" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtMarket_Click"/>
                 </Grid>
             </TabItem>
 
@@ -60,8 +60,28 @@
 
                     <TextBox Name="TextBoxStopPrice" HorizontalAlignment="Left" Margin="205,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelStopPrice" Content="Price" HorizontalAlignment="Left" Margin="74,62,0,0" VerticalAlignment="Top"/>
-                    <Button Name="ButtonCloseAtStop"  Height="45" Content="Close at stop" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtStop_Click"/>
-                    <Button Name="ButtonRevokeStop"  Height="45" Content="Revoke" Margin="356,118,71,0" VerticalAlignment="Top" Click="ButtonRevokeStop_Click"/>
+
+                    <TextBox Name="TextBoxStopVolumeToClose" HorizontalAlignment="Left" Margin="205,90,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="74,90,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopAllOpenVolumeSend" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="255,113,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="148"/>
+                    <CheckBox Name="CheckBoxServerStopOrder" Content="Server stop order" HorizontalAlignment="Left" Margin="74,116,0,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonCloseAtStop"  Height="38" Content="Close at stop" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtStop_Click"/>
+                    <Button Name="ButtonRevokeStop"  Height="38" Content="Revoke" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,8" Width="90" Click="ButtonRevokeStop_Click"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Stop-Market" Name ="TabItemStopMarket" Width="100">
+                <Grid>
+
+                    <TextBox Name="TextBoxStopMarketActivationPrice" HorizontalAlignment="Left" Margin="205,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="74,34,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopMarketVolumeToClose" HorizontalAlignment="Left" Margin="205,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketVolumeToClose" Content="Volume to close" HorizontalAlignment="Left" Margin="74,62,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopMarketAllOpenVolumeSend" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="255,85,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="148"/>
+                    <CheckBox Name="CheckBoxServerStopMarket" Content="Server stop order" HorizontalAlignment="Left" Margin="74,92,0,0" VerticalAlignment="Top"/>
+                    <Button Name="ButtonCloseAtStopMarket"  Height="38" Content="Close at stop market" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtStopMarket_Click"/>
+                    <Button Name="ButtonRevokeStopMarket"  Height="38" Content="Revoke" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,8" Width="90" Click="ButtonRevokeStopMarket_Click"/>
                 </Grid>
             </TabItem>
 
@@ -73,8 +93,8 @@
 
                     <TextBox Name="TextBoxProfitPrice" HorizontalAlignment="Left" Margin="205,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelProfitPrice" Content="Price" HorizontalAlignment="Left" Margin="74,62,0,0" VerticalAlignment="Top"/>
-                    <Button Name="ButtonCloseAtProfit"  Height="45" Content="Close at profit" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonCloseAtProfit_Click"/>
-                    <Button Name="ButtonRevokeProfit"  Height="45" Content="Revoke" Margin="356,118,71,0" VerticalAlignment="Top" Click="ButtonRevokeProfit_Click" />
+                    <Button Name="ButtonCloseAtProfit"  Height="38" Content="Close at profit" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtProfit_Click"/>
+                    <Button Name="ButtonRevokeProfit"  Height="38" Content="Revoke" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,8" Width="90" Click="ButtonRevokeProfit_Click"/>
                 </Grid>
             </TabItem>
 
@@ -87,7 +107,7 @@
                     <TextBox Name="TextBoxFakeOpenTime" HorizontalAlignment="Left" Margin="205,33,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139"/>
                     <Label Name="LabelFakeOpenTime" Content="Open Time" HorizontalAlignment="Left" Margin="101,33,0,0" VerticalAlignment="Top" Width="104"/>
                     <Button Name="ButtonFakeTimeOpenNow" Content="Now" HorizontalAlignment="Left" Margin="349,3,0,0" VerticalAlignment="Top" Height="53" Width="55" Click="ButtonFakeTimeOpenNow_Click"/>
-                    <Button Name="ButtonCloseAtFake" Height="35" Content="Close at fake" Margin="155,128,155,0" VerticalAlignment="Top" Click="ButtonCloseAtFake_Click"/>
+                    <Button Name="ButtonCloseAtFake" Height="38" Content="Close at fake" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,8" Width="180" Click="ButtonCloseAtFake_Click"/>
                     <TextBox Name="TextBoxFakeVolume" HorizontalAlignment="Left" Margin="205,89,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelFakeVolume" Content="Volume" HorizontalAlignment="Left" Margin="101,89,0,0" VerticalAlignment="Top"/>
                     <Label Name="LabelFakeAllOpenVolume" Content="All open volume. 1.3" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="256,112,0,0" VerticalAlignment="Top" FontSize="10" Height="12" Width="148"/>
@@ -95,6 +115,6 @@
             </TabItem>
 
         </TabControl>
-        <WindowsFormsHost Name="WinFormsHostMarketDepth" Margin="188,0,4,214"/>
+        <WindowsFormsHost Name="WinFormsHostMarketDepth" Margin="188,0,4,262"/>
     </Grid>
 </Window>

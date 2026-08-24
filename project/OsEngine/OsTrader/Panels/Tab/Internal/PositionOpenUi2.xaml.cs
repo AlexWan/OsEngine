@@ -62,6 +62,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             ComboBoxStopLifetimeType.Items.Add(PositionOpenerToStopLifeTimeType.NoLifeTime.ToString());
             ComboBoxStopLifetimeType.SelectedItem = PositionOpenerToStopLifeTimeType.CandlesCount.ToString();
 
+            ComboBoxStopMarketLimitType.Items.Add(StopActivateType.LowerOrEqual.ToString());
+            ComboBoxStopMarketLimitType.Items.Add(StopActivateType.HigherOrEqual.ToString());
+            ComboBoxStopMarketLimitType.SelectedItem = StopActivateType.HigherOrEqual.ToString();
+
+            ComboBoxStopMarketLifetimeType.Items.Add(PositionOpenerToStopLifeTimeType.CandlesCount.ToString());
+            ComboBoxStopMarketLifetimeType.Items.Add(PositionOpenerToStopLifeTimeType.NoLifeTime.ToString());
+            ComboBoxStopMarketLifetimeType.SelectedItem = PositionOpenerToStopLifeTimeType.CandlesCount.ToString();
+
             LabelLimitVolume.Content = OsLocalization.Trader.Label30;
             LabelMarketVolume.Content = OsLocalization.Trader.Label30;
             LabelStopVolume.Content = OsLocalization.Trader.Label30;
@@ -74,7 +82,17 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TabItemLimit.Header = OsLocalization.Trader.Label200;
             TabItemMarket.Header = OsLocalization.Trader.Label201;
             TabItemStopLimit.Header = OsLocalization.Trader.Label202;
+            TabItemStopMarket.Header = OsLocalization.Trader.Label772;
             TabItemFake.Header = OsLocalization.Trader.Label203;
+
+            LabelStopMarketActivationPrice.Content = OsLocalization.Trader.Label206;
+            LabelStopMarketActivationType.Content = OsLocalization.Trader.Label207;
+            LabelStopMarketLifeTime.Content = OsLocalization.Trader.Label208;
+            LabelStopMarketLifeTimeType.Content = OsLocalization.Trader.Label212;
+            LabelStopMarketVolume.Content = OsLocalization.Trader.Label30;
+
+            CheckBoxServerStopOrder.Content = OsLocalization.Trader.Label771;
+            CheckBoxServerStopMarket.Content = OsLocalization.Trader.Label771;
 
             LabelFakeOpenDate.Content = OsLocalization.Trader.Label209;
             LabelFakeOpenTime.Content = OsLocalization.Trader.Label210;
@@ -85,6 +103,22 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxStopVolume.Text = "1";
             TextBoxStopLifeTime.Text = "1";
             TextBoxFakeVolume.Text = "1";
+            TextBoxStopMarketVolume.Text = "1";
+            TextBoxStopMarketLifeTime.Text = "1";
+
+            bool serverStopsSupported = Tab.ServerIsSupportStopOrders && Tab.StartProgram == StartProgram.IsOsTrader;
+
+            CheckBoxServerStopOrder.IsEnabled = serverStopsSupported;
+            CheckBoxServerStopMarket.IsEnabled = serverStopsSupported;
+
+            CheckBoxServerStopOrder.IsChecked = Tab.ServerStopOrdersIsOn;
+            CheckBoxServerStopMarket.IsChecked = Tab.ServerStopOrdersIsOn;
+
+            CheckBoxServerStopOrder.Click += CheckBoxServerStopOrder_Click;
+            CheckBoxServerStopMarket.Click += CheckBoxServerStopMarket_Click;
+
+            UpdateStopFieldsVisibility();
+            UpdateStopMarketFieldsVisibility();
 
             if (Tab.StartProgram == StartProgram.IsTester)
             {
@@ -234,6 +268,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ButtonSell.Click -= ButtonSell_Click;
                 ButtonFakeTimeOpenNow.Click -= ButtonFakeTimeOpenNow_Click;
                 ButtonPostPositionOpen.Click -= ButtonPostPositionOpen_Click;
+                CheckBoxServerStopOrder.Click -= CheckBoxServerStopOrder_Click;
+                CheckBoxServerStopMarket.Click -= CheckBoxServerStopMarket_Click;
 
                 if (_marketDepthPainter != null)
                 {
@@ -275,6 +311,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxLimitPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxStopPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
+            TextBoxStopMarketActivationPrice.Text = priceSelectedUser.ToStringWithNoEndZero();
             TextBoxFakePrice.Text = priceSelectedUser.ToStringWithNoEndZero();
         }
 
@@ -309,6 +346,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             else if (TabControlTypePosition.SelectedIndex == 3)
             {
+                BuyAtStopMarket();
+            }
+            else if (TabControlTypePosition.SelectedIndex == 4)
+            {
                 BuyAtFake();
             }
         }
@@ -328,6 +369,10 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 SellAtStop();
             }
             else if (TabControlTypePosition.SelectedIndex == 3)
+            {
+                SellAtStopMarket();
+            }
+            else if (TabControlTypePosition.SelectedIndex == 4)
             {
                 SellAtFake();
             }
@@ -438,18 +483,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             decimal volume = 0;
             decimal priceOrder = 0;
             decimal priceActivation = 0;
-            StopActivateType stopActivateType;
-            PositionOpenerToStopLifeTimeType lifeTimeType;
-            int lifeTime = 0;
 
             try
             {
                 volume = TextBoxStopVolume.Text.ToDecimal();
                 priceActivation = TextBoxStopActivationPrice.Text.ToDecimal();
                 priceOrder = TextBoxStopPrice.Text.ToDecimal();
-                lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
-                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
-                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
             }
             catch (Exception ex)
             {
@@ -459,6 +498,28 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
             if (volume == 0)
             {
+                return;
+            }
+
+            if (CheckBoxServerStopOrder.IsChecked.Value)
+            {
+                Tab.BuyAtStopOnServer(volume, priceOrder, priceActivation, "userSendBuyAtStopFromUi");
+                return;
+            }
+
+            StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
+            int lifeTime = 0;
+
+            try
+            {
+                lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
+                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
                 return;
             }
 
@@ -470,18 +531,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             decimal volume = 0;
             decimal priceOrder = 0;
             decimal priceActivation = 0;
-            StopActivateType stopActivateType;
-            PositionOpenerToStopLifeTimeType lifeTimeType;
-            int lifeTime = 0;
 
             try
             {
                 volume = TextBoxStopVolume.Text.ToDecimal();
                 priceActivation = TextBoxStopActivationPrice.Text.ToDecimal();
                 priceOrder = TextBoxStopPrice.Text.ToDecimal();
-                lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
-                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
-                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
             }
             catch (Exception ex)
             {
@@ -494,7 +549,159 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
+            if (CheckBoxServerStopOrder.IsChecked.Value)
+            {
+                Tab.SellAtStopOnServer(volume, priceOrder, priceActivation, "userSendSellAtStopFromUi");
+                return;
+            }
+
+            StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
+            int lifeTime = 0;
+
+            try
+            {
+                lifeTime = Convert.ToInt32(TextBoxStopLifeTime.Text);
+                Enum.TryParse(ComboBoxStopLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopLifetimeType.SelectedItem.ToString(), out lifeTimeType);
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
             Tab.SellAtStop(volume, priceOrder, priceActivation, stopActivateType, lifeTime, "userSendSellAtStopFromUi", lifeTimeType);
+        }
+
+        // Stop-Market
+
+        private void BuyAtStopMarket()
+        {
+            decimal volume = 0;
+            decimal priceActivation = 0;
+
+            try
+            {
+                volume = TextBoxStopMarketVolume.Text.ToDecimal();
+                priceActivation = TextBoxStopMarketActivationPrice.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (volume == 0)
+            {
+                return;
+            }
+
+            if (CheckBoxServerStopMarket.IsChecked.Value)
+            {
+                Tab.BuyAtStopMarketOnServer(volume, priceActivation, "userSendBuyAtStopMarketFromUi");
+                return;
+            }
+
+            StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
+            int lifeTime = 0;
+
+            try
+            {
+                lifeTime = Convert.ToInt32(TextBoxStopMarketLifeTime.Text);
+                Enum.TryParse(ComboBoxStopMarketLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopMarketLifetimeType.SelectedItem.ToString(), out lifeTimeType);
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            Tab.BuyAtStopMarket(volume, priceActivation, priceActivation, stopActivateType, lifeTime, "userSendBuyAtStopMarketFromUi", lifeTimeType);
+        }
+
+        private void SellAtStopMarket()
+        {
+            decimal volume = 0;
+            decimal priceActivation = 0;
+
+            try
+            {
+                volume = TextBoxStopMarketVolume.Text.ToDecimal();
+                priceActivation = TextBoxStopMarketActivationPrice.Text.ToDecimal();
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (volume == 0)
+            {
+                return;
+            }
+
+            if (CheckBoxServerStopMarket.IsChecked.Value)
+            {
+                Tab.SellAtStopMarketOnServer(volume, priceActivation, "userSendSellAtStopMarketFromUi");
+                return;
+            }
+
+            StopActivateType stopActivateType;
+            PositionOpenerToStopLifeTimeType lifeTimeType;
+            int lifeTime = 0;
+
+            try
+            {
+                lifeTime = Convert.ToInt32(TextBoxStopMarketLifeTime.Text);
+                Enum.TryParse(ComboBoxStopMarketLimitType.SelectedItem.ToString(), out stopActivateType);
+                Enum.TryParse(ComboBoxStopMarketLifetimeType.SelectedItem.ToString(), out lifeTimeType);
+            }
+            catch (Exception ex)
+            {
+                Tab.SetNewLogMessage(ex.Message.ToString(), Logging.LogMessageType.Error);
+                return;
+            }
+
+            Tab.SellAtStopMarket(volume, priceActivation, priceActivation, stopActivateType, lifeTime, "userSendSellAtStopMarketFromUi", lifeTimeType);
+        }
+
+        private void CheckBoxServerStopOrder_Click(object sender, RoutedEventArgs e)
+        {
+            Tab.ServerStopOrdersIsOn = CheckBoxServerStopOrder.IsChecked.Value;
+            UpdateStopFieldsVisibility();
+        }
+
+        private void CheckBoxServerStopMarket_Click(object sender, RoutedEventArgs e)
+        {
+            Tab.ServerStopOrdersIsOn = CheckBoxServerStopMarket.IsChecked.Value;
+            UpdateStopMarketFieldsVisibility();
+        }
+
+        private void UpdateStopFieldsVisibility()
+        {
+            Visibility vis = CheckBoxServerStopOrder.IsChecked.Value ? Visibility.Collapsed : Visibility.Visible;
+
+            ComboBoxStopLimitType.Visibility = vis;
+            LabelStopActivationType.Visibility = vis;
+            ComboBoxStopLifetimeType.Visibility = vis;
+            LabelStopLifeTimeType.Visibility = vis;
+            TextBoxStopLifeTime.Visibility = vis;
+            LabelStopLifeTime.Visibility = vis;
+        }
+
+        private void UpdateStopMarketFieldsVisibility()
+        {
+            Visibility vis = CheckBoxServerStopMarket.IsChecked.Value ? Visibility.Collapsed : Visibility.Visible;
+
+            ComboBoxStopMarketLimitType.Visibility = vis;
+            LabelStopMarketActivationType.Visibility = vis;
+            ComboBoxStopMarketLifetimeType.Visibility = vis;
+            LabelStopMarketLifeTimeType.Visibility = vis;
+            TextBoxStopMarketLifeTime.Visibility = vis;
+            LabelStopMarketLifeTime.Visibility = vis;
         }
 
         // Fake

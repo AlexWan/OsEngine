@@ -597,6 +597,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                             continue;
                         }
 
+                        if (openOrder.TypeOrder == OrderPriceType.StopLimit ||
+                            openOrder.TypeOrder == OrderPriceType.StopMarket)
+                        {   // серверные стоп-ордера сопровождение не трогает
+                            continue;
+                        }
+
                         if (openOrder.State != OrderStateType.Active &&
                             openOrder.State != OrderStateType.Partial &&
                             openOrder.State != OrderStateType.Pending)
@@ -659,6 +665,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                         if (closeOrder == null)
                         {
+                            continue;
+                        }
+
+                        if (closeOrder.TypeOrder == OrderPriceType.StopLimit ||
+                            closeOrder.TypeOrder == OrderPriceType.StopMarket)
+                        {   // серверные стоп-ордера сопровождение не трогает
                             continue;
                         }
 

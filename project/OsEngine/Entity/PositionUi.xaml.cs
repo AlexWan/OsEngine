@@ -136,7 +136,11 @@ namespace OsEngine.Entity
 
         private void _mainPosGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
+            string errorMessage = e.Exception != null
+                ? "DataGridViewDataError: " + e.Exception
+                : "DataGridViewDataError: " + e.ToString();
+
+            ServerMaster.SendNewLogMessage(errorMessage, Logging.LogMessageType.Error);
         }
 
         private void PaintPosTable()
@@ -332,6 +336,8 @@ namespace OsEngine.Entity
             typeCell.Items.Add(OrderPriceType.Limit.ToString());
             typeCell.Items.Add(OrderPriceType.Market.ToString());
             typeCell.Items.Add(OrderPriceType.Iceberg.ToString());
+            typeCell.Items.Add(OrderPriceType.StopLimit.ToString());
+            typeCell.Items.Add(OrderPriceType.StopMarket.ToString());
             nRow.Cells.Add(typeCell);
             nRow.Cells[10].Value = order.TypeOrder.ToString();
 

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.Internal"
         mc:Ignorable="d"
-        Title="Position opening" Height="550" Width="420" MinWidth="420" MinHeight="550" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
+        Title="Position opening" Height="580" Width="600" MinWidth="600" MinHeight="580" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
     <Grid>
         <Grid Margin="0,0,0,301" HorizontalAlignment="Left" Width="187">
             <Label Name="LabelServerType" Content="Server:" HorizontalAlignment="Left" Margin="1,30,0,0" VerticalAlignment="Top"/>
@@ -54,6 +54,28 @@
 
                     <ComboBox Name="ComboBoxStopLifetimeType" HorizontalAlignment="Left" Margin="148,38,0,0" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelStopLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxServerStopOrder" Content="Server stop order" HorizontalAlignment="Left" Margin="9,178,0,0" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Stop-Market" Name ="TabItemStopMarket" Width="100">
+                <Grid>
+                    <TextBox Name="TextBoxStopMarketActivationPrice" HorizontalAlignment="Left" Margin="148,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopMarketVolume" HorizontalAlignment="Left" Margin="148,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketVolume" Content="Volume" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Name="ComboBoxStopMarketLimitType" HorizontalAlignment="Left" Margin="148,66,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="9,66,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Name="ComboBoxStopMarketLifetimeType" HorizontalAlignment="Left" Margin="148,94,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,94,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopMarketLifeTime" HorizontalAlignment="Left" Margin="148,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="9,122,0,0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxServerStopMarket" Content="Server stop order" HorizontalAlignment="Left" Margin="9,150,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
 
