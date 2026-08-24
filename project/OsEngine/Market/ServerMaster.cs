@@ -692,7 +692,7 @@ namespace OsEngine.Market
 
                     if (type == ServerType.BitGetUnified)
                     {
-                        newServer = new BitGetUnifiedServer();
+                        newServer = new BitGetUnifiedServer(uniqueNum);
                     }
                     if (type == ServerType.TDataHistory)
                     {
