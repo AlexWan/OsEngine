@@ -814,7 +814,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             if (endTime > DateTime.Now - new TimeSpan(0, 0, 1, 0))
                 endTime = DateTime.Now - new TimeSpan(0, 0, 1, 0);
 
-            int interval = 1500 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            int interval = 1000 * (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
             int tfMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
@@ -832,7 +832,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (realEndTime > DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0))
                     realEndTime = DateTime.Now - new TimeSpan(0, 0, (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes, 0);
 
-                // считаем limit по реальной потребности: вес klines 1-2 при limit < 500 против 10 при limit = 1500
+                // считаем limit по реальной потребности: вес klines 1-2 при limit < 500, 5 при limit <= 1000 против 10 при limit > 1000
 
                 int chunkLimit = (int)((realEndTime - startTimeStep).TotalMinutes / tfMinutes) + 2;
 
@@ -851,9 +851,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     chunkLimit = 1;
                 }
 
-                if (chunkLimit > 1500)
+                if (chunkLimit > 1000)
                 {
-                    chunkLimit = 1500;
+                    chunkLimit = 1000;
                 }
 
                 List<Candle> stepCandles = GetCandlesForTimes(security.Name, timeFrameBuilder.TimeFrameTimeSpan, startTimeStep, realEndTime, chunkLimit);
@@ -992,9 +992,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 // для составных таймфреймов limit умножаем на коэффициент базового ТФ
 
-                int baseLimit2 = Math.Min(limit * 2, 1500);
-                int baseLimit4 = Math.Min(limit * 4, 1500);
-                int baseLimit3 = Math.Min(limit * 3, 1500);
+                int baseLimit2 = Math.Min(limit * 2, 1000);
+                int baseLimit4 = Math.Min(limit * 4, 1000);
+                int baseLimit3 = Math.Min(limit * 3, 1000);
 
                 if (needTf == "2m")
                 {
@@ -1744,7 +1744,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<Security> _subscribedSecurities = new List<Security>();
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         public void Subscribe(Security security)
         {
@@ -3309,6 +3309,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         private void WaitIfWeightNearLimit()
         {
             // жёсткий лимит Binance Futures приходит из exchangeInfo, тормозим заранее от 75%
+            // вес в скользящем окне Binance живёт полные 60 секунд: затухание не считаем,
+            // иначе недооцениваем окно и долетаем до 429
 
             if (_lastUsedWeightTime == DateTime.MinValue)
             {
@@ -3322,23 +3324,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 return;
             }
 
-            double estimatedWeight = _lastUsedWeight * (60 - secondsPassed) / 60.0;
-
             double softLimit = _requestWeightLimitPerMinute * 0.75;
 
-            if (estimatedWeight <= softLimit)
+            if (_lastUsedWeight <= softLimit)
             {
                 return;
             }
 
-            double waitSeconds = 60 * (1 - softLimit / estimatedWeight);
+            // ждём до гарантированной очистки окна: запросы под lock'ом, новых ответов не будет
 
-            if (waitSeconds > 30)
-            {
-                waitSeconds = 30;
-            }
-
-            Thread.Sleep(TimeSpan.FromSeconds(waitSeconds));
+            Thread.Sleep(TimeSpan.FromSeconds(60 - secondsPassed));
         }
 
         private void TryRegisterIpBan(string response)
