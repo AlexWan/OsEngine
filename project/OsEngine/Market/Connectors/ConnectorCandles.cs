@@ -560,6 +560,31 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
+        /// does the server support Stop type orders (StopLimit/StopMarket). Support = true
+        /// </summary>
+        public bool StopOrdersIsSupport
+        {
+            get
+            {
+                if (ServerType == ServerType.Tester ||
+                    ServerType == ServerType.Optimizer ||
+                    ServerType == ServerType.None)
+                {
+                    return false;
+                }
+
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(ServerType);
+
+                if (serverPermission == null)
+                {
+                    return false;
+                }
+
+                return serverPermission.StopOrdersIsSupport;
+            }
+        }
+
+        /// <summary>
         /// does the server support order price change. Support = true
         /// </summary>
         public bool IsCanChangeOrderPrice

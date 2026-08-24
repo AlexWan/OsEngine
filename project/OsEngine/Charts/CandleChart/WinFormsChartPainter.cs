@@ -2041,6 +2041,12 @@ ContextMenuStrip menu)
                                 continue;
                             }
 
+                            if (curOrder.TypeOrder == OrderPriceType.StopLimit
+                                || curOrder.TypeOrder == OrderPriceType.StopMarket)
+                            {
+                                continue;
+                            }
+
                             Series lineSeries = new Series("Open_" + position.Number + j.ToString());
                             lineSeries.ChartType = SeriesChartType.Line;
                             lineSeries.YAxisType = AxisType.Secondary;
@@ -2049,8 +2055,10 @@ ContextMenuStrip menu)
                             lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                             lineSeries.YValuesPerPoint = 1;
 
-                            lineSeries.Points.AddXY(0, curOrder.Price);
-                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+                            decimal priceToPaint = GetOrderPriceToPaint(curOrder);
+
+                            lineSeries.Points.AddXY(0, priceToPaint);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, priceToPaint);
 
                             if (curOrder.Side == Side.Buy)
                             {
@@ -2111,6 +2119,12 @@ ContextMenuStrip menu)
                                 continue;
                             }
 
+                            if (curOrder.TypeOrder == OrderPriceType.StopLimit
+                                || curOrder.TypeOrder == OrderPriceType.StopMarket)
+                            {
+                                continue;
+                            }
+
                             Series lineSeries = new Series("Close_" + position.Number + j.ToString());
                             lineSeries.ChartType = SeriesChartType.Line;
                             lineSeries.YAxisType = AxisType.Secondary;
@@ -2119,9 +2133,10 @@ ContextMenuStrip menu)
                             lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                             lineSeries.YValuesPerPoint = 1;
 
+                            decimal closePriceToPaint = GetOrderPriceToPaint(curOrder);
 
-                            lineSeries.Points.AddXY(0, curOrder.Price);
-                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.Price);
+                            lineSeries.Points.AddXY(0, closePriceToPaint);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, closePriceToPaint);
 
                             if (curOrder.Side == Side.Buy)
                             {
@@ -2264,12 +2279,173 @@ ContextMenuStrip menu)
                     }
                 }
 
+                for (int i = 0; i < deals.Count; i++)
+                {
+                    // server stop orders (StopLimit/StopMarket)
+                    // серверные СТОП ОРДЕРА
+
+                    Position position = deals[i];
+
+                    if (position == null)
+                    {
+                        continue;
+                    }
+
+                    if (position.State != PositionStateType.Closing
+                        && position.State != PositionStateType.Opening
+                        && position.State != PositionStateType.Open
+                        && position.State != PositionStateType.ClosingFail)
+                    {
+                        continue;
+                    }
+
+                    if (position.CloseOrders != null)
+                    {
+                        for (int j = 0; j < position.CloseOrders.Count; j++)
+                        {
+                            Order curOrder = position.CloseOrders[j];
+
+                            if (curOrder == null)
+                            {
+                                continue;
+                            }
+
+                            if (curOrder.TypeOrder != OrderPriceType.StopLimit
+                                && curOrder.TypeOrder != OrderPriceType.StopMarket)
+                            {
+                                continue;
+                            }
+
+                            if (curOrder.State != OrderStateType.Active
+                                && curOrder.State != OrderStateType.Pending
+                                && curOrder.State != OrderStateType.None
+                                && curOrder.State != OrderStateType.Partial)
+                            {
+                                continue;
+                            }
+
+                            Series lineSeries = new Series("StopServer_" + position.Number + "_" + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.StepLine;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
+                            lineSeries.YValuesPerPoint = 1;
+
+                            lineSeries.Points.AddXY(0, curOrder.StopPrice);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.StopPrice);
+
+                            if (position.Direction == Side.Sell)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
+                        }
+                    }
+
+                    if (position.OpenOrders != null)
+                    {
+                        for (int j = 0; j < position.OpenOrders.Count; j++)
+                        {
+                            Order curOrder = position.OpenOrders[j];
+
+                            if (curOrder == null)
+                            {
+                                continue;
+                            }
+
+                            if (curOrder.TypeOrder != OrderPriceType.StopLimit
+                                && curOrder.TypeOrder != OrderPriceType.StopMarket)
+                            {
+                                continue;
+                            }
+
+                            if (curOrder.State != OrderStateType.Active
+                                && curOrder.State != OrderStateType.Pending
+                                && curOrder.State != OrderStateType.None
+                                && curOrder.State != OrderStateType.Partial)
+                            {
+                                continue;
+                            }
+
+                            Series lineSeries = new Series("StopServer_" + position.Number + "_o" + j.ToString());
+                            lineSeries.ChartType = SeriesChartType.StepLine;
+                            lineSeries.YAxisType = AxisType.Secondary;
+                            lineSeries.XAxisType = AxisType.Secondary;
+                            lineSeries.ChartArea = "Prime";
+                            lineSeries.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
+                            lineSeries.YValuesPerPoint = 1;
+
+                            lineSeries.Points.AddXY(0, curOrder.StopPrice);
+                            lineSeries.Points.AddXY(_myCandles.Count + 500, curOrder.StopPrice);
+
+                            if (position.Direction == Side.Sell)
+                            {
+                                lineSeries.Color = Color.Green;
+                            }
+                            else
+                            {
+                                lineSeries.Color = Color.Red;
+                            }
+
+                            if (stopProfitOrderSeries == null)
+                            {
+                                stopProfitOrderSeries = new[] { lineSeries };
+                            }
+                            else
+                            {
+                                Series[] newLineSeries = new Series[stopProfitOrderSeries.Length + 1];
+                                for (int i2 = 0; i2 < stopProfitOrderSeries.Length; i2++)
+                                {
+                                    newLineSeries[i2] = stopProfitOrderSeries[i2];
+                                }
+                                newLineSeries[newLineSeries.Length - 1] = lineSeries;
+                                stopProfitOrderSeries = newLineSeries;
+                            }
+                        }
+                    }
+                }
+
                 PaintDealSafe(buySellSeries, stopProfitOrderSeries);
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private decimal GetOrderPriceToPaint(Order order)
+        {
+            // стоп-ордер до активации не имеет биржевой заявки.
+            // Рисуем его по цене активации. После активации в позиции
+            // появляется дочерний ордер, который рисуется по своей цене
+
+            if ((order.TypeOrder == OrderPriceType.StopLimit
+                || order.TypeOrder == OrderPriceType.StopMarket)
+                && order.StopPrice != 0)
+            {
+                return order.StopPrice;
+            }
+
+            return order.Price;
         }
 
         /// <summary>
@@ -2375,7 +2551,8 @@ ContextMenuStrip menu)
                     if (name == "Stop" ||
                         name == "Profit" ||
                         name == "Open" ||
-                        name == "Close")
+                        name == "Close" ||
+                        name == "StopServer")
                     {
                         bool isInArray = false;
 

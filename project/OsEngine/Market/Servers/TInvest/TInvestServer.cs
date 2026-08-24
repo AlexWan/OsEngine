@@ -3669,8 +3669,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (string.IsNullOrEmpty(state.TradeOrderId) == false
                             && IsOurStopOrder(state.TradeOrderId))
-                        {   // дочерняя биржевая заявка нашего стоп-ордера. Обрабатываем только трейды
-                            ProcessStopOrderChildOrderTrades(state, security);
+                        {   // дочерняя биржевая заявка нашего стоп-ордера
+                            ProcessStopOrderChildOrder(state, security);
                             continue;
                         }
 
@@ -4034,6 +4034,26 @@ namespace OsEngine.Market.Servers.TInvest
                     return;
                 }
 
+                if (state.Status == StopOrderStatusOption.StopOrderStatusExecuted)
+                {
+                    StopOrder stopFromServer = GetStopOrderFromServer(state.AccountId, state.StopOrderId);
+
+                    if (stopFromServer != null)
+                    {
+                        if (stopFromServer.HasExchangeOrderId)
+                        {
+                            order.ChildOrderNumberMarket = stopFromServer.ExchangeOrderId;
+                        }
+
+                        if (stopFromServer.ActivationDateTime != null)
+                        {
+                            order.TimeCancel = TimeZoneInfo.ConvertTimeFromUtc(stopFromServer.ActivationDateTime.ToDateTime(), _mskTimeZone);
+                        }
+
+                        ProcessStopOrderTrades(order, stopFromServer, "OrderStateMessageReader");
+                    }
+                }
+
                 LogOrderInFullLog(order, "OrderStateMessageReader");
 
                 MyOrderEvent?.Invoke(order);
@@ -4042,6 +4062,33 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage("Error processing stop order state from stream. " + ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private StopOrder GetStopOrderFromServer(string accountId, string stopOrderId)
+        {   // стоп-ордер с сервера по его id (нужен ExchangeOrderId и ActivationDateTime после активации)
+            try
+            {
+                List<StopOrder> stopsFromServer = GetStopOrdersFromServer(accountId, StopOrderStatusOption.StopOrderStatusAll);
+
+                if (stopsFromServer == null)
+                {
+                    return null;
+                }
+
+                for (int i = 0; i < stopsFromServer.Count; i++)
+                {
+                    if (stopsFromServer[i].StopOrderId == stopOrderId)
+                    {
+                        return stopsFromServer[i];
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error getting stop order from server. " + ex.ToString(), LogMessageType.System);
+            }
+
+            return null;
         }
 
         private bool IsOurStopOrder(string stopOrderId)
@@ -4060,6 +4107,111 @@ namespace OsEngine.Market.Servers.TInvest
             lock (_orderNumbersLocker)
             {
                 return _stopOrderNumbers.ContainsKey(stopOrderId);
+            }
+        }
+
+        private OrderStateType GetStateFromExecutionReportStatus(OrderExecutionReportStatus status, bool hasCompletionTime)
+        {
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusUnspecified)
+            {
+                return OrderStateType.None;
+            }
+
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusFill)
+            {
+                return OrderStateType.Done;
+            }
+
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusRejected)
+            {
+                return OrderStateType.Fail;
+            }
+
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusCancelled)
+            {
+                return OrderStateType.Cancel;
+            }
+
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusNew)
+            {
+                return OrderStateType.Active;
+            }
+
+            if (status == OrderExecutionReportStatus.ExecutionReportStatusPartiallyfill)
+            {   // partially filled orders never go to cancelled state
+                return hasCompletionTime ? OrderStateType.Cancel : OrderStateType.Partial;
+            }
+
+            return OrderStateType.None;
+        }
+
+        private void ProcessStopOrderChildOrder(OrderStateStreamResponse.Types.OrderState state, Security security)
+        {   // дочерняя биржевая заявка активированного стоп-ордера
+            try
+            {
+                if (state.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusNew)
+                {
+                    if (state.OrderId != null
+                        && state.OrderId.Split('-').Length > 3)
+                    { // отсекаем внутренний статус о том что ордер дошёл до торговой системы Т.
+                      // С не настоящим id
+                        return;
+                    }
+                }
+
+                Order order = new Order();
+
+                order.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
+                order.NumberMarket = state.OrderId;
+                order.ParentOrderNumberMarket = state.TradeOrderId; // id материнского стоп-ордера
+                order.SecurityNameCode = security.Name;
+                order.SecurityClassCode = security.NameClass;
+                order.PortfolioNumber = state.AccountId;
+                order.Side = state.Direction == OrderDirection.Buy ? Side.Buy : Side.Sell;
+                order.TypeOrder = state.OrderType == OrderType.Limit || state.OrderType == OrderType.Unspecified
+                    ? OrderPriceType.Limit
+                    : OrderPriceType.Market;
+
+                order.Volume = state.LotsRequested;
+                order.VolumeExecute = state.LotsExecuted;
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    order.Price = GetValue(state.OrderPrice) / security.PriceStepCost * security.PriceStep;
+                }
+                else
+                {
+                    order.Price = 0;
+                }
+
+                order.TimeCallBack = state.CreatedAt?.ToDateTime() != null
+                    ? TimeZoneInfo.ConvertTimeFromUtc(state.CreatedAt.ToDateTime(), _mskTimeZone)
+                    : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
+
+                order.State = GetStateFromExecutionReportStatus(state.ExecutionReportStatus, state.CompletionTime != null);
+
+                if (order.State == OrderStateType.Active
+                    && order.TypeOrder == OrderPriceType.Limit
+                    && order.Price == 0)
+                {
+                    return; // ignore such status
+                }
+
+                if (IsCancelOrderInClearing(order))
+                {   // это у нас отзыв ордера в клиринг вечерний. Фьючерсная площадка
+                    return;
+                }
+
+                LogOrderInFullLog(order, "StopChildOrder");
+
+                MyOrderEvent?.Invoke(order);
+
+                // трейды дочерней заявки
+                ProcessStopOrderChildOrderTrades(state, security);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error processing stop order child order. " + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -4090,7 +4242,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
 
                     trade.Volume = orderTrade.Quantity / security.Lot;
-                    trade.NumberOrderParent = state.TradeOrderId;
+                    trade.NumberOrderParent = state.OrderId; // привязываем к дочерней биржевой заявке, а не к стоп-ордеру
                     trade.NumberTrade = orderTrade.TradeId;
                     trade.Time = TimeZoneInfo.ConvertTimeFromUtc(orderTrade.DateTime.ToDateTime(), _mskTimeZone); // convert to MSK
 
@@ -4114,8 +4266,6 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void RemoveActiveStopOrderUnsafe(string numberMarket)
         {
-            // вызывать только под lock (_stopOrdersLocker)
-
             for (int i = 0; i < _activeStopOrders.Count; i++)
             {
                 if (_activeStopOrders[i].NumberMarket == numberMarket)
@@ -4138,8 +4288,6 @@ namespace OsEngine.Market.Servers.TInvest
                     return;
                 }
 
-                // догоняем трейды по порождённой биржевой заявке
-
                 lock (_rageGateOrdersLocker)
                 {
                     _rateGateOrders.WaitToProceed();
@@ -4151,8 +4299,40 @@ namespace OsEngine.Market.Servers.TInvest
 
                 OrderState state = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata);
 
-                if (state == null
-                    || state.Stages == null
+                if (state == null)
+                {
+                    return;
+                }
+
+                // сначала эмитим дочерний ордер, чтобы ядро привязало его к позиции материнского стоп-ордера
+
+                Order childOrder = new Order();
+
+                childOrder.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
+                childOrder.NumberMarket = stopFromServer.ExchangeOrderId;
+                childOrder.ParentOrderNumberMarket = order.NumberMarket; // id материнского стоп-ордера
+                childOrder.SecurityNameCode = order.SecurityNameCode;
+                childOrder.SecurityClassCode = order.SecurityClassCode;
+                childOrder.PortfolioNumber = order.PortfolioNumber;
+                childOrder.Side = order.Side;
+                childOrder.TypeOrder = state.OrderType == OrderType.Limit
+                    ? OrderPriceType.Limit
+                    : OrderPriceType.Market;
+                childOrder.Volume = state.LotsRequested;
+                childOrder.VolumeExecute = state.LotsExecuted;
+                childOrder.Price = childOrder.TypeOrder == OrderPriceType.Limit
+                    ? GetValue(state.InitialSecurityPrice) / security.PriceStepCost * security.PriceStep
+                    : 0;
+                childOrder.TimeCallBack = state.OrderDate != null
+                    ? TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone)
+                    : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
+                childOrder.State = GetStateFromExecutionReportStatus(state.ExecutionReportStatus, false);
+
+                LogOrderInFullLog(childOrder, source);
+
+                MyOrderEvent?.Invoke(childOrder);
+
+                if (state.Stages == null
                     || state.Stages.Count == 0)
                 {
                     return;
@@ -4176,7 +4356,7 @@ namespace OsEngine.Market.Servers.TInvest
                     decimal lot = security.Lot > 0 ? security.Lot : 1;
 
                     trade.Volume = stage.Quantity / lot;
-                    trade.NumberOrderParent = order.NumberMarket;
+                    trade.NumberOrderParent = stopFromServer.ExchangeOrderId; // привязываем к дочерней биржевой заявке
                     trade.NumberTrade = stage.TradeId;
                     trade.Time = TimeZoneInfo.ConvertTimeFromUtc(stage.ExecutionTime.ToDateTime(), _mskTimeZone);// convert to MSK
                     trade.Side = order.Side;
@@ -5054,8 +5234,9 @@ namespace OsEngine.Market.Servers.TInvest
                                 newOrder.NumberUser = _orderNumbers[orderId];
                             }
                             else
-                            {
-                                return null;
+                            {   // не наша заявка (ручная или порождённая стоп-ордером). Пропускаем только её,
+                                // а не весь список заявок по счёту
+                                continue;
                             }
 
                         }
@@ -5487,21 +5668,24 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (stopsFromServer[i].StopOrderId == order.NumberMarket)
                     {
-                        OrderStateType state = GetStateFromStopOrderStatus(stopsFromServer[i].Status);
+                        StopOrderStatusOption serverStatus = stopsFromServer[i].Status;
+                        OrderStateType state = GetStateFromStopOrderStatus(serverStatus);
 
-                        if (state == OrderStateType.Done
-                            || state == OrderStateType.Cancel)
-                        {   // ядро игнорирует возвращаемое значение. Статус отправляем событием,
-                            // как это делает GetOrderStatusWithTrades для обычных заявок
-
+                        if (state == OrderStateType.Cancel)
+                        {
                             order.State = state;
                             order.TimeCallBack = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
 
-                            if (state == OrderStateType.Done)
-                            {
-                                order.TimeDone = stopsFromServer[i].ActivationDateTime != null
+                            if (serverStatus == StopOrderStatusOption.StopOrderStatusExecuted)
+                            {   // активация: стоп завершил жизнь, породив биржевую заявку
+                                order.TimeCancel = stopsFromServer[i].ActivationDateTime != null
                                     ? TimeZoneInfo.ConvertTimeFromUtc(stopsFromServer[i].ActivationDateTime.ToDateTime(), _mskTimeZone)
                                     : order.TimeCallBack;
+
+                                if (stopsFromServer[i].HasExchangeOrderId)
+                                {   // биржевой id порождённой заявки
+                                    order.ChildOrderNumberMarket = stopsFromServer[i].ExchangeOrderId;
+                                }
                             }
                             else
                             {
@@ -5513,14 +5697,14 @@ namespace OsEngine.Market.Servers.TInvest
                                 RemoveActiveStopOrderUnsafe(order.NumberMarket);
                             }
 
+                            if (serverStatus == StopOrderStatusOption.StopOrderStatusExecuted)
+                            {
+                                ProcessStopOrderTrades(order, stopsFromServer[i], source);
+                            }
+
                             LogOrderInFullLog(order, source);
 
                             MyOrderEvent?.Invoke(order);
-
-                            if (state == OrderStateType.Done)
-                            {   // стоп исполнился, пока не было события в стриме (реконнект). Догоняем трейды
-                                ProcessStopOrderTrades(order, stopsFromServer[i], source);
-                            }
                         }
 
                         return state;
@@ -5694,10 +5878,16 @@ namespace OsEngine.Market.Servers.TInvest
 
                         newOrder.TimeCallBack = createTime;
 
-                        if (newOrder.State == OrderStateType.Done
-                            && stop.ActivationDateTime != null)
-                        {
-                            newOrder.TimeDone = TimeZoneInfo.ConvertTimeFromUtc(stop.ActivationDateTime.ToDateTime(), _mskTimeZone);
+                        if (stop.Status == StopOrderStatusOption.StopOrderStatusExecuted)
+                        {   // активация: стоп завершил жизнь, породив биржевую заявку (State == Cancel)
+                            newOrder.TimeCancel = stop.ActivationDateTime != null
+                                ? TimeZoneInfo.ConvertTimeFromUtc(stop.ActivationDateTime.ToDateTime(), _mskTimeZone)
+                                : createTime;
+
+                            if (stop.HasExchangeOrderId)
+                            {   // биржевой id порождённой заявки
+                                newOrder.ChildOrderNumberMarket = stop.ExchangeOrderId;
+                            }
                         }
                         else if (newOrder.State == OrderStateType.Cancel)
                         {
@@ -5762,7 +5952,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             if (status == StopOrderStatusOption.StopOrderStatusExecuted)
             {
-                return OrderStateType.Done;
+                return OrderStateType.Cancel;
             }
 
             if (status == StopOrderStatusOption.StopOrderStatusCanceled

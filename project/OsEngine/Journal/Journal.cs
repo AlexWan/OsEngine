@@ -446,6 +446,21 @@ namespace OsEngine.Journal
 
         public Order IsMyOrder(Order order, bool canChangeOrderNumber)
         {
+            if (string.IsNullOrEmpty(order.ParentOrderNumberMarket) == false)
+            {
+                Order parent = FindOrderByNumberMarket(OpenPositions, order.ParentOrderNumberMarket);
+
+                if (parent == null)
+                {
+                    parent = FindOrderByNumberMarket(AllPosition, order.ParentOrderNumberMarket);
+                }
+
+                if (parent != null)
+                {
+                    return parent;
+                }
+            }
+
             // open positions. Look All
 
             List<Position> positionsOpen = this.OpenPositions;
@@ -627,9 +642,47 @@ namespace OsEngine.Journal
             return null;
         }
 
-        #endregion
+        private Order FindOrderByNumberMarket(List<Position> positions, string numberMarket)
+        {
+            if (positions == null)
+            {
+                return null;
+            }
 
-        #region Incoming data reception
+            for (int i = positions.Count - 1; i > -1; i--)
+            {
+                Position position = positions[i];
+
+                if (position == null)
+                {
+                    continue;
+                }
+
+                List<Order> openOrders = position.OpenOrders;
+
+                for (int j = 0; openOrders != null && j < openOrders.Count; j++)
+                {
+                    if (openOrders[j] != null
+                        && openOrders[j].NumberMarket == numberMarket)
+                    {
+                        return openOrders[j];
+                    }
+                }
+
+                List<Order> closeOrders = position.CloseOrders;
+
+                for (int j = 0; closeOrders != null && j < closeOrders.Count; j++)
+                {
+                    if (closeOrders[j] != null
+                        && closeOrders[j].NumberMarket == numberMarket)
+                    {
+                        return closeOrders[j];
+                    }
+                }
+            }
+
+            return null;
+        }
 
         public void SetNewOrder(Order newOrder, bool canChangeOrderNumber)
         {

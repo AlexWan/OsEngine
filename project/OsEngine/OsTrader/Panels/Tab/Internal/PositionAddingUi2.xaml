@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsTrader.Panels.Tab.Internal"
         mc:Ignorable="d"
-         Title="Position adding" Height="570" MinHeight="570" Width="520" MinWidth="520"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
+         Title="Position adding" Height="600" MinHeight="600" Width="620" MinWidth="620"  Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" >
     <Grid>
-        <Grid HorizontalAlignment="Left" Width="187" Margin="0,0,0,268">
+        <Grid HorizontalAlignment="Left" Width="187" Margin="0,0,0,292">
             <Label Name="LabelServerType" Content="Server:" HorizontalAlignment="Left" Margin="1,30,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelServerTypeValue" Content="BinanceFutures" HorizontalAlignment="Left" Margin="72,30,0,0" VerticalAlignment="Top" Width="115"/>
             <Label Name="LabelSecurity" Content="Security:" HorizontalAlignment="Left" Margin="1,58,0,0" VerticalAlignment="Top"/>
@@ -29,7 +29,7 @@
                 </Grid>
             </Button>
         </Grid>
-        <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="265" VerticalAlignment="Bottom">
+        <TabControl Name="TabControlTypePosition" Margin="0,0,0,2" Height="290" VerticalAlignment="Bottom">
             <TabItem Header="Limit" Name ="TabItemLimit" Width="100">
                 <Grid>
                     <TextBox Name="TextBoxLimitPrice" HorizontalAlignment="Left" Margin="205,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
@@ -69,6 +69,29 @@
                     <Label Name="LabelStopVolume" Content="Volume" HorizontalAlignment="Left" Margin="74,145,0,0" VerticalAlignment="Top"/>
 
                     <Button Name="ButtonAddAtStop" Height="40" Content="Buy at stop" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonAddAtStop_Click"/>
+                    <CheckBox Name="CheckBoxServerStopOrder" Content="Server stop order" HorizontalAlignment="Left" Margin="74,168,0,0" VerticalAlignment="Top"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Stop-Market" Name ="TabItemStopMarket" Width="100" HorizontalAlignment="Right">
+                <Grid>
+                    <TextBox Name="TextBoxStopMarketActivationPrice" HorizontalAlignment="Left" Margin="205,20,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketActivationPrice" Content="Activation Price" HorizontalAlignment="Left" Margin="74,20,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopMarketVolume" HorizontalAlignment="Left" Margin="205,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketVolume" Content="Volume" HorizontalAlignment="Left" Margin="74,45,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Name="ComboBoxStopMarketLimitType" HorizontalAlignment="Left" Margin="205,70,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="74,70,0,0" VerticalAlignment="Top"/>
+
+                    <ComboBox Name="ComboBoxStopMarketLifetimeType" HorizontalAlignment="Left" Margin="205,95,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="74,95,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopMarketLifeTime" HorizontalAlignment="Left" Margin="205,120,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopMarketLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="74,120,0,0" VerticalAlignment="Top"/>
+
+                    <Button Name="ButtonAddAtStopMarket" Height="40" Content="Buy at stop market" Margin="155,0,155,10" VerticalAlignment="Bottom" Click="ButtonAddAtStopMarket_Click"/>
+                    <CheckBox Name="CheckBoxServerStopMarket" Content="Server stop order" HorizontalAlignment="Left" Margin="74,150,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
 
@@ -88,6 +111,6 @@
             </TabItem>
 
         </TabControl>
-        <WindowsFormsHost Name="WinFormsHostMarketDepth" Margin="188,0,4,267"/>
+        <WindowsFormsHost Name="WinFormsHostMarketDepth" Margin="188,0,4,292"/>
     </Grid>
 </Window>

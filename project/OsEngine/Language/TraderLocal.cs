@@ -2902,5 +2902,25 @@ namespace OsEngine.Language
           "Вкладка Загрузить - создаёт роботов из файла. " +
           "Робот с именем, которое уже есть в таблице, будет пропущен. " +
           "После загрузки откройте табы роботов и заново выберите источник данных и инструмент._");
+
+        public string Label771 => OsLocalization.ConvertToLocString(
+           "Eng:Server stop order_" +
+           "Ru:Серверный стоп ордер_");
+
+        public string Label772 => OsLocalization.ConvertToLocString(
+           "Eng:Stop-Market_" +
+           "Ru:Стоп-Маркет_");
+
+        public string Label773 => OsLocalization.ConvertToLocString(
+           "Eng:Buy at stop market_" +
+           "Ru:Купить стоп-маркет ордером_");
+
+        public string Label774 => OsLocalization.ConvertToLocString(
+           "Eng:Sell at stop market_" +
+           "Ru:Продать стоп-маркет ордером_");
+
+        public string Label775 => OsLocalization.ConvertToLocString(
+           "Eng:Close at stop market_" +
+           "Ru:Выставить стоп-маркет ордер_");
     }
 }

@@ -75,6 +75,17 @@ namespace OsEngine.Entity
         public decimal StopPrice;
 
         /// <summary>
+        /// Market number of the parent order. Filled for child exchange orders
+        /// spawned by an activated stop order
+        /// </summary>
+        public string ParentOrderNumberMarket;
+
+        /// <summary>
+        /// Market number of the child exchange order spawned after the stop order activation
+        /// </summary>
+        public string ChildOrderNumberMarket;
+
+        /// <summary>
         /// Real price
         /// </summary>
         public decimal PriceReal
@@ -520,6 +531,9 @@ namespace OsEngine.Entity
 
             result.Append("@" + StopPrice.ToString(CultureInfo));
 
+            result.Append("@" + (ParentOrderNumberMarket ?? ""));
+            result.Append("@" + (ChildOrderNumberMarket ?? ""));
+
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
             {
@@ -607,6 +621,18 @@ namespace OsEngine.Entity
             if (saveArray.Length > 23)
             {
                 StopPrice = saveArray[23].ToDecimal();
+            }
+
+            if (saveArray.Length > 24
+                && string.IsNullOrEmpty(saveArray[24]) == false)
+            {
+                ParentOrderNumberMarket = saveArray[24];
+            }
+
+            if (saveArray.Length > 25
+                && string.IsNullOrEmpty(saveArray[25]) == false)
+            {
+                ChildOrderNumberMarket = saveArray[25];
             }
         }
     }
