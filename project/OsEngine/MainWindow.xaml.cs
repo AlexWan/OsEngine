@@ -1560,6 +1560,9 @@ namespace OsEngine
 
                 using (TcpClient client = new TcpClient())
                 {
+                    client.ReceiveTimeout = 5000;
+                    client.SendTimeout = 5000;
+
                     await client.ConnectAsync(ip, port);
 
                     if (client.Connected)

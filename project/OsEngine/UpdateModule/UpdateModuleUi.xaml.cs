@@ -704,6 +704,9 @@ namespace OsEngine.UpdateModule
 
                 using (TcpClient client = new TcpClient())
                 {
+                    client.ReceiveTimeout = 5000;
+                    client.SendTimeout = 5000;
+
                     SaveLogMessage($"{OsLocalization.Updater.Message21} {ip}:{port}...");
 
                     client.Connect(ip, port);
