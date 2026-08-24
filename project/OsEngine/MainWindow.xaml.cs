@@ -20,6 +20,7 @@ using OsEngine.PrimeSettings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -1543,14 +1544,22 @@ namespace OsEngine
                     Directory.CreateDirectory(@"Engine\Log");
 
                     //записываем дату сборки, далее ориентир будет по ней
-                    File.WriteAllText(@"Engine\Updater\LastUpdatesInfo.txt", insideVersionDate.ToString("G"));
+                    File.WriteAllText(@"Engine\Updater\LastUpdatesInfo.txt", insideVersionDate.ToUniversalTime().ToString("O"));
                 }
                 else
                 {
                     // взять из файла время последнего обновления
                     string time = File.ReadAllText(@"Engine\Updater\LastUpdatesInfo.txt");
 
-                    insideVersionDate = DateTime.Parse(time);
+                    DateTime parsedDate;
+
+                    if (!DateTime.TryParse(time, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out parsedDate))
+                    {
+                        // старый локаль-зависимый формат "G"
+                        parsedDate = DateTime.Parse(time);
+                    }
+
+                    insideVersionDate = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
                 }
 
                 // передать серверу дату 
@@ -1567,7 +1576,7 @@ namespace OsEngine
 
                     if (client.Connected)
                     {
-                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ss}\"}}";
+                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
 
                         byte[] data = Encoding.UTF8.GetBytes(request);
 

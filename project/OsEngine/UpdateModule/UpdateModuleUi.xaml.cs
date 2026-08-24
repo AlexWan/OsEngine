@@ -10,6 +10,7 @@ using OsEngine.OsTrader.Grids;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -692,11 +693,16 @@ namespace OsEngine.UpdateModule
                     // взять из файла последний коммит
                     string time = File.ReadAllText(@"Engine\Updater\LastUpdatesInfo.txt");
 
-                    if (!DateTime.TryParse(time, out insideVersionDate))
+                    DateTime parsedDate;
+
+                    if (!DateTime.TryParse(time, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out parsedDate)
+                        && !DateTime.TryParse(time, out parsedDate))
                     {
                         SaveLogMessage(OsLocalization.Updater.Message20);
                         return;
                     }
+
+                    insideVersionDate = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
                 }
 
                 string ip = "185.186.143.9";
@@ -715,7 +721,7 @@ namespace OsEngine.UpdateModule
                     {
                         SaveLogMessage(OsLocalization.Updater.Message22);
 
-                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ss}\"}}";
+                        string request = $"{{\"LastUpdateDate\":\"{insideVersionDate:yyyy-MM-ddTHH:mm:ssZ}\"}}";
 
                         byte[] data = Encoding.UTF8.GetBytes(request);
 
@@ -829,7 +835,7 @@ namespace OsEngine.UpdateModule
 
                 // также в папку Temp кладём файл с временем последнего коммита  на сервере,
                 // чтобы после успешного обновления при следующем запуске от него смотреть изменения
-                File.WriteAllText(tempDir + "\\LastUpdatesInfo.txt", _serverResp.Commits[0].Timestamp.ToString("G"));
+                File.WriteAllText(tempDir + "\\LastUpdatesInfo.txt", _serverResp.Commits[0].Timestamp.ToUniversalTime().ToString("O"));
 
                 //файлы с новым временем в папку Temp 
                 WriteFilesVersionsTime(tempDir);
