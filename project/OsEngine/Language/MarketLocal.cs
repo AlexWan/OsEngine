@@ -683,7 +683,7 @@ namespace OsEngine.Language
             "Eng:Count news to save_" +
             "Ru:Хранить новости. Кол-во_");
 
-        
+
         public string Label164 => OsLocalization.ConvertToLocString(
           "Eng:Name _" +
           "Ru:Имя _");
@@ -1144,7 +1144,7 @@ namespace OsEngine.Language
          "Eng:Max spread to build candles_" +
          "Ru:Max спред для свечек_");
 
-        public string Label279=> OsLocalization.ConvertToLocString(
+        public string Label279 => OsLocalization.ConvertToLocString(
          "Eng:Max spread limit is on_" +
          "Ru:Включить ограничение_");
 
@@ -1155,7 +1155,7 @@ namespace OsEngine.Language
         public string Label281 => OsLocalization.ConvertToLocString(
          "Eng:The button opens the non-trading periods settings window for the connector. By selecting a non-trading period, the connector will ignore incoming data about trades and market depth. PC time is used as the control time!_" +
          "Ru:Кнопка открывает окно настроек неторговых периодов для коннектора. Выбрав неторговый период, коннектор будет игнорировать поступающие данные о трейдах и стакана. В качестве контролького времени используется время ПК!_");
-       
+
         public string Label282 => OsLocalization.ConvertToLocString(
          "Eng:Shifts the time of candles, trades, market depth, and orders to a specific time._" +
          "Ru:Сдвигает время свечей, сделок, стакана и ордеров на определенное кол-во часов._");
@@ -1291,7 +1291,7 @@ namespace OsEngine.Language
         public string Label315 => OsLocalization.ConvertToLocString(
           "Eng:Reconnects the connector with No order. If the Transit server sends an order with the inactive status (the status is not known due to problems with communication with the exchange), then such an order is marked with the None status and is considered lost. Transaq Connector does not have a method for requesting orders, so the only way to request this order is to reconnect the connector._" +
           "Ru:Переподключает коннектор при None ордере. Если сервер Транзак присылает ордер со статусом inactive (Статус не известен из-за проблем со связью с биржей), то такой ордер помечается статусом None и считается потерянным. У Transaq Connector нет метода для запроса ордеров, поэтому единственный способ запросить данный ордер это переподключение коннектора_");
-       
+
         public string Label316 => OsLocalization.ConvertToLocString(
           "Eng:Expiration_" +
           "Ru:Экспирация_");
@@ -2003,7 +2003,7 @@ namespace OsEngine.Language
         public string SetDepthLevelsDescription => OsLocalization.ConvertToLocString(
      "Eng:Set the number of Bid levels and Ask levels to be fed into depth._" +
      "Ru:Установка количества уровней Bid и уровней Ask, которые будут подаваться в стакан._");
-               
+
         public string FullLogConnector => OsLocalization.ConvertToLocString(
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
@@ -2311,5 +2311,9 @@ namespace OsEngine.Language
         public string Label373 => OsLocalization.ConvertToLocString(
          "Eng:Here you can completely disable encryption of server passwords.\n\nEnter the current master password. All keys of all connectors will be decrypted and stored in plain text, as before encryption was enabled. The master password will be forgotten by the program.\n\nThis operation is available only locally in this window. It cannot be performed through the API._" +
          "Ru:Здесь можно полностью выключить шифрование паролей серверов.\n\nВведите текущий мастер-пароль. Все ключи всех коннекторов будут расшифрованы и сохранены в открытом виде, как до включения шифрования. Мастер-пароль будет забыт программой.\n\nЭта операция доступна только локально в этом окне. Через API её выполнить нельзя_");
+
+        public string Label374 => OsLocalization.ConvertToLocString(
+         "Eng:Number of order book levels to subscribe. books5 - 5 levels, books50 - 50 levels. If the standard parameter \"Use full market depth\" is set to False, books1 (best bid/ask) is used regardless of this setting_" +
+         "Ru:Количество уровней в стакане при подписке. books5 - 5 уровней, books50 - 50 уровней. Если стандартный параметр \"Использовать полный стакан\" выключен (False), то используется books1 (лучший бид/аск) независимо от этой настройки_");
     }
 }
