@@ -8,6 +8,8 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Gui;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -1036,7 +1038,7 @@ namespace OsEngine.Market
                     return;
                 }
 
-                ToolStripMenuItem[] items = new ToolStripMenuItem[2];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[3];
 
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Market.Message4 };
 
@@ -1044,6 +1046,9 @@ namespace OsEngine.Market
 
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Market.Message5 };
                 items[1].Click += PositionCloseForNumber_Click;
+
+                items[2] = new ToolStripMenuItem { Text = OsLocalization.Market.DeleteCurrentOrder };
+                items[2].Click += DeleteCurrentOrder_Click;
 
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
@@ -1230,6 +1235,230 @@ namespace OsEngine.Market
                 }
             }).Start();
 
+        }
+
+        private void DeleteCurrentOrder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_orders == null || _orders.Count == 0)
+                {
+                    return;
+                }
+
+                if (_gridActiveOrders.Rows == null ||
+                    _gridActiveOrders.Rows.Count == 0 ||
+                    _gridActiveOrders.CurrentCell == null)
+                {
+                    return;
+                }
+
+                Order order = _orders[(_orders.Count - 1 - _gridActiveOrders.CurrentCell.RowIndex)];
+
+                try
+                {
+                    int ordNumber = (int)_gridActiveOrders.Rows[_gridActiveOrders.CurrentCell.RowIndex].Cells[0].Value;
+
+                    if (order.NumberUser != ordNumber)
+                    {
+                        for (int i = 0; i < _orders.Count; i++)
+                        {
+                            if (_orders[i].NumberUser == ordNumber)
+                            {
+                                order = _orders[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    if (order == null)
+                    {
+                        return;
+                    }
+                }
+
+                Position position = null;
+                BotTabSimple tabWithPosition = null;
+                bool isCloseOrder = false;
+
+                List<BotPanel> bots = ServerMaster.GetAllBotsFromBotStation();
+
+                for (int i = 0; bots != null && i < bots.Count && position == null; i++)
+                {
+                    BotPanel bot = bots[i];
+
+                    List<BotTabSimple> tabs = bot.TabsSimple;
+
+                    for (int j = 0; tabs != null && j < tabs.Count && position == null; j++)
+                    {
+                        FindOrderInTab(tabs[j], order, ref position, ref tabWithPosition, ref isCloseOrder);
+                    }
+
+                    if (position != null)
+                    {
+                        break;
+                    }
+
+                    for (int j = 0; bot.TabsScreener != null && j < bot.TabsScreener.Count && position == null; j++)
+                    {
+                        BotTabScreener screener = bot.TabsScreener[j];
+
+                        for (int k = 0; screener != null && screener.Tabs != null && k < screener.Tabs.Count && position == null; k++)
+                        {
+                            FindOrderInTab(screener.Tabs[k], order, ref position, ref tabWithPosition, ref isCloseOrder);
+                        }
+                    }
+                }
+
+                string message;
+
+                if (position != null)
+                {
+                    string state = isCloseOrder ? PositionStateType.ClosingFail.ToString() : PositionStateType.OpeningFail.ToString();
+
+                    message = OsLocalization.Market.DeleteOrderInPosition + " " + position.NameBot
+                        + " №" + position.Number + " (" + position.SecurityName + "). "
+                        + OsLocalization.Market.DeleteOrderWillSetState + " " + state + ". "
+                        + OsLocalization.Market.DeleteOrderConfirm;
+                }
+                else
+                {
+                    message = OsLocalization.Market.DeleteOrderNotFound;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(message);
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
+                Position posToModify = position;
+                BotTabSimple tabToSave = tabWithPosition;
+                bool closeOrder = isCloseOrder;
+                Order orderToDelete = order;
+
+                new Task(() =>
+                {
+                    try
+                    {
+                        if (posToModify != null)
+                        {
+                            if (closeOrder)
+                            {
+                                if (posToModify.CloseOrders != null)
+                                {
+                                    posToModify.CloseOrders.RemoveAll(o => IsSameOrder(o, orderToDelete));
+                                }
+                                posToModify.State = PositionStateType.ClosingFail;
+                            }
+                            else
+                            {
+                                if (posToModify.OpenOrders != null)
+                                {
+                                    posToModify.OpenOrders.RemoveAll(o => IsSameOrder(o, orderToDelete));
+                                }
+                                posToModify.State = PositionStateType.OpeningFail;
+                            }
+
+                            if (tabToSave != null)
+                            {
+                                tabToSave.GetJournal().Save();
+                            }
+                        }
+
+                        lock (_lockerOrders)
+                        {
+                            _orders.RemoveAll(o => IsSameOrder(o, orderToDelete));
+                        }
+
+                        ForcePaint();
+
+                        SendNewLogMessage("Order deleted from active orders table. NumberUser: " + orderToDelete.NumberUser, LogMessageType.System);
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                }).Start();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void FindOrderInTab(BotTabSimple tab, Order order, ref Position position, ref BotTabSimple tabWithPosition, ref bool isCloseOrder)
+        {
+            if (tab == null || tab.PositionsAll == null)
+            {
+                return;
+            }
+
+            List<Position> positions = tab.PositionsAll;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                Position pos = positions[i];
+
+                if (pos == null)
+                {
+                    continue;
+                }
+
+                if (pos.OpenOrders != null)
+                {
+                    for (int j = 0; j < pos.OpenOrders.Count; j++)
+                    {
+                        if (IsSameOrder(pos.OpenOrders[j], order))
+                        {
+                            position = pos;
+                            tabWithPosition = tab;
+                            isCloseOrder = false;
+                            return;
+                        }
+                    }
+                }
+
+                if (pos.CloseOrders != null)
+                {
+                    for (int j = 0; j < pos.CloseOrders.Count; j++)
+                    {
+                        if (IsSameOrder(pos.CloseOrders[j], order))
+                        {
+                            position = pos;
+                            tabWithPosition = tab;
+                            isCloseOrder = true;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool IsSameOrder(Order a, Order b)
+        {
+            if (a == null || b == null)
+            {
+                return false;
+            }
+
+            if (a.NumberUser != 0 && b.NumberUser != 0 && a.NumberUser == b.NumberUser)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(a.NumberMarket) == false
+                && string.IsNullOrEmpty(b.NumberMarket) == false
+                && a.NumberMarket == b.NumberMarket)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public event Action<Order> RevokeOrderToEmulatorEvent;

@@ -29,11 +29,31 @@ namespace OsEngine.Language
 
         public string Message4 => OsLocalization.ConvertToLocString(
             "Eng:Revoke all active orders_" +
-            "Ru:Отозвать все активные заявки_");
+            "Ru:Отозвать все активные ордера_");
 
         public string Message5 => OsLocalization.ConvertToLocString(
             "Eng:Revoke current order_" +
-            "Ru:Отозвать текущую_");
+            "Ru:Отозвать текущий ордер_");
+
+        public string DeleteCurrentOrder => OsLocalization.ConvertToLocString(
+            "Eng:Delete current order_" +
+            "Ru:Удалить текущий ордер_");
+
+        public string DeleteOrderInPosition => OsLocalization.ConvertToLocString(
+            "Eng:Order belongs to robot_" +
+            "Ru:Ордер принадлежит роботу_");
+
+        public string DeleteOrderWillSetState => OsLocalization.ConvertToLocString(
+            "Eng:Position will be set to state_" +
+            "Ru:Позиция будет переведена в статус_");
+
+        public string DeleteOrderConfirm => OsLocalization.ConvertToLocString(
+            "Eng:Order will be removed from the position and from the active orders table. Continue?_" +
+            "Ru:Ордер будет удалён из позиции и из таблицы активных ордеров. Продолжить?_");
+
+        public string DeleteOrderNotFound => OsLocalization.ConvertToLocString(
+            "Eng:Order does not belong to any position. It will be removed only from the active orders table. Continue?_" +
+            "Ru:Ордер не принадлежит ни одной позиции. Он будет удалён только из таблицы активных ордеров. Продолжить?_");
 
         public string TitleConnectorCandle => OsLocalization.ConvertToLocString(
             "Eng:Data flow connection_" +
