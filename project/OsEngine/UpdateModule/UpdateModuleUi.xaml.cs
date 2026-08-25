@@ -796,30 +796,45 @@ namespace OsEngine.UpdateModule
                 ButtonUpdate.IsEnabled = false;
                 ButtonUpdRequest.IsEnabled = false;
 
-                string buildReservePath = $"Engine\\Updater\\Builds\\Build_{DateTime.Now:dd-MM-yyyy_HH-mm}";
-                Directory.CreateDirectory(buildReservePath);
-
-                string tempDir = $"Engine\\Updater\\Temp";
-                Directory.CreateDirectory(tempDir);
-
+                string buildReservePath = "";
+                string tempDir = "";
                 string updaterExePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater.exe");
 
-                // Добавляем файл с временем обновления на случай отката
-                string updTempPath = Path.Combine(buildReservePath, "LastUpdatesInfo.txt");
+                try
+                {
+                    buildReservePath = $"Engine\\Updater\\Builds\\Build_{DateTime.Now:dd-MM-yyyy_HH-mm}";
+                    Directory.CreateDirectory(buildReservePath);
 
-                File.Copy(@"Engine\Updater\LastUpdatesInfo.txt", updTempPath, true);
+                    tempDir = $"Engine\\Updater\\Temp";
+                    Directory.CreateDirectory(tempDir);
 
-                // и запись о текущей версии файлов
-                string filesTempPath = Path.Combine(buildReservePath, "FilesVersionsTime.txt");
+                    // Добавляем файл с временем обновления на случай отката
+                    string updTempPath = Path.Combine(buildReservePath, "LastUpdatesInfo.txt");
 
-                File.Copy(@"Engine\Updater\FilesVersionsTime.txt", filesTempPath, true);
+                    File.Copy(@"Engine\Updater\LastUpdatesInfo.txt", updTempPath, true);
 
-                // также в папку Temp кладём файл с временем последнего коммита  на сервере,
-                // чтобы после успешного обновления при следующем запуске от него смотреть изменения
-                File.WriteAllText(tempDir + "\\LastUpdatesInfo.txt", _serverResp.Commits[0].Timestamp.ToUniversalTime().ToString("O"));
+                    // и запись о текущей версии файлов
+                    string filesTempPath = Path.Combine(buildReservePath, "FilesVersionsTime.txt");
 
-                //файлы с новым временем в папку Temp 
-                WriteFilesVersionsTime(tempDir);
+                    File.Copy(@"Engine\Updater\FilesVersionsTime.txt", filesTempPath, true);
+
+                    // также в папку Temp кладём файл с временем последнего коммита  на сервере,
+                    // чтобы после успешного обновления при следующем запуске от него смотреть изменения
+                    DateTime lastCommitTime = _serverResp.Commits.Count > 0 ? _serverResp.Commits[0].Timestamp : DateTime.UtcNow;
+
+                    File.WriteAllText(tempDir + "\\LastUpdatesInfo.txt", lastCommitTime.ToUniversalTime().ToString("O"));
+                }
+                catch (Exception ex)
+                {
+                    SaveLogMessage($"{OsLocalization.Updater.Message43}: {ex.Message}");
+
+                    ButtonUpdate.IsEnabled = true;
+                    ButtonUpdRequest.IsEnabled = true;
+
+                    return;
+                }
+
+                //файлы с новым временем запишем в Temp ПОСЛЕ скачивания — только честно скачанные
 
                 // Если изменился только Updater.exe
                 if (_needUpdateUpdaterApp && _modifiedFilesCount == 1)
@@ -890,6 +905,8 @@ namespace OsEngine.UpdateModule
                     // скачивает поочереди все нужные файлы, аккуратно кладя их в папку Temp
                     List<FileState> filesForDownload = _filesInDebug.FindAll(f => f.State == State.Obsolete || f.State == State.New);
 
+                    List<string> downloadedFiles = new List<string>();
+
                     if (filesForDownload.Count > 0)
                     {
                         // Ожидаем скачивание файлов
@@ -897,7 +914,7 @@ namespace OsEngine.UpdateModule
                         {
                             try
                             {
-                                await DownloadChangedFiles(filesForDownload, tempDir, _updCts.Token);
+                                downloadedFiles = await DownloadChangedFiles(filesForDownload, tempDir, _updCts.Token);
                             }
                             catch (OperationCanceledException)
                             {
@@ -915,6 +932,10 @@ namespace OsEngine.UpdateModule
 
                         SaveLogMessage(OsLocalization.Updater.Message38);
                     }
+
+                    // версионная запись — только честно скачанные файлы.
+                    // Нескачавшееся остаётся со старой датой и докачается при следующей проверке
+                    WriteFilesVersionsTime(tempDir, downloadedFiles);
 
                     List<FileState> filesForDelete = _filesInDebug.FindAll(f => f.State == State.Removed);
 
@@ -1040,8 +1061,11 @@ namespace OsEngine.UpdateModule
             }
         }
 
-        private async Task DownloadChangedFiles(List<FileState> files, string tempDir, CancellationToken token)
+        private async Task<List<string>> DownloadChangedFiles(List<FileState> files, string tempDir, CancellationToken token)
         {
+            // имена файлов, реально скачанных и сошедшихся по размеру — только они попадут в версионную запись
+            List<string> downloadedFiles = new List<string>();
+
             try
             {
                 SaveLogMessage(OsLocalization.Updater.Message46);
@@ -1073,6 +1097,23 @@ namespace OsEngine.UpdateModule
                             contentStream.CopyTo(fileStream);
                         }
                     }
+
+                    // проверяем целостность: файл должен существовать и сойтись по размеру
+                    FileInfo downloaded = new FileInfo(tempPath);
+
+                    if (downloaded.Exists && downloaded.Length == files[i].Size)
+                    {
+                        downloadedFiles.Add(files[i].Name);
+                    }
+                    else
+                    {
+                        SaveLogMessage($"{OsLocalization.Updater.Message47.Split('#')[0]} {files[i].Name} {OsLocalization.Updater.Message47.Split('#')[1]}");
+
+                        if (downloaded.Exists)
+                        {
+                            downloaded.Delete();
+                        }
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -1084,6 +1125,8 @@ namespace OsEngine.UpdateModule
                 SaveLogMessage(error.ToString());
                 throw;
             }
+
+            return downloadedFiles;
         }
 
         private async Task CopyDirectory(string sourceDirName, string destDirName, CancellationToken token)
@@ -1181,7 +1224,7 @@ namespace OsEngine.UpdateModule
             }
         }
 
-        private void WriteFilesVersionsTime(string tempDir)
+        private void WriteFilesVersionsTime(string tempDir, List<string> downloadedFiles)
         {
             try
             {
@@ -1189,9 +1232,31 @@ namespace OsEngine.UpdateModule
 
                 for (int i = 0; i < _serverResp.Files.Count; i++)
                 {
-                    var fileInfo = _serverResp.Files[i];
+                    GithubFileInfo fileInfo = _serverResp.Files[i];
 
-                    sb.AppendLine(fileInfo.Name + "#" + fileInfo.LastUpdate + "#" + fileInfo.Size);
+                    FileState state = _filesInDebug.Find(f => f.Name == fileInfo.Name);
+
+                    if (state == null)
+                    {
+                        continue;
+                    }
+
+                    if (state.State == State.Actual)
+                    {
+                        // в этом раунде не качали — оставляем записанное ранее время
+                        sb.AppendLine(fileInfo.Name + "#" + state.CurrVersionTime + "#" + fileInfo.Size);
+                    }
+                    else if (downloadedFiles.Contains(fileInfo.Name))
+                    {
+                        // честно скачан — записываем серверное время
+                        sb.AppendLine(fileInfo.Name + "#" + fileInfo.LastUpdate + "#" + fileInfo.Size);
+                    }
+                    else if (state.State == State.Obsolete)
+                    {
+                        // не скачался — оставляем старое время, повторит при следующей проверке
+                        sb.AppendLine(fileInfo.Name + "#" + state.CurrVersionTime + "#" + fileInfo.Size);
+                    }
+                    // State.New и не скачался — в запись не попадает, в следующий раз снова будет New
                 }
 
                 File.WriteAllText(Path.Combine(tempDir, "FilesVersionsTime.txt"), sb.ToString());
