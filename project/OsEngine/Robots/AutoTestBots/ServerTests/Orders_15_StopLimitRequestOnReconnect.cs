@@ -312,8 +312,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             order.SecurityClassCode = sec.NameClass;
             order.PortfolioNumber = PortfolioName;
 
+            _myStopNumberUser = order.NumberUser;
+
             return order;
         }
+
+        // NumberUser нашего стоп-ордера. На счёте могут быть активные стопы
+        // от прошлых прогонов - их события тест должен игнорировать
+
+        int _myStopNumberUser = 0;
 
         List<Order> _ordersActive = new List<Order>();
         List<Order> _ordersCancel = new List<Order>();
@@ -337,6 +344,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 12. Order with state NONE");
+                return;
+            }
+
+            if (_myStopNumberUser != 0
+                && order.NumberUser != _myStopNumberUser)
+            {   // чужой ордер (например, активный стоп от прошлого прогона) - не относится к тесту
                 return;
             }
 

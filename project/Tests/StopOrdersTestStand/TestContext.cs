@@ -29,6 +29,8 @@ namespace StopOrdersTestStand
 
         public TestSecrets Secrets { get; }
 
+        public TestStandConfig Config { get; }
+
         /// <summary>
         /// True when the stand was started with --live-trade: modules are allowed
         /// to place real orders on the connected account.
@@ -43,7 +45,7 @@ namespace StopOrdersTestStand
 
         public TestContext(McpApiClient client, OsEngineProcessController processController,
             string osEnginePath, int port, string apiKey, int timeoutSeconds, TestSecrets secrets,
-            bool liveTrade = false)
+            TestStandConfig config, bool liveTrade = false)
         {
             Client = client ?? throw new ArgumentNullException(nameof(client));
             ProcessController = processController ?? throw new ArgumentNullException(nameof(processController));
@@ -52,6 +54,7 @@ namespace StopOrdersTestStand
             ApiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
             TimeoutSeconds = timeoutSeconds;
             Secrets = secrets ?? throw new ArgumentNullException(nameof(secrets));
+            Config = config ?? throw new ArgumentNullException(nameof(config));
             LiveTrade = liveTrade;
         }
 

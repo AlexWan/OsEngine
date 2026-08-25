@@ -219,7 +219,8 @@ namespace StopOrdersTestStand
 
         private static void RunTestStand(string[] args)
         {
-            TestStandOptions options = ParseOptions(args);
+            TestStandConfig config = TestStandConfig.Load(AppDomain.CurrentDomain.BaseDirectory);
+            TestStandOptions options = ParseOptions(args, config);
 
             if (!File.Exists(options.OsEnginePath))
             {
@@ -255,6 +256,7 @@ namespace StopOrdersTestStand
                         options.ApiKey,
                         options.TimeoutSeconds,
                         secrets,
+                        config,
                         options.LiveTrade);
 
                     context.PrintHeader();
@@ -412,17 +414,20 @@ namespace StopOrdersTestStand
             return false;
         }
 
-        private static TestStandOptions ParseOptions(string[] args)
+        // Приоритет: аргументы командной строки > test-stand-config.json > встроенные дефолты
+        private static TestStandOptions ParseOptions(string[] args, TestStandConfig config)
         {
             TestStandOptions options = new TestStandOptions
             {
-                OsEnginePath = Path.GetFullPath(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory,
-                    "..", "..", "..", "..", "..",
-                    "OsEngine", "bin", "Debug", "OsEngine.exe")),
-                Port = 6500,
-                ApiKey = "osengine-mcp-default-key",
-                TimeoutSeconds = 60,
+                OsEnginePath = string.IsNullOrWhiteSpace(config.OsEnginePath)
+                    ? Path.GetFullPath(Path.Combine(
+                        AppDomain.CurrentDomain.BaseDirectory,
+                        "..", "..", "..", "..", "..",
+                        "OsEngine", "bin", "Debug", "OsEngine.exe"))
+                    : Path.GetFullPath(config.OsEnginePath),
+                Port = config.Port,
+                ApiKey = config.ApiKey,
+                TimeoutSeconds = config.TimeoutSeconds,
                 NoWait = false
             };
 

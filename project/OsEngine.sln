@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiConnectionTest", "Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DividendsUpdater", "Tests\DividendsUpdater\DividendsUpdater.csproj", "{BB3E6BBC-31A6-4AE5-87A2-95BD7A844859}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StopOrdersTestStand", "Tests\StopOrdersTestStand\StopOrdersTestStand.csproj", "{4419F10C-9697-454C-A2C5-7ADB8E53E9FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerTestsTestStand", "Tests\ServerTestsTestStand\ServerTestsTestStand.csproj", "{4419F10C-9697-454C-A2C5-7ADB8E53E9FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
