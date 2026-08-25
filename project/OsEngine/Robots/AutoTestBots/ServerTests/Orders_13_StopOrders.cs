@@ -240,9 +240,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 SetNewServiceInfo("BuyStopMarket Active order income Check! Attempt " + (attempt + 1));
 
                 timeEndWait = DateTime.Now.AddSeconds(75);
-                bool isDone = false;
+                bool isTriggered = false;
 
-                // нужно дождаться когда будет Done order. Стоп сработает и исполнится по рынку
+                // ждём активацию стопа: стоп получает Cancel (с id дочернего ордера),
+                // а порождённый им ордер исполняется по рынку и приходит со статусом Done
                 while (DateTime.Now < timeEndWait)
                 {
                     if (_ordersFail.Count != 0)
@@ -250,16 +251,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         break;
                     }
 
-                    if (_ordersDone.Count != 0)
+                    if (_ordersCancel.Count != 0
+                        && _childOrdersDone.Count != 0)
                     {
-                        isDone = true;
+                        isTriggered = true;
                         break;
                     }
 
                     Thread.Sleep(500);
                 }
 
-                if (isDone == false)
+                if (isTriggered == false)
                 {
                     // не сработало - снимаем и перевыставляем по свежей цене
 
@@ -285,7 +287,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     continue;
                 }
 
-                SetNewServiceInfo("BuyStopMarket Done order income Check!");
+                SetNewServiceInfo("BuyStopMarket triggered. Stop Cancel + child Done order income Check!");
 
                 timeEndWait = DateTime.Now.AddMinutes(2);
 
@@ -321,7 +323,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            this.SetNewError("Error 11. No Done order from server BuyStopMarket after 4 attempts");
+            this.SetNewError("Error 11. BuyStopMarket did not trigger after 4 attempts (no Cancel on stop + no Done on child order)");
         }
 
         private void SendSellStopOrder(Security mySec, decimal bestBid)
@@ -387,9 +389,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 SetNewServiceInfo("SellStopMarket Active order income Check! Attempt " + (attempt + 1));
 
                 timeEndWait = DateTime.Now.AddSeconds(75);
-                bool isDone = false;
+                bool isTriggered = false;
 
-                // нужно дождаться когда будет Done order. Стоп сработает и исполнится по рынку
+                // ждём активацию стопа: стоп получает Cancel (с id дочернего ордера),
+                // а порождённый им ордер исполняется по рынку и приходит со статусом Done
                 while (DateTime.Now < timeEndWait)
                 {
                     if (_ordersFail.Count != 0)
@@ -397,16 +400,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         break;
                     }
 
-                    if (_ordersDone.Count != 0)
+                    if (_ordersCancel.Count != 0
+                        && _childOrdersDone.Count != 0)
                     {
-                        isDone = true;
+                        isTriggered = true;
                         break;
                     }
 
                     Thread.Sleep(500);
                 }
 
-                if (isDone == false)
+                if (isTriggered == false)
                 {
                     // не сработало - снимаем и перевыставляем по свежей цене
 
@@ -432,7 +436,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     continue;
                 }
 
-                SetNewServiceInfo("SellStopMarket Done order income Check!");
+                SetNewServiceInfo("SellStopMarket triggered. Stop Cancel + child Done order income Check!");
 
                 timeEndWait = DateTime.Now.AddMinutes(2);
 
@@ -468,7 +472,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            this.SetNewError("Error 16. No Done order from server SellStopMarket after 4 attempts");
+            this.SetNewError("Error 16. SellStopMarket did not trigger after 4 attempts (no Cancel on stop + no Done on child order)");
         }
 
         private Order CreateStopOrder(Security sec, decimal priceActivate, decimal volume, Side side)
@@ -504,7 +508,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _ordersFail.Clear();
             _ordersPartial.Clear();
             _ordersPending.Clear();
+            _childOrdersDone.Clear();
             _myTrades.Clear();
+            _childNumberMarket = null;
         }
 
         private void Server_NewOrderIncomeEvent(Order order)
@@ -512,6 +518,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 19. Order with state NONE");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(order.ParentOrderNumberMarket) == false)
+            {   // дочерний ордер активированного стопа. Валидируется отдельно
+                ChildOrderIncome(order);
                 return;
             }
 
@@ -527,6 +539,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             else if (order.State == OrderStateType.Cancel)
             {
                 _ordersCancel.Add(order);
+
+                if (string.IsNullOrEmpty(order.ChildOrderNumberMarket) == false)
+                {   // активация стопа: запоминаем id порождённого им ордера
+                    _childNumberMarket = order.ChildOrderNumberMarket;
+                }
             }
             else if (order.State == OrderStateType.Done)
             {
@@ -543,6 +560,74 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             else if (order.State == OrderStateType.Pending)
             {
                 _ordersPending.Add(order);
+            }
+        }
+
+        // дочерние ордера активированного стопа: TypeOrder Limit/Market, без StopPrice.
+        // TimeDone у дочернего Done не требуем - коннектор его пока не заполняет
+
+        List<Order> _childOrdersDone = new List<Order>();
+
+        string _childNumberMarket;
+
+        private void ChildOrderIncome(Order order)
+        {
+            if (order.ParentOrderNumberMarket != _waitNumberMarket)
+            {   // дочерний ордер чужого стопа (например, сработал стоп от прошлого прогона) - не наш
+                return;
+            }
+
+            if (order.TypeOrder != OrderPriceType.Market
+                && order.TypeOrder != OrderPriceType.Limit)
+            {
+                this.SetNewError("Error 49. Child order Type is not Market or Limit. Real type: " + order.TypeOrder);
+                return;
+            }
+
+            if (order.Side != _waitSide)
+            {
+                this.SetNewError("Error 50. Child order. Wait side not equal. Wait: " + _waitSide
+                    + " Side in order: " + order.Side);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                this.SetNewError("Error 51. Child order. NumberMarket is null or empty");
+                return;
+            }
+
+            if (order.NumberUser == 0)
+            {
+                this.SetNewError("Error 52. Child order. NumberUser is zero");
+                return;
+            }
+
+            if (order.Volume <= 0)
+            {
+                this.SetNewError("Error 53. Child order. Volume is zero");
+                return;
+            }
+
+            _childNumberMarket = order.NumberMarket;
+
+            if (order.State == OrderStateType.Done)
+            {   // дедупликация: коннектор может эмитить дочерний ордер повторно
+                bool alreadyExists = false;
+
+                for (int i = 0; i < _childOrdersDone.Count; i++)
+                {
+                    if (_childOrdersDone[i].NumberMarket == order.NumberMarket)
+                    {
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+
+                if (alreadyExists == false)
+                {
+                    _childOrdersDone.Add(order);
+                }
             }
         }
 
@@ -705,10 +790,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             for (int i = 0; i < _myTrades.Count; i++)
             {
-                if (_myTrades[i].NumberOrderParent != _waitNumberMarket)
-                {
-                    this.SetNewError("Error 47. MyTrade NumberOrderParent not equal stop order NumberMarket. Wait: "
-                        + _waitNumberMarket + " Real: " + _myTrades[i].NumberOrderParent
+                if (_myTrades[i].NumberOrderParent != _childNumberMarket)
+                {   // трейды проходят по дочернему ордеру, порождённому стопом при активации
+                    this.SetNewError("Error 47. MyTrade NumberOrderParent not equal child order NumberMarket. Wait: "
+                        + _childNumberMarket + " Real: " + _myTrades[i].NumberOrderParent
                         + " Side: " + _myTrades[i].Side);
                     return false;
                 }
@@ -719,6 +804,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMyTradeEvent(MyTrade myTrade)
         {
+            if (_childNumberMarket != null
+                && myTrade.NumberOrderParent != _childNumberMarket)
+            {   // трейд по другому ордеру (например, по стопу от прошлого прогона) - не наш
+                return;
+            }
+
             if (MyTradeIsNormal(myTrade))
             {
                 _myTrades.Add(myTrade);

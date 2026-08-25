@@ -2486,6 +2486,24 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
 
+                    // дожидаемся завершения старого читателя,
+                    // чтобы он не успел изменить состояние нового стрима
+                    Task oldReadingTask = streamWrapper.ReadingTask;
+                    if (oldReadingTask != null)
+                    {
+                        try
+                        {
+                            if (oldReadingTask.Wait(_streamWaitTimeout) == false)
+                            {
+                                ObserveTaskFault(oldReadingTask);
+                            }
+                        }
+                        catch
+                        {
+                            // ignore: исключение читателя уже обработано в нём самом
+                        }
+                    }
+
                     streamWrapper.StreamClient = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
                         cancellationToken: _cancellationTokenSource.Token);
 
@@ -2841,22 +2859,55 @@ namespace OsEngine.Market.Servers.TInvest
 
         private async Task ReadStream(MarketDataStreamWrapper streamWrapper)
         {
-            if (streamWrapper.StreamClient == null)
+            // запоминаем клиент, которого читает именно этот таск.
+            // После реконнекта в обёртке уже другой клиент,
+            // и умирающий читатель не должен трогать состояние нового стрима
+            var myClient = streamWrapper.StreamClient;
+
+            if (myClient == null)
             {
                 return;
             }
             try
             {
-                await foreach (var marketData in streamWrapper.StreamClient.ResponseStream.ReadAllAsync(
+                await foreach (var marketData in myClient.ResponseStream.ReadAllAsync(
                                    cancellationToken: _cancellationTokenSource.Token))
                 {
                     _lastMarketDataTime = DateTime.UtcNow;
                     streamWrapper.LastMessageTime = _lastMarketDataTime;
                     ProcessMarketDataResponse(marketData);
                 }
+
+                // сервер штатно закрыл стрим без исключения
+                if (ReferenceEquals(streamWrapper.StreamClient, myClient))
+                {
+                    streamWrapper.IsConnected = false;
+                }
             }
             catch (Exception ex)
             {
+                bool isCancelled =
+                    ex is OperationCanceledException
+                    || (ex is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled);
+
+                if (ReferenceEquals(streamWrapper.StreamClient, myClient) == false)
+                {
+                    // реконнект уже произошёл: исключение относится к старому клиенту.
+                    // Состояние нового стрима не трогаем. Cancelled/disposed -
+                    // штатное следствие нашего dispose при реконнекте, не логируем
+                    if (isCancelled == false)
+                    {
+                        SendLogMessage($"TInvest stream {streamWrapper.Name} exception: " + ex.Message, LogMessageType.System);
+                    }
+                    return;
+                }
+
+                if (isCancelled && _isDisposedNow)
+                {
+                    // штатная остановка коннектора
+                    return;
+                }
+
                 SendLogMessage($"TInvest stream {streamWrapper.Name} exception: " + ex.Message, LogMessageType.System);
                 streamWrapper.IsConnected = false;
             }
@@ -4188,6 +4239,9 @@ namespace OsEngine.Market.Servers.TInvest
                     ? TimeZoneInfo.ConvertTimeFromUtc(state.CreatedAt.ToDateTime(), _mskTimeZone)
                     : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
 
+                order.TimeCreate = order.TimeCallBack;
+                order.OrderTypeTime = OrderTypeTime.GTC;
+
                 order.State = GetStateFromExecutionReportStatus(state.ExecutionReportStatus, state.CompletionTime != null);
 
                 if (order.State == OrderStateType.Active
@@ -4326,6 +4380,10 @@ namespace OsEngine.Market.Servers.TInvest
                 childOrder.TimeCallBack = state.OrderDate != null
                     ? TimeZoneInfo.ConvertTimeFromUtc(state.OrderDate.ToDateTime(), _mskTimeZone)
                     : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);// convert to MSK
+
+                childOrder.TimeCreate = childOrder.TimeCallBack;
+                childOrder.OrderTypeTime = OrderTypeTime.GTC;
+
                 childOrder.State = GetStateFromExecutionReportStatus(state.ExecutionReportStatus, false);
 
                 LogOrderInFullLog(childOrder, source);

@@ -15,6 +15,8 @@ namespace StopOrdersTestStand.Tests
     /// <summary>
     /// Module 2. Server tests runner: drives the WServerTester robot through
     /// the MCP API on a real T-Invest connection.
+    /// Run data (server type, security, class, volume, timeouts) comes from
+    /// test-stand-config.json next to the executable.
     ///
     /// Flow: single TInvest instance with the token -> Connect -> create
     /// WServerTester -> for each requested test set its O* parameters and click
@@ -22,9 +24,8 @@ namespace StopOrdersTestStand.Tests
     /// robot log file (Engine\Log) for the test report (REPORT ... STATUS: PASS/FAIL).
     ///
     /// Test selection: --test O13,O14,O15 or --test all (default: all registered).
-    /// Registered: O13/O14/O15 (server stop orders on raw IServer).
-    /// BotTab tests (B1..B12) are not included because the current WServerTester
-    /// does not expose them.
+    /// Registered: O13..O16 (server stop orders on raw IServer) and
+    /// B1..B6 (BotTabSimple server stop order methods).
     /// Real orders are placed on the account (minimum volume, tests close
     /// everything themselves). Requires trading hours - tests need live ticks.
     /// Without tinvest-token.txt the module is SKIPPED.
@@ -33,16 +34,24 @@ namespace StopOrdersTestStand.Tests
     {
         private const string Module = "SERVERTESTS";
 
-        private const string ServerTypeName = "TInvest";
         private const string TesterStrategyName = "WServerTester";
-        private const string TesterBotName = "StopServerTesterBot";
 
-        private const string SecurityName = "SBER";
-        private const string SecurityClass = "Stock rub";
+        // Run data comes from test-stand-config.json (TestStandConfig.ServerTests),
+        // the properties below are shortcuts to it
 
-        private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(120);
-        private static readonly TimeSpan SecuritiesTimeout = TimeSpan.FromSeconds(120);
-        private static readonly TimeSpan TestTimeout = TimeSpan.FromMinutes(25);
+        private string ServerTypeName => _context.Config.ServerTests.ServerType;
+
+        private string TesterBotName => _context.Config.ServerTests.TesterBotName;
+
+        private string SecurityName => _context.Config.ServerTests.SecurityName;
+
+        private string SecurityClass => _context.Config.ServerTests.SecurityClass;
+
+        private TimeSpan ConnectTimeout => TimeSpan.FromSeconds(_context.Config.ServerTests.ConnectTimeoutSeconds);
+
+        private TimeSpan SecuritiesTimeout => TimeSpan.FromSeconds(_context.Config.ServerTests.SecuritiesTimeoutSeconds);
+
+        private TimeSpan TestTimeout => TimeSpan.FromMinutes(_context.Config.ServerTests.TestTimeoutMinutes);
 
         private class ServerTestInfo
         {
@@ -66,6 +75,12 @@ namespace StopOrdersTestStand.Tests
             new ServerTestInfo("O14", "Start test orders 14", "REPORT Orders_14_StopLimitPlaceCancel", "orders test 14"),
             new ServerTestInfo("O15", "Start test orders 15", "REPORT Orders_15_StopLimitRequestOnReconnect", "orders test 15"),
             new ServerTestInfo("O16", "Start test orders 16", "REPORT Orders_16_StopTriggerOnReconnect", "orders test 16"),
+            new ServerTestInfo("B1", "Start test BotTabSimple 1", "REPORT BotTabSimple_1_OpenStopLimit", "BotTabSimple 1"),
+            new ServerTestInfo("B2", "Start test BotTabSimple 2", "REPORT BotTabSimple_2_OpenStopMarket", "BotTabSimple 2"),
+            new ServerTestInfo("B3", "Start test BotTabSimple 3", "REPORT BotTabSimple_3_CloseAtStop", "BotTabSimple 3"),
+            new ServerTestInfo("B4", "Start test BotTabSimple 4", "REPORT BotTabSimple_4_ToPosition", "BotTabSimple 4"),
+            new ServerTestInfo("B5", "Start test BotTabSimple 5", "REPORT BotTabSimple_5_Cancel", "BotTabSimple 5"),
+            new ServerTestInfo("B6", "Start test BotTabSimple 6", "REPORT BotTabSimple_6_AutoRestCancel", "BotTabSimple 6"),
         };
 
         private readonly TestContext _context;
@@ -723,9 +738,9 @@ namespace StopOrdersTestStand.Tests
                     return false;
                 }
 
-                // BotTab tests are not registered in this build, so the volume is always 1 lot.
+                // объём для всех зарегистрированных тестов берётся из конфига
 
-                decimal volume = 1m;
+                decimal volume = _context.Config.ServerTests.Volume;
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>()
                 {
@@ -737,7 +752,7 @@ namespace StopOrdersTestStand.Tests
 
                 if (test.Id == "O14")
                 {
-                    parameters.Add("Count orders test 14", 20);
+                    parameters.Add("Count orders test 14", _context.Config.ServerTests.Orders14CountOrders);
                 }
 
                 object request = new { bot_id = _createdTesterBotName, parameters = parameters };

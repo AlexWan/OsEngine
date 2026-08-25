@@ -1,0 +1,22 @@
+<Window x:Class="OsEngine.Robots.AutoTestBots.ServerTests.WServerTesterDescriptionUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Test description" Height="550" Width="750" MinHeight="300" MinWidth="500"
+        Style="{StaticResource WindowStyleCanResize}" ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="0" Margin="5" VerticalScrollBarVisibility="Auto">
+            <TextBlock Name="TextBlockMessage" TextWrapping="Wrap" Foreground="White" FontSize="14"/>
+        </ScrollViewer>
+        <Button Name="ButtonAccept" Grid.Row="1" Content="Accept" FontWeight="Bold"
+                HorizontalAlignment="Right" VerticalAlignment="Center"
+                Width="235" Margin="0,0,5,0" Click="ButtonAccept_Click"/>
+    </Grid>
+</Window>
