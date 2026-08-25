@@ -316,12 +316,51 @@ namespace OsEngine.Entity
                     {
                         candlesToRequestCount = 50;
                     }
-                    List<Candle> candles = 
+
+                    if (aServer.IsSaveCandlesInFileSys == true
+                        && series.CandlesAll != null
+                        && series.CandlesAll.Count > 0)
+                    {
+                        // данные из файлов уже подгружены. Запрашиваем с сервера только недостающие свечи
+                        DateTime lastCandleTime = series.CandlesAll[series.CandlesAll.Count - 1].TimeStart;
+
+                        int missingCount = (int)((DateTime.Now - lastCandleTime).TotalMinutes
+                            / series.TimeFrameSpan.TotalMinutes);
+
+                        if (missingCount < 0)
+                        {
+                            // время последней свечи впереди времени ПК. Грузим минимум
+                            missingCount = 0;
+                        }
+
+                        // перекрытие 100 свечек на случай дыр в файловых данных
+                        int requestCount = missingCount + 100;
+
+                        if (requestCount < 500)
+                        {
+                            requestCount = 500;
+                        }
+
+                        if (requestCount < candlesToRequestCount)
+                        {
+                            candlesToRequestCount = requestCount;
+                        }
+                    }
+
+                    List<Candle> candles =
                         _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
 
                     if (candles != null)
                     {
-                        series.CandlesAll = candles;
+                        if (series.CandlesAll != null
+                            && series.CandlesAll.Count > 0)
+                        {
+                            series.CandlesAll = series.CandlesAll.Merge(candles);
+                        }
+                        else
+                        {
+                            series.CandlesAll = candles;
+                        }
                     }
                 }
 
