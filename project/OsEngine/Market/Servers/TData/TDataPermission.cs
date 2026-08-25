@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.TData
         public bool DataFeedTf1MinuteCanLoad => true;
         public bool DataFeedTf2MinuteCanLoad => true;
         public bool DataFeedTf5MinuteCanLoad => true;
-        public bool DataFeedTf10MinuteCanLoad => false;
+        public bool DataFeedTf10MinuteCanLoad => true;
         public bool DataFeedTf15MinuteCanLoad => true;
         public bool DataFeedTf30MinuteCanLoad => true;
         public bool DataFeedTf1HourCanLoad => true;

@@ -981,6 +981,10 @@ namespace OsEngine.Market.Servers.TData
             {
                 return 5;
             }
+            if (timeFrame == TimeFrame.Min10)
+            {
+                return 10;
+            }
             if (timeFrame == TimeFrame.Min15)
             {
                 return 15;
