@@ -478,31 +478,54 @@ namespace OsEngine.Entity
                 series.TypeTesterData = _typeTesterData;
                 series.CandleFinishedEvent += series_CandleFinishedEvent;
 
-                if (_activeSeriesBasedOnTrades == null)
+                lock (_seriesListLock)
                 {
-                    _activeSeriesBasedOnTrades = new List<CandleSeries>();
-                }
-
-                if (_activeSeriesBasedOnMd == null)
-                {
-                    _activeSeriesBasedOnMd = new List<CandleSeries>();
-                }
-
-                if (_startProgram == StartProgram.IsOsTrader)
-                {
-                    _candleSeriesNeedToStart.Enqueue(series);
-                }
-                else
-                {
-                    if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                    if (_activeSeriesBasedOnTrades == null)
                     {
-                        _activeSeriesBasedOnMd.Add(series);
+                        _activeSeriesBasedOnTrades = new List<CandleSeries>();
                     }
-                    else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
+
+                    if (_activeSeriesBasedOnMd == null)
                     {
-                        _activeSeriesBasedOnTrades.Add(series);
+                        _activeSeriesBasedOnMd = new List<CandleSeries>();
                     }
-                    series.IsStarted = true;
+
+                    List<CandleSeries> targetList = series.CandleMarketDataType == CandleMarketDataType.MarketDepth
+                        ? _activeSeriesBasedOnMd
+                        : _activeSeriesBasedOnTrades;
+
+                    bool alreadyInList = false;
+
+                    for (int i = 0; targetList != null && i < targetList.Count; i++)
+                    {
+                        if (targetList[i] != null && targetList[i].UID == series.UID)
+                        {
+                            alreadyInList = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyInList)
+                    {
+                        return;
+                    }
+
+                    if (_startProgram == StartProgram.IsOsTrader)
+                    {
+                        _candleSeriesNeedToStart.Enqueue(series);
+                    }
+                    else
+                    {
+                        if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                        {
+                            _activeSeriesBasedOnMd.Add(series);
+                        }
+                        else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
+                        {
+                            _activeSeriesBasedOnTrades.Add(series);
+                        }
+                        series.IsStarted = true;
+                    }
                 }
             }
             catch (Exception error)
@@ -527,46 +550,40 @@ namespace OsEngine.Entity
                 series.CandleUpdateEvent -= series_CandleUpdateEvent;
                 series.CandleFinishedEvent -= series_CandleFinishedEvent;
 
-                for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
+                lock (_seriesListLock)
                 {
-                    CandleSeries curSeries = _activeSeriesBasedOnTrades[i];
-
-                    if (curSeries == null ||
-                        curSeries.UID == Guid.Empty)
+                    for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
                     {
-                        return;
-                    }
+                        CandleSeries curSeries = _activeSeriesBasedOnTrades[i];
 
-                    if (curSeries.UID == series.UID)
-                    {
-                        if (_activeSeriesBasedOnTrades != null)
+                        if (curSeries == null ||
+                            curSeries.UID == Guid.Empty)
+                        {
+                            continue;
+                        }
+
+                        if (curSeries.UID == series.UID)
                         {
                             _activeSeriesBasedOnTrades.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
+                    for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
+                    {
+                        CandleSeries curSeries = _activeSeriesBasedOnMd[i];
+
+                        if (curSeries == null ||
+                            curSeries.UID == Guid.Empty)
+                        {
+                            continue;
                         }
 
-                        break;
-                    }
-                }
-
-
-                for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
-                {
-                    CandleSeries curSeries = _activeSeriesBasedOnMd[i];
-
-                    if (curSeries == null ||
-                        curSeries.UID == Guid.Empty)
-                    {
-                        return;
-                    }
-
-                    if (curSeries.UID == series.UID)
-                    {
-                        if (_activeSeriesBasedOnMd != null)
+                        if (curSeries.UID == series.UID)
                         {
                             _activeSeriesBasedOnMd.RemoveAt(i);
+                            i--;
                         }
-
-                        break;
                     }
                 }
             }
@@ -590,6 +607,11 @@ namespace OsEngine.Entity
         /// active series collecting candlesticks from the market depth
         /// </summary>
         private List<CandleSeries> _activeSeriesBasedOnMd;
+
+        /// <summary>
+        /// locker for concurrent access to the active series lists
+        /// </summary>
+        private readonly object _seriesListLock = new object();
 
         /// <summary>
         /// Number of active candleSeries

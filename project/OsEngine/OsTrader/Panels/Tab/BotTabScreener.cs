@@ -543,6 +543,39 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
+            if (NeedToReloadTabs == false)
+            {
+                List<ActivatedSecurity> activeSecurities = SecuritiesNames.FindAll(s => s.IsOn);
+
+                if (Tabs.Count != activeSecurities.Count)
+                {
+                    NeedToReloadTabs = true;
+                }
+                else
+                {
+                    for (int i = 0; i < activeSecurities.Count; i++)
+                    {
+                        bool found = false;
+
+                        for (int i2 = 0; i2 < Tabs.Count; i2++)
+                        {
+                            if (Tabs[i2].Connector.SecurityName == activeSecurities[i].SecurityName
+                                && Tabs[i2].Connector.SecurityClass == activeSecurities[i].SecurityClass)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (found == false)
+                        {
+                            NeedToReloadTabs = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             ReloadIndicatorsOnTabs();
             SetJournalsInPosViewer();
         }
@@ -1191,6 +1224,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (tab.Connector.ServerUid != ServerUid)
             {
                 tab.Connector.ServerUid = ServerUid;
+            }
+
+            if (tab.Connector.EventsIsOn != _eventsIsOn)
+            {
+                tab.Connector.EventsIsOn = _eventsIsOn;
             }
 
             tab.TimeFrameBuilder.MarketDepthBuildMaxSpread = MarketDepthBuildMaxSpread;
