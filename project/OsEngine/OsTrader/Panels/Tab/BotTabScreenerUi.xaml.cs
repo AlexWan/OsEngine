@@ -102,9 +102,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerName;
-                    _selectedServerType = connectorBot.ServerType;
-                    _selectedServerName = connectorBot.ServerName;
+                    if (string.IsNullOrEmpty(connectorBot.ServerName) == false)
+                    {
+                        ComboBoxTypeServer.SelectedItem = connectorBot.ServerName;
+                        _selectedServerType = connectorBot.ServerType;
+                        _selectedServerName = connectorBot.ServerName;
+                    }
+                    else
+                    {
+                        ComboBoxTypeServer.SelectedItem = connectorBot.ServerType.ToString();
+                        _selectedServerType = connectorBot.ServerType;
+                        _selectedServerName = connectorBot.ServerType.ToString();
+                    }
                 }
                 else
                 {
@@ -894,7 +903,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if(classSec == "All")
+                if (classSec == "All")
                 {
                     return;
                 }
@@ -1990,7 +1999,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 CheckBoxIsEmulator.IsChecked = curCreator.EmulatorIsOn;
-               
+
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
                 ComboBoxCommissionType.Text = curCreator.CommissionType.ToString();
