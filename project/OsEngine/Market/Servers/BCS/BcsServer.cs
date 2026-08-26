@@ -523,6 +523,16 @@ namespace OsEngine.Market.Servers.BCS
                     newSecurity.Decimals = GetDecimals(item.minimumStep.ToDecimal());
                     newSecurity.PriceStep = item.minimumStep.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
+
+                    if (instrumentType == SecurityType.Futures || instrumentType == SecurityType.Option)
+                    {
+                        decimal stepPrice = item.stepPrice.ToDecimal();
+
+                        if (stepPrice > 0)
+                        {
+                            newSecurity.PriceStepCost = stepPrice;
+                        }
+                    }
                     newSecurity.State = SecurityStateType.Activ;
 
                     string instrType = item.instrumentType.StartsWith("MUT") ? item.instrumentType.Split('_')[1] : item.instrumentType;
