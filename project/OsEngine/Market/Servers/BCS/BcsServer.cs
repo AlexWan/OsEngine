@@ -4,6 +4,7 @@
 */
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
@@ -418,6 +419,8 @@ namespace OsEngine.Market.Servers.BCS
                 SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
 
                 SecurityEvent?.Invoke(_securities);
+
+                Task.Run(() => TryLoadMarginAndLimitsFromMoex());
             }
         }
 
@@ -631,6 +634,114 @@ namespace OsEngine.Market.Servers.BCS
             while (x * (decimal)Math.Pow(10, precision) != Math.Round(x * (decimal)Math.Pow(10, precision)))
                 precision++;
             return precision;
+        }
+
+        private void TryLoadMarginAndLimitsFromMoex()
+        {
+            try
+            {
+                // догружаем ГО и ценовые лимиты по фьючерсам с MOEX ISS
+
+                string url = "https://iss.moex.com/iss/engines/futures/markets/forts/securities.json" +
+                    "?securities.columns=SECID,INITIALMARGIN,HIGHLIMIT,LOWLIMIT&iss.meta=off&iss.only=securities&securities.limit=1000";
+
+                string json;
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(15);
+
+                    json = client.GetStringAsync(url).Result;
+                }
+
+                if (string.IsNullOrEmpty(json))
+                {
+                    return;
+                }
+
+                JObject response = JObject.Parse(json);
+
+                JArray columns = response["securities"]?["columns"] as JArray;
+                JArray data = response["securities"]?["data"] as JArray;
+
+                if (columns == null || data == null || data.Count == 0)
+                {
+                    return;
+                }
+
+                int indexSecId = -1;
+                int indexMargin = -1;
+                int indexHighLimit = -1;
+                int indexLowLimit = -1;
+
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    string column = columns[i].ToString();
+
+                    if (column == "SECID") indexSecId = i;
+                    else if (column == "INITIALMARGIN") indexMargin = i;
+                    else if (column == "HIGHLIMIT") indexHighLimit = i;
+                    else if (column == "LOWLIMIT") indexLowLimit = i;
+                }
+
+                if (indexSecId < 0 || indexMargin < 0 || indexHighLimit < 0 || indexLowLimit < 0)
+                {
+                    return;
+                }
+
+                bool isUpdated = false;
+
+                for (int i = 0; i < data.Count; i++)
+                {
+                    JArray row = data[i] as JArray;
+
+                    if (row == null || row.Count <= indexSecId)
+                    {
+                        continue;
+                    }
+
+                    string secId = row[indexSecId].ToString();
+
+                    for (int j = 0; j < _securities.Count; j++)
+                    {
+                        Security security = _securities[j];
+
+                        if (security.SecurityType != SecurityType.Futures
+                            || security.Name != secId)
+                        {
+                            continue;
+                        }
+
+                        if (row[indexMargin].Type != JTokenType.Null)
+                        {
+                            decimal margin = row[indexMargin].ToObject<decimal>();
+                            security.MarginBuy = margin;
+                            security.MarginSell = margin;
+                        }
+
+                        if (row[indexHighLimit].Type != JTokenType.Null)
+                        {
+                            security.PriceLimitHigh = row[indexHighLimit].ToObject<decimal>();
+                        }
+
+                        if (row[indexLowLimit].Type != JTokenType.Null)
+                        {
+                            security.PriceLimitLow = row[indexLowLimit].ToObject<decimal>();
+                        }
+
+                        isUpdated = true;
+                    }
+                }
+
+                if (isUpdated)
+                {
+                    SecurityEvent?.Invoke(_securities);
+                }
+            }
+            catch
+            {
+                // тихо игнорируем. ГО и лимиты останутся нулевыми
+            }
         }
 
         public event Action<List<Security>> SecurityEvent;
