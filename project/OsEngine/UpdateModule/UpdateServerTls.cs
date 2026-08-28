@@ -34,9 +34,16 @@ namespace OsEngine.UpdateModule
             client.ReceiveTimeout = timeoutMs;
             client.SendTimeout = timeoutMs;
 
-            client.Connect(host, port);
+            if (client.ConnectAsync(host, port).Wait(timeoutMs) == false)
+            {
+                client.Dispose();
+                throw new TimeoutException($"Connection to {host}:{port} timed out ({timeoutMs} ms)");
+            }
 
             SslStream stream = new SslStream(client.GetStream(), false, ValidateServerCertificate);
+
+            stream.ReadTimeout = timeoutMs;
+            stream.WriteTimeout = timeoutMs;
 
             stream.AuthenticateAsClient(new SslClientAuthenticationOptions
             {

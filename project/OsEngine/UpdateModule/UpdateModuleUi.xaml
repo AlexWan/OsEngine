@@ -248,8 +248,7 @@
                                   Margin="0,5,0,0"
                                   Style="{StaticResource DataGridStyle}"
                                   SelectionMode="Single"
-                                  SelectionUnit="FullRow"
-                                  MouseRightButtonDown="VersionsDataGrid_MouseRightButtonDown">
+                                   SelectionUnit="FullRow">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Время" 
                             Width="120" 
