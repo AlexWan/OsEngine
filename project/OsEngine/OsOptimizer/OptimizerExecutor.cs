@@ -46,6 +46,9 @@ namespace OsEngine.OsOptimizer
             _parametersOn = parametersOn;
             _parameters = parameters;
 
+            // чистим кэш индикаторов при любом старте оптимизации, не только из UI
+            AindicatorCacheServer.Clear();
+
             SendLogMessage(OsLocalization.Optimizer.Message2, LogMessageType.System);
 
             _needToStop = false;
