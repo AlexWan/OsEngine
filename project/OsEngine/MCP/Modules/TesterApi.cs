@@ -437,6 +437,7 @@ namespace OsEngine.MCP.Modules
             if (datesChanged)
             {
                 server.SaveSecurityTestSettings();
+                server.NotifyTestPeriodChanged();
             }
 
             if (parameters.TryGetProperty("delete_trades_from_memory", out JsonElement deleteTradesElement)

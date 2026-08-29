@@ -945,6 +945,24 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action TestingNewSecurityEvent;
 
+        /// <summary>
+        /// notify subscribers about the change of the testing period from outside the UI
+        /// </summary>
+        public void NotifyTestPeriodChanged()
+        {
+            try
+            {
+                if (TestingNewSecurityEvent != null)
+                {
+                    TestingNewSecurityEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Main thread work place
@@ -3727,7 +3745,22 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        public event Action<List<Security>> SecuritiesChangeEvent { add { } remove { } }
+        public event Action<List<Security>> SecuritiesChangeEvent;
+
+        private void RaiseSecuritiesChangeEvent()
+        {
+            try
+            {
+                if (SecuritiesChangeEvent != null)
+                {
+                    SecuritiesChangeEvent(_securities);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         public void ShowSecuritiesDialog()
         {
@@ -4585,6 +4618,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingNewSecurityEvent();
             }
+
+            RaiseSecuritiesChangeEvent();
         }
 
         private void LoadTickFromFolder(string folderName)
@@ -4847,6 +4882,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingNewSecurityEvent();
             }
+
+            RaiseSecuritiesChangeEvent();
         }
 
         private void LoadMarketDepthFromFolder(string folderName)
@@ -5047,6 +5084,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 TestingNewSecurityEvent();
             }
+
+            RaiseSecuritiesChangeEvent();
         }
 
         private void ReadFile(string file, ref SecurityTester securityTester)
