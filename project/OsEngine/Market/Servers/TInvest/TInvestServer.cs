@@ -26,6 +26,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
@@ -104,6 +105,11 @@ namespace OsEngine.Market.Servers.TInvest
             worker7.Name = "OrderStateMessageReaderTInvest";
             worker7.IsBackground = true;
             worker7.Start();
+
+            Thread worker8 = new Thread(NewsPoller);
+            worker8.Name = "NewsPollerTInvest";
+            worker8.IsBackground = true;
+            worker8.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -136,6 +142,9 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     _activeStopOrders.Clear();
                 }
+
+                _newsIsSubscribed = false;
+                _lastNewsId = 0;
 
                 SendLogMessage(OsLocalization.Market.Label284, LogMessageType.System);
 
@@ -448,6 +457,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _securityStreamMap?.Clear();
                 _pollSubscribedSecurities.Clear();
                 _myPortfolios.Clear();
+                _newsIsSubscribed = false;
                 _lastMarketDataTime = DateTime.UtcNow;
                 _lastMdTime = DateTime.UtcNow;
                 _lastPortfolioDataTime = DateTime.UtcNow;
@@ -507,6 +517,12 @@ namespace OsEngine.Market.Servers.TInvest
         private string _stopOrdersLocker = "_stopOrdersLocker";
 
         private Dictionary<string, int> _stopOrderNumbers = new Dictionary<string, int>();
+
+        private bool _newsIsSubscribed = false;
+
+        private long _lastNewsId = 0; // id последней обработанной новости. Новости приходят от новых к старым
+
+        private RateGate _rateGateNews = new RateGate(30, TimeSpan.FromMinutes(1));
 
         #endregion
 
@@ -2846,10 +2862,179 @@ namespace OsEngine.Market.Servers.TInvest
 
         public bool SubscribeNews()
         {
-            return false;
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return false;
+            }
+
+            _newsIsSubscribed = true;
+
+            return true;
         }
 
-        public event Action<News> NewsEvent { add { } remove { } }
+        public event Action<News> NewsEvent;
+
+        // Поток опроса новостей. Метод News unary, стрима у Т-Инвестиций для новостей нет.
+        // Глубина истории метода ограничена 24 часами
+        // https://developer.tbank.ru/invest/services/instruments/methods#news
+
+        private void NewsPoller()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect
+                        || _newsIsSubscribed == false)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    GetNews();
+
+                    Thread.Sleep(10000);
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.System);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void GetNews()
+        {
+            _rateGateNews.WaitToProceed();
+
+            NewsResponse response = null;
+
+            try
+            {
+                NewsRequest request = new NewsRequest();
+                request.Limit = 100;
+
+                response = _instrumentsClient.News(request, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting news. Info: {message}", LogMessageType.System);
+                return;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error getting news. " + ex.ToString(), LogMessageType.System);
+                return;
+            }
+
+            if (response == null
+                || response.Items == null
+                || response.Items.Count == 0)
+            {
+                return;
+            }
+
+            long maxId = _lastNewsId;
+
+            for (int i = 0; i < response.Items.Count; i++)
+            {
+                if (response.Items[i].Id > maxId)
+                {
+                    maxId = response.Items[i].Id;
+                }
+            }
+
+            if (_lastNewsId == 0)
+            {
+                _lastNewsId = maxId;
+                return;
+            }
+
+            for (int i = response.Items.Count - 1; i >= 0; i--)
+            {
+                NewsItem item = response.Items[i];
+
+                if (item.Id <= _lastNewsId)
+                {
+                    continue;
+                }
+
+                News news = new News();
+
+                news.TimeMessage = item.Ts != null
+                    ? TimeZoneInfo.ConvertTimeFromUtc(item.Ts.ToDateTime(), _mskTimeZone) // convert to MSK
+                    : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+
+                news.Source = "TInvest " + item.Source;
+
+                news.Value = BuildNewsText(item);
+
+                NewsEvent?.Invoke(news);
+            }
+
+            _lastNewsId = maxId;
+        }
+
+        private string BuildNewsText(NewsItem item)
+        {
+            string text = item.Title ?? "";
+
+            if (string.IsNullOrEmpty(item.Content) == false)
+            {
+                text += "\n" + item.Content;
+            }
+            else if (string.IsNullOrEmpty(item.Summary) == false)
+            {
+                text += "\n" + item.Summary;
+            }
+
+            string tickers = "";
+
+            for (int i = 0; i < item.InstrumentId.Count; i++)
+            {
+                NewsInstrumentInfo info = item.InstrumentId[i].Instrument;
+
+                if (info == null
+                    || string.IsNullOrEmpty(info.Ticker))
+                {
+                    continue;
+                }
+
+                if (tickers.Contains(info.Ticker))
+                {
+                    continue;
+                }
+
+                if (tickers.Length > 0)
+                {
+                    tickers += ", ";
+                }
+
+                tickers += info.Ticker;
+            }
+
+            if (tickers.Length > 0)
+            {
+                text += "\nТикеры: " + tickers;
+            }
+
+            return CleanNewsText(text);
+        }
+
+        private string CleanNewsText(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+
+            string result = Regex.Replace(input, "<.*?>", string.Empty);
+
+            return WebUtility.HtmlDecode(result);
+        }
 
         #endregion
 
