@@ -2698,7 +2698,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             SetSecurities(_base10, _futs10, spotMgnt, futuresMgnt, myPortfolio, myServer);
 
-            Security lqdt = securitiesAll.Find(s => s.Name.StartsWith("TMON") && s.SecurityType == SecurityType.Stock);
+            Security lqdt = securitiesAll.Find(s => s.Name.StartsWith("TMON") && s.SecurityType == SecurityType.Fund);
 
             if (lqdt != null
                 && _tabLqdt.Connector != null)
