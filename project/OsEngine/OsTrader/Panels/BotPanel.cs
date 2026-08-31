@@ -284,6 +284,16 @@ namespace OsEngine.OsTrader.Panels
         public string PublicName;
 
         /// <summary>
+        /// internal key of the base robot group
+        /// </summary>
+        public const string BaseGroupName = "Base";
+
+        /// <summary>
+        /// the group to which the robot belongs in the bots list. Base group by default
+        /// </summary>
+        public string BotGroup = BaseGroupName;
+
+        /// <summary>
         /// the program that launched the robot. Tester  Robot  Optimizer
         /// </summary>
         public StartProgram StartProgram;

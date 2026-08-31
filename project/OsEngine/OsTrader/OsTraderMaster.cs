@@ -287,6 +287,13 @@ namespace OsEngine.OsTrader
                 {
                     string[] names = reader.ReadLine().Split('@');
 
+                    if (names.Length < 2
+                        || string.IsNullOrEmpty(names[0])
+                        || string.IsNullOrEmpty(names[1]))
+                    {
+                        continue;
+                    }
+
                     BotPanel bot = null;
 
                     if (names.Length > 2)
@@ -304,6 +311,12 @@ namespace OsEngine.OsTrader
                     else
                     {
                         bot = BotFactory.GetStrategyForName(names[1], names[0], _startProgram, false);
+                    }
+
+                    if (bot == null)
+                    {
+                        SendNewLogMessage(" Error on bot creation. Bot class not found: " + names[1] + " Bot Name: " + names[0], LogMessageType.Error);
+                        continue;
                     }
 
                     if(names.Length >= 4)
@@ -340,6 +353,8 @@ namespace OsEngine.OsTrader
             {
                 ReloadActiveBot(PanelsArray[0]);
             }
+
+            LoadGroups();
         }
 
         /// <summary>
@@ -377,6 +392,270 @@ namespace OsEngine.OsTrader
                 // ignored
             }
         }
+
+        #region Groups
+
+        /// <summary>
+        /// user created robot groups in creation order. Base group is not included
+        /// </summary>
+        private List<string> _botsGroups = new List<string>();
+
+        /// <summary>
+        /// collapsed state of groups by name, including the base group
+        /// </summary>
+        private Dictionary<string, bool> _groupsCollapsed = new Dictionary<string, bool>();
+
+        /// <summary>
+        /// User created robot groups in creation order
+        /// </summary>
+        public List<string> GetBotsGroups()
+        {
+            return new List<string>(_botsGroups);
+        }
+
+        /// <summary>
+        /// Add new robot group
+        /// </summary>
+        public void AddNewGroup(string name)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(name)
+                    || name == BotPanel.BaseGroupName
+                    || _botsGroups.Contains(name))
+                {
+                    return;
+                }
+
+                _botsGroups.Add(name);
+                SaveGroups();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Delete robot group. Robots from the group return to the base group
+        /// </summary>
+        public void DeleteGroup(string name)
+        {
+            try
+            {
+                if (_botsGroups.Contains(name) == false)
+                {
+                    return;
+                }
+
+                _botsGroups.Remove(name);
+                _groupsCollapsed.Remove(name);
+
+                for (int i = 0; PanelsArray != null && i < PanelsArray.Count; i++)
+                {
+                    if (PanelsArray[i].BotGroup == name)
+                    {
+                        PanelsArray[i].BotGroup = BotPanel.BaseGroupName;
+                    }
+                }
+
+                SaveGroups();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Move robot to group
+        /// </summary>
+        public void MoveBotToGroup(BotPanel bot, string groupName)
+        {
+            try
+            {
+                if (bot == null)
+                {
+                    return;
+                }
+
+                if (groupName != BotPanel.BaseGroupName
+                    && _botsGroups.Contains(groupName) == false)
+                {
+                    return;
+                }
+
+                bot.BotGroup = groupName;
+                SaveGroups();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Is the group collapsed in the bots list
+        /// </summary>
+        public bool IsGroupCollapsed(string groupName)
+        {
+            if (groupName != null
+                && _groupsCollapsed.ContainsKey(groupName))
+            {
+                return _groupsCollapsed[groupName];
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Set the collapsed state of the group in the bots list
+        /// </summary>
+        public void SetGroupCollapsed(string groupName, bool collapsed)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(groupName))
+                {
+                    return;
+                }
+
+                _groupsCollapsed[groupName] = collapsed;
+                SaveGroups();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Load robot groups from file
+        /// </summary>
+        private void LoadGroups()
+        {
+            string path = @"Engine\Settings" + _typeWorkKeeper + "KeeperGroups.txt";
+
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string line = reader.ReadLine();
+
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            continue;
+                        }
+
+                        string[] values = line.Split('@');
+
+                        if (values.Length < 3)
+                        {
+                            continue;
+                        }
+
+                        if (values[0] == "GROUP")
+                        {
+                            bool collapsed = false;
+
+                            try
+                            {
+                                collapsed = Convert.ToBoolean(values[2]);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
+                            if (values[1] == BotPanel.BaseGroupName)
+                            {
+                                _groupsCollapsed[BotPanel.BaseGroupName] = collapsed;
+                            }
+                            else if (_botsGroups.Contains(values[1]) == false)
+                            {
+                                _botsGroups.Add(values[1]);
+                                _groupsCollapsed[values[1]] = collapsed;
+                            }
+                        }
+                        else if (values[0] == "BOT")
+                        {
+                            BotPanel bot = null;
+
+                            for (int i = 0; PanelsArray != null && i < PanelsArray.Count; i++)
+                            {
+                                if (PanelsArray[i].NameStrategyUniq == values[1])
+                                {
+                                    bot = PanelsArray[i];
+                                    break;
+                                }
+                            }
+
+                            if (bot == null)
+                            {
+                                continue;
+                            }
+
+                            if (values[2] != BotPanel.BaseGroupName
+                                && _botsGroups.Contains(values[2]) == false)
+                            {
+                                _botsGroups.Add(values[2]);
+                            }
+
+                            bot.BotGroup = values[2];
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
+        /// Save robot groups to file
+        /// </summary>
+        public void SaveGroups()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\Settings" + _typeWorkKeeper + "KeeperGroups.txt", false))
+                {
+                    writer.WriteLine("GROUP@" + BotPanel.BaseGroupName + "@" + IsGroupCollapsed(BotPanel.BaseGroupName));
+
+                    for (int i = 0; i < _botsGroups.Count; i++)
+                    {
+                        writer.WriteLine("GROUP@" + _botsGroups[i] + "@" + IsGroupCollapsed(_botsGroups[i]));
+                    }
+
+                    for (int i = 0; PanelsArray != null && i < PanelsArray.Count; i++)
+                    {
+                        if (string.IsNullOrEmpty(PanelsArray[i].BotGroup) == false
+                            && PanelsArray[i].BotGroup != BotPanel.BaseGroupName)
+                        {
+                            writer.WriteLine("BOT@" + PanelsArray[i].NameStrategyUniq + "@" + PanelsArray[i].BotGroup);
+                        }
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Save robots preset to file
