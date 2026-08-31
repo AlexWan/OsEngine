@@ -225,7 +225,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         public bool IsNewsServer
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_CheckDataFeedLogic
