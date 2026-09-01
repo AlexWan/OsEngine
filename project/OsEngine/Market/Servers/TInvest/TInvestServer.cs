@@ -30,7 +30,6 @@ using System.Text.RegularExpressions;
 using Grpc.Net.Client;
 using Grpc.Core;
 using System.Threading.Tasks;
-using OsEngine.Market.Servers.Bybit.Entities;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -1684,7 +1683,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     decimal blockRub = portf.ValueBlocked;
 
-                    newPos.ValueCurrent = valuePortfolio - blockRub; // - futuresAndOptionsGO; // -spotShortValue;
+                    newPos.ValueCurrent = valuePortfolio - blockRub + GetVariationMarginSum(portfolio); // - futuresAndOptionsGO; // -spotShortValue;
 
                     /*if(portf.ValueBlocked != 0)
                     {
