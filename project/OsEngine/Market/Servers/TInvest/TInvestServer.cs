@@ -1369,6 +1369,52 @@ namespace OsEngine.Market.Servers.TInvest
                     myPortfolio.ValueCurrent = GetValue(portfolioResponse.TotalAmountPortfolio);
                 }
             }
+
+            // вариационная маржа портфеля: сумма расчётной к клирингу маржи по всем позициям (релиз 1.49)
+            myPortfolio.UnrealizedPnl = GetVariationMarginSum(portfolioResponse);
+        }
+
+        private decimal GetVariationMargin(Dictionary<string, PortfolioPosition> portfolioPositionsByUid, string instrumentUid)
+        {
+            PortfolioPosition pos = null;
+
+            if (portfolioPositionsByUid.TryGetValue(instrumentUid, out pos) == false)
+            {
+                return 0;
+            }
+
+            if (pos.VarMarginSettled != null)
+            {   // расчётная вар. маржа, которая будет начислена/списана в клиринг
+                return GetValue(pos.VarMarginSettled);
+            }
+
+            if (pos.VarMargin != null)
+            {   // текущая вар. маржа
+                return GetValue(pos.VarMargin);
+            }
+
+            return 0;
+        }
+
+        private decimal GetVariationMarginSum(PortfolioResponse portfolio)
+        {
+            decimal result = 0;
+
+            for (int i = 0; i < portfolio.Positions.Count; i++)
+            {
+                PortfolioPosition pos = portfolio.Positions[i];
+
+                if (pos.VarMarginSettled != null)
+                {
+                    result += GetValue(pos.VarMarginSettled);
+                }
+                else if (pos.VarMargin != null)
+                {
+                    result += GetValue(pos.VarMargin);
+                }
+            }
+
+            return result;
         }
 
         private void UpdatePositionsInPortfolio(PortfolioResponse portfolio, int tryCount)
@@ -1429,6 +1475,20 @@ namespace OsEngine.Market.Servers.TInvest
             // переменные для учёта позиций
             decimal futuresAndOptionsGO = 0;
             decimal spotShortValue = 0;
+
+            // вариационная маржа приходит только в GetPortfolio, GetPositions её не отдаёт
+            Dictionary<string, PortfolioPosition> portfolioPositionsByUid = new Dictionary<string, PortfolioPosition>();
+
+            for (int i = 0; i < portfolio.Positions.Count; i++)
+            {
+                PortfolioPosition portfolioPos = portfolio.Positions[i];
+
+                if (string.IsNullOrEmpty(portfolioPos.InstrumentUid) == false
+                    && portfolioPositionsByUid.ContainsKey(portfolioPos.InstrumentUid) == false)
+                {
+                    portfolioPositionsByUid.Add(portfolioPos.InstrumentUid, portfolioPos);
+                }
+            }
 
             for (int i = 0; i < posData.Securities.Count; i++)
             {
@@ -1523,6 +1583,9 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
                 newPos.SecurityNameClass = GetClassName(instrument.Instrument);
 
+                // вариационная маржа по фьючерсу
+                newPos.UnrealizedPnl = GetVariationMargin(portfolioPositionsByUid, pos.InstrumentUid);
+
                 sectionPoses.Add(newPos);
 
                 if (instrument.Instrument.Currency == "rub")
@@ -1569,6 +1632,9 @@ namespace OsEngine.Market.Servers.TInvest
                 newPos.ValueBegin = newPos.ValueCurrent;
                 newPos.SecurityNameCode = instrument.Instrument.Ticker;
                 newPos.SecurityNameClass = GetClassName(instrument.Instrument);
+
+                // вариационная маржа по опциону
+                newPos.UnrealizedPnl = GetVariationMargin(portfolioPositionsByUid, pos.InstrumentUid);
 
                 sectionPoses.Add(newPos);
 
