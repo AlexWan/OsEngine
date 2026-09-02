@@ -1326,5 +1326,9 @@ namespace OsEngine.Language
         public string DescriptionLabel329 => OsLocalization.ConvertToLocString(
             "Eng:An empty strategy for manual synthetic bond trading_" +
             "Ru:Пустая стратегия для ручной торговли синтетическими облигациями._");
+
+        public string DescriptionLabel330 => OsLocalization.ConvertToLocString(
+            "Eng:TechSample robot for OsEngine. Trading with server stop-limit orders, Long only. Entry and exit - by server stop-limit orders with re-placement on timeout._" +
+            "Ru:Технический пример робота для OsEngine. Торговля серверными стоп-лимит ордерами, только лонг. Вход и выход - серверными стоп-лимит ордерами с перевыставлением по таймауту._");
     }
 }
