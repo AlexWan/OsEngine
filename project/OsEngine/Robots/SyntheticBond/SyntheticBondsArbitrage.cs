@@ -609,6 +609,8 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 PairInPosition pair = pairsInPosition[0];
 
+                TryRebalanceLegs(pair.Base, pair.Futures, currentTime);
+
                 if (StartProgram == StartProgram.IsTester)
                 {
                     if (TryResetArbPositionByYear(pair.Base, pair.Futures, currentTime))
@@ -1070,7 +1072,17 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Candle last = candles[^1];
-            DateTime border = last.TimeStart.AddDays(-_LqdtYieldDays.ValueInt);
+
+            DateTime border;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                border = last.TimeStart.AddDays(-7);
+            }
+            else
+            {
+                border = last.TimeStart.AddDays(-_LqdtYieldDays.ValueInt);
+            }
 
             decimal oldPrice = 0;
             int daysReal = 0;
@@ -1083,6 +1095,12 @@ namespace OsEngine.Robots.SyntheticBond
                     daysReal = (last.TimeStart - candles[i].TimeStart).Days;
                     break;
                 }
+            }
+
+            if (oldPrice == 0)
+            {
+                oldPrice = candles[0].Close;
+                daysReal = (last.TimeStart - candles[0].TimeStart).Days;
             }
 
             if (oldPrice == 0
@@ -1684,8 +1702,169 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            if (StartProgram == StartProgram.IsOsTrader
+                && HasEnoughTopVolume(futuresSource, baseSource, volumeFutures, volumeBase) == false)
+            {
+                LogFull("ENTRY skipped: not enough volume on top of book. "
+                    + PairDescription(baseSource, futuresSource, GetMultByBase(baseSource))
+                    + " | volFut " + volumeFutures + " volBase " + volumeBase);
+                return;
+            }
+
             futuresSource.SellAtMarket(volumeFutures);
             baseSource.BuyAtMarket(volumeBase);
+        }
+
+        private bool HasEnoughTopVolume(BotTabSimple futuresSource, BotTabSimple baseSource, decimal volumeFutures, decimal volumeBase)
+        {
+            if (volumeFutures > 0)
+            {
+                MarketDepth futBook = futuresSource.MarketDepth;
+
+                if (futBook == null
+                    || futBook.Bids == null
+                    || futBook.Bids.Count == 0
+                    || futBook.Bids[0].Bid < (double)volumeFutures)
+                {
+                    return false;
+                }
+            }
+
+            if (volumeBase > 0)
+            {
+                MarketDepth baseBook = baseSource.MarketDepth;
+
+                if (baseBook == null
+                    || baseBook.Asks == null
+                    || baseBook.Asks.Count == 0
+                    || baseBook.Asks[0].Ask < (double)volumeBase)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private DateTime _lastRebalanceTryTime = DateTime.MinValue;
+
+        private void TryRebalanceLegs(BotTabSimple baseSource, BotTabSimple futuresSource, DateTime currentTime)
+        {
+            if (StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            if ((currentTime - _lastRebalanceTryTime).TotalMinutes < 5)
+            {
+                return;
+            }
+
+            if (baseSource.Security == null
+                || futuresSource.Security == null)
+            {
+                return;
+            }
+
+            List<Position> basePos = baseSource.PositionsOpenAll;
+            List<Position> futPos = futuresSource.PositionsOpenAll;
+
+            decimal baseOpenVolume = 0;
+            decimal futOpenVolume = 0;
+
+            for (int i = 0; i < basePos.Count; i++)
+            {
+                if (basePos[i].State == PositionStateType.Open
+                    && basePos[i].Direction == Side.Buy)
+                {
+                    baseOpenVolume += basePos[i].OpenVolume;
+                }
+            }
+
+            for (int i = 0; i < futPos.Count; i++)
+            {
+                if (futPos[i].State == PositionStateType.Open
+                    && futPos[i].Direction == Side.Sell)
+                {
+                    futOpenVolume += futPos[i].OpenVolume;
+                }
+            }
+
+            if (baseOpenVolume <= 0
+                || futOpenVolume <= 0)
+            {
+                return;
+            }
+
+            decimal baseLot = baseSource.Security.Lot;
+
+            if (baseLot <= 0)
+            {
+                baseLot = 1;
+            }
+
+            decimal mult = GetMultByBase(baseSource);
+
+            decimal expectedBaseShares = futOpenVolume * mult;
+            decimal actualBaseShares = baseOpenVolume * baseLot;
+
+            decimal diffShares = actualBaseShares - expectedBaseShares;
+
+            if (Math.Abs(diffShares) < mult)
+            {
+                return;
+            }
+
+            _lastRebalanceTryTime = currentTime;
+
+            if (diffShares > 0)
+            {
+                decimal missingContracts = diffShares / mult;
+                missingContracts = Math.Round(missingContracts, futuresSource.Security.DecimalsVolume);
+
+                if (missingContracts <= 0)
+                {
+                    return;
+                }
+
+                if (HasEnoughTopVolume(futuresSource, baseSource, missingContracts, 0) == false)
+                {
+                    LogFull("REBALANCE skipped: not enough fut bid volume to sell " + missingContracts
+                        + " | " + PairDescription(baseSource, futuresSource, mult)
+                        + " | baseShares " + actualBaseShares + " futShares " + expectedBaseShares);
+                    return;
+                }
+
+                LogFull("REBALANCE: sell fut " + missingContracts
+                    + " | " + PairDescription(baseSource, futuresSource, mult)
+                    + " | baseShares " + actualBaseShares + " futShares " + expectedBaseShares);
+
+                futuresSource.SellAtMarket(missingContracts);
+            }
+            else
+            {
+                decimal missingLots = -diffShares / baseLot;
+                missingLots = Math.Round(missingLots, baseSource.Security.DecimalsVolume);
+
+                if (missingLots <= 0)
+                {
+                    return;
+                }
+
+                if (HasEnoughTopVolume(futuresSource, baseSource, 0, missingLots) == false)
+                {
+                    LogFull("REBALANCE skipped: not enough base ask volume to buy " + missingLots
+                        + " | " + PairDescription(baseSource, futuresSource, mult)
+                        + " | baseShares " + actualBaseShares + " futShares " + expectedBaseShares);
+                    return;
+                }
+
+                LogFull("REBALANCE: buy base " + missingLots
+                    + " | " + PairDescription(baseSource, futuresSource, mult)
+                    + " | baseShares " + actualBaseShares + " futShares " + expectedBaseShares);
+
+                baseSource.BuyAtMarket(missingLots);
+            }
         }
 
         private void ExitFromPosition(BotTabSimple baseSource, BotTabSimple futuresSource, string reason = "")
@@ -2081,6 +2260,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void ShowFuturesChart(BondMonitorRow rowData)
         {
+            if (rowData.Futs == null)
+            {
+                ShowChartForTab(rowData.Base);
+                return;
+            }
+
             if (rowData.Series.Count == 0)
             {
                 return;
@@ -2151,7 +2336,32 @@ namespace OsEngine.Robots.SyntheticBond
             AddBondMonitorRow(_base9, _futs9, rows);
             AddBondMonitorRow(_base10, _futs10, rows);
 
+            AddLqdtMonitorRow(rows);
+
             _monitorRows = rows;
+        }
+
+        private void AddLqdtMonitorRow(List<BondMonitorRow> rows)
+        {
+            if (_tabLqdt == null
+                || string.IsNullOrEmpty(_tabLqdt.Connector?.SecurityName))
+            {
+                return;
+            }
+
+            BondMonitorRow newRow = new BondMonitorRow();
+            newRow.Base = _tabLqdt;
+            newRow.BaseName = "LQDT";
+
+            SetTabPosInfo(_tabLqdt, newRow);
+
+            SeriesInfo info = new SeriesInfo();
+            info.Name = "LQDT";
+            info.YieldPercent = GetLqdtYieldAnn(GetCurrentServerTime());
+
+            newRow.Series.Add(info);
+
+            rows.Add(newRow);
         }
 
         private void AddBondMonitorRow(BotTabSimple baseSource, BotTabScreener screener, List<BondMonitorRow> rows)
@@ -2178,7 +2388,23 @@ namespace OsEngine.Robots.SyntheticBond
 
             decimal mult = GetMultByBase(baseSource);
 
-            List<BotTabSimple> nearestSeries = GetNearestSeries(screener, time, 1);
+            List<BotTabSimple> allSeries = GetNearestSeries(screener, time, screener.Tabs.Count);
+
+            List<BotTabSimple> nearestSeries = new List<BotTabSimple>();
+
+            for (int i = 0; i < allSeries.Count; i++)
+            {
+                int daysToExpiration = (allSeries[i].Security.Expiration - time).Days;
+
+                if (daysToExpiration <= _minDaysToExpiration.ValueInt
+                    || daysToExpiration > 120)
+                {
+                    continue;
+                }
+
+                nearestSeries.Add(allSeries[i]);
+                break;
+            }
 
             for (int i = 0; i < nearestSeries.Count; i++)
             {
@@ -2390,17 +2616,35 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].ReadOnly = false;
-            row.Cells[^1].Value = GetMultByBase(data.Base);
+
+            if (data.Futs == null)
+            {
+                row.Cells[^1].ReadOnly = true;
+                row.Cells[^1].Value = "";
+            }
+            else
+            {
+                row.Cells[^1].ReadOnly = false;
+                row.Cells[^1].Value = GetMultByBase(data.Base);
+            }
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
 
             if (data.Series.Count > 0)
             {
-                string text = data.Series[0].Name
-                    + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 1) + "%"
-                    + " | " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+                string text;
+
+                if (data.Futs == null)
+                {
+                    text = "LQDT  " + Math.Round(data.Series[0].YieldPercent, 2) + "% ann";
+                }
+                else
+                {
+                    text = data.Series[0].Name
+                        + "  " + Math.Round(data.Series[0].ContangoAbsPercent, 2) + "%"
+                        + " | " + Math.Round(data.Series[0].YieldPercent, 2) + "%";
+                }
 
                 if (data.Series[0].HasPosition)
                 {
@@ -2621,10 +2865,11 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 _tabLqdt.Connector.ServerType = myServer.ServerType;
                 _tabLqdt.Connector.ServerFullName = myServer.ServerNameAndPrefix;
-                _tabLqdt.Connector.TimeFrame = GetDeployTimeFrame();
+                _tabLqdt.Connector.TimeFrame = TimeFrame.Hour1;
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+                _tabLqdt.Connector.Save();
             }
         }
 
@@ -2658,6 +2903,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
             tabFutures.TimeFrame = timeFrame;
@@ -2901,6 +3147,7 @@ namespace OsEngine.Robots.SyntheticBond
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+                _tabLqdt.Connector.Save();
             }
         }
 
@@ -2927,6 +3174,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
             tabSpot.Connector.CommissionType = CommissionType.Percent;
             tabSpot.Connector.CommissionValue = 0.04m;
 

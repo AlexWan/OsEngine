@@ -1095,7 +1095,17 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Candle last = candles[^1];
-            DateTime border = last.TimeStart.AddDays(-_LqdtYieldDays.ValueInt);
+
+            DateTime border;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                border = last.TimeStart.AddDays(-7);
+            }
+            else
+            {
+                border = last.TimeStart.AddDays(-_LqdtYieldDays.ValueInt);
+            }
 
             decimal oldPrice = 0;
             int daysReal = 0;
@@ -1108,6 +1118,12 @@ namespace OsEngine.Robots.SyntheticBond
                     daysReal = (last.TimeStart - candles[i].TimeStart).Days;
                     break;
                 }
+            }
+
+            if (oldPrice == 0)
+            {
+                oldPrice = candles[0].Close;
+                daysReal = (last.TimeStart - candles[0].TimeStart).Days;
             }
 
             if (oldPrice == 0
@@ -2144,6 +2160,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void ShowFuturesChart(BondMonitorRow rowData, int seriesIndex = 0)
         {
+            if (rowData.Futs == null)
+            {
+                ShowChartForTab(rowData.Base);
+                return;
+            }
+
             if (rowData.Series.Count <= seriesIndex)
             {
                 return;
@@ -2214,7 +2236,32 @@ namespace OsEngine.Robots.SyntheticBond
             AddBondMonitorRow(_base9, _futs9, rows);
             AddBondMonitorRow(_base10, _futs10, rows);
 
+            AddLqdtMonitorRow(rows);
+
             _monitorRows = rows;
+        }
+
+        private void AddLqdtMonitorRow(List<BondMonitorRow> rows)
+        {
+            if (_tabLqdt == null
+                || string.IsNullOrEmpty(_tabLqdt.Connector?.SecurityName))
+            {
+                return;
+            }
+
+            BondMonitorRow newRow = new BondMonitorRow();
+            newRow.Base = _tabLqdt;
+            newRow.BaseName = "LQDT";
+
+            SetTabPosInfo(_tabLqdt, newRow);
+
+            SeriesInfo info = new SeriesInfo();
+            info.Name = "LQDT";
+            info.YieldPercent = GetLqdtYieldAnn(GetCurrentServerTime());
+
+            newRow.Series.Add(info);
+
+            rows.Add(newRow);
         }
 
         private void AddBondMonitorRow(BotTabSimple baseSource, BotTabScreener screener, List<BondMonitorRow> rows)
@@ -2452,16 +2499,34 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
-            row.Cells[^1].ReadOnly = false;
-            row.Cells[^1].Value = GetMultByBase(data.Base);
+
+            if (data.Futs == null)
+            {
+                row.Cells[^1].ReadOnly = true;
+                row.Cells[^1].Value = "";
+            }
+            else
+            {
+                row.Cells[^1].ReadOnly = false;
+                row.Cells[^1].Value = GetMultByBase(data.Base);
+            }
 
             row.Cells.Add(new DataGridViewButtonCell());
             row.Cells[^1].ReadOnly = true;
 
             if (data.Series.Count > 0)
             {
-                string text = data.Series[0].Name
-                    + "  " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+                string text;
+
+                if (data.Futs == null)
+                {
+                    text = "LQDT  " + Math.Round(data.Series[0].YieldPercent, 2) + "% ann";
+                }
+                else
+                {
+                    text = data.Series[0].Name
+                        + "  " + Math.Round(data.Series[0].YieldPercent, 1) + "%";
+                }
 
                 if (data.Series[0].HasPosition)
                 {
@@ -2705,10 +2770,11 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 _tabLqdt.Connector.ServerType = myServer.ServerType;
                 _tabLqdt.Connector.ServerFullName = myServer.ServerNameAndPrefix;
-                _tabLqdt.Connector.TimeFrame = GetDeployTimeFrame();
+                _tabLqdt.Connector.TimeFrame = TimeFrame.Hour1;
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+                _tabLqdt.Connector.Save();
             }
         }
 
@@ -2742,6 +2808,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
             tabFutures.TimeFrame = timeFrame;
@@ -2985,6 +3052,7 @@ namespace OsEngine.Robots.SyntheticBond
                 _tabLqdt.Connector.SecurityName = lqdt.Name;
                 _tabLqdt.Connector.SecurityClass = lqdt.NameClass;
                 _tabLqdt.Connector.PortfolioName = myPortfolio.Number;
+                _tabLqdt.Connector.Save();
             }
         }
 
@@ -3011,6 +3079,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
             tabSpot.Connector.CommissionType = CommissionType.Percent;
             tabSpot.Connector.CommissionValue = 0.04m;
 

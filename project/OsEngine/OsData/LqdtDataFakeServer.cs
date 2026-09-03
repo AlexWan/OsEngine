@@ -443,6 +443,9 @@ namespace OsEngine.OsData
                 }
             }
 
+            // реальный денежный рынок (RUSFAR/TMON) системно ниже ставки ЦБ ~ на 10%. Хэиркат для честной генерации
+            latestRate = latestRate * 0.9;
+
             return latestRate;
         }
 
