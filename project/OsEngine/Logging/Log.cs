@@ -689,6 +689,19 @@ namespace OsEngine.Logging
 
         public List<LogMessage> LastErrorMessages = new List<LogMessage>();
 
+        private int MaxMessagesCount
+        {
+            get
+            {
+                if (_startProgram == StartProgram.IsTester)
+                {
+                    return 10000;
+                }
+
+                return 500;
+            }
+        }
+
         /// <summary>
         /// incoming message
         /// входящее сообщение
@@ -712,7 +725,7 @@ namespace OsEngine.Logging
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 _incomingMessages.Enqueue(messageLog);
 
-                if (_incomingMessages.Count > 500)
+                if (_incomingMessages.Count > MaxMessagesCount)
                 {
                     LogMessage mes;
                     _incomingMessages.TryDequeue(out mes);
@@ -772,13 +785,6 @@ namespace OsEngine.Logging
                 }
 
                 if (_grid != null
-                    && _grid.Rows != null
-                    && _grid.Rows.Count > 15000)
-                {
-                    return;
-                }
-
-                if (_grid != null
                     && _grid.InvokeRequired)
                 {
                     _grid.Invoke(new Action<LogMessage>(PaintMessage), messageLog);
@@ -788,6 +794,13 @@ namespace OsEngine.Logging
                 if (messageLog.Type != LogMessageType.OldSession)
                 {
                     _messagesToSaveInFile.Enqueue(messageLog);
+                }
+
+                if (_grid != null
+                    && _grid.Rows != null
+                    && _grid.Rows.Count > 15000)
+                {
+                    return;
                 }
 
                 if (_grid != null)
