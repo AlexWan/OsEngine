@@ -209,4 +209,23 @@ namespace OsEngine.Market.Servers.BCS.Entity
         public string positionPriceStop { get; set; }
         public string positionPriceLimit { get; set; }
     }
+
+    public class BcsTradesListResponse
+    {
+        public BcsTrade[] records { get; set; }
+        public string totalRecords { get; set; }
+        public string totalPages { get; set; }
+    }
+
+    public class BcsTrade
+    {
+        public string orderNum { get; set; }
+        public string ticker { get; set; }
+        public string tradeNum { get; set; }
+        public string classCode { get; set; }
+        public string side { get; set; }
+        public string tradeDateTime { get; set; }
+        public string price { get; set; }
+        public string tradeQuantityLots { get; set; }
+    }
  }

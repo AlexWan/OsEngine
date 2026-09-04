@@ -85,6 +85,11 @@ namespace OsEngine.Market.Servers.BCS
             worker4.Name = "BcsOrdersMessageReader";
             worker4.IsBackground = true;
             worker4.Start();
+
+            Thread worker5 = new Thread(MyTradesMessageReader);
+            worker5.Name = "BcsMyTradesMessageReader";
+            worker5.IsBackground = true;
+            worker5.Start();
         }
 
         private WebProxy _myProxy;
@@ -97,6 +102,11 @@ namespace OsEngine.Market.Servers.BCS
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
                 _accessTokenExpireTime = DateTime.MinValue;
+
+                lock (_sentMyTradesLocker)
+                {
+                    _sentMyTradesNumbers.Clear();
+                }
 
                 SendLogMessage("Start Bcs Connection", LogMessageType.System);
 
@@ -246,6 +256,11 @@ namespace OsEngine.Market.Servers.BCS
         {
             _myPortfolios.Clear();
             _securitiesLots.Clear();
+
+            lock (_sentMyTradesLocker)
+            {
+                _sentMyTradesNumbers.Clear();
+            }
 
             UnsubscribeAllSecurities();
             _subscribedSecurities.Clear();
@@ -1248,6 +1263,7 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     WebSocketPortfolioMessage = new ConcurrentQueue<string>();
                     WebSocketMyOrdersAndTradesMessage = new ConcurrentQueue<string>();
+                    MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
 
                     _webSocketPortfolio = new WebSocket(_wsHostPortfolio);
                     _webSocketPortfolio.SetHeader("Authorization", "Bearer " + _apiAccessToken);
@@ -1961,6 +1977,12 @@ namespace OsEngine.Market.Servers.BCS
         private string _subscribeLimitLocker = "limitLocker";
         private bool _hasLimitReached = false;
 
+        private ConcurrentQueue<MyTradeFetchRequest> MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
+        private RateGate _rateGateMyTrades = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private List<string> _sentMyTradesNumbers = new List<string>();
+        private string _sentMyTradesLocker = "sentMyTradesLocker";
+        private readonly string _tradesSearchPath = "/trade-api-bff-trade-details/api/v1/trades/search";
+
         private void DataMessageReader()
         {
             Thread.Sleep(1000);
@@ -2354,7 +2376,17 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (orderEvent.Data.ExecutionType == "11") // сделка
                 {
-                    UpdateMyTrade(orderEvent, security.Lot, newOrder.NumberMarket, newOrder.Price);
+                    MyTradeFetchRequest request = new MyTradeFetchRequest();
+                    request.Ticker = orderEvent.Data.Ticker;
+                    request.ClassCode = orderEvent.Data.ClassCode;
+                    request.Side = orderEvent.Data.Side;
+                    request.OrderNumber = orderEvent.Data.OrderNumber;
+                    request.NumberOrderParent = newOrder.NumberMarket;
+
+                    if (MyTradesToFetchQueue != null)
+                    {
+                        MyTradesToFetchQueue.Enqueue(request);
+                    }
                 }
             }
             catch (Exception ex)
@@ -2363,25 +2395,140 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private void UpdateMyTrade(BcsOrdersResponse dealEvent, decimal lot, string orderNumber, decimal price)
+        private void MyTradesMessageReader()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (MyTradesToFetchQueue == null || MyTradesToFetchQueue.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    MyTradeFetchRequest request;
+
+                    if (MyTradesToFetchQueue.TryDequeue(out request) == false)
+                    {
+                        continue;
+                    }
+
+                    FetchMyTrades(request);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("My trades reader error: " + ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void FetchMyTrades(MyTradeFetchRequest request)
         {
             try
             {
-                MyTrade trade = new MyTrade();
-                trade.SecurityNameCode = dealEvent.Data.Ticker;
-                trade.Price = price;
-                trade.Volume = dealEvent.Data.LastQuantity.ToDecimal() / lot;
-                trade.NumberOrderParent = orderNumber;
-                trade.NumberTrade = dealEvent.Data.ExecutionId;
-                trade.Time = ConvertUtsStringToDateTimeRu(dealEvent.Data.TransactionTime);
-                trade.Side = dealEvent.Data.Side.Equals("1") ? Side.Buy : Side.Sell;
+                _rateGateMyTrades.WaitToProceed();
 
-                MyTradeEvent?.Invoke(trade);
+                string path = _tradesSearchPath + "?page=0&size=100&sort=tradeDateTime,desc";
+
+                Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>
+                {
+                    { "tickers", new string[] { request.Ticker } },
+                    { "classCodes", new string[] { request.ClassCode } },
+                    { "side", request.Side },
+                    { "startDateTime", DateTime.UtcNow.AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
+                    { "endDateTime", DateTime.UtcNow.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+                };
+
+                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                HttpResponseMessage response = CreateHttpRequestAsync(path, HttpMethod.Post, jsonRequest).Result;
+
+                if (response == null || response.StatusCode != HttpStatusCode.OK)
+                {
+                    return;
+                }
+
+                string responseMsg = response.Content.ReadAsStringAsync().Result;
+                BcsTradesListResponse tradesResponse = JsonConvert.DeserializeAnonymousType(responseMsg, new BcsTradesListResponse());
+
+                if (tradesResponse == null || tradesResponse.records == null || tradesResponse.records.Length == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < tradesResponse.records.Length; i++)
+                {
+                    BcsTrade tradeRecord = tradesResponse.records[i];
+
+                    if (string.IsNullOrEmpty(tradeRecord.orderNum) || tradeRecord.orderNum != request.OrderNumber)
+                    {
+                        continue;
+                    }
+
+                    string numberTrade = tradeRecord.tradeNum;
+
+                    if (string.IsNullOrEmpty(numberTrade) || IsMyTradeAlreadySent(numberTrade))
+                    {
+                        continue;
+                    }
+
+                    MyTrade trade = new MyTrade();
+                    trade.SecurityNameCode = tradeRecord.ticker;
+                    trade.Price = tradeRecord.price.ToDecimal();
+                    trade.Volume = tradeRecord.tradeQuantityLots.ToDecimal();
+                    trade.NumberOrderParent = request.NumberOrderParent;
+                    trade.NumberTrade = numberTrade;
+                    trade.Time = ConvertUtsStringToDateTimeRu(tradeRecord.tradeDateTime);
+                    trade.Side = tradeRecord.side == "1" ? Side.Buy : Side.Sell;
+
+                    MarkMyTradeSent(numberTrade);
+
+                    MyTradeEvent?.Invoke(trade);
+                }
             }
             catch (Exception ex)
             {
-                SendLogMessage($" Update my trade error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage("Fetch my trades error: " + ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private bool IsMyTradeAlreadySent(string numberTrade)
+        {
+            lock (_sentMyTradesLocker)
+            {
+                return _sentMyTradesNumbers.Contains(numberTrade);
+            }
+        }
+
+        private void MarkMyTradeSent(string numberTrade)
+        {
+            lock (_sentMyTradesLocker)
+            {
+                if (_sentMyTradesNumbers.Contains(numberTrade))
+                {
+                    return;
+                }
+
+                _sentMyTradesNumbers.Add(numberTrade);
+
+                while (_sentMyTradesNumbers.Count > 200)
+                {
+                    _sentMyTradesNumbers.RemoveAt(0);
+                }
+            }
+        }
+
+        private class MyTradeFetchRequest
+        {
+            public string Ticker;
+            public string ClassCode;
+            public string Side;
+            public string OrderNumber;
+            public string NumberOrderParent;
         }
 
         private OrderStateType GetOrderState(string status)
