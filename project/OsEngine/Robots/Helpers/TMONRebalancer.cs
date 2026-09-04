@@ -30,6 +30,7 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         private StrategyParameterString _regimeParameter;
+        private StrategyParameterString _fullLog;
         private StrategyParameterDecimal _minBalance;
         private StrategyParameterDecimal _allowedSpreadSize;
         private StrategyParameterInt _icebergCount;
@@ -53,6 +54,7 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             _regimeParameter = CreateParameter("Regime", "Off", new[] { "Off", "RebalancingTwiceADay", "RebalancingOnceADay", "OnlyClose" });
+            _fullLog = CreateParameter("Full log", "Off", new[] { "Off", "On" });
             _minBalance = CreateParameter("Minimum balance", 5000m, 5000m, 5000m, 5000m);
 
             _icebergCount = CreateParameter("Iceberg count", 1, 1, 50, 1);
@@ -71,6 +73,8 @@ namespace OsEngine.Robots
 
             _rebalanceNowButton = CreateParameterButton("Rebalance now");
             _rebalanceNowButton.UserClickOnButtonEvent += _rebalanceNowButton_UserClickOnButtonEvent;
+
+            _tab.PositionOpeningFailEvent += _tab_PositionOpeningFailEvent;
 
             _timeToBuy.ValueChange += _timeToBuy_ValueChange;
 
@@ -93,6 +97,29 @@ namespace OsEngine.Robots
         private void _timeToBuy_ValueChange()
         {
             _timeLast = DateTime.MinValue;
+        }
+
+        private void _tab_PositionOpeningFailEvent(Position position)
+        {
+            try
+            {
+                string ordersInfo = "";
+
+                if (position.OpenOrders != null)
+                {
+                    for (int i = 0; i < position.OpenOrders.Count; i++)
+                    {
+                        ordersInfo += $"[order #{i}: state={position.OpenOrders[i].State} price={position.OpenOrders[i].Price} " +
+                            $"volume={position.OpenOrders[i].Volume} side={position.OpenOrders[i].Side} type={position.OpenOrders[i].TypeOrder}] ";
+                    }
+                }
+
+                LogIfFull($"OPENING FAIL: {position.SecurityName} direction={position.Direction} {ordersInfo}");
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _rebalanceNowButton_UserClickOnButtonEvent()
@@ -232,8 +259,12 @@ namespace OsEngine.Robots
 
             if (CheckDayOfWeek() == false)
             {
+                LogIfFull($"Candle {candles[^1].TimeStart}. Skip: day of week is off. Regime={_regimeParameter.ValueString}");
                 return;
             }
+
+            LogIfFull($"Candle {candles[^1].TimeStart}. TimeServer={TimeServer}. Regime={_regimeParameter.ValueString}. " +
+                $"TimeToSell={_timeToSell.Value} TimeToBuy={_timeToBuy.Value} CloseToday={_botClosePositionToday} TimeLast={_timeLast}");
 
             if (_regimeParameter.ValueString == "RebalancingOnceADay")
             {
@@ -247,22 +278,51 @@ namespace OsEngine.Robots
                         _timeLast = TimeServer;
                         return;
                     }
+
+                    LogIfFull("Skip: already rebalanced today (OnceADay)");
                 }
             }
             else // _regimeParameter.ValueString == "RebalancingTwiceADay"
             {
-                if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
-                    ClosePositions();
-                    return;
-                }
+                    if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
+                    {
+                        ClosePositions();
+                        return;
+                    }
 
-                if (_timeToBuy.Value < TimeServer)
-                {
-                    RebalanceLogic();
-                    _botClosePositionToday = false;
-                    return;
+                    if (_timeToBuy.Value < TimeServer)
+                    {
+                        RebalanceLogic();
+                        _botClosePositionToday = false;
+                        return;
+                    }
                 }
+                else
+                {
+                    if (_timeToSell.Value < TimeServer && _timeToBuy.Value > TimeServer && _botClosePositionToday == false)
+                    {
+                        ClosePositions();
+                        _botClosePositionToday = true;
+                        return;
+                    }
+
+                    if (_timeToBuy.Value < TimeServer && _botClosePositionToday == true)
+                    {
+                        RebalanceLogic();
+                        _botClosePositionToday = false;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void LogIfFull(string message)
+        {
+            if (_fullLog.ValueString == "On")
+            {
+                SendNewLogMessage(message, Logging.LogMessageType.System);
             }
         }
 
@@ -274,8 +334,11 @@ namespace OsEngine.Robots
         {
             try
             {
+                LogIfFull("RebalanceLogic start");
+
                 if (_tab.Portfolio == null)
                 {
+                    LogIfFull("Skip: portfolio is null");
                     return;
                 }
 
@@ -283,6 +346,7 @@ namespace OsEngine.Robots
                 {
                     if (_tab.Portfolio.PositionOnBoard == null)
                     {
+                        LogIfFull("Skip: PositionOnBoard is null");
                         return;
                     }
 
@@ -303,6 +367,7 @@ namespace OsEngine.Robots
 
                 if (balance == 0)
                 {
+                    LogIfFull("Skip: balance = 0");
                     return;
                 }
 
@@ -310,9 +375,21 @@ namespace OsEngine.Robots
 
                 decimal volume = GetVolume(freeBalance);
 
+                LogIfFull($"Balance={balance} FreeBalance={freeBalance} MinBalance={_minBalance.ValueDecimal} Volume={volume} " +
+                    $"LongPositions={_tab.PositionOpenLong.Count} BestAsk={_tab.PriceBestAsk}");
+
                 if (volume <= 0)
                 {
+                    LogIfFull("Skip: volume <= 0");
                     return;
+                }
+
+                if (_tab.CandlesAll != null && _tab.CandlesAll.Count > 0)
+                {
+                    Candle lastCandle = _tab.CandlesAll[_tab.CandlesAll.Count - 1];
+
+                    LogIfFull($"Try open: side=Buy volume={volume} orderPrice={_tab.PriceBestAsk} | " +
+                        $"last candle {lastCandle.TimeStart} O={lastCandle.Open} H={lastCandle.High} L={lastCandle.Low} C={lastCandle.Close}");
                 }
 
                 if (balance > _minBalance.ValueDecimal)
@@ -321,10 +398,12 @@ namespace OsEngine.Robots
                     {
                         if (_tab.PositionOpenLong.Count > 0)
                         {
+                            LogIfFull($"BuyAtLimitToPosition volume={volume} price={_tab.PriceBestAsk}");
                             _tab.BuyAtLimitToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume);
                         }
                         else
                         {
+                            LogIfFull($"BuyAtLimit volume={volume} price={_tab.PriceBestAsk}");
                             _tab.BuyAtLimit(volume, _tab.PriceBestAsk);
                         }
                     }
@@ -332,10 +411,12 @@ namespace OsEngine.Robots
                     {
                         if (_tab.PositionOpenLong.Count > 0)
                         {
+                            LogIfFull($"BuyAtIcebergToPosition volume={volume} price={_tab.PriceBestAsk} iceberg={_icebergCount.ValueInt}");
                             _tab.BuyAtIcebergToPosition(_tab.PositionOpenLong[0], _tab.PriceBestAsk, volume, _icebergCount.ValueInt);
                         }
                         else
                         {
+                            LogIfFull($"BuyAtIceberg volume={volume} price={_tab.PriceBestAsk} iceberg={_icebergCount.ValueInt}");
                             _tab.BuyAtIceberg(volume, _tab.PriceBestAsk, _icebergCount.ValueInt);
                         }
                     }
@@ -348,7 +429,12 @@ namespace OsEngine.Robots
                         volume = _tab.PositionOpenLong[0].OpenVolume;
                     }
 
+                    LogIfFull($"CloseAtMarket (balance below minimum) volume={volume}");
                     _tab.CloseAtMarket(_tab.PositionOpenLong[0], volume);
+                }
+                else
+                {
+                    LogIfFull($"Skip: balance {balance} <= minBalance {_minBalance.ValueDecimal} and no long positions");
                 }
             }
             catch(Exception ex)
@@ -359,10 +445,13 @@ namespace OsEngine.Robots
 
         private void ClosePositions()
         {
+            LogIfFull($"ClosePositions. Count={_tab.PositionsOpenAll.Count}");
+
             if (_tab.PositionsOpenAll.Count > 0)
             {
                 for (int i = 0; i < _tab.PositionsOpenAll.Count; i++)
                 {
+                    LogIfFull($"CloseAtMarket: {_tab.PositionsOpenAll[i].SecurityName} volume={_tab.PositionsOpenAll[i].OpenVolume}");
                     _tab.CloseAtMarket(_tab.PositionsOpenAll[i], _tab.PositionsOpenAll[i].OpenVolume);
                 }
             }
@@ -398,6 +487,8 @@ namespace OsEngine.Robots
                     decimal portfolioValue = _tab.Portfolio.ValueCurrent;
                     decimal volumToPosition = GetVolumeToPositions();
                     volume = portfolioValue - volumToPosition;
+
+                    LogIfFull($"GetPortfolioValue (Tester): portfolioValue={portfolioValue} volumeToPositions={volumToPosition} result={volume} positionsOnBoard={positions.Count}");
                 }
 
                 return volume;
@@ -418,6 +509,11 @@ namespace OsEngine.Robots
             {
                 List<Position> positionsBot = OsTraderMaster.Master.PanelsArray[i].OpenPositions;
 
+                if (positionsBot.Count > 0)
+                {
+                    LogIfFull($"GetVolumeToPositions: panel {OsTraderMaster.Master.PanelsArray[i].NameStrategyUniq} positions={positionsBot.Count}");
+                }
+
                 for (int j = 0; j < positionsBot.Count; j++)
                 {
                     decimal margin = GetMarginSecurities(positionsBot[j].SecurityName, positionsBot[j].Direction);
@@ -430,6 +526,8 @@ namespace OsEngine.Robots
                     {
                         volumToPosition += positionsBot[j].OpenVolume * positionsBot[j].EntryPrice * positionsBot[j].Lots;
                     }
+
+                    LogIfFull($"  position {positionsBot[j].SecurityName} {positionsBot[j].Direction} vol={positionsBot[j].OpenVolume} entry={positionsBot[j].EntryPrice} lots={positionsBot[j].Lots} margin={margin} accumulated={volumToPosition}");
                 }
             }
 
@@ -502,6 +600,7 @@ namespace OsEngine.Robots
 
             if(contractPrice == 0)
             {
+                LogIfFull("GetVolume: BestAsk = 0, volume = 0");
                 return 0;
             }
 
