@@ -11,21 +11,21 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 /* Description
-TechSample robot for OsEngine
+Технический пример робота для OsEngine
 
-An example of a robot trading with server stop-limit orders. Long only.
+Пример робота, торгующего серверными стоп-лимит ордерами. Только лонг.
 
-Entry - a server stop-limit Buy order. The trigger is at the best ask plus Trigger offset percent,
-the limit price of the child order is below the trigger by Limit offset percent.
-If the order is not executed within Candles to wait (the stop is not triggered or the triggered
-child limit order is not filled), it is cancelled and the stop is re-placed at fresh prices.
+Вход - серверный стоп-лимит на покупку. Триггер - по лучшему аску плюс Trigger offset percent,
+лимитная цена дочерней заявки - ниже триггера на Limit offset percent.
+Если ордер не исполнился за Candles to wait свечей (стоп не сработал или порождённая
+лимитная заявка не исполнилась), он снимается и стоп перевыставляется по актуальным ценам.
 
-Exit - when the position is opened, on the next candle a closing server stop-limit Sell order
-is placed by the same mechanics, mirrored.
+Выход - когда позиция открылась, на следующей свече выставляется закрывающий
+серверный стоп-лимит на продажу по той же механике, зеркально.
 
-The robot logic is the same for real trading and for the Tester:
-the *OnServer methods themselves decide whether the order goes to the exchange
-or falls back to a local stop.
+Логика робота одинакова для реальной торговли и для тестера:
+методы *OnServer сами решают, уйдёт ли ордер на биржу
+или откатится на локальный стоп.
  */
 
 namespace OsEngine.Robots.TechSamples
