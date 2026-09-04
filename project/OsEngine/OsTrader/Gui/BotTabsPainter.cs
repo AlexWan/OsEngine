@@ -429,11 +429,6 @@ namespace OsEngine.OsTrader.Gui
             {
                 if (e.Button != MouseButtons.Right)
                 {
-                    if (_grid.ContextMenuStrip != null)
-                    {
-                        _grid.ContextMenuStrip = null;
-                    }
-
                     return;
                 }
 
@@ -462,8 +457,7 @@ namespace OsEngine.OsTrader.Gui
                     deleteGroupItem.Click += BotTabsPainter_DeleteGroup_Click;
                     groupMenu.Items.Add(deleteGroupItem);
 
-                    _grid.ContextMenuStrip = groupMenu;
-                    _grid.ContextMenuStrip.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
+                    groupMenu.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
                     return;
                 }
 
@@ -558,8 +552,7 @@ namespace OsEngine.OsTrader.Gui
 
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _grid.ContextMenuStrip = menu;
-                _grid.ContextMenuStrip.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
+                menu.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
             }
             catch (Exception ex)
             {
