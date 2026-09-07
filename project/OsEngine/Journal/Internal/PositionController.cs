@@ -2643,7 +2643,7 @@ namespace OsEngine.Journal.Internal
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                Market.ServerMaster.SendNewLogMessage(message, type);
             }
         }
 

@@ -1500,7 +1500,8 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if ((DateTime.Now - _lastLqdtActionTime).TotalSeconds < 60)
+            if ((DateTime.Now - _lastLqdtActionTime).TotalSeconds < 60
+                || (DateTime.Now - _lastOrderExecutionTime).TotalSeconds < 60)
             {
                 return;
             }

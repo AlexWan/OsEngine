@@ -28,9 +28,9 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
-    <AssemblyVersion>2.0.1.7</AssemblyVersion>
+    <AssemblyVersion>2.0.1.8</AssemblyVersion>
     <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
-    <FileVersion>2.0.1.7</FileVersion>
+    <FileVersion>2.0.1.8</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
