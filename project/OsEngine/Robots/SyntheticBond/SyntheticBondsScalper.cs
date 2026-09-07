@@ -1488,6 +1488,11 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            if (HasOrdersInMarket())
+            {
+                return;
+            }
+
             MarketDepth book = _tabLqdt.MarketDepth;
 
             if (book == null)
