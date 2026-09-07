@@ -618,6 +618,12 @@ MonitorVolume
                             {
                                 VolumeRankingValue data = _volumesRanking.Stages[i];
 
+                                if (data.Tab == null
+                                    || data.Tab.PositionsOpenAll == null)
+                                {
+                                    continue;
+                                }
+
                                 DataGridViewRow newRow = GetRow(data);
                                 _tableDataGrid.Rows.Add(newRow);
                             }
@@ -637,6 +643,12 @@ MonitorVolume
                         string securityName = currentRow.Cells[0].Value.ToString();
 
                         VolumeRankingValue data = _volumesRanking.Stages[i];
+
+                        if (data.Tab == null
+                            || data.Tab.PositionsOpenAll == null)
+                        {
+                            continue;
+                        }
 
                         DataGridViewRow row = GetRow(data);
 

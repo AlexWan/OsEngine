@@ -607,6 +607,12 @@ namespace OsEngine.Robots.Monitors
                         {
                             foreach (MoveData data in _checkMoveTimes.Values)
                             {
+                                if (data.Tab == null
+                                    || data.Tab.PositionsOpenAll == null)
+                                {
+                                    continue;
+                                }
+
                                 DataGridViewRow newRow = GetRow(data);
                                 _tableDataGrid.Rows.Add(newRow);
                             }
@@ -630,6 +636,12 @@ namespace OsEngine.Robots.Monitors
                         MoveData myData = new MoveData();
 
                         if (_checkMoveTimes.TryGetValue(securityName, out myData) == false)
+                        {
+                            continue;
+                        }
+
+                        if (myData.Tab == null
+                            || myData.Tab.PositionsOpenAll == null)
                         {
                             continue;
                         }
