@@ -1793,6 +1793,7 @@ namespace OsEngine.OsData
             while (true)
             {
                 DataPie newPie = new DataPie(_pathMyTempPieInTfFolder);
+                newPie.NewLogMessageEvent += SendNewLogMessage;
                 newPie.Start = timeStart;
                 newPie.End = timeNow;
 
@@ -3650,13 +3651,19 @@ namespace OsEngine.OsData
         public void UpDateStatus()
         {
             // 1 Актуальное время старта
+
+            string tfName = TfFolderName;
+
+            bool isTrades = tfName == "Tick"
+                || tfName.StartsWith("Sec");
+
+            bool isMarketDepth = tfName == "MarketDepth";
+
+            bool isCandles = isTrades == false && isMarketDepth == false;
+
             CandlePieStatusInfo CandlesInfo = null;
 
-            if (_pathMyTempPieInTfFolder.Contains("Tick") == false
-                &&
-                _pathMyTempPieInTfFolder.Contains("Sec") == false
-                &&
-                _pathMyTempPieInTfFolder.Contains("MarketDepth") == false)
+            if (isCandles)
             {
                 CandlesInfo = LoadCandlesPieStatus();
             }
@@ -3666,8 +3673,7 @@ namespace OsEngine.OsData
             if ((CandlesInfo == null
                 || CandlesInfo.FirstCandle == null)
                 &&
-                (_pathMyTempPieInTfFolder.Contains("Tick") == true
-                || _pathMyTempPieInTfFolder.Contains("Sec") == true))
+                isTrades)
             {
                 TradesInfo = LoadTradesPieStatus();
             }
@@ -3680,7 +3686,7 @@ namespace OsEngine.OsData
                (TradesInfo == null
                || TradesInfo.FirstTrade == null)
                &&
-                _pathMyTempPieInTfFolder != "MarketDepth")
+                isMarketDepth)
             {
                 markeDepthPieStatusInfo = LoadMDPieStatus();
             }
@@ -3776,6 +3782,21 @@ namespace OsEngine.OsData
 
         private string _tempFileName;
 
+        private string TfFolderName
+        {
+            get
+            {
+                string path = _pathMyTempPieInTfFolder;
+
+                if (path.EndsWith("\\Temp"))
+                {
+                    path = path.Substring(0, path.Length - 5);
+                }
+
+                return path.Substring(path.LastIndexOf('\\') + 1);
+            }
+        }
+
         public void LoadPieSettings()
         {
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + "Settings_" + TempFileName;
@@ -3844,27 +3865,39 @@ namespace OsEngine.OsData
                 {
                     while (reader.EndOfStream == false)
                     {
-                        candlesCount++;
                         string str = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(str))
+                        {
+                            continue;
+                        }
+
+                        Candle newCandle = new Candle();
+
+                        try
+                        {
+                            newCandle.SetCandleFromString(str);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendNewLogMessage("Error parsing candle in pie file: " + pathToTempFile + ". Line: " + str + ". " + ex.Message, LogMessageType.Error);
+                            continue;
+                        }
+
+                        candlesCount++;
 
                         if (result.FirstCandle == null)
                         {
-                            Candle newCandle = new Candle();
-                            newCandle.SetCandleFromString(str);
                             result.FirstCandle = newCandle;
                         }
-                        if (reader.EndOfStream == true)
-                        {
-                            Candle newCandle = new Candle();
-                            newCandle.SetCandleFromString(str);
-                            result.LastCandle = newCandle;
-                        }
+
+                        result.LastCandle = newCandle;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage("Error reading pie file: " + pathToTempFile + ". " + ex.ToString(), LogMessageType.Error);
             }
 
             result.CandlesCount = candlesCount;
@@ -3896,15 +3929,30 @@ namespace OsEngine.OsData
                     {
                         string str = reader.ReadLine();
 
+                        if (string.IsNullOrEmpty(str))
+                        {
+                            continue;
+                        }
+
                         Candle newCandle = new Candle();
-                        newCandle.SetCandleFromString(str);
+
+                        try
+                        {
+                            newCandle.SetCandleFromString(str);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendNewLogMessage("Error parsing candle in pie file: " + pathToTempFile + ". Line: " + str + ". " + ex.Message, LogMessageType.Error);
+                            continue;
+                        }
+
                         candles.Add(newCandle);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendNewLogMessage("Error reading pie file: " + pathToTempFile + ". " + ex.ToString(), LogMessageType.Error);
             }
 
             if (candles.Count != 0)
@@ -4140,6 +4188,20 @@ namespace OsEngine.OsData
                 // ignore
             }
         }
+
+        #endregion
+
+        #region Log
+
+        public void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (NewLogMessageEvent != null)
+            {
+                NewLogMessageEvent(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> NewLogMessageEvent;
 
         #endregion
     }
