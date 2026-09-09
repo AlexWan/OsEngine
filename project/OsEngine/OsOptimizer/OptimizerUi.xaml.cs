@@ -3614,19 +3614,26 @@ namespace OsEngine.OsOptimizer
 
         private void _gridResults_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if (e.RowIndex < 0)
+            try
             {
-                return;
-            }
+                if (e.RowIndex < 0)
+                {
+                    return;
+                }
 
-            if (e.ColumnIndex == 13)
-            {
-                ShowBotChartDialog(e);
-            }
+                if (e.ColumnIndex == 13)
+                {
+                    ShowBotChartDialog(e);
+                }
 
-            if (e.ColumnIndex == 14)
+                if (e.ColumnIndex == 14)
+                {
+                    ShowParametersDialog(e);
+                }
+            }     
+            catch (Exception ex)
             {
-                ShowParametersDialog(e);
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3655,6 +3662,11 @@ namespace OsEngine.OsOptimizer
             }
 
             BotPanel bot = _master.TestBot(fazeReport, fazeReport.Reports[e.RowIndex]);
+
+            if(bot == null)
+            {
+                return;
+            }
 
             BotPanelChartUi ui = bot.ShowChartDialog();
 

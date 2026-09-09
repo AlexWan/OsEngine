@@ -881,9 +881,11 @@ namespace OsEngine.Robots
             if (bot.TabsScreener != null &&
                 bot.TabsScreener.Count > 0)
             {
+                HashSet<string> screenerIndicatorKeys = new HashSet<string>();
+
                 for (int i = 0; i < bot.TabsScreener.Count; i++)
                 {
-                    List<string> curInd = GetIndicatorsNamesFromScreenerSource(bot.TabsScreener[i]);
+                    List<string> curInd = GetIndicatorsNamesFromScreenerSource(bot.TabsScreener[i], screenerIndicatorKeys);
 
                     if (curInd != null
                         && curInd.Count > 0)
@@ -923,15 +925,29 @@ namespace OsEngine.Robots
             return indicators;
         }
 
-        private List<string> GetIndicatorsNamesFromScreenerSource(BotTabScreener tab)
+        private List<string> GetIndicatorsNamesFromScreenerSource(BotTabScreener tab, HashSet<string> alreadyAddedKeys)
         {
             List<string> indicators = new List<string>();
 
             for (int i = 0; i < tab._indicators.Count; i++)
             {
-                string curInd = tab._indicators[i].Type;
+                string key = tab._indicators[i].Type;
 
-                indicators.Add(curInd);
+                if (tab._indicators[i].Parameters != null)
+                {
+                    for (int p = 0; p < tab._indicators[i].Parameters.Count; p++)
+                    {
+                        key += "#" + tab._indicators[i].Parameters[p];
+                    }
+                }
+
+                if (alreadyAddedKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                alreadyAddedKeys.Add(key);
+                indicators.Add(tab._indicators[i].Type);
             }
 
             return indicators;

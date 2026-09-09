@@ -3,11 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Windows.Forms;
-using System.Windows.Forms.Integration;
 using OsEngine.Candles.Series;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -21,6 +16,12 @@ using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.Windows.Forms.Integration;
 
 /* Description
 Торговый робот для OsEngine. Сборник «Секторальный набор», робот №1.
@@ -135,23 +136,23 @@ namespace OsEngine.Robots.Sectors
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 37.5m, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 25m, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Trade asset in portfolio", "Prime", "Base");
-            _maxPositions = CreateParameter("Max positions", 2, 1, 20, 1, "Base");
+            _maxPositions = CreateParameter("Max positions", 4, 1, 20, 1, "Base");
             _icebergOrdersCount = CreateParameter("Iceberg orders count", 3, 1, 10, 1, "Base");
             _icebergMillisecondsDistance = CreateParameter("Iceberg milliseconds distance", 1000, 500, 10000, 500, "Base");
-            _rsiLength = CreateParameter("Monitor rsi length", 100, 10, 500, 10, "Base");
-            _topSectorsCount = CreateParameter("Monitor trade sectors count", 2, 1, 10, 1, "Base");
-            _monitorEntryFilter = CreateParameter("Monitor entry filter", "None", new[] { "None", "Strongest", "Weakest" }, "Base");
+            _rsiLength = CreateParameter("Monitor rsi length", 64, 10, 500, 10, "Base");
+            _topSectorsCount = CreateParameter("Monitor trade sectors count", 5, 1, 10, 1, "Base");
+            _monitorEntryFilter = CreateParameter("Monitor entry filter", "Strongest", new[] { "None", "Strongest", "Weakest" }, "Base");
 
             // Вкладка Indicators
-            _bollingerLength = CreateParameter("Bollinger length", 20, 5, 300, 5, "Indicators");
-            _bollingerDeviation = CreateParameter("Bollinger deviation", 2.0m, 0.5m, 5.0m, 0.1m, "Indicators");
+            _bollingerLength = CreateParameter("Bollinger length", 40, 5, 300, 5, "Indicators");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 2.1m, 0.5m, 5.0m, 0.1m, "Indicators");
             _momentumPeriod = CreateParameter("Momentum period", 65, 5, 150, 5, "Indicators");
-            _momentumMinValue = CreateParameter("Momentum min value", 102m, 90, 120, 1m, "Indicators");
+            _momentumMinValue = CreateParameter("Momentum min value", 101.1m, 90, 120, 1m, "Indicators");
             _exitBand = CreateParameter("Exit band", "Down", new[] { "Middle", "Down" }, "Indicators");
-            _envelopLength = CreateParameter("Envelop length", 250, 50, 500, 10, "Indicators");
-            _envelopDeviation = CreateParameter("Envelop deviation", 1.2m, 0.5m, 10, 0.1m, "Indicators");
+            _envelopLength = CreateParameter("Envelop length", 170, 50, 500, 10, "Indicators");
+            _envelopDeviation = CreateParameter("Envelop deviation", 1.6m, 0.5m, 10, 0.1m, "Indicators");
 
             // Создание источников - 10 скринеров по секторам
             CreateSectors();
@@ -194,6 +195,12 @@ namespace OsEngine.Robots.Sectors
                     TesterServer server = (TesterServer)servers[0];
                     server.EndNextMinuteWithCandlesEvent += Server_EndNextMinuteWithCandlesEvent;
                 }
+                else if(servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Optimizer)
+                {
+                    _sectors[0].Screener.CandleFinishedEvent += Screener_CandleFinishedEventInOptimizer;
+                }
             }
 
             if (startProgram == StartProgram.IsOsOptimizer)
@@ -218,7 +225,10 @@ namespace OsEngine.Robots.Sectors
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
             }
 
-            if (startProgram == StartProgram.IsTester)
+            // в тестере и оптимизаторе набор параметров обязан совпадать:
+            // оптимизатор при одиночном прогоне сверяет количество параметров с эталонным ботом
+            if (startProgram == StartProgram.IsTester
+                || startProgram == StartProgram.IsOsOptimizer)
             {
                 _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min30",
                     new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
@@ -520,14 +530,14 @@ namespace OsEngine.Robots.Sectors
                 }
 
                 DeployScreener(_sectors[i].Screener, found, myPortfolio.Number,
-                    server.ServerType, server.ServerNameAndPrefix, timeFrame);
+                    server.ServerType, server.ServerNameAndPrefix, timeFrame, true);
             }
 
             SendNewLogMessage("Auto deploy tester done", LogMessageType.System);
         }
 
         private void DeployScreener(BotTabScreener screener, List<Security> securities,
-            string portfolioName, ServerType serverType, string serverName, TimeFrame timeFrame)
+            string portfolioName, ServerType serverType, string serverName, TimeFrame timeFrame, bool isTester = false)
         {
             if (securities == null || securities.Count == 0)
             {
@@ -539,6 +549,12 @@ namespace OsEngine.Robots.Sectors
             screener.PortfolioName = portfolioName;
             screener.ServerType = serverType;
             screener.ServerName = serverName;
+
+            if (isTester)
+            { // в тестере ставим комиссию, как у брокера
+                screener.CommissionType = CommissionType.Percent;
+                screener.CommissionValue = 0.04m;
+            }
 
             screener.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
             ((Simple)screener.CandleSeriesRealization).TimeFrame = timeFrame;
@@ -699,6 +715,12 @@ namespace OsEngine.Robots.Sectors
 
         private void LogicOnTab(SectorData sector, BotTabSimple tab)
         {
+            // коннектор может быть ещё не прикреплён к табу (старт, переподключение источника)
+            if (tab.Connector == null)
+            {
+                return;
+            }
+
             List<Candle> candles = tab.CandlesFinishedOnly;
 
             if (candles == null || candles.Count < 10)
@@ -1237,7 +1259,8 @@ namespace OsEngine.Robots.Sectors
 
                 for (int i = 0; i < sector.Screener.Tabs.Count; i++)
                 {
-                    if (sector.Screener.Tabs[i].Connector.SecurityName == secName)
+                    if (sector.Screener.Tabs[i].Connector != null
+                        && sector.Screener.Tabs[i].Connector.SecurityName == secName)
                     {
                         tabNumber = i;
                         break;
@@ -1290,7 +1313,13 @@ namespace OsEngine.Robots.Sectors
 
                 for (int i = 0; i < _sectors.Count; i++)
                 {
-                    totalTabs += _sectors[i].Screener.Tabs.Count;
+                    for (int j = 0; j < _sectors[i].Screener.Tabs.Count; j++)
+                    {
+                        if (_sectors[i].Screener.Tabs[j].Connector != null)
+                        {
+                            totalTabs++;
+                        }
+                    }
                 }
 
                 if (totalTabs == 0)
@@ -1309,6 +1338,11 @@ namespace OsEngine.Robots.Sectors
                     {
                         for (int j = 0; j < ranked[i].Screener.Tabs.Count; j++)
                         {
+                            if (ranked[i].Screener.Tabs[j].Connector == null)
+                            {
+                                continue;
+                            }
+
                             _tableDataGrid.Rows.Add(GetRow(ranked[i], ranked[i].Screener.Tabs[j]));
                         }
                     }
@@ -1333,7 +1367,8 @@ namespace OsEngine.Robots.Sectors
 
                     for (int s = 0; s < _sectors.Count && tab == null; s++)
                     {
-                        tab = _sectors[s].Screener.Tabs.Find(t => t.Connector.SecurityName == secName);
+                        tab = _sectors[s].Screener.Tabs.Find(t => t.Connector != null
+                            && t.Connector.SecurityName == secName);
 
                         if (tab != null)
                         {

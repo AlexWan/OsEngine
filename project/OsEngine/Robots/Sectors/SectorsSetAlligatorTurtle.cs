@@ -195,6 +195,12 @@ namespace OsEngine.Robots.Sectors
                     TesterServer server = (TesterServer)servers[0];
                     server.EndNextMinuteWithCandlesEvent += Server_EndNextMinuteWithCandlesEvent;
                 }
+                else if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Optimizer)
+                {
+                    _sectors[0].Screener.CandleFinishedEvent += Screener_CandleFinishedEventInOptimizer;
+                }
             }
 
             if (startProgram == StartProgram.IsOsOptimizer)
@@ -219,7 +225,10 @@ namespace OsEngine.Robots.Sectors
                 buttonAutoDeploy.UserClickOnButtonEvent += ButtonAutoDeploy_UserClickOnButtonEvent;
             }
 
-            if (startProgram == StartProgram.IsTester)
+            // в тестере и оптимизаторе набор параметров обязан совпадать:
+            // оптимизатор при одиночном прогоне сверяет количество параметров с эталонным ботом
+            if (startProgram == StartProgram.IsTester
+                || startProgram == StartProgram.IsOsOptimizer)
             {
                 _testerDeployTimeFrame = CreateParameter("Tester deploy time frame", "Min30",
                     new[] { "Min1", "Min2", "Min3", "Min5", "Min10", "Min15", "Min20", "Min30", "Min45", "Hour1" }, "Auto deploy");
@@ -526,14 +535,14 @@ namespace OsEngine.Robots.Sectors
                 }
 
                 DeployScreener(_sectors[i].Screener, found, myPortfolio.Number,
-                    server.ServerType, server.ServerNameAndPrefix, timeFrame);
+                    server.ServerType, server.ServerNameAndPrefix, timeFrame, true);
             }
 
             SendNewLogMessage("Auto deploy tester done", LogMessageType.System);
         }
 
         private void DeployScreener(BotTabScreener screener, List<Security> securities,
-            string portfolioName, ServerType serverType, string serverName, TimeFrame timeFrame)
+            string portfolioName, ServerType serverType, string serverName, TimeFrame timeFrame, bool isTester = false)
         {
             if (securities == null || securities.Count == 0)
             {
@@ -545,6 +554,12 @@ namespace OsEngine.Robots.Sectors
             screener.PortfolioName = portfolioName;
             screener.ServerType = serverType;
             screener.ServerName = serverName;
+
+            if (isTester)
+            { // в тестере ставим комиссию, как у брокера
+                screener.CommissionType = CommissionType.Percent;
+                screener.CommissionValue = 0.04m;
+            }
 
             screener.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
             ((Simple)screener.CandleSeriesRealization).TimeFrame = timeFrame;
@@ -705,6 +720,12 @@ namespace OsEngine.Robots.Sectors
 
         private void LogicOnTab(SectorDataAlligator sector, BotTabSimple tab)
         {
+            // коннектор может быть ещё не прикреплён к табу (старт, переподключение источника)
+            if (tab.Connector == null)
+            {
+                return;
+            }
+
             List<Candle> candles = tab.CandlesFinishedOnly;
 
             if (candles == null || candles.Count < 10)
@@ -1249,7 +1270,8 @@ namespace OsEngine.Robots.Sectors
 
                 for (int i = 0; i < sector.Screener.Tabs.Count; i++)
                 {
-                    if (sector.Screener.Tabs[i].Connector.SecurityName == secName)
+                    if (sector.Screener.Tabs[i].Connector != null
+                        && sector.Screener.Tabs[i].Connector.SecurityName == secName)
                     {
                         tabNumber = i;
                         break;
@@ -1302,7 +1324,13 @@ namespace OsEngine.Robots.Sectors
 
                 for (int i = 0; i < _sectors.Count; i++)
                 {
-                    totalTabs += _sectors[i].Screener.Tabs.Count;
+                    for (int j = 0; j < _sectors[i].Screener.Tabs.Count; j++)
+                    {
+                        if (_sectors[i].Screener.Tabs[j].Connector != null)
+                        {
+                            totalTabs++;
+                        }
+                    }
                 }
 
                 if (totalTabs == 0)
@@ -1321,6 +1349,11 @@ namespace OsEngine.Robots.Sectors
                     {
                         for (int j = 0; j < ranked[i].Screener.Tabs.Count; j++)
                         {
+                            if (ranked[i].Screener.Tabs[j].Connector == null)
+                            {
+                                continue;
+                            }
+
                             _tableDataGrid.Rows.Add(GetRow(ranked[i], ranked[i].Screener.Tabs[j]));
                         }
                     }
@@ -1345,7 +1378,8 @@ namespace OsEngine.Robots.Sectors
 
                     for (int s = 0; s < _sectors.Count && tab == null; s++)
                     {
-                        tab = _sectors[s].Screener.Tabs.Find(t => t.Connector.SecurityName == secName);
+                        tab = _sectors[s].Screener.Tabs.Find(t => t.Connector != null
+                            && t.Connector.SecurityName == secName);
 
                         if (tab != null)
                         {
