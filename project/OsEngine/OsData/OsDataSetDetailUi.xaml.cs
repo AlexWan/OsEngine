@@ -1,5 +1,6 @@
 ﻿using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -152,14 +153,21 @@ namespace OsEngine.OsData
         {
             while (true)
             {
-                await Task.Delay(10000);
-
-                if (_isDeleted)
+                try
                 {
-                    return;
-                }
+                    await Task.Delay(10000);
 
-                RePaintAll();
+                    if (_isDeleted)
+                    {
+                        return;
+                    }
+
+                    RePaintAll();
+                }
+                catch(Exception error)
+                {
+                    ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+                }
             }
         }
 
@@ -167,18 +175,19 @@ namespace OsEngine.OsData
 
         private void RePaintAll()
         {
-            if (_grid == null)
-            {
-                return;
-            }
-
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(RePaintAll));
-                return;
-            }
             try
             {
+                if (_grid == null)
+                {
+                    return;
+                }
+
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(RePaintAll));
+                    return;
+                }
+
                 LabelStatusValue.Content = _loader.Status.ToString();
                 LabelExchangeValue.Content = _loader.Exchange;
                 LabelSecurityValue.Content = _loader.SecName;
@@ -371,32 +380,39 @@ namespace OsEngine.OsData
 
         public void PaintTable()
         {
-            if (_grid == null)
+            try
             {
-                return;
-            }
-
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(PaintTable));
-                return;
-            }
-
-            if (_grid.Rows.Count != _loader.DataPies.Count)
-            {
-                _grid.Rows.Clear();
-
-                for (int i = 0; i < _loader.DataPies.Count; i++)
+                if (_grid == null)
                 {
-                    _grid.Rows.Add(GetRow(_loader.DataPies[i]));
+                    return;
+                }
+
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(PaintTable));
+                    return;
+                }
+
+                if (_grid.Rows.Count != _loader.DataPies.Count)
+                {
+                    _grid.Rows.Clear();
+
+                    for (int i = 0; i < _loader.DataPies.Count; i++)
+                    {
+                        _grid.Rows.Add(GetRow(_loader.DataPies[i]));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < _loader.DataPies.Count; i++)
+                    {
+                        UpDateRow(_grid.Rows[i], _loader.DataPies[i]);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                for (int i = 0; i < _loader.DataPies.Count; i++)
-                {
-                    UpDateRow(_grid.Rows[i], _loader.DataPies[i]);
-                }
+                _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
