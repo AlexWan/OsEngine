@@ -866,12 +866,30 @@ namespace OsEngine.OsOptimizer
             server.TypeTesterData = _master.Storage.TypeTesterData;
             server.TestingProgressChangeEvent += server_TestingProgressChangeEvent;
 
+            if (_master.BotToTest == null)
+            {
+                SendLogMessage("Optimizer. Bot to test is null. Data sources skipped", LogMessageType.Error);
+                return server;
+            }
+
             List<IIBotTab> sources = _master.BotToTest.GetTabs();
+
+            if (sources == null)
+            {
+                SendLogMessage("Optimizer. Data sources list is null. Sources skipped", LogMessageType.Error);
+                return server;
+            }
 
             for (int i = 0; i < sources.Count; i++)
             {
                 try
                 {
+                    if (sources[i] == null)
+                    {
+                        SendLogMessage("Optimizer. Bot tab is null. Source skipped", LogMessageType.Error);
+                        continue;
+                    }
+
                     if (sources[i].TabType == BotTabType.Simple)
                     {// BotTabSimple
                         BotTabSimple simple = (BotTabSimple)sources[i];
@@ -884,6 +902,12 @@ namespace OsEngine.OsOptimizer
 
                         Security secToStart =
                         _master.Storage.Securities.Find(s => s.Name == simple.Connector.SecurityName);
+
+                        if (secToStart == null)
+                        {
+                            SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                            continue;
+                        }
 
                         server.GetDataToSecurity(secToStart, simple.Connector.TimeFrame, report.Faze.TimeStart,
                             report.Faze.TimeEnd);
@@ -903,6 +927,12 @@ namespace OsEngine.OsOptimizer
                             Security secToStart =
                               _master.Storage.Securities.Find(s => s.Name == index.Tabs[i2].SecurityName);
 
+                            if (secToStart == null)
+                            {
+                                SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                                continue;
+                            }
+
                             server.GetDataToSecurity(secToStart, index.Tabs[i2].TimeFrame, report.Faze.TimeStart,
                                 report.Faze.TimeEnd);
                         }
@@ -913,6 +943,12 @@ namespace OsEngine.OsOptimizer
 
                         for (int i2 = 0; i2 < screener.Tabs.Count; i2++)
                         {
+                            if (screener.Tabs[i2] == null)
+                            {
+                                SendLogMessage("Optimizer. Screener tab is null. Source skipped", LogMessageType.Error);
+                                continue;
+                            }
+
                             if (screener.Tabs[i2].Connector == null)
                             {
                                 SendLogMessage("Optimizer. Screener tab without connector. Source skipped", LogMessageType.Error);
@@ -921,6 +957,12 @@ namespace OsEngine.OsOptimizer
 
                             Security secToStart =
                               _master.Storage.Securities.Find(s => s.Name == screener.Tabs[i2].Connector.SecurityName);
+
+                            if (secToStart == null)
+                            {
+                                SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                                continue;
+                            }
 
                             server.GetDataToSecurity(secToStart, screener.Tabs[i2].Connector.TimeFrame, report.Faze.TimeStart,
                                 report.Faze.TimeEnd);
