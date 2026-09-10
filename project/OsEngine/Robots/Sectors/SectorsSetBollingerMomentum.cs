@@ -136,7 +136,7 @@ namespace OsEngine.Robots.Sectors
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 25m, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 12.5m, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Trade asset in portfolio", "Prime", "Base");
             _maxPositions = CreateParameter("Max positions", 4, 1, 20, 1, "Base");
             _icebergOrdersCount = CreateParameter("Iceberg orders count", 3, 1, 10, 1, "Base");

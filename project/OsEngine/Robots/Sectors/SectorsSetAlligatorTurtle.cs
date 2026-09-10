@@ -129,24 +129,24 @@ namespace OsEngine.Robots.Sectors
             _tradePeriodsSettings.Load();
 
             // Вкладка Base
-            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
+            _regime = CreateParameter("Regime", "On", new[] { "On", "Off" }, "Base");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 37.5m, 1.0m, 50, 4, "Base");
+            _volume = CreateParameter("Volume", 12.5m, 1.0m, 50, 4, "Base");
             _tradeAssetInPortfolio = CreateParameter("Trade asset in portfolio", "Prime", "Base");
-            _maxPositions = CreateParameter("Max positions", 2, 1, 20, 1, "Base");
+            _maxPositions = CreateParameter("Max positions", 4, 1, 20, 1, "Base");
             _icebergOrdersCount = CreateParameter("Iceberg orders count", 3, 1, 10, 1, "Base");
             _icebergMillisecondsDistance = CreateParameter("Iceberg milliseconds distance", 1000, 500, 10000, 500, "Base");
-            _rsiLength = CreateParameter("Monitor rsi length", 100, 10, 500, 10, "Base");
-            _topSectorsCount = CreateParameter("Monitor trade sectors count", 2, 1, 10, 1, "Base");
-            _monitorEntryFilter = CreateParameter("Monitor entry filter", "None", new[] { "None", "Strongest", "Weakest" }, "Base");
+            _rsiLength = CreateParameter("Monitor rsi length", 74, 10, 500, 10, "Base");
+            _topSectorsCount = CreateParameter("Monitor trade sectors count", 5, 1, 10, 1, "Base");
+            _monitorEntryFilter = CreateParameter("Monitor entry filter", "Strongest", new[] { "None", "Strongest", "Weakest" }, "Base");
 
             // Вкладка Indicators
-            _alligatorJawLength = CreateParameter("Alligator jaw length", 13, 5, 100, 1, "Indicators");
-            _alligatorTeethLength = CreateParameter("Alligator teeth length", 8, 5, 100, 1, "Indicators");
+            _alligatorJawLength = CreateParameter("Alligator jaw length", 60, 5, 100, 1, "Indicators");
+            _alligatorTeethLength = CreateParameter("Alligator teeth length", 25, 5, 100, 1, "Indicators");
             _alligatorLipsLength = CreateParameter("Alligator lips length", 5, 5, 100, 1, "Indicators");
-            _longPriceChannelLength = CreateParameter("Long price channel length", 100, 10, 500, 10, "Indicators");
+            _longPriceChannelLength = CreateParameter("Long price channel length", 14, 10, 500, 10, "Indicators");
             _shortPriceChannelLength = CreateParameter("Short price channel length", 20, 5, 200, 5, "Indicators");
 
             // Создание источников - 10 скринеров по секторам
