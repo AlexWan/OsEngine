@@ -177,7 +177,12 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (_grid == null)
+                if (_isDeleted)
+                {
+                    return;
+                }
+
+                if (_grid == null || _grid.IsDisposed)
                 {
                     return;
                 }
@@ -200,9 +205,13 @@ namespace OsEngine.OsData
 
                 PaintTable();
             }
+            catch (ObjectDisposedException)
+            {
+                // окно закрыто, контрол задиспожен. перерисовку останавливаем
+            }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.Message);
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -382,7 +391,7 @@ namespace OsEngine.OsData
         {
             try
             {
-                if (_grid == null)
+                if (_grid == null || _grid.IsDisposed)
                 {
                     return;
                 }
@@ -410,9 +419,20 @@ namespace OsEngine.OsData
                     }
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                // окно закрыто, контрол задиспожен
+            }
             catch (Exception ex)
             {
-                _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                if (_loader != null)
+                {
+                    _loader.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+                else
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
             }
         }
 
