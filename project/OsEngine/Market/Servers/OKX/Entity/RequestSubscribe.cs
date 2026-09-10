@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace OsEngine.Market.Servers.OKX.Entity
 {
@@ -13,6 +14,10 @@ namespace OsEngine.Market.Servers.OKX.Entity
     {
         public string channel;
         public string instId;
+
+        // required for the option-trades channel, ignored for the rest
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string instType;
     }
 
     public class SubscribeArgsAccount

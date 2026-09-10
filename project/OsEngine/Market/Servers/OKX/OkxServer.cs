@@ -1690,25 +1690,47 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (webSocketPublic != null)
                 {
-                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
-                    webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
+                    List<SubscribeArgs> subscribeArgs = new List<SubscribeArgs>();
+
+                    subscribeArgs.Add(new SubscribeArgs() { channel = "books5", instId = security.Name });
+
+                    if (_useOptions && security.SecurityType == SecurityType.Option)
+                    {
+                        // OKX pushes option ticks only through the separate option-trades channel, instType is required there
+                        subscribeArgs.Add(new SubscribeArgs() { channel = "option-trades", instType = "OPTION", instId = security.Name });
+                    }
+                    else
+                    {
+                        subscribeArgs.Add(new SubscribeArgs() { channel = "trades", instId = security.Name });
+                    }
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{security.Name}\"}}]}}");
+                        subscribeArgs.Add(new SubscribeArgs() { channel = "tickers", instId = security.Name });
 
                         if (security.Name.Contains("SWAP"))
                         {
-                            webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
-                            webSocketPublic.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{security.Name}\"}}]}}");
-                            GetFundingHistory(security.Name);
+                            subscribeArgs.Add(new SubscribeArgs() { channel = "open-interest", instId = security.Name });
+                            subscribeArgs.Add(new SubscribeArgs() { channel = "funding-rate", instId = security.Name });
                         }
+                    }
+
+                    // one frame with all channels: OKX limits subscribe/unsubscribe/login requests to 480 per connection per hour
+                    RequestSubscribe<SubscribeArgs> request = new RequestSubscribe<SubscribeArgs>();
+                    request.args = subscribeArgs;
+
+                    webSocketPublic.SendAsync(JsonConvert.SerializeObject(request));
+
+                    if (_extendedMarketData
+                        && security.Name.Contains("SWAP"))
+                    {
+                        GetFundingHistory(security.Name);
                     }
                 }
 
                 if (_useOptions && security.SecurityType == SecurityType.Option)
                 {
-                    _subscribedSecurities.Add(securityName, true);
+                    _subscribedSecurities.TryAdd(securityName, true);
 
                     _rateGateSubscribe.WaitToProceed();
 
@@ -1723,17 +1745,17 @@ namespace OsEngine.Market.Servers.OKX
                         //for underlying price
                         SubscribeMarkPrice(securityName + "-SWAP", webSocketPublic);
 
-                        _subscribedSecurities.Add(key, false);
+                        _subscribedSecurities.TryAdd(key, false);
                     }
                 }
                 else
                 {
-                    _subscribedSecurities.Add(securityName, false);
+                    _subscribedSecurities.TryAdd(securityName, false);
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1813,14 +1835,23 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
-                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                _webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
-                //_webSocketPrivate.SendAsync($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"fills\"}}]}}");
+                List<Dictionary<string, string>> privateSubscribeArgs = new List<Dictionary<string, string>>();
+
+                privateSubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "account" } });
+                privateSubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "positions" }, { "instType", "ANY" } });
+                privateSubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "orders" }, { "instType", "ANY" } });
+                //privateSubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "fills" } });
+
+                // one frame with all channels: OKX limits subscribe/unsubscribe/login requests to 480 per connection per hour
+                Dictionary<string, object> privateSubscribeRequest = new Dictionary<string, object>();
+                privateSubscribeRequest.Add("op", "subscribe");
+                privateSubscribeRequest.Add("args", privateSubscribeArgs);
+
+                _webSocketPrivate.SendAsync(JsonConvert.SerializeObject(privateSubscribeRequest));
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.Message, LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1831,49 +1862,76 @@ namespace OsEngine.Market.Servers.OKX
                 if (_webSocketPublic != null
                     && _webSocketPublic.Count != 0)
                 {
+                    // channels from all securities are batched into one unsubscribe frame per socket:
+                    // OKX limits subscribe/unsubscribe/login requests to 480 per connection per hour
+                    List<Dictionary<string, string>> unsubscribeArgs = new List<Dictionary<string, string>>();
+
+                    if (_subscribedSecurities != null)
+                    {
+                        foreach (var item in _subscribedSecurities)
+                        {
+                            string name = item.Key;
+
+                            // "XXX-OPTION" keys are option families, not instruments — nothing to unsubscribe there
+                            if (name.EndsWith("-OPTION"))
+                            {
+                                continue;
+                            }
+
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "books5" }, { "instId", name } });
+
+                            if (item.Value)
+                            {
+                                // option: ticks were subscribed through the option-trades channel
+                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "option-trades" }, { "instType", "OPTION" }, { "instId", name } });
+                            }
+                            else
+                            {
+                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "trades" }, { "instId", name } });
+                            }
+
+                            if (_extendedMarketData)
+                            {
+                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "tickers" }, { "instId", name } });
+
+                                if (name.Contains("SWAP"))
+                                {
+                                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "open-interest" }, { "instId", name } });
+                                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "funding-rate" }, { "instId", name } });
+                                }
+                            }
+
+                            if (item.Value)
+                            {
+                                //option
+                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "mark-price" }, { "instId", name } });
+                            }
+                        }
+                    }
+
+                    if (_baseOptionSerurities != null)
+                    {
+                        foreach (string name in _baseOptionSerurities)
+                        {
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "opt-summary" }, { "instFamily", name } });
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "mark-price" }, { "instId", name + "-SWAP" } });
+                        }
+                    }
+
                     for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
                         WebSocket webSocketPublic = _webSocketPublic[i];
 
                         try
                         {
-                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open
+                                && unsubscribeArgs.Count != 0)
                             {
-                                if (_subscribedSecurities != null)
-                                {
-                                    foreach (var item in _subscribedSecurities)
-                                    {
-                                        string name = item.Key;
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
+                                Dictionary<string, object> unsubscribeRequest = new Dictionary<string, object>();
+                                unsubscribeRequest.Add("op", "unsubscribe");
+                                unsubscribeRequest.Add("args", unsubscribeArgs);
 
-                                        if (_extendedMarketData)
-                                        {
-                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
-
-                                            if (name.Contains("SWAP"))
-                                            {
-                                                webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
-                                                webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
-                                            }
-                                        }
-
-                                        if (item.Value)
-                                        {
-                                            //option
-                                            webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
-                                        }
-                                    }
-                                }
-
-                                if (_baseOptionSerurities != null)
-                                {
-                                    foreach (string name in _baseOptionSerurities)
-                                    {
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
-                                        webSocketPublic.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
-                                    }
-                                }
+                                webSocketPublic.SendAsync(JsonConvert.SerializeObject(unsubscribeRequest));
                             }
                         }
                         catch (Exception ex)
@@ -1883,9 +1941,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
 
 
@@ -1894,14 +1952,23 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
-                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                    _webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
-                    //_webSocketPrivate.SendAsync($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"fills\"}}]}}");
+                    List<Dictionary<string, string>> privateUnsubscribeArgs = new List<Dictionary<string, string>>();
+
+                    privateUnsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "account" } });
+                    privateUnsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "positions" }, { "instType", "ANY" } });
+                    privateUnsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "orders" }, { "instType", "ANY" } });
+                    //privateUnsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "fills" } });
+
+                    // one frame with all channels: OKX limits subscribe/unsubscribe/login requests to 480 per connection per hour
+                    Dictionary<string, object> privateUnsubscribeRequest = new Dictionary<string, object>();
+                    privateUnsubscribeRequest.Add("op", "unsubscribe");
+                    privateUnsubscribeRequest.Add("args", privateUnsubscribeArgs);
+
+                    _webSocketPrivate.SendAsync(JsonConvert.SerializeObject(privateUnsubscribeRequest));
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 }
             }
         }
