@@ -65,6 +65,14 @@ namespace OsEngine
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
+            // WinForms: принудительно ловим исключения UI-потока, чтобы WinForms не показывал
+            // свой ThreadExceptionDialog поверх WPF-окна (вложенный модальный цикл -> фатальный вторичный throw)
+            System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
+            System.Windows.Forms.Application.ThreadException += WinForms_ThreadException;
+
+            // WPF: перехватываем исключения UI-потока и логируем первичное исключение
+            System.Windows.Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
+
             this.Closing += MainWindow_Closing;
 
             RePaintThemeImages();
@@ -326,6 +334,40 @@ namespace OsEngine
             else
             {
                 MessageBox.Show(message);
+            }
+        }
+
+        void WinForms_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            LogUiThreadException(e.Exception);
+        }
+
+        void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogUiThreadException(e.Exception);
+            e.Handled = true;
+        }
+
+        void LogUiThreadException(Exception exception)
+        {
+            if (exception == null)
+            {
+                return;
+            }
+
+            string message = OsLocalization.MainWindow.Message5 + " UI THREAD " + exception;
+
+            message = _startProgram + "  " + message;
+
+            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+            _messageToCrashServer = "Crash% " + message;
+            Thread worker = new Thread(SendMessageInCrashServer);
+            worker.Start();
+
+            if (ServerMaster.Log != null)
+            {
+                ServerMaster.Log.ProcessMessage(message, Logging.LogMessageType.Error);
             }
         }
 
