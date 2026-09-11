@@ -2335,5 +2335,9 @@ namespace OsEngine.Language
         public string Label374 => OsLocalization.ConvertToLocString(
          "Eng:Number of order book levels to subscribe. books5 - 5 levels, books50 - 50 levels. If the standard parameter \"Use full market depth\" is set to False, books1 (best bid/ask) is used regardless of this setting_" +
          "Ru:Количество уровней в стакане при подписке. books5 - 5 уровней, books50 - 50 уровней. Если стандартный параметр \"Использовать полный стакан\" выключен (False), то используется books1 (лучший бид/аск) независимо от этой настройки_");
+
+        public string Label375 => OsLocalization.ConvertToLocString(
+        "Eng:Number of order book levels. 5 - 5 levels updated every 100 ms (low load). 400 - up to 400 levels with incremental updates on every change (high CPU load)_" +
+        "Ru:Количество уровней стакана. 5 - 5 уровней с обновлением раз в 100 мс (низкая нагрузка). 400 - до 400 уровней с инкрементальными обновлениями на каждое изменение (высокая нагрузка на ЦП)_");
     }
 }

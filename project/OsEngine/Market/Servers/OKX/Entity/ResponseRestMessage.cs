@@ -13,7 +13,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
     public class RestMessageSendOrder
     {
-        public string sMsg;
+        public string sCode { get; set; }
+        public string sMsg { get; set; }
     }
 
     public class RestMessageCandle
@@ -23,149 +24,149 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
     public class RestMessageSymbol
     {
-        public string symbol;
-        public string makerFeeRate;
-        public string takerFeeRate;
-        public string feeRateUpRatio;
-        public string openCostUpRatio;
-        public string quoteCoin;
-        public string baseCoin;
-        public string buyLimitPriceRatio;
-        public string sellLimitPriceRatio;
-        public List<string> supportMarginCoins;
-        public string minTradeNum;
-        public string priceEndStep;
-        public string volumePlace;
-        public string sizeMultiplier;
-        public string symbolType;
-        public string symbolStatus;
-        public string offTime;
-        public string limitOpenTime;
-        public string maintainTime;
-        public string pricePlace;
+        public string symbol { get; set; }
+        public string makerFeeRate { get; set; }
+        public string takerFeeRate { get; set; }
+        public string feeRateUpRatio { get; set; }
+        public string openCostUpRatio { get; set; }
+        public string quoteCoin { get; set; }
+        public string baseCoin { get; set; }
+        public string buyLimitPriceRatio { get; set; }
+        public string sellLimitPriceRatio { get; set; }
+        public List<string> supportMarginCoins { get; set; }
+        public string minTradeNum { get; set; }
+        public string priceEndStep { get; set; }
+        public string volumePlace { get; set; }
+        public string sizeMultiplier { get; set; }
+        public string symbolType { get; set; }
+        public string symbolStatus { get; set; }
+        public string offTime { get; set; }
+        public string limitOpenTime { get; set; }
+        public string maintainTime { get; set; }
+        public string pricePlace { get; set; }
     }
 
     public class RestMessageAccount
     {
-        public string marginCoin;
-        public string locked;
-        public string available;
-        public string crossMaxAvailable;
-        public string fixedMaxAvailable;
-        public string maxTransferOut;
-        public string equity;
-        public string usdtEquity;
-        public string btcEquity;
-        public string crossRiskRate;
-        public string crossMarginLeverage;
-        public string fixedLongLeverage;
-        public string fixedShortLeverage;
-        public string marginMode;
-        public string holdMode;
-        public string unrealizedPL;
-        public string bonus;
+        public string marginCoin { get; set; }
+        public string locked { get; set; }
+        public string available { get; set; }
+        public string crossMaxAvailable { get; set; }
+        public string fixedMaxAvailable { get; set; }
+        public string maxTransferOut { get; set; }
+        public string equity { get; set; }
+        public string usdtEquity { get; set; }
+        public string btcEquity { get; set; }
+        public string crossRiskRate { get; set; }
+        public string crossMarginLeverage { get; set; }
+        public string fixedLongLeverage { get; set; }
+        public string fixedShortLeverage { get; set; }
+        public string marginMode { get; set; }
+        public string holdMode { get; set; }
+        public string unrealizedPL { get; set; }
+        public string bonus { get; set; }
     }
 
     public class RestMessagePositions
     {
-        public string marginCoin;
-        public string symbol;
-        public string holdSide;
-        public string openDelegateCount;
-        public string margin;
-        public string available;
-        public string locked;
-        public string total;
-        public string leverage;
-        public string achievedProfits;
-        public string averageOpenPrice;
-        public string marginMode;
-        public string holdMode;
-        public string unrealizedPL;
-        public string liquidationPrice;
-        public string keepMarginRate;
-        public string marketPrice;
-        public string cTime;
+        public string marginCoin { get; set; }
+        public string symbol { get; set; }
+        public string holdSide { get; set; }
+        public string openDelegateCount { get; set; }
+        public string margin { get; set; }
+        public string available { get; set; }
+        public string locked { get; set; }
+        public string total { get; set; }
+        public string leverage { get; set; }
+        public string achievedProfits { get; set; }
+        public string averageOpenPrice { get; set; }
+        public string marginMode { get; set; }
+        public string holdMode { get; set; }
+        public string unrealizedPL { get; set; }
+        public string liquidationPrice { get; set; }
+        public string keepMarginRate { get; set; }
+        public string marketPrice { get; set; }
+        public string cTime { get; set; }
     }
 
     public class RestMessageOrders
     {
-        public List<EntrustedList> entrustedList;
+        public List<EntrustedList> entrustedList { get; set; }
     }
 
     public class EntrustedList
     {
-        public string symbol;
-        public string baseVolume;
-        public string orderId;
-        public string clientOid;
-        public string filledQty;
-        public string fee;
-        public string price;
-        public string status;
-        public string side;
-        public string timeInForce;
-        public string totalProfits;
-        public string posSide;
-        public string marginCoin;
-        public string presetTakeProfitPrice;
-        public string presetStopLossPrice;
-        public string filledAmount;
-        public string orderType;
-        public string leverage;
-        public string marginMode;
-        public string size;
-        public string holdMode;
-        public string tradeSide;
-        public string cTime;
-        public string uTime;
+        public string symbol { get; set; }
+        public string baseVolume { get; set; }
+        public string orderId { get; set; }
+        public string clientOid { get; set; }
+        public string filledQty { get; set; }
+        public string fee { get; set; }
+        public string price { get; set; }
+        public string status { get; set; }
+        public string side { get; set; }
+        public string timeInForce { get; set; }
+        public string totalProfits { get; set; }
+        public string posSide { get; set; }
+        public string marginCoin { get; set; }
+        public string presetTakeProfitPrice { get; set; }
+        public string presetStopLossPrice { get; set; }
+        public string filledAmount { get; set; }
+        public string orderType { get; set; }
+        public string leverage { get; set; }
+        public string marginMode { get; set; }
+        public string size { get; set; }
+        public string holdMode { get; set; }
+        public string tradeSide { get; set; }
+        public string cTime { get; set; }
+        public string uTime { get; set; }
     }
 
     public class DataOrderStatus
     {
-        public string symbol;
-        public string size;
-        public string orderId;
-        public string clientOid;
-        public string price;
-        public string state;
-        public string side;
-        public string posSide;
-        public string posMode;
-        public string orderType;
-        public string cTime;
-        public string marginCoin;
+        public string symbol { get; set; }
+        public string size { get; set; }
+        public string orderId { get; set; }
+        public string clientOid { get; set; }
+        public string price { get; set; }
+        public string state { get; set; }
+        public string side { get; set; }
+        public string posSide { get; set; }
+        public string posMode { get; set; }
+        public string orderType { get; set; }
+        public string cTime { get; set; }
+        public string marginCoin { get; set; }
     }
 
     public class RestMyTradesResponce
     {
-        public string code;
+        public string code { get; set; }
 
-        public string msg;
+        public string msg { get; set; }
 
-        public DataMyTrades data;
+        public DataMyTrades data { get; set; }
     }
 
     public class DataMyTrades
     {
-        public List<FillList> fillList;
+        public List<FillList> fillList { get; set; }
     }
     public class FillList
     {
-        public string tradeId;
-        public string symbol;
-        public string orderId;
-        public string price;
-        public string baseVolume;
-        public string fee;
-        public string side;
-        public string fillAmount;
-        public string profit;
-        public string enterPointSource;
-        public string tradeSide;
-        public string holdMode;
-        public string takerMakerFlag;
-        public string cTime;
+        public string tradeId { get; set; }
+        public string symbol { get; set; }
+        public string orderId { get; set; }
+        public string price { get; set; }
+        public string baseVolume { get; set; }
+        public string fee { get; set; }
+        public string side { get; set; }
+        public string fillAmount { get; set; }
+        public string profit { get; set; }
+        public string enterPointSource { get; set; }
+        public string tradeSide { get; set; }
+        public string holdMode { get; set; }
+        public string takerMakerFlag { get; set; }
+        public string cTime { get; set; }
     }
 
     public class FundingItemHistory
@@ -177,5 +178,10 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string instType { get; set; }
         public string method { get; set; }
         public string realizedRate { get; set; }
+    }
+
+    public class AccountConfigData
+    {
+        public string posMode { get; set; }
     }
 }

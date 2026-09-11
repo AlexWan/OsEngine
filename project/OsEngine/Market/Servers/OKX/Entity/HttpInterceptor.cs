@@ -1,5 +1,4 @@
-﻿using OsEngine.Market.Servers.Entity;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,18 +12,13 @@ namespace OsEngine.Market.Servers.OKX.Entity
         private string _apiKey;
         private string _passPhrase;
         private string _secret;
-        private string _bodyStr;
         private bool _demoMode;
 
-        //Задерждка для рест запросов
-        public RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr, bool demoMode, WebProxy myProxy)
+        public HttpInterceptor(string apiKey, string secret, string passPhrase, bool demoMode, WebProxy myProxy)
         {
             this._apiKey = apiKey;
             this._passPhrase = passPhrase;
             this._secret = secret;
-            this._bodyStr = bodyStr;
             this._demoMode = demoMode;
 
             if (myProxy == null)
@@ -40,10 +34,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
             }
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            _rateGateRest.WaitToProceed();
-
             var method = request.Method.Method;
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.Add("OK-ACCESS-KEY", this._apiKey);
@@ -51,10 +43,16 @@ namespace OsEngine.Market.Servers.OKX.Entity
             var now = DateTime.Now;
             var timeStamp = TimeZoneInfo.ConvertTimeToUtc(now).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
             var requestUrl = request.RequestUri.PathAndQuery;
+
+            // the signed body is the request content itself, no side channel is needed
+            string bodyStr = request.Content == null
+                ? null
+                : await request.Content.ReadAsStringAsync();
+
             string sign;
-            if (!String.IsNullOrEmpty(this._bodyStr))
+            if (!String.IsNullOrEmpty(bodyStr))
             {
-                sign = Encryptor.HmacSHA256($"{timeStamp}{method}{requestUrl}{this._bodyStr}", this._secret);
+                sign = Encryptor.HmacSHA256($"{timeStamp}{method}{requestUrl}{bodyStr}", this._secret);
             }
             else
             {
@@ -74,7 +72,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
                 request.Headers.Add("x-simulated-trading", "0");
             }
 
-            return base.SendAsync(request, cancellationToken);
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 }
