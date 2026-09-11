@@ -129,7 +129,7 @@ namespace OsEngine.Robots.Sectors
             _tradePeriodsSettings.Load();
 
             // Вкладка Base
-            _regime = CreateParameter("Regime", "On", new[] { "On", "Off" }, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "On", "Off" }, "Base");
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods", "Base");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");

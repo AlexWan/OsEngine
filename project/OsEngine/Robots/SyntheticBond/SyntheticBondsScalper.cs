@@ -84,6 +84,7 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _LqdtRegimeIsOn;
         private StrategyParameterInt _LqdtYieldDays;
         private StrategyParameterDecimal _lqdtFreeMoneyBuffer;
+        private StrategyParameterTimeOfDay _lqdtTradeStartTime;
 
         private StrategyParameterInt _daysBeforeExpirationToExit;
         private StrategyParameterInt _entryCooldownSec;
@@ -114,7 +115,7 @@ namespace OsEngine.Robots.SyntheticBond
             _fullLogIsOn = CreateParameter("Full log is on", true, "Base");
 
             _daysBeforeExpirationToExit = CreateParameter("Days before expiration to exit", 7, 0, 10, 1, "Exit");
-            _entryCooldownSec = CreateParameter("Entry cooldown, sec", 20, 0, 300, 5, "Base");
+            _entryCooldownSec = CreateParameter("Entry cooldown, sec", 10, 0, 300, 5, "Base");
 
             _entryMinYieldDiffOverLqdt = CreateParameter("Min yield diff over LQDT % ann", 3.75m, 0.1m, 100, 1, "Base");
             _entryMinYield = CreateParameter("Min yield to entry % ann", 10m, 0.1m, 100, 0.1m, "Base");
@@ -136,11 +137,12 @@ namespace OsEngine.Robots.SyntheticBond
             _failOpenOrdersToReaction = CreateParameter("Fail open orders to reaction", 10, 1, 1000, 1, "Errors reaction");
             _failCancelOrdersToReaction = CreateParameter("Fail cancel orders to reaction", 10, 1, 1000, 1, "Errors reaction");
             _resetErrorsAtStartOfDay = CreateParameter("Reset error counters at start of day", true, "Errors reaction");
-            _delayInRealMs = CreateParameter("Delay in real, ms", 500, 0, 10000, 100, "Errors reaction");
+            _delayInRealMs = CreateParameter("Delay in real, ms", 3000, 0, 10000, 100, "Errors reaction");
 
             _LqdtRegimeIsOn = CreateParameter("LQDT regime is on", true, "LQDT");
             _LqdtYieldDays = CreateParameter("LQDT yield days", 10, 5, 60, 5, "LQDT");
             _lqdtFreeMoneyBuffer = CreateParameter("LQDT free money buffer", 5000m, 0m, 100000m, 500, "LQDT");
+            _lqdtTradeStartTime = CreateParameterTimeOfDay("LQDT trade start time", 10, 0, 0, 0, "LQDT");
 
             _tradePeriodsSettings = new NonTradePeriods(name);
 
@@ -406,6 +408,8 @@ namespace OsEngine.Robots.SyntheticBond
 
         private readonly List<(BotTabSimple Tab, Position Pos, DateTime Time)> _pendingLimits = new List<(BotTabSimple, Position, DateTime)>();
 
+        private readonly List<(BotTabSimple BaseTab, Position BasePos, BotTabSimple FutTab, Position FutPos, DateTime Time, int Stage, DateTime StageTime, decimal InitialBaseVolume, decimal AlignVolumeNet, Position AlignPos)> _pendingPairs = new List<(BotTabSimple, Position, BotTabSimple, Position, DateTime, int, DateTime, decimal, decimal, Position)>();
+
         private int _failOpenOrdersCountFact = 0;
         private int _failCancelOrdersCountFact = 0;
         private DateTime _vacationTime = DateTime.MinValue;
@@ -425,6 +429,10 @@ namespace OsEngine.Robots.SyntheticBond
 
             TryTimeoutLimitOrders();
 
+            TryAlignPairs();
+
+            TryLogHeartbeat();
+
             string regime = _regime.ValueString;
 
             if (regime == "Off")
@@ -442,6 +450,8 @@ namespace OsEngine.Robots.SyntheticBond
                     CancelAllActiveOrders();
 
                     _pendingLimits.Clear();
+
+                    _pendingPairs.Clear();
                 }
 
                 _prevRegime = regime;
@@ -551,6 +561,236 @@ namespace OsEngine.Robots.SyntheticBond
             }
         }
 
+        private void TryAlignPairs()
+        {
+            // выравнивание ног имеет смысл только в реале: в тестере исполнение мгновенное и полное
+            if (StartProgram != StartProgram.IsOsTrader)
+            {
+                if (_pendingPairs.Count > 0)
+                {
+                    _pendingPairs.Clear();
+                }
+
+                return;
+            }
+
+            for (int i = _pendingPairs.Count - 1; i >= 0; i--)
+            {
+                (BotTabSimple baseTab, Position basePos, BotTabSimple futTab, Position futPos, DateTime time, int stage, DateTime stageTime, decimal initialBaseVolume, decimal alignVolumeNet, Position alignPos) = _pendingPairs[i];
+
+                if (baseTab == null
+                    || basePos == null
+                    || futTab == null
+                    || futPos == null)
+                {
+                    _pendingPairs.RemoveAt(i);
+                    continue;
+                }
+
+                if (stage == 0)
+                { // ждём пока обе ноги "доиграются": таймаут снятия лимиток + запас
+                    if ((DateTime.Now - time).TotalSeconds < _limitOrderTimeoutSec.ValueInt + 2)
+                    {
+                        continue;
+                    }
+
+                    // снимаем остатки заявок по обеим ногам
+                    baseTab.CloseAllOrderToPosition(basePos);
+                    futTab.CloseAllOrderToPosition(futPos);
+
+                    LogFull("ALIGN stage 1: orders cancelled, pair from " + time.ToString("HH:mm:ss"));
+
+                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 1, DateTime.Now, initialBaseVolume, alignVolumeNet, alignPos);
+                    continue;
+                }
+
+                if (stage == 1)
+                { // пауза после снятия заявок: брокеру нужно время подтвердить отмену и возможное исполнение
+                    if ((DateTime.Now - stageTime).TotalSeconds < GetAlignPauseSec())
+                    {
+                        continue;
+                    }
+
+                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 2",
+                        ref initialBaseVolume, ref alignVolumeNet, ref alignPos);
+
+                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 2, DateTime.Now, initialBaseVolume, alignVolumeNet, alignPos);
+                    continue;
+                }
+
+                if (stage == 2)
+                { // контрольный пересчёт после выравнивания: ловим гонки исполнения и странности маркета
+                    if ((DateTime.Now - stageTime).TotalSeconds < GetAlignPauseSec())
+                    {
+                        continue;
+                    }
+
+                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 3 final",
+                        ref initialBaseVolume, ref alignVolumeNet, ref alignPos);
+
+                    _pendingPairs.RemoveAt(i);
+                }
+            }
+        }
+
+        private double GetAlignPauseSec()
+        {
+            // пауза стадий выравнивания привязана к задержке реала, минимум 3 секунды
+            double pause = _delayInRealMs.ValueInt / 1000;
+
+            if (pause < 3)
+            {
+                pause = 3;
+            }
+
+            return pause;
+        }
+
+        private void AlignPairToNeutral(BotTabSimple baseTab, Position basePos, Position futPos,
+            DateTime entryTime, string logTag,
+            ref decimal initialBaseVolume, ref decimal alignVolumeNet, ref Position alignPos)
+        {
+            // объём исходной ноги запоминаем на первом проходе, дальше считаем от него + сделки выравнивания
+            if (initialBaseVolume < 0)
+            {
+                initialBaseVolume = basePos.OpenVolume;
+            }
+
+            decimal baseLot = 1;
+
+            if (baseTab.Security != null
+                && baseTab.Security.Lot > 1)
+            {
+                baseLot = baseTab.Security.Lot;
+            }
+
+            decimal mult = GetMultByBase(baseTab);
+
+            decimal expectedBase = Math.Floor(futPos.OpenVolume * mult / baseLot);
+            decimal actualBase = initialBaseVolume + alignVolumeNet;
+            decimal diff = expectedBase - actualBase;
+
+            if (diff >= baseLot)
+            { // докупка базы: доливка в живую позицию, либо новая позиция если нога умерла
+                if (basePos.State == PositionStateType.Open)
+                {
+                    baseTab.BuyAtMarketToPosition(basePos, diff);
+
+                    LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
+                        + " | base " + actualBase + " / fut " + futPos.OpenVolume
+                        + " | buy base to position " + diff);
+
+                    alignVolumeNet += diff;
+                }
+                else
+                {
+                    Position newPos = baseTab.BuyAtMarket(diff);
+
+                    LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
+                        + " | base " + actualBase + " / fut " + futPos.OpenVolume
+                        + " | buy base " + diff
+                        + (newPos != null ? " | new pos #" + newPos.Number : " | open FAIL"));
+
+                    if (newPos != null)
+                    {
+                        alignPos = newPos;
+                        alignVolumeNet += diff;
+                    }
+                }
+            }
+            else if (diff <= -baseLot)
+            { // срезание излишка: закрываем позиции, контрпозиции не открываем
+                decimal toClose = -diff;
+
+                if (basePos.State == PositionStateType.Open
+                    && basePos.OpenVolume > 0)
+                {
+                    decimal closeV = Math.Min(toClose, basePos.OpenVolume);
+                    baseTab.CloseAtMarket(basePos, closeV);
+
+                    LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
+                        + " | base " + actualBase + " / fut " + futPos.OpenVolume
+                        + " | close base from position " + closeV);
+
+                    alignVolumeNet -= closeV;
+                    toClose -= closeV;
+                }
+
+                if (toClose >= baseLot
+                    && alignPos != null
+                    && alignPos.OpenVolume > 0)
+                {
+                    decimal closeV = Math.Min(toClose, alignPos.OpenVolume);
+                    baseTab.CloseAtMarket(alignPos, closeV);
+
+                    LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
+                        + " | base " + actualBase + " / fut " + futPos.OpenVolume
+                        + " | close base from align pos " + closeV);
+
+                    alignVolumeNet -= closeV;
+                    toClose -= closeV;
+                }
+
+                if (toClose >= baseLot)
+                {
+                    LogFull(logTag + ": WARN cannot close excess base " + toClose
+                        + ", pair from " + entryTime.ToString("HH:mm:ss"));
+                }
+            }
+            else
+            {
+                LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
+                    + " is balanced | base " + actualBase + " / fut " + futPos.OpenVolume);
+            }
+        }
+
+        private void LogEntrySkipThrottled(string message)
+        {
+            // скипы входа логируем не чаще раза в минуту, иначе лог забивается одинаковыми строками
+            if ((DateTime.Now - _lastEntrySkipLogTime).TotalSeconds < 60)
+            {
+                return;
+            }
+
+            _lastEntrySkipLogTime = DateTime.Now;
+
+            LogFull(message);
+        }
+
+        private void TryLogHeartbeat()
+        {
+            if (StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            if ((DateTime.Now - _lastHeartbeatTime).TotalSeconds < 60)
+            {
+                return;
+            }
+
+            _lastHeartbeatTime = DateTime.Now;
+
+            BotTabSimple[] bases = { _base1, _base2, _base3, _base4, _base5, _base6, _base7, _base8, _base9, _base10 };
+
+            int openPairs = 0;
+
+            for (int i = 0; i < bases.Length; i++)
+            {
+                if (bases[i] == null)
+                {
+                    continue;
+                }
+
+                openPairs += bases[i].PositionsOpenAll.FindAll(p => p.State == PositionStateType.Open).Count;
+            }
+
+            LogFull("HEARTBEAT: regime " + _regime.ValueString
+                + " | best yield " + Math.Round(_lastBestYieldAnn, 2) + "% ann"
+                + " | free " + Math.Round(GetFreeMoneyWithGo(), 0)
+                + " | open pairs " + openPairs);
+        }
+
         private void TryResetErrorsAtStartOfDay()
         {
             if (_resetErrorsAtStartOfDay.ValueBool == false)
@@ -631,7 +871,16 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
-            if ((DateTime.Now - _lastOrderExecutionTime).TotalSeconds < _entryCooldownSec.ValueInt)
+            // пока предыдущая пара не устаканилась (заявки висят или ноги не выровнены) - не входим
+            if (_pendingLimits.Count > 0
+                || _pendingPairs.Count > 0)
+            {
+                return;
+            }
+
+            // cooldown считаем от факта размещения входа, а не от исполнения:
+            // частично исполненные и снятые таймаутом заявки не дают Done и не обновляли время исполнения
+            if ((DateTime.Now - _lastEntryTime).TotalSeconds < _entryCooldownSec.ValueInt)
             {
                 return;
             }
@@ -687,6 +936,8 @@ namespace OsEngine.Robots.SyntheticBond
                     }
                 }
             }
+
+            _lastBestYieldAnn = bestYield;
 
             if (bestBase == null
                 || bestFutures == null)
@@ -871,6 +1122,19 @@ namespace OsEngine.Robots.SyntheticBond
 
             decimal baseInvested = GetBaseInvestedTotal();
 
+            // в реале кап считаем от собственной оценки портфеля:
+            // честный кэш + инвестиции в акции + TMON + заблокированное ГО фьючерсов,
+            // без брокерского плеча. Акции могут занять до cap% полного депо
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                decimal actualCashForCap = GetActualFreeCash();
+
+                if (actualCashForCap != -1)
+                {
+                    portfolioValue = Math.Max(0, actualCashForCap) + baseInvested + GetLqdtValue() + GetFuturesGoTotal();
+                }
+            }
+
             decimal freeMoney = GetFreeMoneyWithGo();
 
             if (baseAskPrice <= 0
@@ -883,7 +1147,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (room <= 0)
             {
-                LogFull("ENTRY skipped: max position % reached. "
+                LogEntrySkipThrottled("ENTRY skipped: max position % reached. "
                     + PairDescription(baseSource, futuresSource, mult)
                     + " | invested " + baseInvested + " | cap " + _maxPositionPercent.ValueDecimal + "%");
                 return;
@@ -899,7 +1163,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             if (desiredContracts < 1)
             {
-                LogFull("ENTRY skipped: not enough money for 1 contract. "
+                LogEntrySkipThrottled("ENTRY skipped: not enough money for 1 contract. "
                     + PairDescription(baseSource, futuresSource, mult)
                     + " | room " + room + " | free " + freeMoney);
                 return;
@@ -918,6 +1182,7 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 baseLots = Math.Floor(baseAskVolume);
                 futContracts = Math.Floor(baseLots * baseLot / mult);
+                baseLots = Math.Floor(futContracts * mult / baseLot);
             }
 
             if (baseLots < 1
@@ -933,8 +1198,6 @@ namespace OsEngine.Robots.SyntheticBond
 
             Position futPos = futuresSource.SellAtLimit(futContracts, futBidPrice);
 
-            Thread.Sleep(_delayInRealMs.ValueInt);
-
             Position basePos = baseSource.BuyAtLimit(baseLots, baseAskPrice);
 
             DateTime now = DateTime.Now;
@@ -948,10 +1211,47 @@ namespace OsEngine.Robots.SyntheticBond
             {
                 _pendingLimits.Add((baseSource, basePos, now));
             }
+
+            if (futPos != null
+                || basePos != null)
+            {
+                _pendingPairs.Add((baseSource, basePos, futuresSource, futPos, now, 0, now, -1m, 0m, null));
+
+                _lastEntryTime = now;
+            }
+        }
+
+        private DateTime _lastCashWarnTime = DateTime.MinValue;
+
+        private void LogCashUnavailableThrottled()
+        {
+            // брокер не отдал кэш (rub не найден) - работает запасная денежная математика
+            if ((DateTime.Now - _lastCashWarnTime).TotalMinutes < 5)
+            {
+                return;
+            }
+
+            _lastCashWarnTime = DateTime.Now;
+
+            LogFull("WARN: actual cash (rub) unavailable from broker. Fallback money math in use.");
         }
 
         private decimal GetFreeMoneyWithGo()
         {
+            // в реале свободные деньги стратегии = честный кэш + TMON (ликвиден):
+            // Portfolio.ValueCurrent у Т-Инвестиции включает плечо и даёт ложный запас для входов
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                decimal actualCash = GetActualFreeCash();
+
+                if (actualCash != -1)
+                {
+                    return actualCash + GetLqdtValue();
+                }
+
+                LogCashUnavailableThrottled();
+            }
+
             decimal invested = 0;
 
             BotTabSimple[] bases = { _base1, _base2, _base3, _base4, _base5, _base6, _base7, _base8, _base9, _base10 };
@@ -1371,6 +1671,14 @@ namespace OsEngine.Robots.SyntheticBond
 
         private DateTime _lastOrderExecutionTime = DateTime.MinValue;
 
+        private DateTime _lastEntryTime = DateTime.MinValue;
+
+        private DateTime _lastEntrySkipLogTime = DateTime.MinValue;
+
+        private DateTime _lastHeartbeatTime = DateTime.MinValue;
+
+        private decimal _lastBestYieldAnn = 0;
+
         private decimal _lqdtProfitValue;
 
         private decimal GetLqdtYieldAnn(DateTime serverTime)
@@ -1486,6 +1794,29 @@ namespace OsEngine.Robots.SyntheticBond
                 || _tabLqdt.Security == null)
             {
                 return;
+            }
+
+            // кул-даун LQDT: после входа в пару не выставляем ордеров по TMON,
+            // пока не пройдёт entry cooldown - объёмы и состояние ордеров в этот момент неизвестны
+            if ((DateTime.Now - _lastEntryTime).TotalSeconds < _entryCooldownSec.ValueInt)
+            {
+                return;
+            }
+
+            // в реале TMON торгуется с 10.00, раньше не паркуемся
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                DateTime lqdtTime = _tabLqdt.TimeServerCurrent;
+
+                if (lqdtTime == DateTime.MinValue)
+                {
+                    lqdtTime = DateTime.Now;
+                }
+
+                if (lqdtTime.TimeOfDay < _lqdtTradeStartTime.Value.TimeSpan)
+                {
+                    return;
+                }
             }
 
             if (HasOrdersInMarket())
@@ -1635,6 +1966,20 @@ namespace OsEngine.Robots.SyntheticBond
             for (int i = 0; i < bases.Length; i++)
             {
                 sum += GetBaseInvestedMoney(bases[i]);
+            }
+
+            return sum;
+        }
+
+        private decimal GetFuturesGoTotal()
+        {
+            decimal sum = 0;
+
+            BotTabScreener[] screeners = { _futs1, _futs2, _futs3, _futs4, _futs5, _futs6, _futs7, _futs8, _futs9, _futs10 };
+
+            for (int i = 0; i < screeners.Length; i++)
+            {
+                sum += GetFuturesGo(screeners[i]);
             }
 
             return sum;
@@ -2080,6 +2425,9 @@ namespace OsEngine.Robots.SyntheticBond
                 }
 
                 LogFull("MANUAL CLOSE: " + rowData.BaseName);
+
+                // ручное закрытие перезапускает кул-даун: сразу за руками не входим
+                _lastEntryTime = DateTime.Now;
 
                 TryClosePairMarket(rowData.Base, rowData.Futs);
             }
