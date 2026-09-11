@@ -143,14 +143,22 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         Side _waitSide;
 
+        // привязка входящих событий к ордеру текущей ноги,
+        // чтобы хвосты событий от прошлой ноги и чужая активность не валили тест
+        private int _waitOrderNumberUser;
+        private string _waitOrderMarketNumber;
+        private readonly List<string> _ordersMarketNumbersAll = new List<string>();
+
         private void SendBuyOrder(Security mySec, decimal price)
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = Math.Round(price + mySec.PriceStep * 2, mySec.Decimals); // смещение на 2 тика для коннекторов, использующих цену маркет-ордера
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _waitSide = Side.Buy;
+            _waitOrderNumberUser = newOrder.NumberUser;
+            _waitOrderMarketNumber = null;
 
             Server.ExecuteOrder(newOrder);
 
@@ -240,11 +248,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = Math.Round(price - mySec.PriceStep * 2, mySec.Decimals); // смещение на 2 тика для коннекторов, использующих цену маркет-ордера
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
             _waitSide = Side.Sell;
+            _waitOrderNumberUser = newOrder.NumberUser;
+            _waitOrderMarketNumber = null;
 
             Server.ExecuteOrder(newOrder);
 
@@ -265,7 +275,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if (_ordersActive.Count != 0||
+                if (_ordersActive.Count != 0 ||
                     _ordersDone.Count != 0)
                 {
                     this.SetNewServiceInfo("SellMarket Active order income Check!");
@@ -368,6 +378,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewOrderIncomeEvent(Order order)
         {
+            // пропускаем отклики по чужим ордерам: хвосты от прошлой ноги,
+            // апдейты чужих заявок на аккаунте и активность других роботов
+            if (order.NumberUser != _waitOrderNumberUser)
+            {
+                //SetNewServiceInfo($"Skip order income. Foreign order. NumberUser={order.NumberUser} " +
+                //    $"State={order.State} Side={order.Side} Type={order.TypeOrder} Sec={order.SecurityNameCode}");
+                return;
+            }
+
             if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 18. Order with state NONE");
@@ -377,6 +396,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (OrderIsNormal(order) == false)
             {
                 return;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false)
+            {
+                if (_ordersMarketNumbersAll.Contains(order.NumberMarket) == false)
+                {
+                    _ordersMarketNumbersAll.Add(order.NumberMarket);
+                }
+
+                if (string.IsNullOrEmpty(_waitOrderMarketNumber))
+                {
+                    _waitOrderMarketNumber = order.NumberMarket;
+                }
             }
 
             if (order.State == OrderStateType.Active)
@@ -549,6 +581,30 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMyTradeEvent(MyTrade myTrade)
         {
+            // принимаем трейды только по текущей ноге, чтобы опоздавшие
+            // трейды от прошлой ноги и чужие трейды не давали ложных ошибок
+            if (myTrade.SecurityNameCode != SecurityNameToTrade)
+            {
+                //SetNewServiceInfo($"Skip myTrade. Foreign security. Sec={myTrade.SecurityNameCode} " +
+                //    $"Side={myTrade.Side} Parent={myTrade.NumberOrderParent}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_waitOrderMarketNumber) == false)
+            {
+                if (myTrade.NumberOrderParent != _waitOrderMarketNumber)
+                {
+                    //SetNewServiceInfo($"Skip myTrade. Not current leg order. Parent={myTrade.NumberOrderParent} " +
+                    //    $"Wait={_waitOrderMarketNumber} Side={myTrade.Side}");
+                    return;
+                }
+            }
+            else if (_ordersMarketNumbersAll.Contains(myTrade.NumberOrderParent))
+            {
+                //SetNewServiceInfo($"Skip myTrade. Previous leg order. Parent={myTrade.NumberOrderParent} Side={myTrade.Side}");
+                return;
+            }
+
             if (MyTradeIsNormal(myTrade))
             {
                 _myTrades.Add(myTrade);

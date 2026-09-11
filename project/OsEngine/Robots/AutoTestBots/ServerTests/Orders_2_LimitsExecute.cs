@@ -119,7 +119,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMarketDepthEvent(MarketDepth md)
         {
-            if(md.SecurityNameCode != SecurityNameToTrade)
+            if (md.SecurityNameCode != SecurityNameToTrade)
             {
                 return;
             }
@@ -128,15 +128,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         Side _waitSide;
 
+        // привязка входящих событий к ордеру текущей ноги,
+        // чтобы хвосты событий от прошлой ноги и чужая активность не валили тест
+        private int _waitOrderNumberUser;
+        private string _waitOrderMarketNumber;
+        private readonly List<string> _ordersMarketNumbersAll = new List<string>();
+
         private void SendBuyOrder(Security mySec, decimal price)
         {
             decimal volume = VolumeToTrade;
-            
-            price = Math.Round(price + price * 0.01m, mySec.Decimals); // проскальзывание 1%
+
+            price = Math.Round(price + mySec.PriceStep * 2, mySec.Decimals); // смещение на 2 тика выше лучшего аска
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
 
             _waitSide = Side.Buy;
+            _waitOrderNumberUser = newOrder.NumberUser;
+            _waitOrderMarketNumber = null;
 
             Server.ExecuteOrder(newOrder);
 
@@ -151,7 +159,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return;
                 }
 
-                if(_ordersFail.Count != 0)
+                if (_ordersFail.Count != 0)
                 {
                     this.SetNewError("Error 9. Order FAIL found from server BuyLimit");
                     return;
@@ -229,14 +237,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void SendSellOrder(Security mySec, decimal price)
         {
-                  decimal volume = VolumeToTrade;
+            decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = Math.Round(price - mySec.PriceStep * 2, mySec.Decimals); // смещение на 2 тика ниже лучшего бида
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
 
             _waitSide = Side.Sell;
+            _waitOrderNumberUser = newOrder.NumberUser;
+            _waitOrderMarketNumber = null;
 
             Server.ExecuteOrder(newOrder);
 
@@ -341,7 +351,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             order.SecurityNameCode = sec.Name;
             order.SecurityClassCode = sec.NameClass;
             order.PortfolioNumber = PortfolioName;
-            
+
 
             return order;
         }
@@ -366,6 +376,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewOrderIncomeEvent(Order order)
         {
+            // пропускаем отклики по чужим ордерам: хвосты от прошлой ноги,
+            // дубли по запросу статуса и активность других роботов на аккаунте
+            if (order.NumberUser != _waitOrderNumberUser)
+            {
+                //SetNewServiceInfo($"Skip order income. Foreign order. NumberUser={order.NumberUser} " +
+                //    $"State={order.State} Side={order.Side} Sec={order.SecurityNameCode}");
+                return;
+            }
+
             if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 18. Order with state NONE");
@@ -375,6 +394,19 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (OrderIsNormal(order) == false)
             {
                 return;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false)
+            {
+                if (_ordersMarketNumbersAll.Contains(order.NumberMarket) == false)
+                {
+                    _ordersMarketNumbersAll.Add(order.NumberMarket);
+                }
+
+                if (string.IsNullOrEmpty(_waitOrderMarketNumber))
+                {
+                    _waitOrderMarketNumber = order.NumberMarket;
+                }
             }
 
             if (order.State == OrderStateType.Active)
@@ -427,7 +459,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return false;
             }
 
-            if(order.TypeOrder != OrderPriceType.Limit)
+            if (order.TypeOrder != OrderPriceType.Limit)
             {
                 this.SetNewError("Error 20. Order Type is note LIMIT. Real type: " + order.TypeOrder);
                 return false;
@@ -546,7 +578,31 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMyTradeEvent(MyTrade myTrade)
         {
-            if(MyTradeIsNormal(myTrade))
+            // принимаем трейды только по текущей ноге, чтобы опоздавшие
+            // трейды от прошлой ноги не давали ложных ошибок по стороне
+            if (myTrade.SecurityNameCode != SecurityNameToTrade)
+            {
+                //SetNewServiceInfo($"Skip myTrade. Foreign security. Sec={myTrade.SecurityNameCode} " +
+                //    $"Side={myTrade.Side} Parent={myTrade.NumberOrderParent}");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_waitOrderMarketNumber) == false)
+            {
+                if (myTrade.NumberOrderParent != _waitOrderMarketNumber)
+                {
+                    //SetNewServiceInfo($"Skip myTrade. Not current leg order. Parent={myTrade.NumberOrderParent} " +
+                    //    $"Wait={_waitOrderMarketNumber} Side={myTrade.Side}");
+                    return;
+                }
+            }
+            else if (_ordersMarketNumbersAll.Contains(myTrade.NumberOrderParent))
+            {
+                //SetNewServiceInfo($"Skip myTrade. Previous leg order. Parent={myTrade.NumberOrderParent} Side={myTrade.Side}");
+                return;
+            }
+
+            if (MyTradeIsNormal(myTrade))
             {
                 _myTrades.Add(myTrade);
             }
@@ -612,7 +668,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime now = DateTime.Now;
 
-            if(myTrade.Time.AddDays(-1) > now)
+            if (myTrade.Time.AddDays(-1) > now)
             {
                 this.SetNewError("Error 44. MyTrade. Time is too big. Time: " + myTrade.Time.ToString());
                 return false;

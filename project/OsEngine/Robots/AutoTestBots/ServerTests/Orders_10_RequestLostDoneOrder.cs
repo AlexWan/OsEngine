@@ -121,7 +121,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 выставляем ордер на покупку. Чтобы исполнился
 
-            decimal price = Math.Round(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m , mySecurity.Decimals);
+            decimal price = Math.Round(md.Asks[0].Price.ToDecimal() + mySecurity.PriceStep * 2, mySecurity.Decimals); // смещение на 2 тика выше аска для гарантированного исполнения
             decimal volume = VolumeToTrade;
             Order newOrder = CreateOrder(mySecurity, price, volume, Side.Buy);
             _awaitOrderFirstStep = newOrder;
@@ -188,7 +188,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 this.SetNewError("Error 9. No MyTrade for Done order");
             }
 
-            for(int i = 0;i < _myTradesToOrder.Count;i++)
+            for (int i = 0; i < _myTradesToOrder.Count; i++)
             {
                 SetNewServiceInfo("API send MyTrade. NumOrderParent: " + _myTradesToOrder[i].NumberOrderParent +
                       " Num trade: " + _myTradesToOrder[i].NumberTrade +
@@ -286,7 +286,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 _ordersPending.Add(order);
             }
 
-            if(order.NumberUser != 0 &&
+            if (order.NumberUser != 0 &&
                 _awaitOrderFirstStep.NumberUser == order.NumberUser)
             {
                 _awaitOrderSecondStep = order;
@@ -385,16 +385,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewMyTradeEvent(MyTrade myTrade)
         {
-            if(_awaitOrderSecondStep == null)
+            if (_awaitOrderSecondStep == null)
             {
                 return;
             }
 
-            if(string.IsNullOrEmpty(_awaitOrderSecondStep.NumberMarket) == true)
+            if (string.IsNullOrEmpty(_awaitOrderSecondStep.NumberMarket) == true)
             {
                 return;
             }
-            if(_awaitOrderSecondStep.NumberMarket == myTrade.NumberOrderParent)
+            if (_awaitOrderSecondStep.NumberMarket == myTrade.NumberOrderParent)
             {
                 _myTradesToOrder.Add(myTrade);
                 MyTradeIsNormal(myTrade);
