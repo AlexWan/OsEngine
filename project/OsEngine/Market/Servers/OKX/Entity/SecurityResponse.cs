@@ -5,47 +5,44 @@ namespace OsEngine.Market.Servers.OKX.Entity
 {
     public class SecurityResponse
     {
-        public string code;
-        public List<SecurityResponseItem> data;
+        public string code { get; set; }
+        public List<SecurityResponseItem> data { get; set; }
     }
 
-
-    // https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
     public class SecurityResponseItem
     {
-        public string alias;
-        public string baseCcy;
-        public string category;
-        public string ctMult;
-        public string ctType;
-        public string ctVal;
-        public string ctValCcy;
-        public string expTime;
-        public string instId;
-        public string instType;
-        public string lever;
-        public string listTime;
-        public string lotSz;
-        public string maxIcebergSz;
-        public string maxLmtSz;
-        public string maxMktSz;
-        public string maxStopSz;
-        public string maxTriggerSz;
-        public string maxTwapSz;
-        public string minSz;
-        public string optType;
-        public string quoteCcy;
-        public string settleCcy;
-        public string state;
-        public string stk;
-        public string tickSz;
-        public string uly; // underlying security
+        public string alias { get; set; }
+        public string baseCcy { get; set; }
+        public string category { get; set; }
+        public string ctMult { get; set; }
+        public string ctType { get; set; }
+        public string ctVal { get; set; }
+        public string ctValCcy { get; set; }
+        public string expTime { get; set; }
+        public string instId { get; set; }
+        public string instType { get; set; }
+        public string lever { get; set; }
+        public string listTime { get; set; }
+        public string lotSz { get; set; }
+        public string maxIcebergSz { get; set; }
+        public string maxLmtSz { get; set; }
+        public string maxMktSz { get; set; }
+        public string maxStopSz { get; set; }
+        public string maxTriggerSz { get; set; }
+        public string maxTwapSz { get; set; }
+        public string minSz { get; set; }
+        public string optType { get; set; }
+        public string quoteCcy { get; set; }
+        public string settleCcy { get; set; }
+        public string state { get; set; }
+        public string stk { get; set; }
+        public string tickSz { get; set; }
+        public string uly { get; set; } // underlying security
     }
 
     public class SecurityUnderlyingResponse
     {
-        public string code;
-        public List<List<string>> data;
+        public string code { get; set; }
+        public List<List<string>> data { get; set; }
     }
-
 }

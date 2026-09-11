@@ -5,8 +5,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
 {
     public class CandlesResponse
     {
-        public string code;
-        public string msg;
-        public List<List<string>> data;
+        public string code { get; set; }
+        public string msg { get; set; }
+        public List<List<string>> data { get; set; }
     }
 }

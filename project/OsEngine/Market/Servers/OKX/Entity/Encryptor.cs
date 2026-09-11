@@ -39,16 +39,16 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
         public class AuthObject
         {
-            public string apiKey;
-            public string passphrase;
-            public string timestamp;
-            public string sign;
+            public string apiKey { get; set; }
+            public string passphrase { get; set; }
+            public string timestamp { get; set; }
+            public string sign { get; set; }
         }
 
         public class RequestAuth
         {
-            public string op = "login";
-            public List<AuthObject> args;
+            public string op { get; set; } = "login";
+            public List<AuthObject> args { get; set; }
         }
     }
 }

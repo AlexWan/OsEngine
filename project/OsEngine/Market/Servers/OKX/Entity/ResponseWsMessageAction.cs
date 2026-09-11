@@ -4,40 +4,57 @@ namespace OsEngine.Market.Servers.OKX.Entity
 {
     public class ResponseWsMessageAction<T>
     {
-        public string @event;
-        public string msg;
-        public ResponseWsMessageArg arg;
-        public T data;
+        public string @event { get; set; }
+        public string code { get; set; }
+        public string msg { get; set; }
+        // "snapshot"/"update" for the books channel
+        public string action { get; set; }
+        public ResponseWsMessageArg arg { get; set; }
+        public T data { get; set; }
     }
 
     public class ResponseWsMessageArg
     {
-        public string channel;
-        public string instId;
+        public string channel { get; set; }
+        public string instId { get; set; }
     }
 
+    // first-pass routing header: no data field,
+    // so Newtonsoft skips the payload without building a JToken tree
+    public class ResponseWsMessageHeader
+    {
+        public string @event { get; set; }
+        public string code { get; set; }
+        public string msg { get; set; }
+        public ResponseWsMessageArg arg { get; set; }
+    }
+
+    // order book item: full 5-level books5 rows, or incremental books rows ([price, size, ...]).
+    // seqId/prevSeqId are present only for the books channel
     public class ResponseWsDepthItem
     {
-        public List<List<string>> asks;
-        public List<List<string>> bids;
-        public string ts;
+        public string seqId { get; set; }
+        public string prevSeqId { get; set; }
+        public string ts { get; set; }
+        public List<List<string>> asks { get; set; }
+        public List<List<string>> bids { get; set; }
     }
 
     public class ResponseWsTrade
     {
-        public string instId;
-        public string tradeId;
-        public string px;
-        public string sz;
-        public string side;
-        public string ts;
+        public string instId { get; set; }
+        public string tradeId { get; set; }
+        public string px { get; set; }
+        public string sz { get; set; }
+        public string side { get; set; }
+        public string ts { get; set; }
     }
 
     public class ResponseWebSocketMessageSubscribe
     {
-        public string Event;
-        public string code;
-        public string msg;
+        public string Event { get; set; }
+        public string code { get; set; }
+        public string msg { get; set; }
     }
     public class ResponseWsOrders
     {
@@ -85,7 +102,6 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string quickMgnType { get; set; }
         public string rebate { get; set; }
         public string rebateCcy { get; set; }
-        public string reduceOnly { get; set; }
         public string reqId { get; set; }
         public string side { get; set; }
         public string attachAlgoClOrdId { get; set; }
@@ -103,12 +119,12 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string tpOrdPx { get; set; }
         public string tpTriggerPx { get; set; }
         public string tpTriggerPxType { get; set; }
-        public List<object> attachAlgoOrds { get; set; }
         public string tradeId { get; set; }
         public string tradeQuoteCcy { get; set; }
         public string lastPx { get; set; }
         public string uTime { get; set; }
         public string isTpLimit { get; set; }
+        public List<object> attachAlgoOrds { get; set; }
         public LinkedAlgoOrd linkedAlgoOrd { get; set; }
     }
 
@@ -119,28 +135,28 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
     public class ResponseWsAccount
     {
-        public List<PortfolioDetails> details;
-        public string totalEq;
+        public List<PortfolioDetails> details { get; set; }
+        public string totalEq { get; set; }
     }
 
     public class PortfolioDetails
     {
-        public string availBal;
-        public string ccy;
-        public string frozenBal;
-        public string upl;
-        public string eq;
+        public string availBal { get; set; }
+        public string ccy { get; set; }
+        public string frozenBal { get; set; }
+        public string upl { get; set; }
+        public string eq { get; set; }
     }
 
     public class ResponseMessagePositions
     {
-        public string instType;
-        public string instId;
-        public string posSide;
-        public string availPos;
-        public string pos;
-        public string upl;
-        public string realizedPnl;
+        public string instType { get; set; }
+        public string instId { get; set; }
+        public string posSide { get; set; }
+        public string availPos { get; set; }
+        public string pos { get; set; }
+        public string upl { get; set; }
+        public string realizedPnl { get; set; }
     }
 
     public class ResponseWsGreeks
@@ -188,7 +204,6 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string formulaType { get; set; }
         public string fundingRate { get; set; }
         public string fundingTime { get; set; }
-        public string impactValue { get; set; }
         public string instId { get; set; }
         public string instType { get; set; }
         public string interestRate { get; set; }
