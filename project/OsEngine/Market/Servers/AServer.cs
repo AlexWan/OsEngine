@@ -464,6 +464,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public bool NeedToHideParameters = false;
 
+        /// <summary>
+        /// blocks the display of standard server parameters (proxy etc.) in the settings window,
+        /// while custom server parameters remain visible
+        /// </summary>
+        public bool NeedToHideStandardParameters = false;
+
         public bool CanDoMultipleConnections
         {
             get
@@ -485,6 +491,12 @@ namespace OsEngine.Market.Servers
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         private int _serverStandardParamsCount = 12;
+
+        public int ServerStandardParamsCount
+        {
+            get { return _serverStandardParamsCount; }
+        }
+
         public IServerParameter GetStandardServerParameter(int index)
         {
             if (index < 0 || index >= _serverStandardParamsCount)

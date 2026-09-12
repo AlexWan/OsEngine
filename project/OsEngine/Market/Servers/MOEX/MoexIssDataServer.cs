@@ -21,12 +21,49 @@ namespace OsEngine.Market.Servers.MOEX
         {
             MoexDataServerRealization realization = new MoexDataServerRealization();
             ServerRealization = realization;
-            NeedToHideParameters = true;
+            NeedToHideParameters = false;
+            NeedToHideStandardParameters = true;
+
+            CreateParameterEnum(MoexDataServerRealization.TimeZoneParamName,
+                MoexDataServerRealization.TimeZoneDefault,
+                MoexDataServerRealization.GetTimeZones());
         }
     }
 
     public class MoexDataServerRealization : IServerRealization
     {
+        public const string TimeZoneParamName = "Time zone of candles";
+
+        public static readonly string TimeZoneDefault = "UTC+3 (Moscow, St. Petersburg, Minsk)";
+
+        public static List<string> GetTimeZones()
+        {
+            return new List<string>
+            {
+                "UTC+0 (Accra, Dakar)",
+                TimeZoneDefault
+            };
+        }
+
+        private int GetTimeShiftHours()
+        {
+            for (int i = 0; i < ServerParameters.Count; i++)
+            {
+                if (ServerParameters[i].Name == TimeZoneParamName
+                    && ServerParameters[i] is ServerParameterEnum enumParam)
+                {
+                    if (enumParam.Value == "UTC+0 (Accra, Dakar)")
+                    {
+                        return -3;
+                    }
+
+                    return 0;
+                }
+            }
+
+            return 0;
+        }
+
         #region 1 Constructor, Status, Connection
 
         public MoexDataServerRealization()
@@ -882,6 +919,8 @@ namespace OsEngine.Market.Servers.MOEX
 
             JArray dataArray = (JArray)json["candles"]["data"];
 
+            int timeShift = GetTimeShiftHours();
+
             for (int j = 0; j < dataArray.Count; j++)
             {
                 JArray innerArray = (JArray)dataArray[j];
@@ -892,7 +931,7 @@ namespace OsEngine.Market.Servers.MOEX
                 candle.High = innerArray[2].ToString().ToDecimal();
                 candle.Low = innerArray[3].ToString().ToDecimal();
                 candle.Volume = innerArray[5].ToString().ToDecimal();
-                candle.TimeStart = Convert.ToDateTime(innerArray[6].ToString());
+                candle.TimeStart = Convert.ToDateTime(innerArray[6].ToString()).AddHours(timeShift);
 
                 result.Add(candle);
             }

@@ -938,7 +938,19 @@ namespace OsEngine.Market.Servers
 
             _gridServerParameters.Rows.Clear();
 
-            for (int i = 0; i < param.Count; i++)
+            int visibleParamsCount = param.Count;
+
+            if (_server.NeedToHideStandardParameters == true)
+            {
+                visibleParamsCount = param.Count - _server.ServerStandardParamsCount;
+
+                if (visibleParamsCount < 0)
+                {
+                    visibleParamsCount = 0;
+                }
+            }
+
+            for (int i = 0; i < visibleParamsCount; i++)
             {
                 DataGridViewRow newRow = null;
 
@@ -1311,7 +1323,19 @@ namespace OsEngine.Market.Servers
         {
             List<IServerParameter> param = _server.ServerParameters;
 
-            for (int i = 0; i < param.Count; i++)
+            int visibleParamsCount = param.Count;
+
+            if (_server.NeedToHideStandardParameters == true)
+            {
+                visibleParamsCount = param.Count - _server.ServerStandardParamsCount;
+
+                if (visibleParamsCount < 0)
+                {
+                    visibleParamsCount = 0;
+                }
+            }
+
+            for (int i = 0; i < visibleParamsCount; i++)
             {
                 if (_gridServerParameters.Rows[i].Cells[1].Value == null)
                 {
