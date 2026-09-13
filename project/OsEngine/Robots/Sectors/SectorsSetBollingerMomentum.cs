@@ -260,7 +260,7 @@ namespace OsEngine.Robots.Sectors
         private void CreateSectors()
         {
             CreateSector("Oil&Gas", new string[] { "GAZP", "LKOH", "ROSN", "NVTK", "TATN", "SNGS", "SNGSP", "TATNP", "TRNFP", "BANEP" });
-            CreateSector("Finance", new string[] { "SBER", "SBERP", "VTBR", "MOEX", "BSPB" });
+            CreateSector("Finance", new string[] { "SBER", "SBERP", "VTBR", "T", "MOEX", "BSPB" });
             CreateSector("Metals", new string[] { "PLZL", "GMKN", "ALRS", "MAGN", "CHMF", "NLMK", "MTLR", "SELG", "TRMK" });
             CreateSector("Consumer", new string[] { "MGNT", "SVAV" });
             CreateSector("Power", new string[] { "FEES" });
