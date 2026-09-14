@@ -357,6 +357,19 @@ namespace OsEngine.Robots
                         }
                     }
                 }
+
+                // load custom DLLs into runtime so compiled script can resolve them
+                foreach (string dllPath in customDlls.Distinct())
+                {
+                    try
+                    {
+                        Assembly.LoadFrom(dllPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Could not load custom DLL into runtime {dllPath}. {ex.Message}");
+                    }
+                }
             }
 
             SourceText sourceText;
