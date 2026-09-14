@@ -223,7 +223,7 @@ namespace OsEngine.Market.Servers.OKX
                 UnsubscribeFromAllWebSockets();
                 _subscribedSecurities.Clear();
                 _orderBooks.Clear();
-                _booksSocketBySecurity.Clear();
+                _booksWrapperBySecurity.Clear();
                 DeleteWebSocketConnection();
 
                 if (_httpClient != null)
@@ -237,7 +237,7 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            _fIFOListWebSocketPublicMessage = new ConcurrentQueue<OkxPublicSocketMessage>();
             _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
             _queueMessageMarketDepthSpot = new ConcurrentQueue<string>();
             _queueMessageMarketDepthSwap = new ConcurrentQueue<string>();
@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public event Action DisconnectEvent;
 
-        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+        public event Action ForceCheckOrdersAfterReconnectEvent;
 
         public bool IsCompletelyDeleted { get; set; }
 
@@ -958,6 +958,9 @@ namespace OsEngine.Market.Servers.OKX
                     candle.Volume = candlesResponse.data[j][5].ToDecimal();
                     string VolCcy = candlesResponse.data[j][6];
 
+                    // historical candles from REST are always finished
+                    candle.State = CandleState.Finished;
+
                     candles.Add(candle);
                 }
                 catch (Exception error)
@@ -1046,6 +1049,12 @@ namespace OsEngine.Market.Servers.OKX
                     string url = _baseUrl + $"/api/v5/market/{endpoint}?instId={nameSec}&bar={bar}&limit={limit}&after={after}";
 
                     RestClient client = new RestClient(url);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
                     RestRequest request = new RestRequest(Method.GET);
                     IRestResponse Response = client.Execute(request);
 
@@ -1062,7 +1071,7 @@ namespace OsEngine.Market.Servers.OKX
                     }
                     else
                     {
-                        SendLogMessage($"GetResponseDataCandles - {Response.Content}", LogMessageType.Error);
+                        SendLogMessage($"GetResponseDataCandles - {Response.StatusCode} || {Response.Content}", LogMessageType.Error);
                     }
 
                     // move the window back by limit bars, even if the page came back empty or short
@@ -1216,6 +1225,12 @@ namespace OsEngine.Market.Servers.OKX
                 string url = _baseUrl + $"/api/v5/market/history-trades?instId={securityName}&type=2&after={timeEnd}&limit=100";
 
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse response = client.Execute(request);
 
@@ -1281,6 +1296,11 @@ namespace OsEngine.Market.Servers.OKX
 
         private List<OkxSocketWrapper> _webSocketPublic = new List<OkxSocketWrapper>();
 
+        // all accesses to the public sockets pool go through this locker:
+        // the check-alive thread iterates it, the engine threads add sockets,
+        // Dispose clears it — concurrent access must not tear the list
+        private string _webSocketPublicLocker = "_webSocketPublicLocker";
+
         // seamless reconnect of public sockets: a dead socket is reconnected and resubscribed
         // on its own instead of restarting the whole connector (TInvest pattern)
         private bool _socketReconnectAllowed = true;
@@ -1293,12 +1313,16 @@ namespace OsEngine.Market.Servers.OKX
             {
                 if (_fIFOListWebSocketPublicMessage == null)
                 {
-                    _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                    _fIFOListWebSocketPublicMessage = new ConcurrentQueue<OkxPublicSocketMessage>();
                 }
 
                 OkxSocketWrapper firstWrapper = new OkxSocketWrapper();
                 firstWrapper.Socket = CreateNewPublicSocket();
-                _webSocketPublic.Add(firstWrapper);
+
+                lock (_webSocketPublicLocker)
+                {
+                    _webSocketPublic.Add(firstWrapper);
+                }
             }
             catch (Exception ex)
             {
@@ -1381,27 +1405,30 @@ namespace OsEngine.Market.Servers.OKX
 
         private void DeleteWebSocketConnection()
         {
-            if (_webSocketPublic != null)
+            List<OkxSocketWrapper> wrappers;
+
+            lock (_webSocketPublicLocker)
             {
+                wrappers = new List<OkxSocketWrapper>(_webSocketPublic);
+                _webSocketPublic.Clear();
+            }
+
+            for (int i = 0; i < wrappers.Count; i++)
+            {
+                WebSocket webSocketPublic = wrappers[i].Socket;
+
+                if (webSocketPublic == null)
+                {
+                    continue;
+                }
+
                 try
                 {
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    DetachPublicSocketEvents(webSocketPublic);
+
+                    if (webSocketPublic.ReadyState == WebSocketState.Open)
                     {
-                        WebSocket webSocketPublic = _webSocketPublic[i].Socket;
-
-                        if (webSocketPublic == null)
-                        {
-                            continue;
-                        }
-
-                        DetachPublicSocketEvents(webSocketPublic);
-
-                        if (webSocketPublic.ReadyState == WebSocketState.Open)
-                        {
-                            webSocketPublic.CloseAsync();
-                        }
-
-                        _webSocketPublic[i].Socket = null;
+                        webSocketPublic.CloseAsync();
                     }
                 }
                 catch (Exception ex)
@@ -1409,18 +1436,14 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 }
 
-                _webSocketPublic.Clear();
-
+                wrappers[i].Socket = null;
             }
 
             if (_webSocketPrivate != null)
             {
                 try
                 {
-                    _webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
-                    _webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
-                    _webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
-                    _webSocketPrivate.OnError -= WebSocketPrivate_Error;
+                    DetachPrivateSocketEvents(_webSocketPrivate);
                     _webSocketPrivate.CloseAsync();
                 }
                 catch (Exception ex)
@@ -1440,6 +1463,13 @@ namespace OsEngine.Market.Servers.OKX
             {
                 lock (_socketActivateLocker)
                 {
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        // seamless reconnects happen while connected:
+                        // activation checks are for the initial startup only
+                        return;
+                    }
+
                     if (_webSocketPrivate == null
                        || _webSocketPrivate?.ReadyState != WebSocketState.Open)
                     {
@@ -1447,13 +1477,18 @@ namespace OsEngine.Market.Servers.OKX
                         return;
                     }
 
-                    if (_webSocketPublic.Count == 0)
-                    {
-                        Disconnect();
-                        return;
-                    }
+                    WebSocket webSocketPublic;
 
-                    WebSocket webSocketPublic = _webSocketPublic[0].Socket;
+                    lock (_webSocketPublicLocker)
+                    {
+                        if (_webSocketPublic.Count == 0)
+                        {
+                            Disconnect();
+                            return;
+                        }
+
+                        webSocketPublic = _webSocketPublic[0].Socket;
+                    }
 
                     if (webSocketPublic == null
                         || webSocketPublic?.ReadyState != WebSocketState.Open)
@@ -1609,11 +1644,14 @@ namespace OsEngine.Market.Servers.OKX
             {
                 // instrument parameter updates (lotSz/minSz/tickSz/ctVal changes) arrive through the
                 // instruments channel; subscribe it once per connection on the first public socket
-                if (sender is WebSocket openedSocket
-                    && _webSocketPublic.Count > 0
-                    && ReferenceEquals(openedSocket, _webSocketPublic[0].Socket))
+                lock (_webSocketPublicLocker)
                 {
-                    SubscribeInstrumentsChannel(openedSocket);
+                    if (sender is WebSocket openedSocket
+                        && _webSocketPublic.Count > 0
+                        && ReferenceEquals(openedSocket, _webSocketPublic[0].Socket))
+                    {
+                        SubscribeInstrumentsChannel(openedSocket);
+                    }
                 }
 
                 if (ServerStatus == ServerConnectStatus.Disconnect)
@@ -1666,7 +1704,8 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                OkxSocketWrapper wrapper = FindPublicSocketWrapper(sender as WebSocket);
+                WebSocket deadSocket = sender as WebSocket;
+                OkxSocketWrapper wrapper = FindPublicSocketWrapper(deadSocket);
 
                 if (wrapper == null)
                 {
@@ -1676,9 +1715,14 @@ namespace OsEngine.Market.Servers.OKX
 
                 // only the failed socket is reconnected (see CheckAliveWebSocket), the connector stays connected:
                 // no candle reload, the other sockets keep streaming
-                SendLogMessage($"OKX WebSocket Public connection closed (code {e.Code}). The socket will be reconnected.", LogMessageType.System);
+                SendLogMessage($"OKX WebSocket Public connection closed (code {e.Code} {e.Reason}). The socket will be reconnected.", LogMessageType.System);
 
                 wrapper.Socket = null;
+
+                // release the dead socket right away: events are detached and
+                // the handle does not linger until the GC
+                DetachPublicSocketEvents(deadSocket);
+                DisposeSocketAsync(deadSocket);
             }
             catch (Exception ex)
             {
@@ -1708,7 +1752,7 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                _fIFOListWebSocketPublicMessage.Enqueue(e.Data);
+                _fIFOListWebSocketPublicMessage.Enqueue(new OkxPublicSocketMessage(sender as WebSocket, e.Data));
                 _eventPublicMessage.Set();
             }
             catch (Exception error)
@@ -1716,6 +1760,13 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        // the remote-close error is the only place where the real reason of a public socket
+        // death is visible, but mass failures would flood the log: the first occurrence is
+        // logged immediately, repeats are collapsed into a counter once per 5 minutes
+        private readonly object _publicErrorLogLocker = new object();
+        private DateTime _lastPublicRemoteCloseLogTime = DateTime.MinValue;
+        private int _suppressedPublicRemoteCloseCount;
 
         private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
@@ -1732,7 +1783,25 @@ namespace OsEngine.Market.Servers.OKX
 
                     if (message.Contains("The remote party closed the WebSocket connection"))
                     {
-                        // ignore
+                        lock (_publicErrorLogLocker)
+                        {
+                            if (_lastPublicRemoteCloseLogTime == DateTime.MinValue
+                                || _lastPublicRemoteCloseLogTime.AddMinutes(5) < DateTime.Now)
+                            {
+                                string suppressed = _suppressedPublicRemoteCloseCount > 0
+                                    ? $" (suppressed {_suppressedPublicRemoteCloseCount} similar messages in the last 5 minutes)"
+                                    : "";
+
+                                SendLogMessage("[WS Public] " + message + suppressed, LogMessageType.Error);
+
+                                _lastPublicRemoteCloseLogTime = DateTime.Now;
+                                _suppressedPublicRemoteCloseCount = 0;
+                            }
+                            else
+                            {
+                                _suppressedPublicRemoteCloseCount++;
+                            }
+                        }
                     }
                     else
                     {
@@ -1764,16 +1833,29 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect
+                    || _socketReconnectAllowed == false)
                 {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-                    message += $"Server: {e.Code} {e.Reason}";
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    return;
                 }
+
+                WebSocket deadSocket = sender as WebSocket;
+
+                if (deadSocket == null
+                    || ReferenceEquals(deadSocket, _webSocketPrivate) == false)
+                {
+                    // a stale instance: the current private socket is alive, nothing to do
+                    return;
+                }
+
+                // the private socket gets the same seamless reconnect as the public ones
+                // (TInvest pattern): no full connector restart, no candle reload.
+                // The check-alive thread recreates it
+                SendLogMessage($"OKX WebSocket Private connection closed (code {e.Code} {e.Reason}). The socket will be reconnected.", LogMessageType.System);
+
+                _webSocketPrivate = null;
+                DetachPrivateSocketEvents(deadSocket);
+                DisposeSocketAsync(deadSocket);
             }
             catch (Exception ex)
             {
@@ -1804,6 +1886,13 @@ namespace OsEngine.Market.Servers.OKX
                     && e.Data.Contains("\"code\":\"0\""))
                 {
                     SubscribePrivate();
+
+                    // after a private reconnect the hub re-requests the active orders:
+                    // order and trade events were not streamed while the socket was down
+                    if (ForceCheckOrdersAfterReconnectEvent != null)
+                    {
+                        ForceCheckOrdersAfterReconnectEvent();
+                    }
                 }
 
                 if (_fIFOListWebSocketPrivateMessage == null)
@@ -1871,9 +1960,16 @@ namespace OsEngine.Market.Servers.OKX
                         continue;
                     }
 
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    List<OkxSocketWrapper> wrappers;
+
+                    lock (_webSocketPublicLocker)
                     {
-                        OkxSocketWrapper wrapper = _webSocketPublic[i];
+                        wrappers = new List<OkxSocketWrapper>(_webSocketPublic);
+                    }
+
+                    for (int i = 0; i < wrappers.Count; i++)
+                    {
+                        OkxSocketWrapper wrapper = wrappers[i];
 
                         if (wrapper?.Socket != null
                             && wrapper.Socket.ReadyState == WebSocketState.Open)
@@ -1897,7 +1993,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
                     else
                     {
-                        Disconnect();
+                        // the private socket is recreated seamlessly, like the public ones:
+                        // no full connector restart. Full restart only after 3 failed attempts
+                        ReconnectPrivateSocket();
                     }
                 }
                 catch (Exception ex)
@@ -1915,17 +2013,21 @@ namespace OsEngine.Market.Servers.OKX
                 return null;
             }
 
-            for (int i = 0; i < _webSocketPublic.Count; i++)
+            lock (_webSocketPublicLocker)
             {
-                if (ReferenceEquals(_webSocketPublic[i].Socket, socket))
+                for (int i = 0; i < _webSocketPublic.Count; i++)
                 {
-                    return _webSocketPublic[i];
+                    if (ReferenceEquals(_webSocketPublic[i].Socket, socket))
+                    {
+                        return _webSocketPublic[i];
+                    }
                 }
             }
 
             return null;
         }
 
+        // only the check-alive thread recreates sockets (single writer, TInvest pattern)
         private void ReconnectPublicSocket(OkxSocketWrapper wrapper)
         {
             try
@@ -1947,7 +2049,15 @@ namespace OsEngine.Market.Servers.OKX
                 wrapper.LastReconnectTime = DateTime.Now;
                 wrapper.ReconnectAttempts++;
 
-                SendLogMessage($"OKX WebSocket Public reconnect attempt {wrapper.ReconnectAttempts}/3", LogMessageType.System);
+                int poolSize;
+
+                lock (_webSocketPublicLocker)
+                {
+                    poolSize = _webSocketPublic.Count;
+                }
+
+                SendLogMessage($"OKX WebSocket Public reconnect attempt {wrapper.ReconnectAttempts}/3. " +
+                    $"Pool: {poolSize} sockets. TCP connections to OKX on this IP (all apps): {GetActiveOkxConnectionCount()}", LogMessageType.System);
 
                 // pause between sockets: mass failures reconnect one by one,
                 // OKX allows no more than 3 new connections per second per IP
@@ -1959,8 +2069,6 @@ namespace OsEngine.Market.Servers.OKX
                 // the Opened hook (instruments channel on the first socket) and the Closed lookup must see the final state
                 WebSocket newSocket = CreateNewPublicSocket();
                 wrapper.Socket = newSocket;
-
-                RebindBooksSockets(oldSocket, newSocket);
 
                 DateTime timeEnd = DateTime.Now.AddSeconds(10);
                 while (newSocket.ReadyState != WebSocketState.Open)
@@ -1975,6 +2083,20 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (newSocket.ReadyState != WebSocketState.Open)
                 {
+                    // both sockets are dropped right away: abandoned half-open connections
+                    // still occupy slots in the OKX per-IP connection budget and
+                    // cause the "sockets die one by one in a circle" churn
+                    DetachPublicSocketEvents(newSocket);
+                    DisposeSocketAsync(newSocket);
+
+                    if (oldSocket != null)
+                    {
+                        DetachPublicSocketEvents(oldSocket);
+                        DisposeSocketAsync(oldSocket);
+                    }
+
+                    wrapper.Socket = null;
+
                     if (wrapper.ReconnectAttempts >= 3)
                     {
                         SendLogMessage("OKX WebSocket Public reconnect failed after maximum attempts. Restarting the connector.", LogMessageType.Error);
@@ -1986,11 +2108,7 @@ namespace OsEngine.Market.Servers.OKX
                 if (oldSocket != null)
                 {
                     DetachPublicSocketEvents(oldSocket);
-
-                    if (oldSocket.ReadyState == WebSocketState.Open)
-                    {
-                        oldSocket.CloseAsync();
-                    }
+                    DisposeSocketAsync(oldSocket);
                 }
 
                 // one batched frame with everything this socket was subscribed to:
@@ -2020,19 +2138,92 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void RebindBooksSockets(WebSocket oldSocket, WebSocket newSocket)
-        {
-            if (oldSocket == null)
-            {
-                return;
-            }
+        private DateTime _lastPrivateReconnectTime = DateTime.MinValue;
 
-            foreach (var pair in _booksSocketBySecurity)
+        private int _privateReconnectAttempts;
+
+        // the private socket is recreated by the check-alive thread only (single writer,
+        // TInvest pattern). Login and the private subscriptions go through the regular
+        // Opened -> auth -> login-response -> SubscribePrivate path
+        private void ReconnectPrivateSocket()
+        {
+            try
             {
-                if (ReferenceEquals(pair.Value, oldSocket))
+                if (ServerStatus == ServerConnectStatus.Disconnect
+                    || _socketReconnectAllowed == false)
                 {
-                    _booksSocketBySecurity[pair.Key] = newSocket;
+                    return;
                 }
+
+                if (_webSocketPrivate != null
+                    && _webSocketPrivate.ReadyState == WebSocketState.Open)
+                {
+                    return;
+                }
+
+                if (_lastPrivateReconnectTime != DateTime.MinValue
+                    && _lastPrivateReconnectTime.AddSeconds(30) > DateTime.Now)
+                {
+                    // throttled: the private socket is not reconnected more often than once in 30 seconds
+                    return;
+                }
+
+                _lastPrivateReconnectTime = DateTime.Now;
+                _privateReconnectAttempts++;
+
+                SendLogMessage($"OKX WebSocket Private reconnect attempt {_privateReconnectAttempts}/3.", LogMessageType.System);
+
+                // same pause as the public sockets: OKX allows no more than 3 new connections per second per IP
+                Thread.Sleep(500);
+
+                WebSocket oldSocket = _webSocketPrivate;
+
+                if (oldSocket != null)
+                {
+                    DetachPrivateSocketEvents(oldSocket);
+                    DisposeSocketAsync(oldSocket);
+                    _webSocketPrivate = null;
+                }
+
+                CreatePrivateWebSocketConnect();
+
+                WebSocket newSocket = _webSocketPrivate;
+
+                if (newSocket == null)
+                {
+                    return;
+                }
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    DetachPrivateSocketEvents(newSocket);
+                    DisposeSocketAsync(newSocket);
+                    _webSocketPrivate = null;
+
+                    if (_privateReconnectAttempts >= 3)
+                    {
+                        SendLogMessage("OKX WebSocket Private reconnect failed after maximum attempts. Restarting the connector.", LogMessageType.Error);
+                        Disconnect();
+                    }
+                    return;
+                }
+
+                _privateReconnectAttempts = 0;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2042,6 +2233,65 @@ namespace OsEngine.Market.Servers.OKX
             webSocketPublic.OnClose -= WebSocketPublic_Closed;
             webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
             webSocketPublic.OnError -= WebSocketPublic_Error;
+        }
+
+        private void DetachPrivateSocketEvents(WebSocket webSocketPrivate)
+        {
+            webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
+            webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
+            webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
+            webSocketPrivate.OnError -= WebSocketPrivate_Error;
+        }
+
+        // a dropped socket is disposed in the background: on a half-dead connection Close() inside
+        // Dispose waits for the receive loop and close handshake timeouts (up to ~10 s),
+        // the CheckAliveWebSocket thread must stay unblocked
+        private void DisposeSocketAsync(WebSocket socket)
+        {
+            if (socket == null)
+            {
+                return;
+            }
+
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    socket.Dispose();
+                }
+                catch
+                {
+                    // ignored: the socket is being dropped anyway
+                }
+            });
+        }
+
+        // diagnostics helper: counts TCP connections to the OKX websocket port on this IP.
+        // Includes REST keep-alive connections, other OsEngine instances and other apps,
+        // so it is an upper estimate of the per-IP connection budget usage, not an exact number
+        private int GetActiveOkxConnectionCount()
+        {
+            try
+            {
+                System.Net.NetworkInformation.TcpConnectionInformation[] connections =
+                    System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections();
+
+                int count = 0;
+
+                for (int i = 0; i < connections.Length; i++)
+                {
+                    if (connections[i].RemoteEndPoint.Port == 8443)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+            catch
+            {
+                return -1;
+            }
         }
 
         #endregion
@@ -2060,9 +2310,10 @@ namespace OsEngine.Market.Servers.OKX
         // incremental books (400 levels) state: full book + seqId chain per security
         private ConcurrentDictionary<string, OrderBookKeeper> _orderBooks = new ConcurrentDictionary<string, OrderBookKeeper>();
 
-        // the public socket carrying the books subscription of a security:
-        // needed to resubscribe the instrument on its own connection after a seqId gap
-        private ConcurrentDictionary<string, WebSocket> _booksSocketBySecurity = new ConcurrentDictionary<string, WebSocket>();
+        // the public socket wrapper carrying the books subscription of a security:
+        // the mapping points to the wrapper (not to the socket instance), so it survives
+        // seamless socket replacements and ResubscribeBooks always sees the live socket
+        private ConcurrentDictionary<string, OkxSocketWrapper> _booksWrapperBySecurity = new ConcurrentDictionary<string, OkxSocketWrapper>();
 
         public void Subscribe(Security security)
         {
@@ -2094,96 +2345,121 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                if (_webSocketPublic.Count == 0)
+                OkxSocketWrapper wrapper;
+                bool needNewSocket;
+
+                lock (_webSocketPublicLocker)
                 {
-                    return;
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        return;
+                    }
+
+                    wrapper = _webSocketPublic[_webSocketPublic.Count - 1];
+                    WebSocket lastSocket = wrapper.Socket;
+
+                    needNewSocket = lastSocket != null
+                        && lastSocket.ReadyState == WebSocketState.Open
+                        && _subscribedSecurities.Count != 0
+                        && _subscribedSecurities.Count % 100 == 0;
                 }
 
-                OkxSocketWrapper wrapper = _webSocketPublic[_webSocketPublic.Count - 1];
-                WebSocket webSocketPublic = wrapper.Socket;
-
-                if (webSocketPublic != null
-                    && webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 50 == 0)
+                if (needNewSocket)
                 {
-                    // creating a new socket
+                    // creating a new socket: one socket per 100 securities.
+                    // The documented public limit is 3 new connections per second per IP.
+                    // Creation and the open wait stay outside the locker:
+                    // up to 10 seconds of waiting must not stall the check-alive thread
                     OkxSocketWrapper newWrapper = new OkxSocketWrapper();
                     newWrapper.Socket = CreateNewPublicSocket();
 
-                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
-                    while (newWrapper.Socket.ReadyState != WebSocketState.Open)
+                    if (newWrapper.Socket != null)
                     {
-                        Thread.Sleep(1000);
-
-                        if (timeEnd < DateTime.Now)
+                        DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                        while (newWrapper.Socket.ReadyState != WebSocketState.Open)
                         {
-                            break;
-                        }
-                    }
+                            Thread.Sleep(1000);
 
-                    if (newWrapper.Socket.ReadyState == WebSocketState.Open)
-                    {
-                        _webSocketPublic.Add(newWrapper);
-                        wrapper = newWrapper;
-                        webSocketPublic = newWrapper.Socket;
+                            if (timeEnd < DateTime.Now)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (newWrapper.Socket.ReadyState == WebSocketState.Open)
+                        {
+                            lock (_webSocketPublicLocker)
+                            {
+                                _webSocketPublic.Add(newWrapper);
+                            }
+
+                            wrapper = newWrapper;
+                        }
+                        else
+                        {
+                            // not added to _webSocketPublic, dropped right away: an abandoned half-open
+                            // connection still occupies a slot in the OKX per-IP connection budget
+                            DetachPublicSocketEvents(newWrapper.Socket);
+                            DisposeSocketAsync(newWrapper.Socket);
+                            newWrapper.Socket = null;
+                        }
                     }
                 }
 
-                if (webSocketPublic != null)
+                // the args are recorded on the wrapper even when its socket is not open:
+                // SendSubscribeFrame stores them and a seamless reconnect restores everything
+                // it holds. A dead last socket must not silently swallow subscribes
+                List<SubscribeArgs> subscribeArgs = new List<SubscribeArgs>();
+
+                subscribeArgs.Add(new SubscribeArgs() { channel = _marketDepthChannel, instId = security.Name });
+
+                if (_useOptions && security.SecurityType == SecurityType.Option)
                 {
-                    List<SubscribeArgs> subscribeArgs = new List<SubscribeArgs>();
+                    // OKX pushes option ticks only through the separate option-trades channel, instType is required there
+                    subscribeArgs.Add(new SubscribeArgs() { channel = "option-trades", instType = "OPTION", instId = security.Name });
+                }
+                else
+                {
+                    subscribeArgs.Add(new SubscribeArgs() { channel = "trades", instId = security.Name });
+                }
 
-                    subscribeArgs.Add(new SubscribeArgs() { channel = _marketDepthChannel, instId = security.Name });
+                if (_extendedMarketData)
+                {
+                    subscribeArgs.Add(new SubscribeArgs() { channel = "tickers", instId = security.Name });
 
-                    if (_useOptions && security.SecurityType == SecurityType.Option)
+                    if (security.Name.Contains("SWAP"))
                     {
-                        // OKX pushes option ticks only through the separate option-trades channel, instType is required there
-                        subscribeArgs.Add(new SubscribeArgs() { channel = "option-trades", instType = "OPTION", instId = security.Name });
+                        subscribeArgs.Add(new SubscribeArgs() { channel = "open-interest", instId = security.Name });
+                        subscribeArgs.Add(new SubscribeArgs() { channel = "funding-rate", instId = security.Name });
                     }
-                    else
+                }
+
+                // the frame goes through the wrapper: the args are remembered and restored
+                // in one batch if this socket is ever reconnected seamlessly
+                List<Dictionary<string, string>> frameArgs = new List<Dictionary<string, string>>();
+
+                for (int i = 0; i < subscribeArgs.Count; i++)
+                {
+                    Dictionary<string, string> arg = new Dictionary<string, string>();
+                    arg.Add("channel", subscribeArgs[i].channel);
+                    arg.Add("instId", subscribeArgs[i].instId);
+
+                    if (string.IsNullOrEmpty(subscribeArgs[i].instType) == false)
                     {
-                        subscribeArgs.Add(new SubscribeArgs() { channel = "trades", instId = security.Name });
-                    }
-
-                    if (_extendedMarketData)
-                    {
-                        subscribeArgs.Add(new SubscribeArgs() { channel = "tickers", instId = security.Name });
-
-                        if (security.Name.Contains("SWAP"))
-                        {
-                            subscribeArgs.Add(new SubscribeArgs() { channel = "open-interest", instId = security.Name });
-                            subscribeArgs.Add(new SubscribeArgs() { channel = "funding-rate", instId = security.Name });
-                        }
-                    }
-
-                    // the frame goes through the wrapper: the args are remembered and restored
-                    // in one batch if this socket is ever reconnected seamlessly
-                    List<Dictionary<string, string>> frameArgs = new List<Dictionary<string, string>>();
-
-                    for (int i = 0; i < subscribeArgs.Count; i++)
-                    {
-                        Dictionary<string, string> arg = new Dictionary<string, string>();
-                        arg.Add("channel", subscribeArgs[i].channel);
-                        arg.Add("instId", subscribeArgs[i].instId);
-
-                        if (string.IsNullOrEmpty(subscribeArgs[i].instType) == false)
-                        {
-                            arg.Add("instType", subscribeArgs[i].instType);
-                        }
-
-                        frameArgs.Add(arg);
+                        arg.Add("instType", subscribeArgs[i].instType);
                     }
 
-                    SendSubscribeFrame(wrapper, frameArgs);
+                    frameArgs.Add(arg);
+                }
 
-                    _booksSocketBySecurity[securityName] = webSocketPublic;
+                SendSubscribeFrame(wrapper, frameArgs);
 
-                    if (_extendedMarketData
-                        && security.Name.Contains("SWAP"))
-                    {
-                        GetFundingHistory(security.Name);
-                    }
+                _booksWrapperBySecurity[securityName] = wrapper;
+
+                if (_extendedMarketData
+                    && security.Name.Contains("SWAP"))
+                {
+                    GetFundingHistory(security.Name);
                 }
 
                 if (_useOptions && security.SecurityType == SecurityType.Option)
@@ -2228,6 +2504,12 @@ namespace OsEngine.Market.Servers.OKX
                 string url = _baseUrl + $"/api/v5/public/funding-rate-history?instId={securityName}";
 
                 RestClient client = new RestClient(url);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse response = client.Execute(request);
 
@@ -2349,91 +2631,57 @@ namespace OsEngine.Market.Servers.OKX
                 // deliberate teardown: Closed events of the closing sockets must not trigger reconnects
                 _socketReconnectAllowed = false;
 
-                if (_webSocketPublic != null
-                    && _webSocketPublic.Count != 0)
+                List<OkxSocketWrapper> wrappers;
+
+                lock (_webSocketPublicLocker)
                 {
-                    // channels from all securities are batched into one unsubscribe frame per socket:
-                    // OKX limits subscribe/unsubscribe/login requests to 480 per connection per hour
-                    List<Dictionary<string, string>> unsubscribeArgs = new List<Dictionary<string, string>>();
+                    wrappers = new List<OkxSocketWrapper>(_webSocketPublic);
+                }
 
-                    if (_subscribedSecurities != null)
+                for (int i = 0; i < wrappers.Count; i++)
+                {
+                    WebSocket webSocketPublic = wrappers[i].Socket;
+
+                    try
                     {
-                        foreach (var item in _subscribedSecurities)
+                        if (webSocketPublic == null
+                            || webSocketPublic.ReadyState != WebSocketState.Open)
                         {
-                            string name = item.Key;
-
-                            // "XXX-OPTION" keys are option families, not instruments — nothing to unsubscribe there
-                            if (name.EndsWith("-OPTION"))
-                            {
-                                continue;
-                            }
-
-                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", _marketDepthChannel }, { "instId", name } });
-
-                            if (item.Value)
-                            {
-                                // option: ticks were subscribed through the option-trades channel
-                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "option-trades" }, { "instType", "OPTION" }, { "instId", name } });
-                            }
-                            else
-                            {
-                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "trades" }, { "instId", name } });
-                            }
-
-                            if (_extendedMarketData)
-                            {
-                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "tickers" }, { "instId", name } });
-
-                                if (name.Contains("SWAP"))
-                                {
-                                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "open-interest" }, { "instId", name } });
-                                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "funding-rate" }, { "instId", name } });
-                                }
-                            }
-
-                            if (item.Value)
-                            {
-                                //option
-                                unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "mark-price" }, { "instId", name } });
-                            }
+                            continue;
                         }
+
+                        // per-socket unsubscribe: only the channels this connection actually holds,
+                        // one frame per socket (OKX limits subscribe/unsubscribe/login to 480 per connection per hour)
+                        List<Dictionary<string, string>> unsubscribeArgs;
+
+                        lock (wrappers[i].Subscriptions)
+                        {
+                            unsubscribeArgs = new List<Dictionary<string, string>>(wrappers[i].Subscriptions);
+                        }
+
+                        if (i == 0)
+                        {
+                            // the instruments channel lives on the first socket only
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "SPOT" } });
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "SWAP" } });
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "FUTURES" } });
+                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "OPTION" } });
+                        }
+
+                        if (unsubscribeArgs.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        Dictionary<string, object> unsubscribeRequest = new Dictionary<string, object>();
+                        unsubscribeRequest.Add("op", "unsubscribe");
+                        unsubscribeRequest.Add("args", unsubscribeArgs);
+
+                        webSocketPublic.SendAsync(JsonConvert.SerializeObject(unsubscribeRequest));
                     }
-
-                    if (_baseOptionSerurities != null)
+                    catch (Exception ex)
                     {
-                        foreach (string name in _baseOptionSerurities)
-                        {
-                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "opt-summary" }, { "instFamily", name } });
-                            unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "mark-price" }, { "instId", name + "-SWAP" } });
-                        }
-                    }
-
-                    // the instruments channel is subscribed per instrument type, not per security
-                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "SPOT" } });
-                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "SWAP" } });
-                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "FUTURES" } });
-                    unsubscribeArgs.Add(new Dictionary<string, string>() { { "channel", "instruments" }, { "instType", "OPTION" } });
-
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
-                    {
-                        WebSocket webSocketPublic = _webSocketPublic[i].Socket;
-
-                        try
-                        {
-                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open
-                                && unsubscribeArgs.Count != 0)
-                            {
-                                Dictionary<string, object> unsubscribeRequest = new Dictionary<string, object>();
-                                unsubscribeRequest.Add("op", "unsubscribe");
-                                unsubscribeRequest.Add("args", unsubscribeArgs);
-
-                                webSocketPublic.SendAsync(JsonConvert.SerializeObject(unsubscribeRequest));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                        }
+                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                     }
                 }
             }
@@ -2480,7 +2728,7 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 10 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> _fIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<OkxPublicSocketMessage> _fIFOListWebSocketPublicMessage = new ConcurrentQueue<OkxPublicSocketMessage>();
 
         private ConcurrentQueue<string> _fIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
@@ -2530,14 +2778,17 @@ namespace OsEngine.Market.Servers.OKX
                     }
                     else
                     {
-                        string message = null;
+                        OkxPublicSocketMessage socketMessage = null;
 
-                        _fIFOListWebSocketPublicMessage.TryDequeue(out message);
+                        _fIFOListWebSocketPublicMessage.TryDequeue(out socketMessage);
 
-                        if (message == null)
+                        if (socketMessage == null
+                            || string.IsNullOrEmpty(socketMessage.Message))
                         {
                             continue;
                         }
+
+                        string message = socketMessage.Message;
 
                         ResponseWsMessageHeader action = JsonConvert.DeserializeObject<ResponseWsMessageHeader>(message);
 
@@ -2652,7 +2903,11 @@ namespace OsEngine.Market.Servers.OKX
                         }
                         else
                         {
-                            if (action.@event != null && action.@event.Equals("error"))
+                            if (action.@event != null && action.@event.Equals("notice"))
+                            {
+                                HandlePublicSocketNotice(socketMessage.Socket, action.code, action.msg);
+                            }
+                            else if (action.@event != null && action.@event.Equals("error"))
                             {
                                 if (action.code == "60014")
                                 {
@@ -2672,6 +2927,36 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
+            }
+        }
+
+        // OKX asks to reconnect the connection before it is closed (code 64008, service upgrade):
+        // the socket is closed right away; the check-alive thread recreates it
+        // and restores the subscriptions (single writer, TInvest pattern)
+        private void HandlePublicSocketNotice(WebSocket socket, string code, string msg)
+        {
+            try
+            {
+                SendLogMessage($"[WS Public] OKX notice: {code} {msg}", LogMessageType.System);
+
+                if (code != "64008")
+                {
+                    return;
+                }
+
+                OkxSocketWrapper wrapper = FindPublicSocketWrapper(socket);
+
+                if (wrapper == null
+                    || wrapper.Socket == null)
+                {
+                    return;
+                }
+
+                wrapper.Socket.CloseAsync();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2725,7 +3010,13 @@ namespace OsEngine.Market.Servers.OKX
                         }
                         else
                         {
-                            if (action.@event != null && action.@event.Equals("error"))
+                            if (action.@event != null && action.@event.Equals("notice"))
+                            {
+                                // e.g. code 64008: the connection will soon be closed for a service upgrade.
+                                // logged only: the private socket lifecycle stays as is
+                                SendLogMessage("[WS Private] OKX notice: " + action.code + " " + action.msg, LogMessageType.System);
+                            }
+                            else if (action.@event != null && action.@event.Equals("error"))
                             {
                                 if (action.code == "60014")
                                 {
@@ -3192,7 +3483,7 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                if (responseDepth.data[0].asks.Count == 0 && responseDepth.data[0].bids.Count == 0)
+                if (responseDepth.data[0].asks.Count == 0 || responseDepth.data[0].bids.Count == 0)
                 {
                     return;
                 }
@@ -3341,9 +3632,16 @@ namespace OsEngine.Market.Servers.OKX
 
         private void ResubscribeBooks(string securityName)
         {
-            WebSocket socket;
-            if (!_booksSocketBySecurity.TryGetValue(securityName, out socket)
-                || socket == null
+            WebSocket socket = null;
+            OkxSocketWrapper wrapper;
+
+            if (_booksWrapperBySecurity.TryGetValue(securityName, out wrapper)
+                && wrapper != null)
+            {
+                socket = wrapper.Socket;
+            }
+
+            if (socket == null
                 || socket.ReadyState != WebSocketState.Open)
             {
                 return;
@@ -3565,7 +3863,9 @@ namespace OsEngine.Market.Servers.OKX
             }
             catch
             {
-                // clOrdId can be empty or non-numeric for orders placed outside the terminal
+                // orders placed outside the terminal (empty or non-numeric clOrdId)
+                // are skipped: NumberUser = 0 would collide with the engine numbering
+                return null;
             }
 
             newOrder.NumberMarket = item.ordId.ToString();
@@ -4294,7 +4594,16 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (myOrder == null)
                 {
-                    return OrderStateType.None;
+                    // the order fell out of the small cache (100 active + 100 historical per category)
+                    // or was never there: ask the exchange for this exact order instead of giving up
+                    myOrder = GetOrderFromExchange(order);
+
+                    if (myOrder == null)
+                    {
+                        SendLogMessage($"GetOrderStatus: order NumberUser {order.NumberUser}, NumberMarket {order.NumberMarket} " +
+                            $"({order.SecurityNameCode}) is not found in the cache and on the exchange.", LogMessageType.Error);
+                        return OrderStateType.None;
+                    }
                 }
 
                 MyOrderEvent?.Invoke(myOrder);
@@ -4320,6 +4629,50 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             return OrderStateType.None;
+        }
+
+        // point query of one order by its market id: the fallback for the small status cache
+        // (GET /api/v5/trade/order, same 60 requests per 2 seconds group as orders-pending)
+        private Order GetOrderFromExchange(Order order)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    return null;
+                }
+
+                _rateGateOrdersPending.WaitToProceed();
+
+                string url = $"{_baseUrl}/api/v5/trade/order?instId={order.SecurityNameCode}&ordId={order.NumberMarket}";
+
+                HttpResponseMessage res = GetPrivateRequest(url);
+                string contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetOrderFromExchange request error {res.StatusCode} || {contentStr}", LogMessageType.Error);
+                    return null;
+                }
+
+                ResponseRestMessage<List<ResponseWsOrders>> message = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseRestMessage<List<ResponseWsOrders>>());
+
+                if (message == null
+                    || message.code.Equals("0") == false
+                    || message.data == null
+                    || message.data.Count == 0)
+                {
+                    return null;
+                }
+
+                return OrderUpdate(message.data[0]);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetOrderFromExchange - {ex.ToString()}", LogMessageType.Error);
+            }
+
+            return null;
         }
 
         private void GetAllOpenOrders(List<Order> array, int maxCount)
