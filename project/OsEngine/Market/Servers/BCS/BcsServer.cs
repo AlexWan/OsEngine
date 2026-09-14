@@ -2093,7 +2093,7 @@ namespace OsEngine.Market.Servers.BCS
 
             trade.Price = tradeData.Price.ToDecimal();
             trade.Side = tradeData.Side == "BUY" ? Side.Buy : Side.Sell;
-            trade.Volume = tradeData.Volume.ToDecimal();
+            trade.Volume = tradeData.Quantity.ToDecimal();
 
             trade.Id = trade.Time.Ticks.ToString();
 
@@ -2123,7 +2123,7 @@ namespace OsEngine.Market.Servers.BCS
             {
                 MarketDepthLevel newBid = new MarketDepthLevel();
                 newBid.Price = depthData.Bids[i].Price.ToDouble();
-                newBid.Bid = depthData.Bids[i].Quantity.ToDouble() / 10;
+                newBid.Bid = depthData.Bids[i].Quantity.ToDouble();
                 depth.Bids.Add(newBid);
             }
 
@@ -2131,7 +2131,7 @@ namespace OsEngine.Market.Servers.BCS
             {
                 MarketDepthLevel newAsk = new MarketDepthLevel();
                 newAsk.Price = depthData.Asks[i].Price.ToDouble();
-                newAsk.Ask = depthData.Asks[i].Quantity.ToDouble() / 10;
+                newAsk.Ask = depthData.Asks[i].Quantity.ToDouble();
                 depth.Asks.Add(newAsk);
             }
 
@@ -2286,7 +2286,23 @@ namespace OsEngine.Market.Servers.BCS
 
                 OrderStateType stateType = GetOrderState(orderEvent.Data.OrderStatus);
 
-                if (stateType == OrderStateType.Fail)
+                bool isMyOrder = false;
+                int orderUserNumber = 0;
+                Guid clientOrderId = Guid.Empty;
+
+                if (Guid.TryParse(orderEvent.ClientOrderId, out clientOrderId))
+                {
+                    lock (_orderNumbersLocker)
+                    {
+                        if (_numberByGuidOrders.TryGetValue(clientOrderId, out int userNumber))
+                        {
+                            isMyOrder = true;
+                            orderUserNumber = userNumber;
+                        }
+                    }
+                }
+
+                if (stateType == OrderStateType.Fail && isMyOrder)
                 {
                     SendLogMessage("Ордер отклонён!\n" + orderEvent.Data.RejectReason, LogMessageType.Error);
                 }
@@ -2311,7 +2327,7 @@ namespace OsEngine.Market.Servers.BCS
                     newOrder.SecurityNameCode = orderEvent.Data.Ticker;
                     newOrder.SecurityClassCode = orderEvent.Data.ClassCode;
                     newOrder.Volume = orderEvent.Data.OrderQuantity.ToDecimal();
-                 }
+                }
 
                 newOrder.TimeCallBack = ConvertUtsStringToDateTimeRu(orderEvent.Data.TransactionTime);
 
@@ -2328,11 +2344,11 @@ namespace OsEngine.Market.Servers.BCS
                     newOrder.TimeCancel = ConvertUtsStringToDateTimeRu(orderEvent.Data.TransactionTime);
                 }
 
-                if (Guid.TryParse(orderEvent.ClientOrderId, out Guid clientOrderId))
+                if (isMyOrder)
                 {
-                    newOrder.NumberUser = GetOrderUserNumber(clientOrderId);
+                    newOrder.NumberUser = orderUserNumber;
 
-                    AddOrderIdAndUserNum(orderEvent.Data.OrderId, newOrder.NumberUser);
+                    AddOrderIdAndUserNum(orderEvent.Data.OrderId, orderUserNumber);
                 }
 
                 newOrder.NumberMarket = orderEvent.Data.OrderNumber;
@@ -3029,7 +3045,7 @@ namespace OsEngine.Market.Servers.BCS
                     {"orderStatus", orderStatuses},
                     {"orderTypes", new int[]{1, 2, 3, 10} },
                     {"tickers",  Array.Empty<string>() },
-                    {"classCode", Array.Empty<string>() }
+                    {"classCodes", Array.Empty<string>() }
                 };
 
                     string jsonRequest = JsonConvert.SerializeObject(jsonContent);
@@ -3236,19 +3252,6 @@ namespace OsEngine.Market.Servers.BCS
             }
 
             throw new KeyNotFoundException($"Ключ {key} не найден в словаре guidByNumberOrders.");
-        }
-
-        private int GetOrderUserNumber(Guid key)
-        {
-            lock (_orderNumbersLocker)
-            {
-                if (_numberByGuidOrders.TryGetValue(key, out int value))
-                {
-                    return value;
-                }
-            }
-
-            throw new KeyNotFoundException($"Ключ {key} не найден в словаре numberByGuidOrders.");
         }
 
         private void AddOrderIds(int userNumber, Guid clientOrderId)
