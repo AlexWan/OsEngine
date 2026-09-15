@@ -276,12 +276,12 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool IsSupports_AsyncCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
 
         public int AsyncCandlesStarter_RateGateLimitMls
         {
-            get { return 10; }
+            get { return 100; }
         }
 
         public string[] IpAddressServer
