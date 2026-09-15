@@ -876,10 +876,11 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 5 Data
 
-        public RateGate _rateGateCandles = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        // candles endpoint: 40 requests per 2 seconds; 60 ms keeps ~16 requests per second
+        public RateGate _rateGateCandles = new RateGate(1, TimeSpan.FromMilliseconds(60));
 
         // history-candles endpoint: 20 requests per 2 seconds
-        public RateGate _rateGateCandlesHistory = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        public RateGate _rateGateCandlesHistory = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1761,9 +1762,10 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        // the remote-close error is the only place where the real reason of a public socket
-        // death is visible, but mass failures would flood the log: the first occurrence is
-        // logged immediately, repeats are collapsed into a counter once per 5 minutes
+        // transient network failures of a pool socket (remote close, DNS, no route) are handled
+        // by the reconnect machinery: logged as System, throttled — the first occurrence is logged
+        // immediately, repeats are collapsed into a counter once per 5 minutes.
+        // Error level is used only if the connector gives up (see ReconnectPublicSocket)
         private readonly object _publicErrorLogLocker = new object();
         private DateTime _lastPublicRemoteCloseLogTime = DateTime.MinValue;
         private int _suppressedPublicRemoteCloseCount;
@@ -1779,9 +1781,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (e.Exception != null)
                 {
-                    string message = e.Exception.ToString();
-
-                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    if (e.Exception is System.Net.WebSockets.WebSocketException)
                     {
                         lock (_publicErrorLogLocker)
                         {
@@ -1792,7 +1792,7 @@ namespace OsEngine.Market.Servers.OKX
                                     ? $" (suppressed {_suppressedPublicRemoteCloseCount} similar messages in the last 5 minutes)"
                                     : "";
 
-                                SendLogMessage("[WS Public] " + message + suppressed, LogMessageType.Error);
+                                SendLogMessage("[WS Public] " + e.Exception.ToString() + suppressed, LogMessageType.System);
 
                                 _lastPublicRemoteCloseLogTime = DateTime.Now;
                                 _suppressedPublicRemoteCloseCount = 0;
@@ -1920,11 +1920,12 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (e.Exception != null)
                 {
-                    string message = e.Exception.ToString();
-
-                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    if (e.Exception is System.Net.WebSockets.WebSocketException)
                     {
-                        // ignore
+                        // transient network failure of the private socket: the check-alive thread
+                        // recreates it. System level, so users are not scared by a self-healing event.
+                        // Error level appears only if the connector gives up (see ReconnectPrivateSocket)
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.System);
                     }
                     else
                     {
