@@ -103,6 +103,13 @@ namespace OsEngine.Market.Servers.BCS
                 _subscribedSecurities.Clear();
                 _accessTokenExpireTime = DateTime.MinValue;
 
+                lock (_executionStateLocker)
+                {
+                    _executionStateByOrder.Clear();
+                }
+
+                _lastTradeTime.Clear();
+
                 lock (_sentMyTradesLocker)
                 {
                     _sentMyTradesNumbers.Clear();
@@ -328,11 +335,9 @@ namespace OsEngine.Market.Servers.BCS
         private List<WebSocket> _webSocketPublicList = new List<WebSocket>();
         private WebSocket _webSocketPortfolio;
         private WebSocket _webSocketOrders;
-        private WebSocket _webSocketMyTrades;
         private bool _socketDataIsActive;
         private bool _socketPortfolioIsActive;
         private bool _socketOrdersIsActive;
-        private bool _socketMyTradesIsActive;
         private string _activationLocker = "activationLocker";
 
         #endregion
@@ -488,7 +493,10 @@ namespace OsEngine.Market.Servers.BCS
                 }
                 else
                 {
+                    string errorMsg = response.Content.ReadAsStringAsync().Result;
+
                     SendLogMessage($"Stock securities request error. Status: {response.StatusCode}-{response.ReasonPhrase}\n" +
+                        $"Msg: {errorMsg}\n" +
                         $"Try: {tryCount} downloading securities {type}", LogMessageType.Error);
 
                     page--;
@@ -816,7 +824,9 @@ namespace OsEngine.Market.Servers.BCS
                     _myPortfolios.Add(portfolio);
                 }
 
-                List<BcsPortfolio> portfT365term = bcsPortfolios.FindAll(p => p.account == accounts[i] && p.term == "T365");
+                List<BcsPortfolio> portfT365term = bcsPortfolios.FindAll(p => p.account == accounts[i]
+                    && p.type != "futuresLimit" && p.type != "otcLimit"
+                    && (p.type == "futuresHolding" || p.term == "T365"));
 
                 if (portfT365term.Count > 0)
                 {
@@ -1079,7 +1089,8 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"BCS candles request error. Code: {response.StatusCode} || msg: {response.ReasonPhrase}", LogMessageType.Error);
+                    string errorMsg = response.Content.ReadAsStringAsync().Result;
+                    SendLogMessage($"BCS candles request error. Code: {response.StatusCode} || msg: {errorMsg}", LogMessageType.Error);
                     return null;
                 }
 
@@ -1201,8 +1212,7 @@ namespace OsEngine.Market.Servers.BCS
 
         private readonly string _wsHostMarketData = "wss://ws.broker.ru/trade-api-market-data-connector/api/v1/market-data/ws";
         private readonly string _wsHostPortfolio = "wss://ws.broker.ru/trade-api-bff-portfolio/api/v1/portfolio/ws";
-        private readonly string _wsHostOrders = "wss://ws.broker.ru/trade-api-bff-operations/api/v1/orders/execution/ws";
-        private readonly string _wsHostMyTrades = "wss://ws.broker.ru/trade-api-bff-operations/api/v1/orders/transaction/ws";
+        private readonly string _wsHostOrders = "wss://ws.broker.ru/trade-api-bff-operations/api/v1/orders/events/ws";
 
         private string _socketLocker = "webSocketLockerBcs";
 
@@ -1294,21 +1304,6 @@ namespace OsEngine.Market.Servers.BCS
                     }
 
                     _webSocketOrders.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
-
-                    _webSocketMyTrades = new WebSocket(_wsHostMyTrades);
-                    _webSocketMyTrades.SetHeader("Authorization", "Bearer " + _apiAccessToken);
-                    _webSocketMyTrades.EmitOnPing = true;
-                    _webSocketMyTrades.OnOpen += WebSocketMyTrades_Opened;
-                    _webSocketMyTrades.OnClose += WebSocketMyTrades_Closed;
-                    _webSocketMyTrades.OnMessage += WebSocketMyTrades_MessageReceived;
-                    _webSocketMyTrades.OnError += WebSocketMyTrades_Error;
-
-                    if (_myProxy != null)
-                    {
-                        _webSocketMyTrades.SetProxy(_myProxy);
-                    }
-
-                    _webSocketMyTrades.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
                 }
             }
             catch (Exception ex)
@@ -1382,22 +1377,6 @@ namespace OsEngine.Market.Servers.BCS
                             // ignore
                         }
                     }
-
-                    if (_webSocketMyTrades != null)
-                    {
-                        try
-                        {
-                            _webSocketMyTrades.OnOpen -= WebSocketMyTrades_Opened;
-                            _webSocketMyTrades.OnClose -= WebSocketMyTrades_Closed;
-                            _webSocketMyTrades.OnMessage -= WebSocketMyTrades_MessageReceived;
-                            _webSocketMyTrades.OnError -= WebSocketMyTrades_Error;
-                            _webSocketMyTrades.CloseAsync();
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                    }
                 }
             }
             catch
@@ -1408,7 +1387,6 @@ namespace OsEngine.Market.Servers.BCS
             {
                 _webSocketPortfolio = null;
                 _webSocketOrders = null;
-                _webSocketMyTrades = null;
             }
         }
 
@@ -1425,11 +1403,6 @@ namespace OsEngine.Market.Servers.BCS
             }
 
             if (_socketOrdersIsActive == false)
-            {
-                return;
-            }
-
-            if (_socketMyTradesIsActive == false)
             {
                 return;
             }
@@ -1724,94 +1697,6 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        // My trades socket events
-        private void WebSocketMyTrades_Opened(object sender, EventArgs e)
-        {
-            SendLogMessage("Socket My trades activated", LogMessageType.System);
-            _socketMyTradesIsActive = true;
-            CheckActivationSockets();
-        }
-
-        private void WebSocketMyTrades_Closed(object sender, CloseEventArgs e)
-        {
-            try
-            {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketMyTrades_Error(object sender, ErrorEventArgs e)
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                if (e.Exception != null)
-                {
-                    string message = e.Exception.ToString();
-
-                    if (message.Contains("The remote party closed the WebSocket connection"))
-                    {
-                        // ignore
-                    }
-                    else
-                    {
-                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage("My trades socket error" + ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketMyTrades_MessageReceived(object sender, MessageEventArgs e)
-        {
-            try
-            {
-                if (e == null)
-                {
-                    return;
-                }
-                if (string.IsNullOrEmpty(e.Data))
-                {
-                    return;
-                }
-
-                if (WebSocketMyOrdersAndTradesMessage == null)
-                {
-                    return;
-                }
-
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                WebSocketMyOrdersAndTradesMessage.Enqueue(e.Data);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage("My trades socket error. " + error.ToString(), LogMessageType.Error);
-            }
-        }
-
         #endregion
 
         #region 8 WebSocket Security subscribe
@@ -1850,7 +1735,7 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 30 == 0)
+                    && _subscribedSecurities.Count % 40 == 0)
                 {
                     WebSocket newSocket = CreateNewSocketMarketData();
 
@@ -2080,6 +1965,8 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
+        private Dictionary<string, DateTime> _lastTradeTime = new Dictionary<string, DateTime>();
+
         private void UpdateTrade(PublicMarketDataResponse tradeData)
         {
             Trade trade = new Trade();
@@ -2090,6 +1977,15 @@ namespace OsEngine.Market.Servers.BCS
             {
                 return;
             }
+
+            // биржа может прислать тики с перевёрнутым порядком меток, время делаем монотонным по бумаге
+            if (_lastTradeTime.TryGetValue(trade.SecurityNameCode, out DateTime lastTime)
+                && trade.Time <= lastTime)
+            {
+                trade.Time = lastTime.AddTicks(1);
+            }
+
+            _lastTradeTime[trade.SecurityNameCode] = trade.Time;
 
             trade.Price = tradeData.Price.ToDecimal();
             trade.Side = tradeData.Side == "BUY" ? Side.Buy : Side.Sell;
@@ -2228,6 +2124,11 @@ namespace OsEngine.Market.Servers.BCS
                             //на бирже номер изменился, фиксируем последовательно в список
                             string oldNumber = orderResponse.Data.OrderNumber;
                             string newNumber = orderResponse.Data.OrderId.Split('-')[2];
+
+                            lock (_executionStateLocker)
+                            {
+                                _executionStateByOrder.Remove(oldNumber);
+                            }
 
                             if (_changedOrderNumsMarket.Count > 0)
                             {
@@ -2381,6 +2282,16 @@ namespace OsEngine.Market.Servers.BCS
                 newOrder.Price = newOrder.TypeOrder == OrderPriceType.Limit ? orderEvent.Data.Price.ToDecimal() : orderEvent.Data.AveragePrice.ToDecimal();
                 newOrder.ServerType = ServerType.BCS;
 
+                if (stateType == OrderStateType.Done
+                    || stateType == OrderStateType.Cancel
+                    || stateType == OrderStateType.Fail)
+                {
+                    lock (_executionStateLocker)
+                    {
+                        _executionStateByOrder.Remove(orderEvent.Data.OrderNumber);
+                    }
+                }
+
                 if (_myPortfolios.Count == 1)
                 {
                     newOrder.PortfolioNumber = _myPortfolios[0].Number;
@@ -2392,22 +2303,136 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (orderEvent.Data.ExecutionType == "11") // сделка
                 {
-                    MyTradeFetchRequest request = new MyTradeFetchRequest();
-                    request.Ticker = orderEvent.Data.Ticker;
-                    request.ClassCode = orderEvent.Data.ClassCode;
-                    request.Side = orderEvent.Data.Side;
-                    request.OrderNumber = orderEvent.Data.OrderNumber;
-                    request.NumberOrderParent = newOrder.NumberMarket;
-
-                    if (MyTradesToFetchQueue != null)
-                    {
-                        MyTradesToFetchQueue.Enqueue(request);
-                    }
+                    TryCreateMyTradeFromOrderEvent(orderEvent, newOrder);
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($" Update my order error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private readonly Dictionary<string, (decimal ExecutedQuantity, decimal ExecutionValue)> _executionStateByOrder
+            = new Dictionary<string, (decimal ExecutedQuantity, decimal ExecutionValue)>();
+
+        private readonly string _executionStateLocker = "bcsExecutionStateLocker";
+
+        private void TryCreateMyTradeFromOrderEvent(BcsOrdersResponse orderEvent, Order order)
+        {
+            try
+            {
+                string executionId = orderEvent.Data.ExecutionId;
+
+                if (string.IsNullOrEmpty(executionId))
+                {
+                    EnqueueMyTradeFetch(orderEvent, order, false, null);
+                    return;
+                }
+
+                if (IsMyTradeAlreadySent(executionId))
+                {
+                    return;
+                }
+
+                decimal lastQuantity = orderEvent.Data.LastQuantity.ToDecimal();
+                decimal executedQuantity = orderEvent.Data.ExecutedQuantity.ToDecimal();
+                decimal executionValue = orderEvent.Data.ExecutionValue.ToDecimal();
+
+                decimal lastPrice;
+
+                lock (_executionStateLocker)
+                {
+                    if (_executionStateByOrder.TryGetValue(orderEvent.Data.OrderNumber, out (decimal ExecutedQuantity, decimal ExecutionValue) prevState))
+                    {
+                        // executionValue в событии кумулятивный, цену исполнения берём дельтой
+                        decimal deltaQty = executedQuantity - prevState.ExecutedQuantity;
+                        decimal deltaValue = executionValue - prevState.ExecutionValue;
+
+                        lastPrice = deltaQty > 0 && deltaValue > 0
+                            ? deltaValue / deltaQty
+                            : 0;
+
+                        _executionStateByOrder[orderEvent.Data.OrderNumber] = (executedQuantity, executionValue);
+                    }
+                    else
+                    {
+                        lastPrice = executedQuantity > 0 && executionValue > 0
+                            ? executionValue / executedQuantity
+                            : 0;
+
+                        _executionStateByOrder.Add(orderEvent.Data.OrderNumber, (executedQuantity, executionValue));
+                    }
+                }
+
+                if (lastPrice <= 0 || lastQuantity <= 0)
+                {
+                    SendLogMessage($"MyTrade из события: неконсистентные данные по ордеру {orderEvent.Data.OrderNumber}. Уходим в фетч.", LogMessageType.System);
+
+                    MarkMyTradeSent(executionId);
+
+                    EnqueueMyTradeFetch(orderEvent, order, false, null);
+                    return;
+                }
+
+                decimal volumeLots = lastQuantity;
+
+                Security security = GetSecurityByName(orderEvent.Data.Ticker, orderEvent.Data.ClassCode);
+
+                if (security != null && security.Lot > 0)
+                {
+                    volumeLots = lastQuantity / security.Lot;
+                }
+
+                MyTrade trade = new MyTrade();
+                trade.SecurityNameCode = order.SecurityNameCode;
+                trade.Price = lastPrice;
+                trade.Volume = volumeLots;
+                trade.NumberOrderParent = order.NumberMarket;
+                trade.NumberTrade = executionId;
+                trade.Time = ConvertUtsStringToDateTimeRu(orderEvent.Data.TransactionTime);
+                trade.Side = order.Side;
+
+                MarkMyTradeSent(executionId);
+
+                MyTradeEvent?.Invoke(trade);
+
+                // Фаза А: временный лог сверки с REST. Сам фетч только логирует, событие не шлёт.
+                EnqueueMyTradeFetch(orderEvent, order, true, trade);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"MyTrade из события error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+
+                if (string.IsNullOrEmpty(orderEvent.Data.ExecutionId) == false)
+                {
+                    MarkMyTradeSent(orderEvent.Data.ExecutionId);
+                }
+
+                EnqueueMyTradeFetch(orderEvent, order, false, null);
+            }
+        }
+
+        private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order, bool shadowLogOnly, MyTrade wsTrade)
+        {
+            MyTradeFetchRequest request = new MyTradeFetchRequest();
+            request.Ticker = orderEvent.Data.Ticker;
+            request.ClassCode = orderEvent.Data.ClassCode;
+            request.Side = orderEvent.Data.Side;
+            request.OrderNumber = orderEvent.Data.OrderNumber;
+            request.NumberOrderParent = order.NumberMarket;
+            request.ShadowLogOnly = shadowLogOnly;
+
+            if (wsTrade != null)
+            {
+                request.WsNumberTrade = wsTrade.NumberTrade;
+                request.WsPrice = wsTrade.Price;
+                request.WsVolume = wsTrade.Volume;
+                request.WsTime = wsTrade.Time;
+            }
+
+            if (MyTradesToFetchQueue != null)
+            {
+                MyTradesToFetchQueue.Enqueue(request);
             }
         }
 
@@ -2487,7 +2512,20 @@ namespace OsEngine.Market.Servers.BCS
 
                     string numberTrade = tradeRecord.tradeNum;
 
-                    if (string.IsNullOrEmpty(numberTrade) || IsMyTradeAlreadySent(numberTrade))
+                    if (string.IsNullOrEmpty(numberTrade))
+                    {
+                        continue;
+                    }
+
+                    if (request.ShadowLogOnly)
+                    {
+                        SendLogMessage($"Сверка сделки. WS: id={request.WsNumberTrade}, цена={request.WsPrice}, объём(лот)={request.WsVolume}, время={request.WsTime}. "
+                            + $"REST: num={numberTrade}, цена={tradeRecord.price}, объём(лот)={tradeRecord.tradeQuantityLots}, время={tradeRecord.tradeDateTime}, "
+                            + $"уже отправлена ранее={IsMyTradeAlreadySent(numberTrade)}", LogMessageType.System);
+                        continue;
+                    }
+
+                    if (IsMyTradeAlreadySent(numberTrade))
                     {
                         continue;
                     }
@@ -2545,6 +2583,11 @@ namespace OsEngine.Market.Servers.BCS
             public string Side;
             public string OrderNumber;
             public string NumberOrderParent;
+            public bool ShadowLogOnly;
+            public string WsNumberTrade;
+            public decimal WsPrice;
+            public decimal WsVolume;
+            public DateTime WsTime;
         }
 
         private OrderStateType GetOrderState(string status)
@@ -2665,7 +2708,8 @@ namespace OsEngine.Market.Servers.BCS
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"Order Fail. Status: {sendOrderResponse.StatusCode} || msg:{sendOrderResponse.ReasonPhrase}", LogMessageType.Error);
+                    string responseMsg = sendOrderResponse.Content.ReadAsStringAsync().Result;
+                    SendLogMessage($"Order Fail. Status: {sendOrderResponse.StatusCode} || msg:{responseMsg}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2754,7 +2798,8 @@ namespace OsEngine.Market.Servers.BCS
                 }
                 else
                 {
-                    SendLogMessage($"Change price order error. Body: {jsonRequest}\n Status: {changeOrderResponse.StatusCode} || msg:{changeOrderResponse.ReasonPhrase}", LogMessageType.Error);
+                    string responseMsg = changeOrderResponse.Content.ReadAsStringAsync().Result;
+                    SendLogMessage($"Change price order error. Body: {jsonRequest}\n Status: {changeOrderResponse.StatusCode} || msg:{responseMsg}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2869,9 +2914,8 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     orderId = GetClientOrderId(order.NumberUser).ToString();
                 }
-                catch (KeyNotFoundException ex)
+                catch (KeyNotFoundException)
                 {
-                    SendLogMessage("Order status request error: " + ex.Message, LogMessageType.Error);
                     return OrderStateType.None;
                 }
 
@@ -2897,7 +2941,17 @@ namespace OsEngine.Market.Servers.BCS
                 }
                 else
                 {
-                    SendLogMessage($"Order status request error: {statusOrderResponse.StatusCode} || msg:{statusOrderResponse.ReasonPhrase}", LogMessageType.Error);
+                    string errorMsg = statusOrderResponse.Content.ReadAsStringAsync().Result;
+
+                    if (statusOrderResponse.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        // заявка ещё не видна сервису статусов БКС — регистрация на бирже идёт асинхронно. Не ошибка.
+                        SendLogMessage($"Order status not found yet. ClientOrderId: {orderId}. The hub will retry.", LogMessageType.System);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Order status request error: {statusOrderResponse.StatusCode} || msg:{errorMsg}", LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
@@ -3078,7 +3132,8 @@ namespace OsEngine.Market.Servers.BCS
                     }
                     else
                     {
-                        SendLogMessage($"Order list getting error: {orderListResponse.StatusCode} || msg:{orderListResponse.ReasonPhrase}", LogMessageType.Error);
+                        string errorMsg = orderListResponse.Content.ReadAsStringAsync().Result;
+                        SendLogMessage($"Order list getting error: {orderListResponse.StatusCode} || msg:{errorMsg}", LogMessageType.Error);
                         return null;
                     }
 
@@ -3199,7 +3254,24 @@ namespace OsEngine.Market.Servers.BCS
                     try
                     {
                         if (_httpClient != null)
-                            return await _httpClient.SendAsync(request);
+                        {
+                            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+                            if (response.StatusCode == HttpStatusCode.TooManyRequests && i < maxRetries - 1)
+                            {
+                                int delayMs = 1000 * (1 << i);
+
+                                response.Dispose();
+
+                                SendLogMessage($"Ответ 429 по пути: <<{path}>>, повтор через {delayMs}мс", LogMessageType.System);
+
+                                await Task.Delay(delayMs);
+
+                                continue;
+                            }
+
+                            return response;
+                        }
                         else
                         {
                             if (_handler == null)
@@ -3223,6 +3295,16 @@ namespace OsEngine.Market.Servers.BCS
                 }
 
                 throw new InvalidOperationException("Запрос не удался после всех попыток");
+            }
+            catch (TaskCanceledException cancelEx)
+            {
+                if (cancelEx.InnerException is TimeoutException)
+                {
+                    SendLogMessage($"Таймаут запроса (30с) по пути: <<{path}>>", LogMessageType.Error);
+                }
+
+                // иначе это штатная отмена при StopServer/Dispose, не ошибка
+                return null;
             }
             catch (Exception ex)
             {
