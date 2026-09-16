@@ -1369,8 +1369,8 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
-            // вариационная маржа портфеля: сумма расчётной к клирингу маржи по всем позициям (релиз 1.49)
-            myPortfolio.UnrealizedPnl = GetVariationMarginSum(portfolioResponse);
+            // вариационная маржа портфеля: общая маржа, начисляемая/списываемая в клиринг (релиз 1.51)
+            myPortfolio.UnrealizedPnl = GetTotalVariationMargin(portfolioResponse);
         }
 
         private decimal GetVariationMargin(Dictionary<string, PortfolioPosition> portfolioPositionsByUid, string instrumentUid)
@@ -1395,25 +1395,19 @@ namespace OsEngine.Market.Servers.TInvest
             return 0;
         }
 
-        private decimal GetVariationMarginSum(PortfolioResponse portfolio)
+        private decimal GetTotalVariationMargin(PortfolioResponse portfolio)
         {
-            decimal result = 0;
-
-            for (int i = 0; i < portfolio.Positions.Count; i++)
-            {
-                PortfolioPosition pos = portfolio.Positions[i];
-
-                if (pos.VarMarginSettled != null)
-                {
-                    result += GetValue(pos.VarMarginSettled);
-                }
-                else if (pos.VarMargin != null)
-                {
-                    result += GetValue(pos.VarMargin);
-                }
+            if (portfolio.TotalVarMarginSettled != null)
+            {   // общая расчётная вар. маржа, которая будет начислена/списана в клиринг
+                return GetValue(portfolio.TotalVarMarginSettled);
             }
 
-            return result;
+            if (portfolio.TotalVarMargin != null)
+            {   // общая текущая вар. маржа
+                return GetValue(portfolio.TotalVarMargin);
+            }
+
+            return 0;
         }
 
         private void UpdatePositionsInPortfolio(PortfolioResponse portfolio, int tryCount)
@@ -1683,7 +1677,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     decimal blockRub = portf.ValueBlocked;
 
-                    newPos.ValueCurrent = valuePortfolio - blockRub + GetVariationMarginSum(portfolio); // - futuresAndOptionsGO; // -spotShortValue;
+                    newPos.ValueCurrent = valuePortfolio - blockRub + GetTotalVariationMargin(portfolio); // - futuresAndOptionsGO; // -spotShortValue;
 
                     /*if(portf.ValueBlocked != 0)
                     {

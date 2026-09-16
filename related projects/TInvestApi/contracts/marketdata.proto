@@ -425,6 +425,7 @@ enum CandleSource {
 //Список свечей.
 message GetCandlesResponse {
   repeated HistoricCandle candles = 1; //Массив свечей.
+  string price_currency = 2; //Валюта цены.
 }
 
 //Информация о свече.
@@ -496,6 +497,7 @@ message GetOrderBookResponse {
   google.protobuf.Timestamp last_price_ts = 21; //Время получения цены последней сделки.
   google.protobuf.Timestamp close_price_ts = 22; //Время получения цены закрытия.
   google.protobuf.Timestamp orderbook_ts = 23; //Время формирования стакана на бирже.
+  string price_currency = 24; //Валюта цены.
 }
 
 //Запрос получения торгового статуса.
@@ -540,6 +542,7 @@ message GetLastTradesRequest {
 //Обезличенных сделок за последний час.
 message GetLastTradesResponse {
   repeated Trade trades = 1; //Массив сделок.
+  string price_currency = 2; //Валюта цены.
 }
 
 //Запрос активных подписок. Возвращает по одному сообщению на каждый тип активных подписок — `SubscribeLastPriceResponse`, `SubscribeInfoResponse`, `SubscribeTradesResponse`, `SubscribeOrderBookResponse`, `SubscribeCandlesResponse`.
@@ -575,7 +578,7 @@ message InstrumentClosePriceResponse {
 
 message GetTechAnalysisRequest {
   IndicatorType indicator_type = 1 [(google.api.field_behavior) = REQUIRED]; //Тип технического индикатора.
-  string instrument_uid = 2 [(google.api.field_behavior) = REQUIRED]; //UID инструмента.
+  optional string instrument_uid = 2; //UID инструмента.
   google.protobuf.Timestamp from = 3 [(google.api.field_behavior) = REQUIRED]; //Начало запрашиваемого периода по UTC.
   google.protobuf.Timestamp to = 4 [(google.api.field_behavior) = REQUIRED]; //Окончание запрашиваемого периода по UTC.
   IndicatorInterval interval = 5 [(google.api.field_behavior) = REQUIRED]; //Интервал, за который рассчитывается индикатор.
@@ -583,6 +586,7 @@ message GetTechAnalysisRequest {
   int32 length = 7; //Торговый период, за который рассчитывается индикатор.
   Deviation deviation = 8; //Параметры отклонения.
   Smoothing smoothing = 9; //Параметры сглаживания.
+  optional string instrument_id = 10; //Идентификатор инструмента. Принимает значение `figi`, `instrument_uid` или `ticker + '_' + class_code`.
 
   message Smoothing {
     int32 fast_length = 1; //Короткий период сглаживания для первой экспоненциальной скользящей средней (EMA).
@@ -658,6 +662,14 @@ message MarketValueInstrument {
   repeated MarketValue values = 2; //Массив параметров инструмента.
   string ticker = 3; //Тикер инструмента.
   string class_code = 4; //Класс-код (секция торгов).
+  MarketValueStatistic statistic = 5; //Дополнительная информация.
+  string price_currency = 6; //Валюта цены.
+}
+
+message MarketValueStatistic {
+  optional int32 interested_count = 1; //Количество человек, просматривающих инструмент.
+  optional int32 traded_count = 2; //Количество человек, торгующих инструментом.
+  google.protobuf.Timestamp time = 3; //Дата и время актуализации данных.
 }
 
 message MarketValue {
