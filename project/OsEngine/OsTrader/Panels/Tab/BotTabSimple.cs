@@ -7485,7 +7485,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 if(opener.OrderPriceType == OrderPriceType.Iceberg)
                                 {
-                                    pos = BuyAtIcebergMarket(opener.Volume, opener.IcebergOrdersCount, opener.IcebergMillisecondsDistance);
+                                    pos = BuyAtIcebergMarket(opener.Volume, opener.IcebergOrdersCount, opener.IcebergMillisecondsDistance, opener.SignalType);
                                 }
                                 else
                                 {
@@ -7556,7 +7556,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 if (opener.OrderPriceType == OrderPriceType.Iceberg)
                                 {
-                                    pos = SellAtIcebergMarket(opener.Volume, opener.IcebergOrdersCount, opener.IcebergMillisecondsDistance);
+                                    pos = SellAtIcebergMarket(opener.Volume, opener.IcebergOrdersCount, opener.IcebergMillisecondsDistance, opener.SignalType);
                                 }
                                 else
                                 {

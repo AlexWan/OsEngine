@@ -253,8 +253,8 @@ namespace OsEngine.Robots.Sectors
             DeleteEvent += SectorsSetBollingerMomentum_DeleteEvent;
 
             Description = OsLocalization.ConvertToLocString(
-                "Eng:Sectoral trend momentum robot. Nine screeners by economy sectors, sector rating by average RSI, entries only in top sectors. Long breakout of the upper Bollinger band with Momentum filter, entry by stop-market iceberg, exit by manual iceberg trailing on the Bollinger line_" +
-                "Ru:Секторальный трендовый импульсник. Девять скринеров по секторам экономики, рейтинг секторов по среднему RSI, входы только в топ-секторах. Лонг на пробое верхней полосы Боллинджера с фильтром Моментума, вход стоп-айсбергом, выход ручным трейлингом айсбергом по линии Боллинджера_");
+                "Eng:Sectoral trend momentum robot. Nine screeners by economy sectors, sector rating by average RSI, entries only in top sectors, by default the strongest RSI paper inside the sector is taken. Long breakout of the upper Bollinger band with Momentum and Envelop filters, entry by stop-market iceberg, exit by manual iceberg trailing on the Bollinger line_" +
+                "Ru:Секторальный трендовый импульсник. Девять скринеров по секторам экономики, рейтинг секторов по среднему RSI, входы только в топ-секторах, внутри сектора по умолчанию берётся сильнейшая по RSI бумага. Лонг на пробое верхней полосы Боллинджера с фильтрами Моментум и Envelop, вход стоп-айсбергом, выход ручным трейлингом айсбергом по линии Боллинджера_");
         }
 
         private void CreateSectors()
