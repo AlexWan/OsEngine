@@ -2658,11 +2658,21 @@ namespace OsEngine.Market.Servers.BCS
                 string type = order.TypeOrder == OrderPriceType.Market ? "1" : "2";
 
                 decimal quantity = 0;
-                Security security = _subscribedSecurities.Find(s => s.Name == order.SecurityNameCode && s.NameClass == order.SecurityClassCode);
+                Security security = GetSecurityForOrder(order.SecurityNameCode, order.SecurityClassCode);
 
                 if (security != null)
                 {
-                    quantity = order.Volume * security.Lot;
+                    // если лот неизвестен, считаем что объём уже задан в штуках
+                    decimal lot = security.Lot > 0 ? security.Lot : 1;
+                    quantity = order.Volume * lot;
+                }
+
+                if (security == null
+                    || quantity <= 0)
+                {
+                    CreateOrderFail(order);
+                    SendLogMessage($"Order fail. Security {order.SecurityNameCode} / {order.SecurityClassCode} not found in securities lists or quantity is zero. Order not sended.", LogMessageType.Error);
+                    return;
                 }
 
                 jsonContent.Add("clientOrderId", orderId.ToString());
@@ -2749,15 +2759,15 @@ namespace OsEngine.Market.Servers.BCS
 
                 string orderId = "";
 
-                try
+                Guid guid = GetClientOrderId(order.NumberUser);
+
+                if (guid == Guid.Empty)
                 {
-                    orderId = GetClientOrderId(order.NumberUser).ToString();
-                }
-                catch (KeyNotFoundException ex)
-                {
-                    SendLogMessage("Change order error: " + ex.Message, LogMessageType.Error);
+                    SendLogMessage($"Change order price skipped. NumberUser: {order.NumberUser} not in mapping.", LogMessageType.System);
                     return;
                 }
+
+                orderId = guid.ToString();
 
                 jsonContent.Add("orderIdType", 1);
                 jsonContent.Add("orderId", orderId);
@@ -2822,15 +2832,15 @@ namespace OsEngine.Market.Servers.BCS
 
                 string orderId = "";
 
-                try
+                Guid guid = GetClientOrderId(order.NumberUser);
+
+                if (guid == Guid.Empty)
                 {
-                    orderId = GetClientOrderId(order.NumberUser).ToString();
-                }
-                catch (KeyNotFoundException ex)
-                {
-                    SendLogMessage("Order cancel error: " + ex.Message, LogMessageType.Error);
+                    SendLogMessage($"Order cancel skipped. NumberUser: {order.NumberUser} not in mapping.", LogMessageType.System);
                     return false;
                 }
+
+                orderId = guid.ToString();
 
                 jsonContent.Add("orderIdType", 1);
                 jsonContent.Add("orderId", orderId);
@@ -2910,14 +2920,14 @@ namespace OsEngine.Market.Servers.BCS
             {
                 string orderId = "";
 
-                try
-                {
-                    orderId = GetClientOrderId(order.NumberUser).ToString();
-                }
-                catch (KeyNotFoundException)
+                Guid guid = GetClientOrderId(order.NumberUser);
+
+                if (guid == Guid.Empty)
                 {
                     return OrderStateType.None;
                 }
+
+                orderId = guid.ToString();
 
                 string endPoint = $"/trade-api-bff-operations/api/v1/orders?orderIdType=1&orderId={orderId}";
 
@@ -3333,7 +3343,7 @@ namespace OsEngine.Market.Servers.BCS
                 }
             }
 
-            throw new KeyNotFoundException($"Ключ {key} не найден в словаре guidByNumberOrders.");
+            return Guid.Empty;
         }
 
         private void AddOrderIds(int userNumber, Guid clientOrderId)
@@ -3391,6 +3401,32 @@ namespace OsEngine.Market.Servers.BCS
         }
 
         private string _securitiesLocker = "securitiesLocker";
+
+        private Security GetSecurityForOrder(string name, string className)
+        {
+            lock (_securitiesLocker)
+            {
+                // сначала ищем среди подписанных бумаг
+                Security security = _subscribedSecurities.Find(s => s.Name == name && s.NameClass == className);
+
+                if (security != null)
+                {
+                    return security;
+                }
+
+                // бумага могла не быть подписана (например, закрытие позиции из портфеля) —
+                // ищем в общем списке бумаг
+                security = _securities.Find(s => s.Name == name && s.NameClass == className);
+
+                if (security != null)
+                {
+                    return security;
+                }
+
+                // на крайний случай — по имени без класса
+                return _securities.Find(s => s.Name == name);
+            }
+        }
 
         private Security GetSecurityByName(string name, string className)
         {
