@@ -325,7 +325,7 @@ JSON-RPC endpoint принимает только методы MCP-проток�
 | `optimizer_position_support_get` / `optimizer_position_support_set` | Общее сопровождение позиций для прогонов (`BotManualControl`) |
 | `optimizer_phases_get` / `optimizer_phases_set` | Фазы walk-forward и их пересчёт (`ReloadFazes`) |
 | `optimizer_filters_get` / `optimizer_filters_set` | Фильтры отсева между фазами (значение + вкл/выкл каждого) |
-| `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров: значения, диапазоны, on/off, сброс на стандартные |
+| `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров: значения, диапазоны, on/off, сброс на стандартные. Для числовых параметров `value` эквивалентно колонке «По умолчанию» грида оптимизатора: записывается и в Value, и в Defolt, и именно оно используется в прогоне для зафиксированных (on=false) параметров. В отчётах `optimizer_get_report` `value` — фактическое значение прогона |
 | `optimizer_get_pass_count` | Предполагаемое число прогонов (нельзя во время работы) |
 | `optimizer_get_threads` / `optimizer_set_threads` | Число потоков оптимизации (1..50) |
 | `optimizer_bot_tab_get_config` / `optimizer_bot_tab_set_config` | Вкладки робота оптимизации. Simple: бумага + таймфрейм. Screener: массив `securities` + таймфрейм одним источником (внутренние вкладки пересоздаются сразу; портфель по умолчанию `GodMode`, можно переопределить `portfolio_name`). Настроить нужно все вкладки перед `optimizer_start` |
@@ -1404,9 +1404,10 @@ TERMINAL:         13/13 passed
 SYSTEMLOAD:        4/4 passed
 COMPAREPOSITIONS:  5/5 passed
 PROXY:             8/8 passed
-OPTIMIZER:        19/19 passed
+OPTIMIZER:        20/20 passed
+ENCRYPTION:       16/16 passed
 
-Total: 170/170 passed in 338.6s
+Total: 187/187 passed in 338.6s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

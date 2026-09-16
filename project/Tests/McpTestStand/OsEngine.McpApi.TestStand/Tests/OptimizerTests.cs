@@ -86,6 +86,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                 TestReport();
                 TestBotSetUnknown();
                 TestOptimizerRun();
+                TestFixedParamsPreservedInReport();
                 TestOptimizerRunScreener();
             }
             finally
@@ -1338,6 +1339,171 @@ namespace OsEngine.McpApi.TestStand.Tests
                 try
                 {
                     // возвращаем вкладку и Regime в исходное состояние
+                    _context.Client.ToolsCall("optimizer_params_set", new
+                    {
+                        parameters = new object[]
+                        {
+                            new { name = "Regime", value = "Off" }
+                        }
+                    });
+                }
+                catch
+                {
+                    // ignore restore errors
+                }
+            }
+        }
+
+        private void TestFixedParamsPreservedInReport()
+        {
+            const string method = "optimizer_fixed_params_e2e";
+
+            try
+            {
+                // перебираем только "PC length", а "Sma length" фиксируем на значении 33
+                // (дефолт 30, start 0). Если баг из тикета 43 реален, в отчёте окажется
+                // 30 (дефолт) или 0 (start) вместо настроенных 33
+                object setRequest = new
+                {
+                    parameters = new object[]
+                    {
+                        new { name = "PC length", value = 20, start = 20, stop = 21, step = 1, on = true },
+                        new { name = "Sma length", value = 33, on = false },
+                        new { name = "Regime", value = "On" }
+                    }
+                };
+
+                _context.PrintRequest(Module, "optimizer_params_set", setRequest);
+                string setResponse = _context.Client.ToolsCall("optimizer_params_set", setRequest);
+                _context.PrintResponse(setResponse);
+
+                if (!TryParseConfig(setResponse, "optimizer_params_set", out _))
+                {
+                    _context.RecordFail(Module, method, "failed to set parameters");
+                    return;
+                }
+
+                // get после set: value зафиксированного параметра должен совпадать с тем,
+                // что видит пользователь в колонке "По умолчанию" грида оптимизатора
+                string getResponse = _context.Client.ToolsCall("optimizer_params_get", new { });
+
+                if (!TryParseConfig(getResponse, "optimizer_params_get", out JsonElement getConfig)
+                    || !FindParam(getConfig, "Sma length", out JsonElement smaParam)
+                    || smaParam.GetProperty("value").GetInt32() != 33)
+                {
+                    _context.RecordFail(Module, method,
+                        "optimizer_params_get does not return the configured value for 'Sma length'");
+                    return;
+                }
+
+                // вызов подсчёта прогонов: по репорту именно он портит зафиксированные
+                // значения (BotCountOneFaze мутирует общий список параметров по ссылке)
+                _context.Client.ToolsCall("optimizer_get_pass_count", new { });
+
+                // фазы настраиваем заново, чтобы тест не зависел от предыдущих
+                _context.Client.ToolsCall("optimizer_phases_set", new
+                {
+                    time_start = "2024-01-01T00:00:00",
+                    time_end = "2024-03-31T00:00:00",
+                    iteration_count = 1,
+                    last_in_sample = false
+                });
+
+                _context.PrintRequest(Module, "optimizer_start", new { });
+                string startResponse = _context.Client.ToolsCall("optimizer_start", new { });
+                _context.PrintResponse(startResponse);
+
+                if (!TryParseConfig(startResponse, "optimizer_start", out JsonElement startConfig)
+                    || startConfig.GetProperty("started").GetBoolean() != true)
+                {
+                    _context.RecordFail(Module, method, "optimization was not started");
+                    return;
+                }
+
+                if (!WaitForOptimizationEnd())
+                {
+                    _context.RecordFail(Module, method, "optimization did not finish in time");
+                    return;
+                }
+
+                _context.PrintRequest(Module, "optimizer_get_report", new { });
+                string reportResponse = _context.Client.ToolsCall("optimizer_get_report", new { });
+                _context.PrintResponse(reportResponse);
+
+                if (!TryParseConfig(reportResponse, "optimizer_get_report", out JsonElement reportConfig))
+                {
+                    return;
+                }
+
+                if (reportConfig.GetProperty("reports_count").GetInt32() == 0)
+                {
+                    _context.RecordFail(Module, method, "report is empty after finished optimization");
+                    return;
+                }
+
+                int checkedReports = 0;
+
+                foreach (JsonElement faze in reportConfig.GetProperty("fazes").EnumerateArray())
+                {
+                    foreach (JsonElement report in faze.GetProperty("reports").EnumerateArray())
+                    {
+                        checkedReports++;
+                        bool smaFound = false;
+                        bool pcFound = false;
+
+                        foreach (JsonElement param in report.GetProperty("parameters").EnumerateArray())
+                        {
+                            string paramName = param.GetProperty("name").GetString() ?? string.Empty;
+
+                            if (paramName == "Sma length")
+                            {
+                                smaFound = true;
+                                int smaValue = param.GetProperty("value").GetInt32();
+
+                                if (smaValue != 33)
+                                {
+                                    _context.RecordFail(Module, method,
+                                        $"fixed param 'Sma length' = {smaValue}, expected 33 (configured value lost)");
+                                    return;
+                                }
+                            }
+
+                            if (paramName == "PC length")
+                            {
+                                pcFound = true;
+                                int pcValue = param.GetProperty("value").GetInt32();
+
+                                if (pcValue < 20 || pcValue > 21)
+                                {
+                                    _context.RecordFail(Module, method,
+                                        $"iterated param 'PC length' = {pcValue}, expected 20..21 (iteration reset broken)");
+                                    return;
+                                }
+                            }
+                        }
+
+                        if (!smaFound || !pcFound)
+                        {
+                            _context.RecordFail(Module, method, "expected parameters not found in report");
+                            return;
+                        }
+                    }
+                }
+
+                _context.RecordPass(Module, method,
+                    $"fixed 'Sma length'=33 and iterated 'PC length' in 20..21 across {checkedReports} reports");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, $"TestFixedParamsPreservedInReport failed: {error.Message}");
+            }
+            finally
+            {
+                try
+                {
+                    // возвращаем параметры к стандартным и Regime в Off
+                    _context.Client.ToolsCall("optimizer_params_reset", new { });
                     _context.Client.ToolsCall("optimizer_params_set", new
                     {
                         parameters = new object[]

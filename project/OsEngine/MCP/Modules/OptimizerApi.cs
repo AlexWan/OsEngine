@@ -1535,26 +1535,30 @@ namespace OsEngine.MCP.Modules
             for (int i = 0; i < parameters.Count; i++)
             {
                 bool isOn = parametersOn != null && i < parametersOn.Count && parametersOn[i];
-                result.Add(SerializeOptimizerParam(parameters[i], isOn));
+                result.Add(SerializeOptimizerParam(parameters[i], isOn, true));
             }
 
             return new { strategy_name = master.StrategyName, parameters = result, count = result.Count };
         }
 
-        private object SerializeOptimizerParam(IIStrategyParameter parameter, bool isOn)
+        private object SerializeOptimizerParam(IIStrategyParameter parameter, bool isOn, bool valueFromDefault)
         {
             string name = parameter.Name;
             string type = parameter.Type.ToString();
 
             switch (parameter)
             {
+                // valueFromDefault=true (настройки): value — это Defolt, колонка "По умолчанию"
+                // грида оптимизатора, она же едет в прогон для зафиксированных параметров.
+                // valueFromDefault=false (отчёт): value — фактическое значение прогона
+                // (для переборных параметров это итерационное значение, а не дефолт)
                 case StrategyParameterInt p:
                     return new
                     {
                         name,
                         type,
                         on = isOn,
-                        value = p.ValueInt,
+                        value = valueFromDefault ? p.ValueIntDefolt : p.ValueInt,
                         default_value = p.ValueIntDefolt,
                         start = p.ValueIntStart,
                         stop = p.ValueIntStop,
@@ -1568,7 +1572,7 @@ namespace OsEngine.MCP.Modules
                         name,
                         type,
                         on = isOn,
-                        value = p.ValueDecimal,
+                        value = valueFromDefault ? p.ValueDecimalDefolt : p.ValueDecimal,
                         default_value = p.ValueDecimalDefolt,
                         start = p.ValueDecimalStart,
                         stop = p.ValueDecimalStop,
@@ -1582,7 +1586,7 @@ namespace OsEngine.MCP.Modules
                         name,
                         type,
                         on = isOn,
-                        value = p.ValueDecimal,
+                        value = valueFromDefault ? p.ValueDecimalDefolt : p.ValueDecimal,
                         default_value = p.ValueDecimalDefolt,
                         start = p.ValueDecimalStart,
                         stop = p.ValueDecimalStop,
@@ -1680,15 +1684,27 @@ namespace OsEngine.MCP.Modules
         {
             if (parameter is StrategyParameterInt intParam)
             {
+                bool valueProvided = false;
+                int providedValue = 0;
+
                 if (item.TryGetProperty("value", out JsonElement valueElement)
                     && valueElement.ValueKind == JsonValueKind.Number
                     && valueElement.TryGetInt32(out int newValue))
                 {
                     intParam.ValueInt = newValue;
+                    valueProvided = true;
+                    providedValue = newValue;
                 }
 
                 // диапазоны перебора read-only, меняются только через строку сохранения
                 string[] save = intParam.GetStringToSave().Split('#');
+
+                if (valueProvided)
+                {
+                    // в модели оптимизатора значение зафиксированного параметра живёт в Defolt
+                    // (колонка "По умолчанию" грида) — пишем как грид: и Value, и Defolt
+                    save[2] = providedValue.ToString();
+                }
 
                 if (item.TryGetProperty("start", out JsonElement startElement)
                     && startElement.ValueKind == JsonValueKind.Number
@@ -1722,14 +1738,25 @@ namespace OsEngine.MCP.Modules
 
             if (parameter is StrategyParameterDecimal decimalParam)
             {
+                bool valueProvided = false;
+                decimal providedValue = 0;
+
                 if (item.TryGetProperty("value", out JsonElement valueElement)
                     && valueElement.ValueKind == JsonValueKind.Number
                     && valueElement.TryGetDecimal(out decimal newValue))
                 {
                     decimalParam.ValueDecimal = newValue;
+                    valueProvided = true;
+                    providedValue = newValue;
                 }
 
                 string[] save = decimalParam.GetStringToSave().Split('#');
+
+                if (valueProvided)
+                {
+                    // см. комментарий в ветке Int: фиксированное значение пишется и в Defolt
+                    save[2] = providedValue.ToString();
+                }
 
                 if (item.TryGetProperty("start", out JsonElement startElement)
                     && startElement.ValueKind == JsonValueKind.Number
@@ -1767,7 +1794,11 @@ namespace OsEngine.MCP.Modules
                     && valueElement.ValueKind == JsonValueKind.Number
                     && valueElement.TryGetDecimal(out decimal newValue))
                 {
-                    decimalCheckBoxParam.ValueDecimal = newValue;
+                    // см. комментарий в ветке Int: фиксированное значение пишется и в Defolt
+                    string[] save = decimalCheckBoxParam.GetStringToSave().Split('#');
+                    save[1] = newValue.ToString();
+                    save[2] = newValue.ToString();
+                    decimalCheckBoxParam.LoadParamFromString(save);
                 }
 
                 return;
@@ -2129,7 +2160,7 @@ namespace OsEngine.MCP.Modules
             {
                 for (int i = 0; i < reportParams.Count; i++)
                 {
-                    parameters.Add(SerializeOptimizerParam(reportParams[i], false));
+                    parameters.Add(SerializeOptimizerParam(reportParams[i], false, false));
                 }
             }
 

@@ -151,9 +151,15 @@ namespace OsEngine.Entity
         private decimal _volumeExecute;
         private bool _volumeExecuteChange;
 
+        // кэш средней цены исполнения. В файл не сохраняется:
+        // после перезапуска терминала пересчитывается по загруженным трейдам
+        private decimal _middlePriceCache;
+        private bool _middlePriceChange = true;
+
         public void ReCalculateVolume()
         {
             _volumeExecuteChange = true;
+            _middlePriceChange = true;
         }
 
         /// <summary>
@@ -370,6 +376,7 @@ namespace OsEngine.Entity
             _trades.Add(trade);
 
             _volumeExecuteChange = true;
+            _middlePriceChange = true;
 
             if (Volume == VolumeExecute)
             {
@@ -391,6 +398,12 @@ namespace OsEngine.Entity
             {
                 return Price;
             }
+
+            if (_middlePriceChange == false)
+            {
+                return _middlePriceCache;
+            }
+
             decimal price = 0;
 
             decimal volumeExecute = 0;
@@ -412,6 +425,9 @@ namespace OsEngine.Entity
             }
 
             price = price / volumeExecute;
+
+            _middlePriceCache = price;
+            _middlePriceChange = false;
 
             return price;
         }
@@ -593,6 +609,11 @@ namespace OsEngine.Entity
                     _trades[i].SetTradeFromString(tradesArray[i]);
                 }
             }
+
+            // трейды пересобраны из строки - кэши объёма и средней цены не валидны
+            _volumeExecuteChange = true;
+            _middlePriceChange = true;
+
             Comment = saveArray[18];
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
 
