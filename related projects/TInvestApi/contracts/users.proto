@@ -95,6 +95,10 @@ enum AccountType {
   ACCOUNT_TYPE_DEBIT = 5; //Дебетовый карточный счeт.
   ACCOUNT_TYPE_SAVING = 6; //Накопительный счeт.
   ACCOUNT_TYPE_DFA = 7; //Смарт-счет.
+  ACCOUNT_TYPE_SHARED_SAVING = 8; //Совместный накопительный счет.
+  ACCOUNT_TYPE_DEPOSIT = 9; //Вклад.
+  ACCOUNT_TYPE_OMS = 10; //ОМС.
+  ACCOUNT_TYPE_OFP_DEPOSIT = 11; //ОФП вклад.
 }
 
 //Статус счeта.

@@ -124,6 +124,8 @@ message PortfolioResponse {
   MoneyValue daily_yield = 15;  // Рассчитанная доходность портфеля за день в рублях.
   Quotation daily_yield_relative = 16; //Относительная доходность в день в %.
   MoneyValue total_amount_dfa = 17; //Общая стоимость смарт-активов в портфеле в рублях.
+  MoneyValue total_var_margin = 18; //Общая вариационная маржа.
+  MoneyValue total_var_margin_settled = 19; //Общая вариационная маржа от расчетной цены или от цены закрытия позиции.
 }
 
 //Запрос позиций портфеля по счету.

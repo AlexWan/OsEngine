@@ -559,7 +559,16 @@ message Bond {
 
   Quotation dlong_client = 90; //Ставка риска в лонг с учетом текущего уровня риска портфеля клиента. [Подробнее про ставки риска](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q5).
   Quotation dshort_client = 91; //Ставка риска в шорт с учетом текущего уровня риска портфеля клиента. [Подробнее про ставки риска](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q5).
+  repeated Rating ratings = 92; //Массив рейтингов.
+}
 
+//Объект передачи информации о рейтинге.
+message Rating {
+  string agency_name = 1; //Название рейтингового агентства.
+  string rating_level = 2; //Рейтинг.
+  google.protobuf.Timestamp rating_date = 3; //Дата выставления рейтинга.
+  string forecast = 4; //Прогноз.
+  bool is_under_watch = 5; //Признак нахождения под наблюдением.
 }
 
 //Объект передачи информации о валюте.
