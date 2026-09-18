@@ -96,6 +96,11 @@ namespace OsEngine.McpApi.TestStand.Tests
                             {
                                 if (!string.IsNullOrEmpty(eventName) && !string.IsNullOrEmpty(data))
                                 {
+                                    foreach (string issue in ProtocolValidator.ValidateSseEvent(eventName, data))
+                                    {
+                                        _context.RecordProtocolViolation($"SSE {eventName}", "sse", issue);
+                                    }
+
                                     if (eventName == "terminal.launched")
                                     {
                                         gotLaunched = ValidateLaunchedEvent(data, out string launchedError);

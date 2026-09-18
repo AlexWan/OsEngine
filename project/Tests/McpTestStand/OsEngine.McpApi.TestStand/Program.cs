@@ -226,7 +226,7 @@ namespace OsEngine.McpApi.TestStand
                 throw new FileNotFoundException($"OsEngine.exe not found: {options.OsEnginePath}");
             }
 
-            using (var processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey))
+            using (var processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey, options.StreamableHttp))
             {
                 // Remove stale auto-created data folders before starting OsEngine so
                 // previous failed runs cannot pollute the test sets. The folders are
@@ -269,6 +269,10 @@ namespace OsEngine.McpApi.TestStand
                         secrets);
 
                     context.PrintHeader();
+
+                    Console.WriteLine($"Transport: {(options.StreamableHttp ? "v2 (Streamable HTTP)" : "v1")}");
+
+                    _transportStreamableHttp = options.StreamableHttp;
 
                     List<TestResult> results = RunAllTests(context, options.ModuleFilter);
 
@@ -349,6 +353,7 @@ namespace OsEngine.McpApi.TestStand
         private static string _moduleFilter = string.Empty;
         private static int _matchedModules = 0;
         private static List<string> _moduleCatalog = new List<string>();
+        private static bool _transportStreamableHttp = false;
 
         private static List<TestResult> RunAllTests(TestContext context, string moduleFilter)
         {
@@ -406,10 +411,15 @@ namespace OsEngine.McpApi.TestStand
                 RunModule(context, 6, "ServerInstance", "-robotslight", () => new ServerInstanceTests(context).RunAll());
 
                 // Модуль: SSE
-                // MCP API: GET /api/v1/events.
+                // MCP API: GET /api/v1/events (кастомный событийный канал v1).
+                // Запускается только на v1: на v2 события идут стандартным
+                // GET-стримом /api/v2/mcp (проверяется в модуле StreamableHttp).
                 // Запускает OsEngine перед собой: да, без аргументов.
                 // Останавливает OsEngine после себя: да.
-                RunModule(context, 7, "SSE", string.Empty, () => new SseTests(context).RunAll());
+                if (!_transportStreamableHttp)
+                {
+                    RunModule(context, 7, "SSE", string.Empty, () => new SseTests(context).RunAll());
+                }
 
                 // Модуль: Errors
                 // MCP API: POST /api/v1/mcp без ключа, прямой terminal_get_status,
@@ -508,6 +518,16 @@ namespace OsEngine.McpApi.TestStand
                 // Если включено — только разблокирует паролем 11111111, файлы не меняются.
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, 20, "Encryption", "-robotslight", () => new EncryptionTests(context).RunAll());
+
+                // Модуль: StreamableHttp
+                // Стандартный MCP-транспорт (Streamable HTTP) на /api/v2/mcp.
+                // Запускается только при --transport v2.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Останавливает OsEngine после себя: да.
+                if (_transportStreamableHttp)
+                {
+                    RunModule(context, 21, "StreamableHttp", string.Empty, () => new StreamableHttpTests(context).RunAll());
+                }
 
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
@@ -640,6 +660,14 @@ namespace OsEngine.McpApi.TestStand
                 {
                     options.NoWait = true;
                 }
+                else if (arg == "--transport" && i + 1 < args.Length)
+                {
+                    string transport = args[++i].ToLowerInvariant();
+                    if (transport == "v2" || transport == "2" || transport == "streamable")
+                    {
+                        options.StreamableHttp = true;
+                    }
+                }
                 else if (arg == "--mode" && i + 1 < args.Length)
                 {
                     string mode = args[++i];
@@ -726,6 +754,7 @@ namespace OsEngine.McpApi.TestStand
             public string BaseUrl = string.Empty;
             public int TimeoutSeconds;
             public bool NoWait;
+            public bool StreamableHttp;
             public string ModuleFilter = string.Empty;
         }
     }

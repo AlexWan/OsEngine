@@ -78,7 +78,7 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
     OptimizerTests.cs       // optimizer_* via Optimizer mode
 ```
 
-По умолчанию стенд прогоняет все 20 модулей подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–20) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
+По умолчанию стенд прогоняет все 21 модуль подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–21) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption, 21 StreamableHttp. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
 
 ```bash
 ./OsEngine.McpApi.TestStand.exe                      # все модули
@@ -93,10 +93,39 @@ Tests/McpTestStand/OsEngine.McpApi.TestStand/
 
 ### 2.1. Endpoint'ы
 
-- **JSON-RPC:** `POST http://localhost:<port>/api/v1/mcp`
-- **SSE:** `GET http://localhost:<port>/api/v1/events`
+Есть **две версии API** — они различаются и по транспорту, и по формату ответов:
+
+**`/api/v1/*` (легаси, заморожена).** Работает с самого начала, на ней живут боевые интеграции. **Не менять.**
+- **JSON-RPC:** `POST http://localhost:<port>/api/v1/mcp` — синхронный ответ прямо в теле;
+- **SSE:** `GET http://localhost:<port>/api/v1/events` — события терминала.
+- Формат ответов: PascalCase-ключи (`Content`, `Type`, `Text`, `IsError`, `Tools`), в конверте рядом с `result` есть `"error": null`, `initialize` отклоняет версию протокола ≠ `2024-11-05`.
+
+**`/api/v2/mcp` (стандарт, Streamable HTTP).** Полное соответствие спецификации MCP — для стандартных клиентов (OpenCode, Claude Code, Inspector).
+- Единый endpoint `POST/GET/DELETE http://localhost:<port>/api/v2/mcp`;
+- camelCase-ключи (`tools`, `content`, `type`, `text`, `isError`), чистый конверт (только `result` XOR `error`);
+- согласование версии протокола, `Mcp-Session-Id`, заголовок `MCP-Protocol-Version`;
+- уведомления/ответы клиента → `202 Accepted` без тела.
 
 Порт по умолчанию: `6500`. Хранится в `Engine\McpSettings.txt`.
+
+### 2.1.1. Подключение стандартных клиентов к `/api/v2/mcp`
+
+Авторизация — тот же заголовок `X-Api-Key` (клиент задаёт его как кастомный заголовок). Пример для **OpenCode** (`opencode.json`):
+
+```json
+{
+  "mcp": {
+    "osengine": {
+      "type": "remote",
+      "url": "http://localhost:6500/api/v2/mcp",
+      "enabled": true,
+      "headers": { "X-Api-Key": "osengine-mcp-default-key" }
+    }
+  }
+}
+```
+
+После перезапуска OpenCode инструменты OsEngine появятся как `osengine_*`. Сервер отвечает заявленной версией протокола `2024-11-05` (согласование — клиент может слать любую версию, отказа нет).
 
 ### 2.2. Авторизация
 
@@ -120,6 +149,8 @@ X-Api-Key: <ключ>
 
 3. **Полезная нагрузка лежит в `result.Content[0].Text`.**  
    Это вложенная JSON-строка. Её нужно распарсить отдельно. Внутри строки кавычки могут быть экранированы как `\u0022`, поэтому `grep`/`sed`/`awk` не подходят для извлечения полей.
+
+   **Breaking change (16.09.2026):** ключи ответов `tools/list` и `tools/call` приведены к спецификации MCP — `tools`, `content`, `type`, `text`, `isError` (строчные). Раньше отдавались PascalCase (`Tools`, `Content`, `Type`, `Text`, `IsError`). Внешние скрипты, парсящие старые ключи, нужно обновить. Также конверт JSON-RPC теперь строго по спецификации: в успешном ответе нет ключа `error`, в ошибочном нет `result`.
 
 4. **Из Git Bash используйте готовый скрипт `OsEngine/bin/Debug/mcp_call.sh`.**  
    Он формирует корректный JSON-RPC запрос (в том числе с кириллицей) и распаковывает `Content[0].Text` через PowerShell:
@@ -352,6 +383,8 @@ curl -s -H "X-Api-Key: osengine-mcp-default-key" \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}' \
   http://localhost:6500/api/v1/mcp
 ```
+
+Сервер согласовывает версию протокола по спецификации MCP: какую бы версию ни прислал клиент (или не прислал вовсе), отказа нет — ответ всегда содержит поддерживаемую сервером версию в `protocolVersion` (сейчас `2024-11-05`).
 
 **tools/list:**
 
@@ -1406,8 +1439,9 @@ COMPAREPOSITIONS:  5/5 passed
 PROXY:             8/8 passed
 OPTIMIZER:        20/20 passed
 ENCRYPTION:       16/16 passed
+STREAMABLE_HTTP: 10/10 passed
 
-Total: 187/187 passed in 338.6s
+Total: 196/196 passed in 338.6s
 ```
 
 Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.

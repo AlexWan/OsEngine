@@ -18,16 +18,18 @@ namespace OsEngine.McpApi.TestStand
         private readonly string _osEnginePath;
         private readonly string _apiKey;
         private readonly int _port;
+        private readonly bool _streamableHttp;
 
         public Process? CurrentProcess { get; private set; }
 
         public McpApiClient? Client { get; private set; }
 
-        public OsEngineProcessController(string osEnginePath, int port, string apiKey)
+        public OsEngineProcessController(string osEnginePath, int port, string apiKey, bool streamableHttp = false)
         {
             _osEnginePath = osEnginePath ?? throw new ArgumentNullException(nameof(osEnginePath));
             _port = port;
             _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
+            _streamableHttp = streamableHttp;
         }
 
         public void Restart(string arguments, TimeSpan timeout)
@@ -60,7 +62,7 @@ namespace OsEngine.McpApi.TestStand
             CurrentProcess = Process.Start(startInfo)
                 ?? throw new InvalidOperationException("Failed to start OsEngine process");
 
-            Client = new McpApiClient(baseUrl, _apiKey);
+            Client = new McpApiClient(baseUrl, _apiKey, _streamableHttp);
 
             try
             {

@@ -4,6 +4,7 @@
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -39,6 +40,14 @@ namespace OsEngine.MCP
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        // JSON-RPC 2.0, section 5: result and error members are mutually exclusive.
+        // Strict clients (MCP SDK, .strict() union) reject "error": null with invalid_union
+        private static readonly JsonSerializerOptions JsonOptionsRpc = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
         private HttpListener _listener;
         private CancellationTokenSource _cts;
         private Task _listenerTask;
@@ -46,6 +55,15 @@ namespace OsEngine.MCP
         private readonly int _port;
         private readonly List<SseClient> _sseClients = new List<SseClient>();
         private readonly object _sseClientsLocker = new object();
+
+        // сессии Streamable HTTP (v2): id -> состояние сессии
+        private readonly ConcurrentDictionary<string, StreamableSession> _sessions = new ConcurrentDictionary<string, StreamableSession>();
+
+        // открытые GET-стримы v2: sessionId -> потоковый канал (server -> client события)
+        private readonly ConcurrentDictionary<string, StreamableStream> _streamableStreams = new ConcurrentDictionary<string, StreamableStream>();
+
+        // прогресс-токен сессии: sessionId -> progressToken (из _meta запроса)
+        private readonly ConcurrentDictionary<string, string> _sessionProgressTokens = new ConcurrentDictionary<string, string>();
 
         private readonly TerminalApi _terminalApi;
         private readonly LogsApi _logsApi;
@@ -430,6 +448,160 @@ namespace OsEngine.MCP
                     }
                 }
             }
+
+            SendV2Event(eventName, payload);
+        }
+
+        // события OsEngine -> стандартные JSON-RPC уведомления на v2-стримы (event: message)
+        private void SendV2Event(string eventName, object payload)
+        {
+            if (_streamableStreams.Count == 0)
+            {
+                return;
+            }
+
+            // прогресс оптимизатора дополнительно уходит как notifications/progress (при наличии progressToken)
+            if (eventName == "optimizer.test.progress")
+            {
+                SendV2Progress(payload);
+            }
+
+            string frame = BuildMessageFrame(eventName, payload);
+
+            foreach (KeyValuePair<string, StreamableStream> pair in _streamableStreams)
+            {
+                string sessionId = pair.Key;
+
+                if (!_sessions.TryGetValue(sessionId, out StreamableSession sessionState))
+                {
+                    continue;
+                }
+
+                if (!sessionState.Initialized || !sessionState.LoggingEnabled)
+                {
+                    continue;
+                }
+
+                pair.Value.Outgoing.Enqueue(frame);
+                pair.Value.Signal.Set();
+            }
+        }
+
+        private string BuildMessageFrame(string eventName, object payload)
+        {
+            string level = MapEventLevel(eventName);
+
+            var notification = new
+            {
+                jsonrpc = "2.0",
+                method = "notifications/message",
+                @params = new
+                {
+                    level = level,
+                    logger = "osengine",
+                    data = new { @event = eventName, payload = payload }
+                }
+            };
+
+            string dataJson = JsonSerializer.Serialize(notification, JsonOptions);
+            return $"event: message\ndata: {dataJson}\n\n";
+        }
+
+        // прогресс оптимизатора -> notifications/progress (с progressToken сессии)
+        private void SendV2Progress(object payload)
+        {
+            int currentValue = 0;
+            int maxValue = 0;
+
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(JsonSerializer.Serialize(payload, JsonOptions)))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (root.TryGetProperty("current_value", out JsonElement cur) && cur.ValueKind == JsonValueKind.Number)
+                    {
+                        currentValue = cur.GetInt32();
+                    }
+
+                    if (root.TryGetProperty("max_value", out JsonElement max) && max.ValueKind == JsonValueKind.Number)
+                    {
+                        maxValue = max.GetInt32();
+                    }
+                }
+            }
+            catch
+            {
+                // не удалось разобрать payload прогресса — пропускаем
+                return;
+            }
+
+            foreach (KeyValuePair<string, StreamableStream> pair in _streamableStreams)
+            {
+                string sessionId = pair.Key;
+
+                if (!_sessions.TryGetValue(sessionId, out StreamableSession sessionState))
+                {
+                    continue;
+                }
+
+                if (!sessionState.Initialized)
+                {
+                    continue;
+                }
+
+                if (!_sessionProgressTokens.TryGetValue(sessionId, out string token))
+                {
+                    continue;
+                }
+
+                var notification = new
+                {
+                    jsonrpc = "2.0",
+                    method = "notifications/progress",
+                    @params = new
+                    {
+                        progressToken = token,
+                        progress = currentValue,
+                        total = maxValue
+                    }
+                };
+
+                string dataJson = JsonSerializer.Serialize(notification, JsonOptions);
+                string frame = $"event: message\ndata: {dataJson}\n\n";
+
+                pair.Value.Outgoing.Enqueue(frame);
+                pair.Value.Signal.Set();
+            }
+        }
+
+        private static string MapEventLevel(string eventName)
+        {
+            switch (eventName)
+            {
+                case "terminal.launched":
+                case "terminal.stopped":
+                case "terminal.mode_changed":
+                case "server_instance.status_changed":
+                case "optimizer.test.finished":
+                    return "notice";
+
+                case "heartbeat":
+                    return "debug";
+
+                case "server_instance.log":
+                    return "info";
+
+                case "prime_settings.changed":
+                case "server_instance.security.updated":
+                case "server_instance.portfolio.updated":
+                case "data_set_load_completed_event":
+                case "data_set_security_load_completed_event":
+                    return "info";
+
+                default:
+                    return "info";
+            }
         }
 
         public void SendTerminalStopped(string reason)
@@ -539,6 +711,10 @@ namespace OsEngine.MCP
                     {
                         ProcessJsonRpc(request, response, true);
                     }
+                    else if (request.HttpMethod == "POST" && path == "/api/v2/mcp")
+                    {
+                        ProcessStreamableHttp(request, response, true);
+                    }
                     else
                     {
                         SendError(response, 401, "Encryptor is locked. Call encryption_unlock first (no API key required)");
@@ -567,6 +743,10 @@ namespace OsEngine.MCP
                         Log.ProcessMessage($"[FullLog] SSE client connected from {ip}", LogMessageType.System);
                     }
                     ProcessSse(response);
+                }
+                else if (path == "/api/v2/mcp")
+                {
+                    ProcessStreamableHttp(request, response);
                 }
                 else
                 {
@@ -739,7 +919,7 @@ namespace OsEngine.MCP
                 }
                 else
                 {
-                    rpcResponse = HandleMethod(rpcRequest);
+                    rpcResponse = HandleMethod(rpcRequest, true);
                 }
             }
             catch (JsonException error)
@@ -777,7 +957,374 @@ namespace OsEngine.MCP
                 Log.ProcessMessage($"[FullLog] RPC response: {responseJson}", LogMessageType.System);
             }
 
-            SendJson(response, 200, rpcResponse);
+            SendJson(response, 200, rpcResponse, true);
+        }
+
+        private const string SupportedProtocolVersion = "2024-11-05";
+
+        private void ProcessStreamableHttp(HttpListenerRequest request, HttpListenerResponse response, bool lockedMode = false)
+        {
+            try
+            {
+                if (lockedMode)
+                {
+                    ProcessStreamableLocked(request, response);
+                    return;
+                }
+
+                if (request.HttpMethod == "DELETE")
+                {
+                    ProcessSessionDelete(request, response);
+                    return;
+                }
+
+                if (request.HttpMethod == "GET")
+                {
+                    ProcessStreamableSse(request, response);
+                    return;
+                }
+
+                if (request.HttpMethod != "POST")
+                {
+                    SendError(response, 405, "Method Not Allowed");
+                    return;
+                }
+
+                string body;
+                using (StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
+                {
+                    body = reader.ReadToEnd();
+                }
+
+                McpJsonRpcRequest rpcRequest;
+                try
+                {
+                    rpcRequest = JsonSerializer.Deserialize<McpJsonRpcRequest>(body);
+                }
+                catch (JsonException)
+                {
+                    SendError(response, 400, "Invalid JSON-RPC message");
+                    return;
+                }
+
+                if (rpcRequest == null)
+                {
+                    SendError(response, 400, "Invalid JSON-RPC message");
+                    return;
+                }
+
+                // notification / response -> 202 Accepted без тела
+                if (rpcRequest.Id == null)
+                {
+                    if (rpcRequest.Method != null)
+                    {
+                        _protocolApi.HandleNotification(rpcRequest);
+
+                        if (rpcRequest.Method == "notifications/initialized")
+                        {
+                            MarkSessionInitialized(request);
+                        }
+                    }
+
+                    response.StatusCode = 202;
+                    response.Close();
+                    return;
+                }
+
+                // заголовок версии протокола: обязателен на последующих запросах, неверный -> 400
+                if (rpcRequest.Method != "initialize")
+                {
+                    string versionHeader = request.Headers["MCP-Protocol-Version"];
+                    if (!string.IsNullOrEmpty(versionHeader) && versionHeader != SupportedProtocolVersion)
+                    {
+                        SendError(response, 400, $"Invalid MCP-Protocol-Version: {versionHeader}");
+                        return;
+                    }
+                }
+
+                if (rpcRequest.Method == "initialize")
+                {
+                    McpJsonRpcResponse rpcResponse = HandleMethod(rpcRequest, false);
+                    string sessionId = Guid.NewGuid().ToString("N");
+                    StreamableSession sessionState = new StreamableSession
+                    {
+                        Created = DateTime.UtcNow,
+                        Initialized = false,
+                        LoggingEnabled = ClientSupportsLogging(rpcRequest)
+                    };
+                    _sessions[sessionId] = sessionState;
+                    response.Headers.Add("Mcp-Session-Id", sessionId);
+                    SendJson(response, 200, rpcResponse, false);
+                    return;
+                }
+
+                // прочие запросы требуют сессии
+                string session = request.Headers["Mcp-Session-Id"];
+                if (string.IsNullOrEmpty(session))
+                {
+                    SendError(response, 400, "Mcp-Session-Id header is required");
+                    return;
+                }
+
+                if (!_sessions.ContainsKey(session))
+                {
+                    SendError(response, 404, "Session not found");
+                    return;
+                }
+
+                CaptureProgressToken(rpcRequest, session);
+
+                McpJsonRpcResponse result = HandleMethod(rpcRequest, false);
+                SendJson(response, 200, result, false);
+            }
+            catch (Exception error)
+            {
+                Log.ProcessMessage(error.ToString(), LogMessageType.Error);
+                try
+                {
+                    SendError(response, 500, "Internal server error");
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        // locked-режим на v2: initialize создаёт сессию, из инструментов разрешён только encryption_unlock
+        private void ProcessStreamableLocked(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            if (request.HttpMethod != "POST")
+            {
+                SendError(response, 401, "Encryptor is locked. Call encryption_unlock first (no API key required)");
+                return;
+            }
+
+            string body;
+            using (StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
+            {
+                body = reader.ReadToEnd();
+            }
+
+            McpJsonRpcRequest rpcRequest;
+            try
+            {
+                rpcRequest = JsonSerializer.Deserialize<McpJsonRpcRequest>(body);
+            }
+            catch (JsonException)
+            {
+                SendError(response, 400, "Invalid JSON-RPC message");
+                return;
+            }
+
+            if (rpcRequest == null || rpcRequest.Id == null)
+            {
+                SendError(response, 401, "Encryptor is locked. Call encryption_unlock first (no API key required)");
+                return;
+            }
+
+            if (rpcRequest.Method == "initialize")
+            {
+                McpJsonRpcResponse rpcResponse = HandleMethod(rpcRequest, false);
+                string sessionId = Guid.NewGuid().ToString("N");
+                _sessions[sessionId] = new StreamableSession
+                {
+                    Created = DateTime.UtcNow,
+                    Initialized = false,
+                    LoggingEnabled = ClientSupportsLogging(rpcRequest)
+                };
+                response.Headers.Add("Mcp-Session-Id", sessionId);
+                SendJson(response, 200, rpcResponse, false);
+                return;
+            }
+
+            if (rpcRequest.Method == "tools/call" && IsUnlockCallAllowed(rpcRequest))
+            {
+                McpJsonRpcResponse rpcResponse = HandleMethod(rpcRequest, false);
+                SendJson(response, 200, rpcResponse, false);
+                return;
+            }
+
+            SendError(response, 401, "Encryptor is locked. Call encryption_unlock first (no API key required)");
+        }
+
+        private void ProcessSessionDelete(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            string session = request.Headers["Mcp-Session-Id"];
+
+            if (string.IsNullOrEmpty(session))
+            {
+                SendError(response, 400, "Mcp-Session-Id header is required");
+                return;
+            }
+
+            if (_sessions.TryRemove(session, out _))
+            {
+                CloseStreamableStream(session);
+                response.StatusCode = 200;
+                response.Close();
+            }
+            else
+            {
+                SendError(response, 404, "Session not found");
+            }
+        }
+
+        // GET-стрим v2: сервер -> клиент события (JSON-RPC notifications по event: message)
+        private void ProcessStreamableSse(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            string session = request.Headers["Mcp-Session-Id"];
+
+            if (string.IsNullOrEmpty(session))
+            {
+                SendError(response, 400, "Mcp-Session-Id header is required");
+                return;
+            }
+
+            if (!_sessions.ContainsKey(session))
+            {
+                SendError(response, 404, "Session not found");
+                return;
+            }
+
+            response.ContentType = "text/event-stream";
+            response.Headers.Add("Cache-Control", "no-cache");
+            response.StatusCode = 200;
+
+            StreamableStream stream = new StreamableStream { Response = response };
+            _streamableStreams[session] = stream;
+
+            // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
+            stream.Outgoing.Enqueue(BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
+
+            try
+            {
+                // SSE-комментарий сразу флашит заголовки, иначе клиент не получит их до первого события
+                byte[] hello = Encoding.UTF8.GetBytes(": connected\n\n");
+                response.OutputStream.Write(hello, 0, hello.Length);
+                response.OutputStream.Flush();
+
+                // единственный поток, который пишет в этот response: разгребает очередь событий
+                while (!_cts.IsCancellationRequested)
+                {
+                    string frame;
+                    bool wroteData = false;
+
+                    while (stream.Outgoing.TryDequeue(out frame))
+                    {
+                        try
+                        {
+                            byte[] frameBytes = Encoding.UTF8.GetBytes(frame);
+                            response.OutputStream.Write(frameBytes, 0, frameBytes.Length);
+                            response.OutputStream.Flush();
+                            wroteData = true;
+                        }
+                        catch (Exception writeError)
+                        {
+                            Log.ProcessMessage($"[StreamableHttp] write failed (session={session}): {writeError.Message}", LogMessageType.Error);
+                            wroteData = false;
+                            break;
+                        }
+                    }
+
+                    if (!wroteData)
+                    {
+                        // периодический комментарий обнаруживает разрыв соединения
+                        try
+                        {
+                            byte[] keepAlive = Encoding.UTF8.GetBytes(": keep-alive\n\n");
+                            response.OutputStream.Write(keepAlive, 0, keepAlive.Length);
+                            response.OutputStream.Flush();
+                        }
+                        catch
+                        {
+                            break;
+                        }
+                    }
+
+                    stream.Signal.WaitOne(15000);
+                }
+            }
+            finally
+            {
+                CloseStreamableStream(session);
+            }
+        }
+
+        private void CloseStreamableStream(string session)
+        {
+            if (_streamableStreams.TryRemove(session, out StreamableStream stream))
+            {
+                try
+                {
+                    stream.Signal.Set();
+                    stream.Response.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private void CaptureProgressToken(McpJsonRpcRequest request, string session)
+        {
+            if (request.Method != "tools/call")
+            {
+                return;
+            }
+
+            try
+            {
+                if (request.Params.ValueKind == JsonValueKind.Object
+                    && request.Params.TryGetProperty("_meta", out JsonElement meta)
+                    && meta.ValueKind == JsonValueKind.Object
+                    && meta.TryGetProperty("progressToken", out JsonElement token)
+                    && (token.ValueKind == JsonValueKind.String || token.ValueKind == JsonValueKind.Number))
+                {
+                    string tokenValue = token.ValueKind == JsonValueKind.Number ? token.GetRawText() : token.GetString();
+                    _sessionProgressTokens[session] = tokenValue;
+                }
+            }
+            catch
+            {
+                // невалидный _meta — прогресс не запрошен
+            }
+        }
+
+        private void MarkSessionInitialized(HttpListenerRequest request)
+        {
+            string session = request.Headers["Mcp-Session-Id"];
+
+            if (string.IsNullOrEmpty(session))
+            {
+                return;
+            }
+
+            if (_sessions.TryGetValue(session, out StreamableSession sessionState))
+            {
+                sessionState.Initialized = true;
+            }
+        }
+
+        private static bool ClientSupportsLogging(McpJsonRpcRequest request)
+        {
+            try
+            {
+                if (request.Params.ValueKind == JsonValueKind.Object
+                    && request.Params.TryGetProperty("capabilities", out JsonElement capabilities)
+                    && capabilities.ValueKind == JsonValueKind.Object
+                    && capabilities.TryGetProperty("logging", out _))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // невалидные параметры initialize — logging не заявлен
+            }
+
+            return false;
         }
 
         private bool IsUnlockCallAllowed(McpJsonRpcRequest request)
@@ -800,7 +1347,7 @@ namespace OsEngine.MCP
             return nameElement.GetString() == "encryption_unlock";
         }
 
-        private McpJsonRpcResponse HandleMethod(McpJsonRpcRequest request)
+        private McpJsonRpcResponse HandleMethod(McpJsonRpcRequest request, bool legacyFormat)
         {
             McpJsonRpcResponse response = new McpJsonRpcResponse
             {
@@ -815,7 +1362,7 @@ namespace OsEngine.MCP
                     case "initialize":
                     case "tools/list":
                     case "tools/call":
-                        response = _protocolApi.Handle(request);
+                        response = _protocolApi.Handle(request, legacyFormat);
                         break;
 
                     default:
@@ -1115,9 +1662,10 @@ namespace OsEngine.MCP
             }
         }
 
-        private void SendJson<T>(HttpListenerResponse response, int statusCode, T data)
+        private void SendJson<T>(HttpListenerResponse response, int statusCode, T data, bool legacyFormat = false)
         {
-            string json = JsonSerializer.Serialize(data, JsonOptions);
+            JsonSerializerOptions options = legacyFormat ? JsonOptions : JsonOptionsRpc;
+            string json = JsonSerializer.Serialize(data, options);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
 
             response.StatusCode = statusCode;
@@ -1144,6 +1692,20 @@ namespace OsEngine.MCP
         private class SseClient
         {
             public HttpListenerResponse Response;
+        }
+
+        private class StreamableSession
+        {
+            public DateTime Created;
+            public bool Initialized;
+            public bool LoggingEnabled;
+        }
+
+        private class StreamableStream
+        {
+            public HttpListenerResponse Response;
+            public ConcurrentQueue<string> Outgoing = new ConcurrentQueue<string>();
+            public AutoResetEvent Signal = new AutoResetEvent(false);
         }
 
         #endregion

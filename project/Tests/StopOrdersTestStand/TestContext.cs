@@ -227,7 +227,7 @@ namespace StopOrdersTestStand
                             JsonElement item = contentElement[i];
                             Console.WriteLine(indent + "    {");
 
-                            if (item.TryGetProperty("Type", out JsonElement typeElement)
+                            if (item.TryGetProperty("type", out JsonElement typeElement)
                                 && typeElement.ValueKind == JsonValueKind.String)
                             {
                                 Console.WriteLine(indent + $"      \"Type\": \"{typeElement.GetString()}\",");

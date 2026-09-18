@@ -1083,7 +1083,10 @@ namespace OsEngine.Robots.SyntheticBond
         private void TryPlaceLimitEntry(BotTabSimple baseSource, BotTabSimple futuresSource, decimal yieldAnn)
         {
             if (baseSource.IsReadyToTrade == false
-                || futuresSource.IsReadyToTrade == false)
+                || futuresSource.IsReadyToTrade == false
+                || baseSource.Security == null
+                || futuresSource.Security == null
+                || IsPortfolioReady() == false)
             {
                 return;
             }
@@ -1550,7 +1553,9 @@ namespace OsEngine.Robots.SyntheticBond
         private void TryClosePairLimits(BotTabSimple baseTab, BotTabScreener screener)
         {
             if (baseTab == null
-                || baseTab.IsReadyToTrade == false)
+                || baseTab.IsReadyToTrade == false
+                || baseTab.Security == null
+                || IsPortfolioReady() == false)
             {
                 return;
             }
@@ -1560,7 +1565,8 @@ namespace OsEngine.Robots.SyntheticBond
                 BotTabSimple futTab = screener.Tabs[i];
 
                 if (futTab == null
-                    || futTab.IsReadyToTrade == false)
+                    || futTab.IsReadyToTrade == false
+                    || futTab.Security == null)
                 {
                     continue;
                 }
@@ -1620,7 +1626,9 @@ namespace OsEngine.Robots.SyntheticBond
         private void TryClosePairMarket(BotTabSimple baseTab, BotTabScreener screener)
         {
             if (baseTab == null
-                || baseTab.IsReadyToTrade == false)
+                || baseTab.IsReadyToTrade == false
+                || baseTab.Security == null
+                || IsPortfolioReady() == false)
             {
                 return;
             }
@@ -1630,7 +1638,8 @@ namespace OsEngine.Robots.SyntheticBond
                 BotTabSimple futTab = screener.Tabs[i];
 
                 if (futTab == null
-                    || futTab.IsReadyToTrade == false)
+                    || futTab.IsReadyToTrade == false
+                    || futTab.Security == null)
                 {
                     continue;
                 }
@@ -1787,11 +1796,23 @@ namespace OsEngine.Robots.SyntheticBond
             return -1;
         }
 
+        private bool IsPortfolioReady()
+        {
+            if (_base1 == null
+                || _base1.Portfolio == null)
+            {
+                return false;
+            }
+
+            return _base1.Portfolio.ValueCurrent > 1;
+        }
+
         private void TryLqdtParking()
         {
             if (_LqdtRegimeIsOn.ValueBool == false
                 || _tabLqdt.IsReadyToTrade == false
-                || _tabLqdt.Security == null)
+                || _tabLqdt.Security == null
+                || IsPortfolioReady() == false)
             {
                 return;
             }

@@ -140,16 +140,9 @@ namespace OsEngine.OsConverter
         {
             try
             {
-                decimal divider = 1;
-
-                if (ComboBoxTimeFrameInitial.SelectedItem.ToString() == TimeFrame.Min5.ToString())
-                {
-                    divider = 5;
-                }
-
                 List<Candle> candles = _candleConverter.ReadSourceFile();
-                List<Candle> mergedCandles = _candleConverter.Merge(candles,
-                    Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)divider));
+                List<Candle> mergedCandles = CandleConverter.Merge(candles,
+                    TimeSpan.FromMinutes(_candleConverter.ResultCandleTimeFrame));
 
                 _candleConverter.WriteExitFile(mergedCandles);
                 _candleConverter.SendNewLogMessage("The operation is complete", Logging.LogMessageType.System);

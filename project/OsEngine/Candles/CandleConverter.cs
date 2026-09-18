@@ -22,10 +22,6 @@ namespace OsEngine.Entity
     public class CandleConverter
     {
         /// <summary>
-        /// the vaults of already converted candlesticks
-        /// </summary>
-        private static List<ValueSave> _valuesToFormula = new List<ValueSave>();
-        /// <summary>
         /// the path to the source file from which we take the data
         /// </summary>
         private string _sourceFile;
@@ -190,159 +186,89 @@ namespace OsEngine.Entity
         /// dump candles
         /// </summary>
         /// <param name="candles">candles</param>
-        /// <param name="countMerge">Number of folds for the initial TF</param>
+        /// <param name="frameSpan">timeframe of outgoing candles</param>
         /// <returns></returns>
-        public List<Candle> Merge(List<Candle> candles, int countMerge)
+        public static List<Candle> Merge(List<Candle> candles, TimeSpan frameSpan)
         {
-            if (countMerge <= 1)
-            {
-                return candles;
-            }
-
             if (candles == null ||
-                candles.Count == 0 ||
-                candles.Count < countMerge)
+                candles.Count == 0)
             {
                 return candles;
             }
 
-
-            ValueSave saveVal = _valuesToFormula.Find(val => val.Name == candles[0].StringToSave + countMerge);
-
-            List<Candle> mergeCandles = null;
-
-            if (saveVal != null)
+            if (frameSpan.TotalMinutes <= 1)
             {
-                mergeCandles = saveVal.ValueCandles;
-            }
-            else
-            {
-                mergeCandles = new List<Candle>();
-                saveVal = new ValueSave();
-                saveVal.ValueCandles = mergeCandles;
-                saveVal.Name = candles[0].StringToSave + countMerge;
-                _valuesToFormula.Add(saveVal);
-            }
-            // we know the initial index.        
-            // узнаём начальный индекс
-
-            int firstIndex = 0;
-
-            if (mergeCandles.Count != 0)
-            {
-                mergeCandles.RemoveAt(mergeCandles.Count - 1);
+                return candles;
             }
 
-            if (mergeCandles.Count != 0)
+            // агрегация по времени: свеча попадает в то окно,
+            // к которому относится её TimeStart. Та же формула границ,
+            // что у Simple-реализации серий свечей в движке
+            List<Candle> mergeCandles = new List<Candle>();
+
+            Candle current = null;
+            DateTime currentWindowStart = DateTime.MinValue;
+
+            for (int i = 0; i < candles.Count; i++)
             {
-                for (int i = candles.Count - 1; i > -1; i--)
+                DateTime windowStart = GetWindowStart(candles[i].TimeStart, frameSpan);
+
+                if (current == null ||
+                    windowStart != currentWindowStart)
                 {
-                    if (mergeCandles[mergeCandles.Count - 1].TimeStart == candles[i].TimeStart)
-                    {
-                        firstIndex = i + countMerge;
+                    current = new Candle();
+                    current.TimeStart = windowStart;
+                    current.Open = candles[i].Open;
+                    current.High = candles[i].High;
+                    current.Low = candles[i].Low;
+                    current.Close = candles[i].Close;
+                    current.Volume = candles[i].Volume;
 
-                        if (candles[i].TimeStart.Hour == 10 && candles[i].TimeStart.Minute == 1)
-                        {
-                            firstIndex -= 1;
-                        }
-                        break;
+                    if (candles[i].Trades != null)
+                    {
+                        current.Trades.AddRange(candles[i].Trades);
+                    }
+
+                    mergeCandles.Add(current);
+                    currentWindowStart = windowStart;
+                }
+                else
+                {
+                    if (candles[i].High > current.High)
+                    {
+                        current.High = candles[i].High;
+                    }
+
+                    if (candles[i].Low < current.Low)
+                    {
+                        current.Low = candles[i].Low;
+                    }
+
+                    current.Close = candles[i].Close;
+                    current.Volume += candles[i].Volume;
+
+                    if (candles[i].Trades != null)
+                    {
+                        current.Trades.AddRange(candles[i].Trades);
                     }
                 }
-            }
-            // " Gathering
-            // собираем
-
-            for (int i = firstIndex; i < candles.Count;)
-            {
-                int countReal = countMerge;
-
-                if (countReal + i > candles.Count)
-                {
-                    countReal = candles.Count - i;
-                }
-                else if (i + countMerge < candles.Count &&
-                    candles[i].TimeStart.Day != candles[i + countMerge].TimeStart.Day)
-                {
-                    countReal = 0;
-
-                    for (int i2 = i; i2 < candles.Count; i2++)
-                    {
-                        if (candles[i].TimeStart.Day == candles[i2].TimeStart.Day)
-                        {
-                            countReal += 1;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (countReal == 0)
-                {
-                    break;
-                }
-
-                if (candles[i].TimeStart.Hour == 10 && candles[i].TimeStart.Minute == 1 &&
-                    countReal == countMerge)
-                {
-                    countReal -= 1;
-                }
-
-                mergeCandles.Add(Concate(candles, i, countReal));
-                i += countReal;
-
             }
 
             return mergeCandles;
         }
 
         /// <summary>
-        /// candle connection
+        /// start of the time window in which the candle falls
         /// </summary>
-        /// <param name="candles">original candles</param>
-        /// <param name="index">start index</param>
-        /// <param name="count">candle count for connection</param>
-        /// <returns></returns>
-        private Candle Concate(List<Candle> candles, int index, int count)
+        private static DateTime GetWindowStart(DateTime time, TimeSpan frameSpan)
         {
-            Candle candle = new Candle();
+            DateTime start = new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, 0);
 
-            candle.Open = candles[index].Open;
-            candle.High = Decimal.MinValue;
-            candle.Low = Decimal.MaxValue;
-            candle.TimeStart = candles[index].TimeStart;
+            int frameMinutes = (int)frameSpan.TotalMinutes;
 
-            for (int i = index; i < candles.Count && i < index + count; i++)
-            {
-                if (candles[i].Trades != null)
-                {
-                    candle.Trades.AddRange(candles[i].Trades);
-                }
+            start = start.AddMinutes(-(start.Minute % frameMinutes));
 
-                candle.Volume += candles[i].Volume;
-
-                if (candles[i].High > candle.High)
-                {
-                    candle.High = candles[i].High;
-                }
-
-                if (candles[i].Low < candle.Low)
-                {
-                    candle.Low = candles[i].Low;
-                }
-
-                candle.Close = candles[i].Close;
-            }
-
-            return candle;
-        }
-
-        /// <summary>
-        /// clean up old data
-        /// </summary>
-        public void Clear()
-        {
-            _valuesToFormula = new List<ValueSave>();
+            return start;
         }
 
         public void Load()

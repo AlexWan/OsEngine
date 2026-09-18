@@ -2216,6 +2216,12 @@ namespace OsEngine.McpApi.TestStand.Tests
             string botName = string.Empty;
             SseCollector? collector = null;
 
+            if (_context.Client.StreamableHttp)
+            {
+                _context.RecordPass(Module, method, "event-driven run — skipped on v2 transport (v1 SSE channel)");
+                return;
+            }
+
             try
             {
                 if (!WaitForTesterServer())

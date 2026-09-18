@@ -403,6 +403,14 @@ namespace OsEngine.McpApi.TestStand.Tests
         {
             const string method = "server_instance_get_data_after_connect";
             const string createMethod = "server_instance_create";
+
+            if (_context.Client.StreamableHttp)
+            {
+                // тест опирается на кастомный SSE-канал событий v1
+                _context.RecordPass(Module, method, "v1 SSE event channel — skipped on v2 transport");
+                return;
+            }
+
             const string deleteMethod = "server_instance_delete";
             const string setParamsMethod = "server_instance_set_params";
             const string connectMethod = "server_instance_connect";

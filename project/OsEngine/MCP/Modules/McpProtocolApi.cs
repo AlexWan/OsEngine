@@ -53,7 +53,7 @@ namespace OsEngine.MCP.Modules
 
         #region Public methods
 
-        public McpJsonRpcResponse Handle(McpJsonRpcRequest request)
+        public McpJsonRpcResponse Handle(McpJsonRpcRequest request, bool legacyFormat = false)
         {
             McpJsonRpcResponse response = new McpJsonRpcResponse
             {
@@ -66,15 +66,15 @@ namespace OsEngine.MCP.Modules
                 switch (request.Method)
                 {
                     case "initialize":
-                        response.Result = Initialize(request.Params);
+                        response.Result = Initialize(request.Params, legacyFormat);
                         break;
 
                     case "tools/list":
-                        response.Result = ToolsList();
+                        response.Result = ToolsList(legacyFormat);
                         break;
 
                     case "tools/call":
-                        response.Result = ToolsCall(request.Params);
+                        response.Result = ToolsCall(request.Params, legacyFormat);
                         break;
 
                     default:
@@ -123,7 +123,7 @@ namespace OsEngine.MCP.Modules
 
         #region Private methods
 
-        private object Initialize(JsonElement parameters)
+        private object Initialize(JsonElement parameters, bool legacyFormat)
         {
             string protocolVersion = SupportedProtocolVersion;
 
@@ -134,12 +134,21 @@ namespace OsEngine.MCP.Modules
                 protocolVersion = versionElement.GetString();
             }
 
-            if (protocolVersion != SupportedProtocolVersion)
+            if (legacyFormat)
             {
-                throw new ArgumentException($"Unsupported protocol version '{protocolVersion}'. Supported: {SupportedProtocolVersion}");
-            }
+                // v1: жёсткий отказ на версию, отличную от поддерживаемой (как было изначально)
+                if (protocolVersion != SupportedProtocolVersion)
+                {
+                    throw new ArgumentException($"Unsupported protocol version '{protocolVersion}'. Supported: {SupportedProtocolVersion}");
+                }
 
-            SendLog($"MCP initialize requested, protocolVersion={protocolVersion}", LogMessageType.System);
+                SendLog($"MCP initialize requested, protocolVersion={protocolVersion}", LogMessageType.System);
+            }
+            else
+            {
+                // v2: согласование версии по спецификации MCP — отвечаем своей версией
+                SendLog($"MCP initialize requested with protocolVersion={protocolVersion}, responding with {SupportedProtocolVersion}", LogMessageType.System);
+            }
 
             return new
             {
@@ -157,7 +166,7 @@ namespace OsEngine.MCP.Modules
             };
         }
 
-        private object ToolsCall(JsonElement parameters)
+        private object ToolsCall(JsonElement parameters, bool legacyFormat)
         {
             if (parameters.ValueKind != JsonValueKind.Object)
             {
@@ -193,13 +202,25 @@ namespace OsEngine.MCP.Modules
 
             if (innerResponse.Error != null)
             {
+                if (legacyFormat)
+                {
+                    return new
+                    {
+                        Content = new[]
+                        {
+                            new { Type = "text", Text = innerResponse.Error.Message }
+                        },
+                        IsError = true
+                    };
+                }
+
                 return new
                 {
-                    Content = new[]
+                    content = new[]
                     {
-                        new { Type = "text", Text = innerResponse.Error.Message }
+                        new { type = "text", text = innerResponse.Error.Message }
                     },
-                    IsError = true
+                    isError = true
                 };
             }
 
@@ -210,17 +231,29 @@ namespace OsEngine.MCP.Modules
                 })
                 : "null";
 
+            if (legacyFormat)
+            {
+                return new
+                {
+                    Content = new[]
+                    {
+                        new { Type = "text", Text = resultJson }
+                    },
+                    IsError = false
+                };
+            }
+
             return new
             {
-                Content = new[]
+                content = new[]
                 {
-                    new { Type = "text", Text = resultJson }
+                    new { type = "text", text = resultJson }
                 },
-                IsError = false
+                isError = false
             };
         }
 
-        private object ToolsList()
+        private object ToolsList(bool legacyFormat)
         {
             List<McpTool> tools = new List<McpTool>
             {
@@ -232,7 +265,12 @@ namespace OsEngine.MCP.Modules
                 tools.AddRange(_toolProviders[i].GetTools());
             }
 
-            return new { Tools = tools };
+            if (legacyFormat)
+            {
+                return new { Tools = tools };
+            }
+
+            return new { tools = tools };
         }
 
         private void SendLog(string message, LogMessageType type)

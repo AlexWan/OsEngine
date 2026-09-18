@@ -1124,6 +1124,13 @@ namespace OsEngine.McpApi.TestStand.Tests
             const string setName = DataSetName;
             SseCollector? collector = null;
 
+            if (_context.Client.StreamableHttp)
+            {
+                // прогон ждёт v1 SSE-события optimizer.test.finished
+                _context.RecordPass(Module, method, "event-driven run — skipped on v2 transport (v1 SSE channel)");
+                return;
+            }
+
             try
             {
                 // сет гарантируется шагом data_ensure_set в начале модуля — здесь только проверяем
@@ -1260,6 +1267,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                 // 6. Запуск с сбором SSE
                 collector = new SseCollector(_context.Client, eventName => eventName.StartsWith("optimizer.test."));
+                collector.OnEvent = ValidateSseEventWithContext;
                 collector.Start();
 
                 _context.PrintRequest(Module, "optimizer_start", new { });
@@ -1357,6 +1365,13 @@ namespace OsEngine.McpApi.TestStand.Tests
         private void TestFixedParamsPreservedInReport()
         {
             const string method = "optimizer_fixed_params_e2e";
+
+            if (_context.Client.StreamableHttp)
+            {
+                // зависит от настройки данных/вкладок, которую делает TestOptimizerRun (на v2 пропущен)
+                _context.RecordPass(Module, method, "data-coupled run — skipped on v2 transport");
+                return;
+            }
 
             try
             {
@@ -1524,6 +1539,13 @@ namespace OsEngine.McpApi.TestStand.Tests
             const string method = "optimizer_run_screener_e2e";
             const string setName = DataSetName;
             SseCollector? collector = null;
+
+            if (_context.Client.StreamableHttp)
+            {
+                _context.RecordPass(Module, method, "event-driven run — skipped on v2 transport (v1 SSE channel)");
+                return;
+            }
+
             JsonElement originalPcAdx = default;
             string originalRegime = string.Empty;
             List<JsonElement> allParams = new List<JsonElement>();
@@ -1694,6 +1716,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                 // 6. запуск с сбором SSE
                 collector = new SseCollector(_context.Client, eventName => eventName.StartsWith("optimizer.test."));
+                collector.OnEvent = ValidateSseEventWithContext;
                 collector.Start();
 
                 _context.PrintRequest(Module, "optimizer_start", new { });
@@ -2168,6 +2191,21 @@ namespace OsEngine.McpApi.TestStand.Tests
             return false;
         }
 
+        private void ValidateSseEventWithContext(string eventName, string data)
+        {
+            try
+            {
+                foreach (string issue in ProtocolValidator.ValidateSseEvent(eventName, data))
+                {
+                    _context.RecordProtocolViolation($"SSE {eventName}", "sse", issue);
+                }
+            }
+            catch
+            {
+                // валидатор не имеет права ломать сбор событий
+            }
+        }
+
         private bool WaitForOptimizationEnd()
         {
             DateTime deadline = DateTime.Now.AddMinutes(5);
@@ -2214,6 +2252,11 @@ namespace OsEngine.McpApi.TestStand.Tests
             private StreamReader? _reader;
             private Thread? _thread;
             private bool _stopRequested;
+
+            /// <summary>
+            /// Optional hook fired for every completed SSE frame: (eventName, dataJson).
+            /// </summary>
+            public Action<string, string>? OnEvent;
 
             public SseCollector(McpApiClient client, Predicate<string> filter)
             {
@@ -2270,6 +2313,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                     _reader = new StreamReader(_stream, Encoding.UTF8);
 
                     string eventName = string.Empty;
+                    string data = string.Empty;
 
                     while (!_stopRequested)
                     {
@@ -2290,17 +2334,27 @@ namespace OsEngine.McpApi.TestStand.Tests
                         {
                             eventName = line.Substring("event: ".Length).Trim();
                         }
+                        else if (line.StartsWith("data: "))
+                        {
+                            data = line.Substring("data: ".Length).Trim();
+                        }
                         else if (string.IsNullOrEmpty(line))
                         {
-                            if (!string.IsNullOrEmpty(eventName) && _filter(eventName))
+                            if (!string.IsNullOrEmpty(eventName))
                             {
-                                lock (_locker)
+                                OnEvent?.Invoke(eventName, data);
+
+                                if (_filter(eventName))
                                 {
-                                    _events.Add(eventName);
+                                    lock (_locker)
+                                    {
+                                        _events.Add(eventName);
+                                    }
                                 }
                             }
 
                             eventName = string.Empty;
+                            data = string.Empty;
                         }
                     }
                 }

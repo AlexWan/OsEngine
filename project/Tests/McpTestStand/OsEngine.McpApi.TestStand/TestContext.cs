@@ -31,6 +31,10 @@ namespace OsEngine.McpApi.TestStand
 
         public List<TestResult> Results { get; } = new List<TestResult>();
 
+        public List<ProtocolViolation> ProtocolViolations { get; } = new List<ProtocolViolation>();
+
+        public string CurrentModule { get; private set; } = string.Empty;
+
         public int Passed { get; private set; }
 
         public int Failed { get; private set; }
@@ -67,6 +71,7 @@ namespace OsEngine.McpApi.TestStand
 
         public void PrintModuleHeader(string module)
         {
+            CurrentModule = module;
             Console.WriteLine($"--- {module} ---");
         }
 
@@ -152,6 +157,70 @@ namespace OsEngine.McpApi.TestStand
 
             Console.WriteLine();
             Console.WriteLine($"Total: {Passed}/{Passed + Failed} passed" + (Failed > 0 ? $" ({Failed} failed)" : "") + $" in {elapsed.TotalSeconds:F1}s");
+
+            PrintProtocolViolations();
+        }
+
+        public void RecordProtocolViolation(string method, string direction, string message)
+        {
+            ProtocolViolations.Add(new ProtocolViolation
+            {
+                Module = CurrentModule,
+                Method = method,
+                Direction = direction,
+                Message = message
+            });
+
+            Console.WriteLine($"  [PROTOCOL] {direction} {method}: {message}");
+        }
+
+        private void PrintProtocolViolations()
+        {
+            Console.WriteLine();
+            Console.WriteLine("--- Protocol Violations ---");
+
+            if (ProtocolViolations.Count == 0)
+            {
+                Console.WriteLine("none");
+                return;
+            }
+
+            Dictionary<string, int> byModule = new Dictionary<string, int>();
+
+            foreach (ProtocolViolation violation in ProtocolViolations)
+            {
+                string module = string.IsNullOrEmpty(violation.Module) ? "Unknown" : violation.Module;
+
+                if (!byModule.ContainsKey(module))
+                {
+                    byModule[module] = 0;
+                }
+
+                byModule[module]++;
+            }
+
+            foreach (KeyValuePair<string, int> pair in byModule)
+            {
+                Console.WriteLine($"{pair.Key}: {pair.Value} violation(s)");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"Total protocol violations: {ProtocolViolations.Count} (informational, not test failures)");
+            Console.WriteLine("First entries:");
+
+            int shown = 0;
+
+            foreach (ProtocolViolation violation in ProtocolViolations)
+            {
+                Console.WriteLine($"  [{violation.Module}] {violation.Direction} {violation.Method}: {violation.Message}");
+                shown++;
+
+                if (shown >= 20)
+                {
+                    Console.WriteLine($"  ... and {ProtocolViolations.Count - shown} more (see log file)");
+                    break;
+                }
+            }
         }
 
         private static string Serialize(object value)
