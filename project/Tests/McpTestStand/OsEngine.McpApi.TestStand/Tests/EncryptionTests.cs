@@ -175,9 +175,9 @@ namespace OsEngine.McpApi.TestStand.Tests
                     {
                         JsonElement root = innerDocument.RootElement;
 
-                        if (!root.TryGetProperty("Status", out JsonElement statusElement))
+                        if (!root.TryGetProperty("status", out JsonElement statusElement))
                         {
-                            _context.RecordFail(Module, checkName, "Status missing");
+                            _context.RecordFail(Module, checkName, "status missing");
                             return null;
                         }
 
@@ -185,13 +185,13 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                         if (status != "Plain" && status != "Encrypted" && status != "Declined")
                         {
-                            _context.RecordFail(Module, checkName, "unexpected Status value: " + status);
+                            _context.RecordFail(Module, checkName, "unexpected status value: " + status);
                             return null;
                         }
 
-                        if (!root.TryGetProperty("Unlocked", out JsonElement unlockedElement))
+                        if (!root.TryGetProperty("unlocked", out JsonElement unlockedElement))
                         {
-                            _context.RecordFail(Module, checkName, "Unlocked missing");
+                            _context.RecordFail(Module, checkName, "unlocked missing");
                             return null;
                         }
 
@@ -238,20 +238,20 @@ namespace OsEngine.McpApi.TestStand.Tests
                     {
                         JsonElement root = innerDocument.RootElement;
 
-                        string status = root.GetProperty("Status").GetString();
-                        bool unlocked = root.GetProperty("Unlocked").GetBoolean();
+                        string status = root.GetProperty("status").GetString();
+                        bool unlocked = root.GetProperty("unlocked").GetBoolean();
 
                         bool isEncrypted = status == "Encrypted";
 
                         if (isEncrypted != expectEncrypted)
                         {
-                            _context.RecordFail(Module, checkName, "Status is " + status + ", expected encrypted: " + expectEncrypted);
+                            _context.RecordFail(Module, checkName, "status is " + status + ", expected encrypted: " + expectEncrypted);
                             return;
                         }
 
                         if (unlocked != expectUnlocked)
                         {
-                            _context.RecordFail(Module, checkName, "Unlocked is " + unlocked + ", expected: " + expectUnlocked);
+                            _context.RecordFail(Module, checkName, "unlocked is " + unlocked + ", expected: " + expectUnlocked);
                             return;
                         }
 
@@ -357,9 +357,9 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                     string text = GetContentText(result);
 
-                    if (text.Contains("\"Success\":true") == false)
+                    if (text.Contains("\"success\":true") == false)
                     {
-                        _context.RecordFail(Module, method, "Success is not true. Response: " + text);
+                        _context.RecordFail(Module, method, "success is not true. Response: " + text);
                         return;
                     }
 

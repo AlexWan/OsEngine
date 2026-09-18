@@ -159,8 +159,8 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Success = true,
-                Settings = McpPrimeSettings.FromCurrent()
+                success = true,
+                settings = McpPrimeSettings.FromCurrent()
             };
         }
 

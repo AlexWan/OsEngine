@@ -68,42 +68,42 @@ namespace OsEngine.McpApi.TestStand.Tests
                     {
                         JsonElement settings = innerDocument.RootElement;
 
-                        if (!settings.TryGetProperty("Port", out _))
+                        if (!settings.TryGetProperty("port", out _))
                         {
-                            _context.RecordFail(Module, method, "Port missing");
+                            _context.RecordFail(Module, method, "port missing");
                             return;
                         }
 
-                        if (!settings.TryGetProperty("ApiKey", out _))
+                        if (!settings.TryGetProperty("apiKey", out _))
                         {
-                            _context.RecordFail(Module, method, "ApiKey missing");
+                            _context.RecordFail(Module, method, "apiKey missing");
                             return;
                         }
 
-                        if (!settings.TryGetProperty("IsEnabled", out _))
+                        if (!settings.TryGetProperty("isEnabled", out _))
                         {
-                            _context.RecordFail(Module, method, "IsEnabled missing");
+                            _context.RecordFail(Module, method, "isEnabled missing");
                             return;
                         }
 
-                        if (!settings.TryGetProperty("IsFullLogEnabled", out _))
+                        if (!settings.TryGetProperty("isFullLogEnabled", out _))
                         {
-                            _context.RecordFail(Module, method, "IsFullLogEnabled missing");
+                            _context.RecordFail(Module, method, "isFullLogEnabled missing");
                             return;
                         }
 
-                        if (!settings.TryGetProperty("AllowedIps", out JsonElement allowedIpsElement)
+                        if (!settings.TryGetProperty("allowedIps", out JsonElement allowedIpsElement)
                             || allowedIpsElement.ValueKind != System.Text.Json.JsonValueKind.Array
                             || allowedIpsElement.GetArrayLength() == 0)
                         {
-                            _context.RecordFail(Module, method, "AllowedIps missing or empty");
+                            _context.RecordFail(Module, method, "allowedIps missing or empty");
                             return;
                         }
 
                         bool hasLocalhost = false;
                         foreach (JsonElement ipItem in allowedIpsElement.EnumerateArray())
                         {
-                            if (ipItem.TryGetProperty("Ip", out JsonElement ipValue)
+                            if (ipItem.TryGetProperty("ip", out JsonElement ipValue)
                                 && ipValue.GetString() == "127.0.0.1")
                             {
                                 hasLocalhost = true;
@@ -113,7 +113,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                         if (!hasLocalhost)
                         {
-                            _context.RecordFail(Module, method, "Default localhost IP not found in AllowedIps");
+                            _context.RecordFail(Module, method, "Default localhost IP not found in allowedIps");
                             return;
                         }
 
@@ -166,15 +166,15 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                     string text = content[0].GetProperty("Text").GetString() ?? string.Empty;
 
-                    if (!text.Contains("\"Success\":true"))
+                    if (!text.Contains("\"success\":true"))
                     {
-                        _context.RecordFail(Module, method, "Success is not true");
+                        _context.RecordFail(Module, method, "success is not true");
                         return;
                     }
 
-                    if (!text.Contains("\"RestartRequired\":false"))
+                    if (!text.Contains("\"restartRequired\":false"))
                     {
-                        _context.RecordFail(Module, method, "RestartRequired is not false");
+                        _context.RecordFail(Module, method, "restartRequired is not false");
                         return;
                     }
                 }
@@ -236,7 +236,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                     using (var innerDocument = JsonDocument.Parse(text))
                     {
-                        if (innerDocument.RootElement.TryGetProperty("IsFullLogEnabled", out JsonElement element))
+                        if (innerDocument.RootElement.TryGetProperty("isFullLogEnabled", out JsonElement element))
                         {
                             value = element.GetBoolean();
                             return true;

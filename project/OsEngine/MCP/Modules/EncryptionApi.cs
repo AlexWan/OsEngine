@@ -121,8 +121,8 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Status = statusStr,
-                Unlocked = ServerEncryptionMaster.IsUnlocked
+                status = statusStr,
+                unlocked = ServerEncryptionMaster.IsUnlocked
             };
         }
 
@@ -142,8 +142,8 @@ namespace OsEngine.MCP.Modules
             {
                 return new
                 {
-                    Success = true,
-                    AlreadyUnlocked = true
+                    success = true,
+                    alreadyUnlocked = true
                 };
             }
 
@@ -178,8 +178,8 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Success = true,
-                AlreadyUnlocked = false
+                success = true,
+                alreadyUnlocked = false
             };
         }
 
@@ -206,7 +206,7 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Success = true
+                success = true
             };
         }
 
@@ -228,7 +228,7 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Success = true
+                success = true
             };
         }
 

@@ -64,9 +64,9 @@ namespace OsEngine.McpApi.TestStand.Tests
                         return;
                     }
 
-                    if (!text.Contains("\"ErrorLogMessageBoxIsActive\""))
+                    if (!text.Contains("\"errorLogMessageBoxIsActive\""))
                     {
-                        _context.RecordFail(Module, method, "ErrorLogMessageBoxIsActive missing");
+                        _context.RecordFail(Module, method, "errorLogMessageBoxIsActive missing");
                         return;
                     }
 
@@ -120,9 +120,9 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                     string text = content[0].GetProperty("Text").GetString() ?? string.Empty;
 
-                    if (!text.Contains("\"Success\":true"))
+                    if (!text.Contains("\"success\":true"))
                     {
-                        _context.RecordFail(Module, method, "Success is not true");
+                        _context.RecordFail(Module, method, "success is not true");
                         return;
                     }
                 }
@@ -184,7 +184,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                     using (var innerDocument = JsonDocument.Parse(text))
                     {
-                        if (innerDocument.RootElement.TryGetProperty("ReportCriticalErrors", out JsonElement element))
+                        if (innerDocument.RootElement.TryGetProperty("reportCriticalErrors", out JsonElement element))
                         {
                             value = element.GetBoolean();
                             return true;

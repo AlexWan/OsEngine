@@ -91,11 +91,11 @@ namespace OsEngine.MCP.Modules
         {
             return new
             {
-                McpSettings.Port,
-                McpSettings.ApiKey,
-                McpSettings.IsEnabled,
-                McpSettings.IsFullLogEnabled,
-                AllowedIps = McpSettings.AllowedIps.Select(i => new { i.Ip, i.Port }).ToList()
+                port = McpSettings.Port,
+                apiKey = McpSettings.ApiKey,
+                isEnabled = McpSettings.IsEnabled,
+                isFullLogEnabled = McpSettings.IsFullLogEnabled,
+                allowedIps = McpSettings.AllowedIps.Select(i => new { ip = i.Ip, port = i.Port }).ToList()
             };
         }
 
@@ -179,9 +179,9 @@ namespace OsEngine.MCP.Modules
 
             return new
             {
-                Success = true,
-                RestartRequired = needRestart,
-                Settings = GetSettings()
+                success = true,
+                restartRequired = needRestart,
+                settings = GetSettings()
             };
         }
 

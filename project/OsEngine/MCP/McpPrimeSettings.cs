@@ -3,6 +3,8 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System.Text.Json.Serialization;
+
 namespace OsEngine.MCP
 {
     /// <summary>
@@ -10,18 +12,25 @@ namespace OsEngine.MCP
     /// </summary>
     public class McpPrimeSettings
     {
+        [JsonPropertyName("errorLogMessageBoxIsActive")]
         public bool ErrorLogMessageBoxIsActive { get; set; }
 
+        [JsonPropertyName("errorLogBeepIsActive")]
         public bool ErrorLogBeepIsActive { get; set; }
 
+        [JsonPropertyName("transactionBeepIsActive")]
         public bool TransactionBeepIsActive { get; set; }
 
+        [JsonPropertyName("rebootTradeUiLight")]
         public bool RebootTradeUiLight { get; set; }
 
+        [JsonPropertyName("reportCriticalErrors")]
         public bool ReportCriticalErrors { get; set; }
 
+        [JsonPropertyName("labelInHeaderBotStation")]
         public string LabelInHeaderBotStation { get; set; }
 
+        [JsonPropertyName("memoryCleanerRegime")]
         public string MemoryCleanerRegime { get; set; }
 
         /// <summary>

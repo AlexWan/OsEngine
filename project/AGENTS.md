@@ -67,8 +67,9 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 
 Если меняешь:
 
-- MCP API → `CONTEXT_MCP.md`, `TempContext/CONTEXT_MCP_API_DEVELOPMENT.md`.
-- Сценарии MCP → `CONTEXT_MCP_SCENARIO.md`.
+- MCP API (V2, рекомендуемая) → `CONTEXT_MCP_V2.md`, `TempContext/CONTEXT_MCP_API_DEVELOPMENT.md`.
+- MCP API (V1, легаси) → `CONTEXT_MCP_V1.md`.
+- Сценарии MCP → `CONTEXT_MCP_SCENARIO_V2.md` (V2) / `CONTEXT_MCP_SCENARIO_V1.md` (V1, легаси).
 - Соглашения → `CONTEXT_CODING_GUIDELINES.md`.
 - Карту проекта → `CONTEXT.md`.
 - Правила агентов → этот файл.

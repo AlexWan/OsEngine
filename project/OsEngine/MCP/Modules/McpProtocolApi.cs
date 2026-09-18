@@ -66,7 +66,7 @@ namespace OsEngine.MCP.Modules
                 switch (request.Method)
                 {
                     case "initialize":
-                        response.Result = Initialize(request.Params, legacyFormat);
+                        response.Result = Initialize(request.Params);
                         break;
 
                     case "tools/list":
@@ -123,7 +123,7 @@ namespace OsEngine.MCP.Modules
 
         #region Private methods
 
-        private object Initialize(JsonElement parameters, bool legacyFormat)
+        private object Initialize(JsonElement parameters)
         {
             string protocolVersion = SupportedProtocolVersion;
 
@@ -134,21 +134,8 @@ namespace OsEngine.MCP.Modules
                 protocolVersion = versionElement.GetString();
             }
 
-            if (legacyFormat)
-            {
-                // v1: жёсткий отказ на версию, отличную от поддерживаемой (как было изначально)
-                if (protocolVersion != SupportedProtocolVersion)
-                {
-                    throw new ArgumentException($"Unsupported protocol version '{protocolVersion}'. Supported: {SupportedProtocolVersion}");
-                }
-
-                SendLog($"MCP initialize requested, protocolVersion={protocolVersion}", LogMessageType.System);
-            }
-            else
-            {
-                // v2: согласование версии по спецификации MCP — отвечаем своей версией
-                SendLog($"MCP initialize requested with protocolVersion={protocolVersion}, responding with {SupportedProtocolVersion}", LogMessageType.System);
-            }
+            // Согласование версии по спецификации MCP: клиент шлёт свою версию, мы отвечаем своей и не отклоняем чужую.
+            SendLog($"MCP initialize requested with protocolVersion={protocolVersion}, responding with {SupportedProtocolVersion}", LogMessageType.System);
 
             return new
             {
