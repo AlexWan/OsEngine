@@ -12,8 +12,9 @@
 | **Сборка** | `dotnet build OsEngine/OsEngine.csproj` (всё решение — `dotnet build OsEngine.sln`) |
 | **Исполняемый файл** | `OsEngine/bin/Debug/OsEngine.exe` |
 | **Стартер** | `OsEngine/bin/Debug/osEngineStarter.exe` |
-| **MCP** | `http://localhost:6500/api/v1/mcp` (по умолчанию выключено) |
-| **SSE** | `http://localhost:6500/api/v1/events` |
+| **MCP (V2, рекомендуемый)** | `http://localhost:6500/api/v2/mcp` (Streamable HTTP) |
+| **MCP (V1, легаси)** | `http://localhost:6500/api/v1/mcp` |
+| **SSE (V1, легаси)** | `http://localhost:6500/api/v1/events` (в V2 события — через `GET /api/v2/mcp`) |
 | **Тестовый стенд** | `Tests/McpTestStand/OsEngine.McpApi.TestStand/` |
 
 ## Что читать под задачу

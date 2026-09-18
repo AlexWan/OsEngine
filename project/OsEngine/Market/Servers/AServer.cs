@@ -1487,12 +1487,19 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (_candleManager != null)
+                CandleManager manager;
+
+                lock (_lockerStarter)
                 {
-                    _candleManager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
-                    _candleManager.LogMessageEvent -= SendLogMessage;
-                    _candleManager.Dispose();
+                    manager = _candleManager;
                     _candleManager = null;
+                }
+
+                if (manager != null)
+                {
+                    manager.CandleUpdateEvent -= _candleManager_CandleUpdateEvent;
+                    manager.LogMessageEvent -= SendLogMessage;
+                    manager.Dispose();
                 }
             }
             catch (Exception ex)

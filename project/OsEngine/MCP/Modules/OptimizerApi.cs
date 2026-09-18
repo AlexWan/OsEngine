@@ -371,7 +371,7 @@ namespace OsEngine.MCP.Modules
                                     properties = new
                                     {
                                         name = new { type = "string" },
-                                        value = new { type = "number" },
+                                        value = new { type = new[] { "number", "string", "boolean" } },
                                         start = new { type = "number" },
                                         stop = new { type = "number" },
                                         step = new { type = "number" },
