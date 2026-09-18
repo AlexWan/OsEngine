@@ -1854,6 +1854,12 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                if (TradeGrid.GridCreator == null
+                    || TradeGrid.GridCreator.Lines == null)
+                {
+                    return;
+                }
+
                 if (_gridDataGrid.InvokeRequired)
                 {
                     _gridDataGrid.Invoke(new Action(RePaintGridTable));
@@ -1868,6 +1874,11 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < TradeGrid.GridCreator.Lines.Count; i++)
                 {
                     TradeGridLine curLine = TradeGrid.GridCreator.Lines[i];
+
+                    if (curLine == null)
+                    {
+                        continue;
+                    }
 
                     DataGridViewRow rowLine = new DataGridViewRow();
 
