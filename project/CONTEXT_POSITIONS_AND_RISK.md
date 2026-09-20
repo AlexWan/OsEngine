@@ -103,6 +103,8 @@ private void _tab_PositionClosingFailEvent(Position position)
 | `BuyAtStopCancel()` | Отмена всех отложенных Buy-ордеров | Перед сменой направления |
 | `BuyAtIceberg(...)` | Айсберг-заявка | Большой объём без проскальзывания |
 
+> **Серверные стопы на вход** (`BuyAtStopOnServer`, `SellAtStopOnServer`, `BuyAtStopMarketOnServer`, `SellAtStopMarketOnServer`, `*ToPosition`) — см. раздел 1.12.
+
 Для шорта аналогично: `SellAtMarket`, `SellAtLimit`, `SellAtStop`, `SellAtStopCancel`.
 
 > **Важно**: `BuyAtStopCancel()` / `SellAtStopCancel()` отменяют **все** отложенные ордера на вход. Вызывайте их перед перевыставлением, иначе старый и новый ордер будут конкурировать.
@@ -127,6 +129,8 @@ private void _tab_PositionClosingFailEvent(Position position)
 | `CloseAllAtMarket()` | Закрыть ВСЕ позиции по рынку | без параметров |
 | `CloseAllAtMarket(string signalType)` | Закрыть все с комментарием | |
 | `CloseAllOrderToPosition(Position)` | Отменить все ордера на позицию | полезно при перевыставлении |
+
+> **Серверные стопы** (`CloseAtStopOnServer`, `CloseAtStopMarketOnServer`, `CloseAtStopOnServerCancel`) — см. раздел 1.12.
 
 > **Критически важно**: `CloseAtTrailingStop` **двигает стоп только в сторону прибыли**. Если передать цену хуже текущего стопа — метод молча проигнорирует вызов.
 
@@ -543,6 +547,7 @@ if (position.CloseActive == false)
 | `MonitorImpulse` | `Monitors/` | Лимиты позиций + время в позиции (секунды) |
 | `FakeOutExample` | `TechSamples/` | Закрытие по времени (`TimeOpen.AddMinutes`) |
 | `DcaTimeBot` | `Helpers/` | Интервальный вход (`Add(interval)`) |
+| `ServerStopOrdersSample` | `TechSamples/` | Серверные стоп-лимиты на вход и выход (`...OnServer`) |
 
 ---
 
@@ -606,6 +611,56 @@ _lastTradeTime = DateTime.Now;
 ```csharp
 _tab.ManualPositionSupport.DisableManualSupport();
 ```
+
+---
+
+## 1.12 Серверные стоп-ордера (`...OnServer`)
+
+В `BotTabSimple` два семейства стопов:
+
+- **Локальные** (`CloseAtStop`, `CloseAtStopMarket`, `BuyAtStop`, `BuyAtStopMarket`, трейлинг) — живут внутри OsEngine и уходят на биржу только после активации цены.
+- **Серверные** (`...OnServer`) — выставляются прямо на бирже как стоп-заявки (`StopLimit` / `StopMarket`).
+
+**Ключевое правило:** методы `...OnServer` сами решают, куда отправить ордер. Если коннектор поддерживает серверные стопы (`ServerIsSupportStopOrders == true`) и программа — реальная торговля (`StartProgram.IsOsTrader`), ордер уходит на биржу. Иначе автоматически откатывается на локальный стоп. Поэтому они безопасны в тестере и на коннекторах без серверных стопов.
+
+> **Не заменяйте** `BuyAtStop`/`CloseAtStop` на `...OnServer` (и наоборот) бездумно — это разные механизмы. `...OnServer` нужен, только если требуется именно биржевой стоп.
+
+### Методы входа (стопы на открытие позиции)
+
+| Метод | Тип | Сигнатура |
+|-------|-----|-----------|
+| `BuyAtStopOnServer` | StopLimit | `(decimal volume, decimal priceLimit, decimal priceActivation[, string signalType])` |
+| `SellAtStopOnServer` | StopLimit | `(decimal volume, decimal priceLimit, decimal priceActivation[, string signalType])` |
+| `BuyAtStopMarketOnServer` | StopMarket | `(decimal volume, decimal priceActivation[, string signalType])` |
+| `SellAtStopMarketOnServer` | StopMarket | `(decimal volume, decimal priceActivation[, string signalType])` |
+| `BuyAtStopOnServerToPosition` | StopLimit в позицию | `(Position position, decimal volume, decimal priceLimit, decimal priceActivation)` |
+| `SellAtStopOnServerToPosition` | StopLimit в позицию | `(Position position, decimal volume, decimal priceLimit, decimal priceActivation)` |
+| `BuyAtStopMarketOnServerToPosition` | StopMarket в позицию | `(Position position, decimal volume, decimal priceActivation)` |
+| `SellAtStopMarketOnServerToPosition` | StopMarket в позицию | `(Position position, decimal volume, decimal priceActivation)` |
+
+### Методы выхода (стопы на закрытие позиции)
+
+| Метод | Тип | Сигнатура |
+|-------|-----|-----------|
+| `CloseAtStopOnServer` | StopLimit | `(Position, decimal priceActivation, decimal priceOrder[, decimal volume][, string signalType])` |
+| `CloseAtStopMarketOnServer` | StopMarket | `(Position, decimal priceActivation[, decimal volume])` |
+| `CloseAtStopOnServerCancel(Position)` | Отмена серверных стопов конкретной позиции | |
+| `CloseAtStopOnServerCancel()` | Отмена серверных стопов всех открытых позиций | |
+
+### Пример
+
+```csharp
+// вход: серверный стоп-лимит
+_tab.BuyAtStopOnServer(volume, priceLimit, activation, "ServerStopEntry");
+
+// выход: серверный стоп-лимит на позицию
+_tab.CloseAtStopOnServer(pos, activation, priceOrder, "ServerStopExit");
+
+// отмена всех серверных стопов
+_tab.CloseAtStopOnServerCancel();
+```
+
+> Готовый робот целиком: `Robots/TechSamples/ServerStopOrdersSample.cs` — вход и выход серверными стоп-лимитами с перевыставлением по таймауту; логика одинакова для тестера и реала.
 
 ---
 

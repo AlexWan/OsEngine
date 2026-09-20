@@ -639,7 +639,17 @@ TabCreate(BotTabType.News);
 
 ---
 
-**Изучать:** `ElementsOnChartSampleBot.cs` — все типы элементов на графике. `CustomParamsUseBotSample.cs` — кастомная таблица в параметрах. `CustomChartInParamWindowSample.cs` — график в реальном времени. `StopByTradeFeedSample.cs` — работа с NewTickEvent. `ChangePriceBotExtStopMarket.cs` — изменение цены ордера.
+#### 1.6.8 Серверные стоп-ордера (`...OnServer`)
+
+| Робот | Что демонстрирует | Ключевые API |
+|-------|-------------------|--------------|
+| `ServerStopOrdersSample` | Вход и выход серверными стоп-лимитами с перевыставлением по таймауту | `BuyAtStopOnServer(volume, priceLimit, priceActivation, signalType)`, `CloseAtStopOnServer(pos, activation, priceOrder, signalType)`, `CloseOrder(order)`, `BuyAtStopCancel()` |
+
+> Методы `...OnServer` выставляют стоп прямо на бирже, если коннектор поддерживает серверные стопы; иначе автоматически откатываются на локальный стоп. Поэтому робот одинаково работает в тестере и в реале. Полный список методов и различие с локальными стопами — `CONTEXT_POSITIONS_AND_RISK.md`, раздел 1.12.
+
+---
+
+**Изучать:** `ElementsOnChartSampleBot.cs` — все типы элементов на графике. `CustomParamsUseBotSample.cs` — кастомная таблица в параметрах. `CustomChartInParamWindowSample.cs` — график в реальном времени. `StopByTradeFeedSample.cs` — работа с NewTickEvent. `ChangePriceBotExtStopMarket.cs` — изменение цены ордера. `ServerStopOrdersSample.cs` — серверные стоп-ордера (`...OnServer`).
 
 ---
 
