@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Candle = OsEngine.Entity.Candle;
 using DateTime = System.DateTime;
 using FAsset = Grpc.Tradeapi.V1.Assets.Asset;
@@ -1199,6 +1200,27 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
+        private void ObserveTaskFault(Task task)
+        {
+            // Наблюдаем возможный фолт брошенной задачи записи, чтобы она не стала UnobservedTaskException.
+            // Восстановление стрима при этом выполняет ридер MyOrderTradeMessageReader через SetDisconnected().
+            task.ContinueWith(t =>
+            {
+                try
+                {
+                    _ = t.Exception; // доступ к Exception помечает фолт как наблюдаемый
+                    Exception baseEx = t.Exception?.GetBaseException();
+                    SendLogMessage(
+                        $"MyOrderTrade keepalive write faulted: {baseEx?.Message}. Recovery is handled by the reader.",
+                        LogMessageType.Error);
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
         private void MyOrderTradeKeepAlive()
         {
             // Собственные заявки и сделки
@@ -1215,7 +1237,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 {
                     if (_myOrderTradeStream != null)
                     {
-                        _myOrderTradeStream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
+                        Task writeTask = _myOrderTradeStream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
+                        ObserveTaskFault(writeTask);
                     }
                 }
                 catch (RpcException rpcEx)
