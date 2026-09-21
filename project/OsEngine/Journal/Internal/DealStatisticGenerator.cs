@@ -479,7 +479,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitOperationPercent > 0)
+                if (deals[i].ProfitPortfolioAbs > 0)
                 {
                     profitDeal++;
                 }
@@ -639,7 +639,7 @@ namespace OsEngine.Journal.Internal
                 {
                     continue;
                 }
-                if (deals[i].ProfitOperationPercent > 0)
+                if (deals[i].ProfitPortfolioAbs > 0)
                 {
                     nowSeries++;
 
@@ -672,7 +672,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitOperationPercent <= 0)
+                if (deals[i].ProfitPortfolioAbs <= 0)
                 {
                     lossDeal++;
                 }
@@ -829,7 +829,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 } 
 
-                if (deals[i].ProfitOperationPercent <= 0)
+                if (deals[i].ProfitPortfolioAbs <= 0)
                 {
                     nowSeries++;
 
