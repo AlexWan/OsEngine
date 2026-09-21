@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 
+// Pipeline self-check: comment-only change, no behavior modification.
+
 namespace OsEngine
 {
     /// <summary>
