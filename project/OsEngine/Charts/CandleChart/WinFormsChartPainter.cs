@@ -4310,7 +4310,8 @@ ContextMenuStrip menu)
                         if (series[i].ChartPaintType == IndicatorChartPaintType.Line)
                         {
                             PaintLikeLine(
-                                series[i].Values, series[i].Color, indicator.Name + i,series[i].CanReBuildHistoricalValues);
+                                series[i].Values, series[i].Color, indicator.Name + i,series[i].CanReBuildHistoricalValues,
+                                series[i].LineWidth, series[i].ZeroIsGap);
                         }
                         else if (series[i].ChartPaintType == IndicatorChartPaintType.Column)
                         {
@@ -4593,7 +4594,8 @@ ContextMenuStrip menu)
         /// draw indicator as a line
         /// прорисовать индикатор как линию
         /// </summary>
-        private void PaintLikeLine(List<decimal> values, Color color, string nameSeries,bool fullReloadOnNewCandle)
+        private void PaintLikeLine(List<decimal> values, Color color, string nameSeries,bool fullReloadOnNewCandle,
+            int lineWidth = 1, bool zeroIsGap = false)
         {
             if (values == null ||
                 values.Count == 0)
@@ -4626,7 +4628,7 @@ ContextMenuStrip menu)
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
-                PaintLikeLineLast(values, nameSeries, color);
+                PaintLikeLineLast(values, nameSeries, color, lineWidth, zeroIsGap);
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count &&
@@ -4634,7 +4636,7 @@ ContextMenuStrip menu)
             {
                 // redraw last point
                 // перерисовываем последнюю точку
-                RePaintLikeLineLast(values, nameSeries, color);
+                RePaintLikeLineLast(values, nameSeries, color, lineWidth, zeroIsGap);
             }
             else
             {
@@ -4655,6 +4657,12 @@ ContextMenuStrip menu)
                 series.ShadowOffset = Themes.ThemeManager.GetChartIndicatorShadow();
                 series.YValuesPerPoint = 1;
                 series.Color = color;
+                series.BorderWidth = lineWidth;
+
+                if (zeroIsGap)
+                {
+                    series.EmptyPointStyle.Color = Color.Transparent;
+                }
 
                 bool isStarted = false;
 
@@ -4663,7 +4671,7 @@ ContextMenuStrip menu)
                     // series.Points.AddXY(i, array[i]);
                     var point = new DataPoint(i, (double)array[i]);
 
-                    if (array[i] == 0 && isStarted == false) 
+                    if (array[i] == 0 && (isStarted == false || zeroIsGap))
                     {
                         point.IsEmpty = true;
                     }
@@ -4708,17 +4716,25 @@ ContextMenuStrip menu)
         /// draw indicator as a line, last element
         /// прорисовать индикатор как линию, последний элемент
         /// </summary>
-        private void PaintLikeLineLast(List<decimal> values, string nameSeries, Color color)
+        private void PaintLikeLineLast(List<decimal> values, string nameSeries, Color color,
+            int lineWidth = 1, bool zeroIsGap = false)
         {
             Series mySeries = FindSeriesByNameSafe(nameSeries);
             mySeries.Color = color;
+            mySeries.BorderWidth = lineWidth;
+
+            if (zeroIsGap)
+            {
+                mySeries.EmptyPointStyle.Color = Color.Transparent;
+            }
+
             decimal lastPoint = values[values.Count - 1];
 
             // mySeries.Points.AddXY(mySeries.Points.Count, lastPoint);
 
             var point = new DataPoint(mySeries.Points.Count, (double)lastPoint);
 
-            if (lastPoint == 0 && values.FindIndex(v => v != 0) == -1)
+            if (lastPoint == 0 && (zeroIsGap || values.FindIndex(v => v != 0) == -1))
             {
                 point.IsEmpty = true;
             }
@@ -4731,14 +4747,16 @@ ContextMenuStrip menu)
         /// redraw indicator as a line,last element
         /// перерисовать индикатор как линию, последний элемент
         /// </summary>
-        private void RePaintLikeLineLast(List<decimal> values, string nameSeries, Color color)
+        private void RePaintLikeLineLast(List<decimal> values, string nameSeries, Color color,
+            int lineWidth = 1, bool zeroIsGap = false)
         {
             Series mySeries = FindSeriesByNameSafe(nameSeries);
             mySeries.Color = color;
+            mySeries.BorderWidth = lineWidth;
             decimal lastPoint = Convert.ToDecimal(values[values.Count - 1]);
             mySeries.Points[mySeries.Points.Count - 1].YValues = new[] { Convert.ToDouble(lastPoint) };
 
-            if (lastPoint == 0 && values.FindIndex(v => v != 0) == -1)
+            if (lastPoint == 0 && (zeroIsGap || values.FindIndex(v => v != 0) == -1))
             {
                 mySeries.Points[mySeries.Points.Count - 1].IsEmpty = true;
             }

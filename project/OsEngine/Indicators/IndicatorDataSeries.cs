@@ -108,6 +108,20 @@ namespace OsEngine.Indicators
         public bool CanReBuildHistoricalValues;
 
         /// <summary>
+        /// line width on the chart, for the Line type. Is not saved in settings
+        /// толщина линии на графике, для типа Line. В настройки не сохраняется
+        /// </summary>
+        public int LineWidth = 1;
+
+        /// <summary>
+        /// zero values are drawn as a gap anywhere in the line, not only before the first value (Line type).
+        /// Is not saved in settings
+        /// нулевые значения рисуются разрывом в любом месте линии, а не только до первого значения (тип Line).
+        /// В настройки не сохраняется
+        /// </summary>
+        public bool ZeroIsGap;
+
+        /// <summary>
         /// series data points
         /// </summary>
         public List<decimal> Values = new List<decimal>();
