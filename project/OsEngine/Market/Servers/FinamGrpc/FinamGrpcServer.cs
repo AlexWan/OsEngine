@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Candle = OsEngine.Entity.Candle;
 using DateTime = System.DateTime;
 using FAsset = Grpc.Tradeapi.V1.Assets.Asset;
@@ -739,11 +740,20 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private void disconnectMyOrderTradeStream()
         {
-            if (_myOrderTradeStream?.RequestStream != null)
+            AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> stream;
+
+            lock (_myOrderTradeStreamLocker)
+            {
+                stream = _myOrderTradeStream;
+                _myOrderTradeStream = null;
+            }
+
+            if (stream?.RequestStream != null)
             {
                 try
                 {
-                    _myOrderTradeStream.RequestStream.CompleteAsync().Wait();
+                    Task completeTask = stream.RequestStream.CompleteAsync();
+                    ObserveTaskFault(completeTask);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -755,28 +765,99 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
 
                 SendLogMessage("Disconnected exchange with my orders and trades stream.", LogMessageType.System);
-                _myOrderTradeStream = null;
             }
         }
 
-        private void connectMyOrderTradeStream()
+        private bool connectMyOrderTradeStream()
         {
+            // Подписка один раз
+            _rateGateMyOrderTradeSubscribeOrderTrade.WaitToProceed();
+
+            lock (_myOrderTradeStreamLocker)
+            {
+                if (_myOrderTradeStream != null)
+                {
+                    return true;
+                }
+
+                try
+                {
+                    _myOrderTradeStream = _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
+                    return true;
+                }
+                catch (RpcException rpcEx)
+                {
+                    string msg = GetGRPCErrorMessage(rpcEx);
+                    SendLogMessage($"gRPC Error while auth. Info: {msg}", LogMessageType.Error);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"Error while auth. Info: {ex.Message}", LogMessageType.Error);
+                    return false;
+                }
+            }
+        }
+
+        private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> GetMyOrderTradeStream()
+        {
+            lock (_myOrderTradeStreamLocker)
+            {
+                return _myOrderTradeStream;
+            }
+        }
+
+        private void ReconnectMyOrderTradeStream()
+        {
+            lock (_myOrderTradeStreamLocker)
+            {
+                if (_myOrderTradeReconnectInProgress)
+                {
+                    return;
+                }
+
+                _myOrderTradeReconnectInProgress = true;
+            }
+
             try
             {
-                // Подписка один раз
-                _rateGateMyOrderTradeSubscribeOrderTrade.WaitToProceed();
-                _myOrderTradeStream = _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return;
+                }
+
+                disconnectMyOrderTradeStream();
+
+                bool ok = connectMyOrderTradeStream();
+
+                if (ok == false)
+                {
+                    SetDisconnected();
+                }
             }
-            catch (RpcException rpcEx)
+            finally
             {
-                string msg = GetGRPCErrorMessage(rpcEx);
-                SendLogMessage($"gRPC Error while auth. Info: {msg}", LogMessageType.Error);
-                return;
+                lock (_myOrderTradeStreamLocker)
+                {
+                    _myOrderTradeReconnectInProgress = false;
+                }
             }
-            catch (Exception ex)
+        }
+
+        private void ObserveTaskFault(Task task)
+        {
+            // наблюдаем возможный фолт брошенной задачи, чтобы она не стала UnobservedTaskException
+            task.ContinueWith(t =>
             {
-                SendLogMessage($"Error while auth. Info: {ex.Message}", LogMessageType.Error);
-            }
+                try
+                {
+                    _ = t.Exception;
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private void updateAuth(AuthService.AuthServiceClient client)
@@ -810,6 +891,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private ConcurrentDictionary<string, TradesStreamReaderInfo> _dicLatestTradesStreams = new ConcurrentDictionary<string, TradesStreamReaderInfo>();
 
         private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> _myOrderTradeStream;
+
+        private readonly object _myOrderTradeStreamLocker = new object();
+
+        private bool _myOrderTradeReconnectInProgress;
 
         private Dictionary<string, DateTime> _dicLastMdTime = new Dictionary<string, DateTime>();
 
@@ -1213,15 +1298,25 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 Thread.Sleep(30000);
                 try
                 {
-                    if (_myOrderTradeStream != null)
+                    AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> stream = GetMyOrderTradeStream();
+
+                    if (stream != null)
                     {
-                        _myOrderTradeStream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
+                        Task writeTask = stream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
+
+                        writeTask.ContinueWith(t =>
+                        {
+                            SendLogMessage("MyOrderTrade keepalive failed: " + t.Exception, LogMessageType.Error);
+                            ReconnectMyOrderTradeStream();
+                        }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                 }
                 catch (RpcException rpcEx)
                 {
                     string msg = GetGRPCErrorMessage(rpcEx);
                     SendLogMessage($"RPC. MyOrderTrade keepalive failed. {msg}", LogMessageType.Error);
+
+                    ReconnectMyOrderTradeStream();
 
                     Thread.Sleep(5000);
                 }
@@ -1232,8 +1327,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (msg.Contains("stream timeout"))
                     {
                         Thread.Sleep(5000);
-                        disconnectMyOrderTradeStream();
-                        connectMyOrderTradeStream();
+                        ReconnectMyOrderTradeStream();
                     }
                 }
             }
@@ -1270,20 +1364,22 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         continue;
                     }
 
-                    if (_myOrderTradeStream == null)
+                    AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> stream = GetMyOrderTradeStream();
+
+                    if (stream == null)
                     {
                         Thread.Sleep(1);
                         continue;
                     }
 
-                    bool hasNext = _myOrderTradeStream.ResponseStream.MoveNext().ConfigureAwait(false).GetAwaiter().GetResult();
+                    bool hasNext = stream.ResponseStream.MoveNext().ConfigureAwait(false).GetAwaiter().GetResult();
                     if (!hasNext)
                     {
                         Thread.Sleep(1);
                         continue;
                     }
 
-                    OrderTradeResponse myOrderTradeResponse = _myOrderTradeStream.ResponseStream.Current;
+                    OrderTradeResponse myOrderTradeResponse = stream.ResponseStream.Current;
 
                     if (myOrderTradeResponse == null)
                     {
@@ -1344,10 +1440,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 {
                     // Connection reset - attempt reconnect
                     SendLogMessage("OrderTrade stream connection reset.", LogMessageType.System);
-                    SetDisconnected();
-                    //SendLogMessage("Try to reconnect.", LogMessageType.System);
-                    //disconnectMyOrderTradeStream();
-                    //connectMyOrderTradeStream();
+                    ReconnectMyOrderTradeStream();
                 }
                 catch (RpcException rpcEx)
                 {
@@ -1356,10 +1449,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                     if (msg.Contains("stream timeout"))
                     {
-                        SetDisconnected();
-                        //SendLogMessage("Try to reconnect.", LogMessageType.Error);
-                        //disconnectMyOrderTradeStream();
-                        //connectMyOrderTradeStream();
+                        ReconnectMyOrderTradeStream();
                     }
                     Thread.Sleep(5000);
                 }
