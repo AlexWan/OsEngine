@@ -48,13 +48,20 @@ namespace OsEngine.Market.Servers.TelegramNews
             // Logs settings
             WTelegram.Helpers.Log = (level, message) =>
             {
-                if (level == 4) // Only errors filter
+                try
                 {
-                    SendLogMessage(message, LogMessageType.Error);
-                }
+                    if (level == 4) // Only errors filter
+                    {
+                        SendLogMessage(message, LogMessageType.Error);
+                    }
 
-                string logPath = Path.Combine(logDir, "wteleg.log");
-                File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss}] LogEvent : {message}\n");
+                    WriteTelegramLog(logDir, message);
+                }
+                catch
+                {
+                    // Гарантия: из колбэка WTelegram ничего не вылетает,
+                    // иначе исключение станет unobserved и уронит процесс.
+                }
             };
         }
 
@@ -521,6 +528,47 @@ namespace OsEngine.Market.Servers.TelegramNews
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
+        }
+
+        private static readonly object _wtelegramLogLocker = new object();
+        private static DateTime _lastWtelegramLogWrite = DateTime.MinValue;
+        private static readonly TimeSpan _wtelegramLogMinInterval = TimeSpan.FromMilliseconds(100);
+
+        private static void WriteTelegramLog(string logDir, string message)
+        {
+            lock (_wtelegramLogLocker)
+            {
+                DateTime now = DateTime.Now;
+
+                // Троттлинг: пропускаем строки чаще 100 мс (debug-лог, не спамим диск)
+                if (now - _lastWtelegramLogWrite < _wtelegramLogMinInterval)
+                {
+                    return;
+                }
+                _lastWtelegramLogWrite = now;
+
+                try
+                {
+                    string logPath = Path.Combine(logDir, "wteleg.log");
+                    using (FileStream fs = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                    using (StreamWriter sw = new StreamWriter(fs))
+                    {
+                        sw.Write($"[{now:HH:mm:ss}] LogEvent : {message}\n");
+                    }
+                }
+                catch (IOException)
+                {
+                    // Файл занят другим процессом — пропускаем запись.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Нет доступа к файлу — пропускаем запись.
+                }
+                catch (Exception)
+                {
+                    // Любое другое исключение — пропускаем, гарантия невылета.
+                }
+            }
         }
 
         #endregion
