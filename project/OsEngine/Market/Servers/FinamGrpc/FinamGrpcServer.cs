@@ -733,7 +733,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
             updateAuth(_authClient);
 
             // Подписываемся на свои события
-            connectMyOrderTradeStream();
+            bool ok = connectMyOrderTradeStream();
+
+            if (ok == false)
+            {
+                SendLogMessage("Failed to subscribe to my orders and trades stream.", LogMessageType.Error);
+            }
 
             SendLogMessage("All streams activated. State: connected.", LogMessageType.System);
         }
@@ -770,8 +775,18 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private bool connectMyOrderTradeStream()
         {
+            lock (_myOrderTradeStreamLocker)
+            {
+                if (_myOrderTradeStream != null)
+                {
+                    return true;
+                }
+            }
+
             // Подписка один раз
             _rateGateMyOrderTradeSubscribeOrderTrade.WaitToProceed();
+
+            string errorMessage = null;
 
             lock (_myOrderTradeStreamLocker)
             {
@@ -787,16 +802,16 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
                 catch (RpcException rpcEx)
                 {
-                    string msg = GetGRPCErrorMessage(rpcEx);
-                    SendLogMessage($"gRPC Error while auth. Info: {msg}", LogMessageType.Error);
-                    return false;
+                    errorMessage = $"gRPC Error while auth. Info: {GetGRPCErrorMessage(rpcEx)}";
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"Error while auth. Info: {ex.Message}", LogMessageType.Error);
-                    return false;
+                    errorMessage = $"Error while auth. Info: {ex.Message}";
                 }
             }
+
+            SendLogMessage(errorMessage, LogMessageType.Error);
+            return false;
         }
 
         private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> GetMyOrderTradeStream()
@@ -1306,8 +1321,15 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                         writeTask.ContinueWith(t =>
                         {
-                            SendLogMessage("MyOrderTrade keepalive failed: " + t.Exception, LogMessageType.Error);
-                            ReconnectMyOrderTradeStream();
+                            try
+                            {
+                                SendLogMessage("MyOrderTrade keepalive failed: " + t.Exception, LogMessageType.Error);
+                                ReconnectMyOrderTradeStream();
+                            }
+                            catch (Exception error)
+                            {
+                                SendLogMessage("Error handling keepalive fault: " + error, LogMessageType.Error);
+                            }
                         }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                 }
@@ -1434,6 +1456,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
                 catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Cancelled)
                 {
+                    if (_cancellationTokenSource == null || _cancellationTokenSource.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    ReconnectMyOrderTradeStream();
                     Thread.Sleep(5000);
                 }
                 catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Internal)
@@ -1612,8 +1640,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                 updateAuth(_authClient);
 
-                _rateGateMyOrderTradeSubscribeOrderTrade.WaitToProceed();
-                _myOrderTradeStream = _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
+                ReconnectMyOrderTradeStream();
 
                 for (int i = 0; i < _subscribedSecurities.Count - 1; i++)
                 {
