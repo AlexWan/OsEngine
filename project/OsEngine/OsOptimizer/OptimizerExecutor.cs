@@ -201,6 +201,13 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < allParam.Count; i++)
             {
+                if (parametersOn == null || i >= parametersOn.Count || !parametersOn[i])
+                {
+                    // фиксированный (не переборный) параметр — не сбрасываем на Start,
+                    // иначе теряется значение, настроенное пользователем
+                    continue;
+                }
+
                 if (allParam[i].Type == StrategyParameterType.Int)
                 {
                     ((StrategyParameterInt)allParam[i]).ValueInt = ((StrategyParameterInt)allParam[i]).ValueIntStart;
@@ -403,7 +410,15 @@ namespace OsEngine.OsOptimizer
         private void StartOptimizeFazeInSample(OptimizerFaze faze, OptimizerFazeReport report,
             List<IIStrategyParameter> allParameters, List<bool> parametersToOptimization)
         {
-            ReloadAllParam(allParameters);
+            // сбрасываем на Start только переборные параметры;
+            // зафиксированные (on:false) должны сохранить настроенное пользователем значение
+            for (int i = 0; i < allParameters.Count; i++)
+            {
+                if (parametersToOptimization[i])
+                {
+                    ReloadParam(allParameters[i]);
+                }
+            }
 
             // 2 проходим первую фазу, когда нужно обойти все варианты
 
@@ -1063,15 +1078,15 @@ namespace OsEngine.OsOptimizer
                     {
                         if (par.Type == StrategyParameterType.Int)
                         {
-                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueIntDefolt;
+                            ((StrategyParameterInt)bot.Parameters[i]).ValueInt = ((StrategyParameterInt)par).ValueInt;
                         }
                         else if (par.Type == StrategyParameterType.Decimal)
                         {
-                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimalDefolt;
+                            ((StrategyParameterDecimal)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimal)par).ValueDecimal;
                         }
                         else if (par.Type == StrategyParameterType.DecimalCheckBox)
                         {
-                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimalDefolt;
+                            ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)par).ValueDecimal;
                             ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
                         }
                     }

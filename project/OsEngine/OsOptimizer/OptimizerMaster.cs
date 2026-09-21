@@ -1241,12 +1241,8 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
-                {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
-
+                // старый список не очищаем: его может держать окно оптимизатора,
+                // очистка молча обнуляла ручные правки в таблице параметров
                 _parameters = new List<IIStrategyParameter>();
 
                 for (int i = 0; i < bot.Parameters.Count; i++)
@@ -1287,12 +1283,7 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
-                {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
-
+                // старый список не очищаем: его может держать окно оптимизатора
                 _parameters = new List<IIStrategyParameter>();
 
                 for (int i = 0; i < bot.Parameters.Count; i++)
@@ -1301,6 +1292,42 @@ namespace OsEngine.OsOptimizer
                 }
 
                 return _parameters;
+            }
+        }
+
+        /// <summary>
+        /// текущий список параметров без перезагрузки из файла - тот же объект,
+        /// с которым работают окно оптимизатора и запуск оптимизации
+        /// </summary>
+        public List<IIStrategyParameter> ParametersCurrent
+        {
+            get
+            {
+                if (_parameters == null ||
+                    _parameters.Count == 0)
+                {
+                    return Parameters;
+                }
+
+                return _parameters;
+            }
+        }
+
+        /// <summary>
+        /// текущий список признаков перебора без перезагрузки из файла
+        /// </summary>
+        public List<bool> ParametersOnCurrent
+        {
+            get
+            {
+                if (_parametersOn == null ||
+                    _parameters == null ||
+                    _parametersOn.Count != _parameters.Count)
+                {
+                    return ParametersOn;
+                }
+
+                return _parametersOn;
             }
         }
 

@@ -1522,7 +1522,7 @@ namespace OsEngine.MCP.Modules
         {
             OptimizerMaster master = GetMasterRequired();
 
-            List<IIStrategyParameter> parameters = master.Parameters;
+            List<IIStrategyParameter> parameters = master.ParametersCurrent;   // текущий список без перезагрузки из файла: иначе окно оптимизатора теряет связь со списком
             List<object> result = new List<object>();
 
             if (parameters == null)
@@ -1530,12 +1530,14 @@ namespace OsEngine.MCP.Modules
                 return new { strategy_name = master.StrategyName, parameters = result, count = 0 };
             }
 
-            List<bool> parametersOn = master.ParametersOn;
+            List<bool> parametersOn = master.ParametersOnCurrent;
 
             for (int i = 0; i < parameters.Count; i++)
             {
                 bool isOn = parametersOn != null && i < parametersOn.Count && parametersOn[i];
-                result.Add(SerializeOptimizerParam(parameters[i], isOn, true));
+                // текущее значение (ValueX), а не Defolt: грид оптимизатора показывает и правит ValueX,
+                // и именно оно едет в тест для зафиксированных параметров (OptimizerExecutor.GetTestBot)
+                result.Add(SerializeOptimizerParam(parameters[i], isOn, false));
             }
 
             return new { strategy_name = master.StrategyName, parameters = result, count = result.Count };
@@ -1631,14 +1633,14 @@ namespace OsEngine.MCP.Modules
             }
 
             OptimizerMaster master = GetMasterRequired();
-            List<IIStrategyParameter> masterParams = master.Parameters;
+            List<IIStrategyParameter> masterParams = master.ParametersCurrent;   // см. GetParams
 
             if (masterParams == null)
             {
                 throw new InvalidOperationException("No optimization robot selected or the robot has no parameters");
             }
 
-            List<bool> parametersOn = master.ParametersOn;
+            List<bool> parametersOn = master.ParametersOnCurrent;
 
             foreach (JsonElement item in itemsElement.EnumerateArray())
             {
