@@ -1223,56 +1223,59 @@ namespace OsEngine.OsOptimizer
         {
             get
             {
-                if (string.IsNullOrEmpty(_strategyName))
+                lock (_parametersLock)
                 {
-                    return null;
-                }
+                    if (string.IsNullOrEmpty(_strategyName))
+                    {
+                        return null;
+                    }
 
-                // рабочий кэш строится один раз на ключ (StrategyName, IsScript).
-                // сверка ключа при возврате закрывает прямые присваивания
-                // _strategyName/_isScript (Load, CreateBot), а не только сброс по событию
-                if (_parameters != null
-                    && _parametersCacheStrategy == _strategyName
-                    && _parametersCacheIsScript == _isScript)
-                {
+                    // рабочий кэш строится один раз на ключ (StrategyName, IsScript).
+                    // сверка ключа при возврате закрывает прямые присваивания
+                    // _strategyName/_isScript (Load, CreateBot), а не только сброс по событию
+                    if (_parameters != null
+                        && _parametersCacheStrategy == _strategyName
+                        && _parametersCacheIsScript == _isScript)
+                    {
+                        return _parameters;
+                    }
+
+                    BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
+
+                    if (bot == null)
+                    {
+                        return null;
+                    }
+
+                    if (bot.Parameters == null ||
+                        bot.Parameters.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
+
+                    for (int i = 0; i < bot.Parameters.Count; i++)
+                    {
+                        parameters.Add(bot.Parameters[i]);
+                    }
+
+                    for (int i = 0; i < parameters.Count; i++)
+                    {
+                        GetValueParameterSaveByUser(parameters[i]);
+                    }
+
+                    bot.Delete();
+
+                    _parameters = parameters;
+                    _parametersCacheStrategy = _strategyName;
+                    _parametersCacheIsScript = _isScript;
+
+                    // снапшот on/off собирается вместе с рабочим кэшем (равный Count)
+                    BuildParametersOn();
+
                     return _parameters;
                 }
-
-                BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
-
-                if (bot == null)
-                {
-                    return null;
-                }
-
-                if (bot.Parameters == null ||
-                    bot.Parameters.Count == 0)
-                {
-                    return null;
-                }
-
-                List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
-
-                for (int i = 0; i < bot.Parameters.Count; i++)
-                {
-                    parameters.Add(bot.Parameters[i]);
-                }
-
-                for (int i = 0; i < parameters.Count; i++)
-                {
-                    GetValueParameterSaveByUser(parameters[i]);
-                }
-
-                bot.Delete();
-
-                _parameters = parameters;
-                _parametersCacheStrategy = _strategyName;
-                _parametersCacheIsScript = _isScript;
-
-                // снапшот on/off собирается вместе с рабочим кэшем (равный Count)
-                BuildParametersOn();
-
-                return _parameters;
             }
         }
 
@@ -1280,47 +1283,56 @@ namespace OsEngine.OsOptimizer
         {
             get
             {
-                if (string.IsNullOrEmpty(_strategyName))
+                lock (_parametersLock)
                 {
-                    return null;
-                }
+                    if (string.IsNullOrEmpty(_strategyName))
+                    {
+                        return null;
+                    }
 
-                // неизменяемый фабричный шаблон: bot.Parameters БЕЗ загрузки файла.
-                // собственный кэш, из рабочего _parameters не синхронизируется
-                if (_parametersStandard != null
-                    && _parametersStandardCacheStrategy == _strategyName
-                    && _parametersStandardCacheIsScript == _isScript)
-                {
+                    // неизменяемый фабричный шаблон: bot.Parameters БЕЗ загрузки файла.
+                    // собственный кэш, из рабочего _parameters не синхронизируется
+                    if (_parametersStandard != null
+                        && _parametersStandardCacheStrategy == _strategyName
+                        && _parametersStandardCacheIsScript == _isScript)
+                    {
+                        return _parametersStandard;
+                    }
+
+                    BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
+
+                    if (bot == null)
+                    {
+                        return null;
+                    }
+
+                    if (bot.Parameters == null ||
+                        bot.Parameters.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
+
+                    for (int i = 0; i < bot.Parameters.Count; i++)
+                    {
+                        parameters.Add(bot.Parameters[i]);
+                    }
+
+                    _parametersStandard = parameters;
+                    _parametersStandardCacheStrategy = _strategyName;
+                    _parametersStandardCacheIsScript = _isScript;
+
                     return _parametersStandard;
                 }
-
-                BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
-
-                if (bot == null)
-                {
-                    return null;
-                }
-
-                if (bot.Parameters == null ||
-                    bot.Parameters.Count == 0)
-                {
-                    return null;
-                }
-
-                List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
-
-                for (int i = 0; i < bot.Parameters.Count; i++)
-                {
-                    parameters.Add(bot.Parameters[i]);
-                }
-
-                _parametersStandard = parameters;
-                _parametersStandardCacheStrategy = _strategyName;
-                _parametersStandardCacheIsScript = _isScript;
-
-                return _parametersStandard;
             }
         }
+
+        // реэнтрантный Monitor: геттеры кэшей и мутирующие методы берут его повторно
+        // на том же потоке. ВАЖНО: не держать этот lock на MCP-потоке и не делать
+        // внутри lock синхронный Dispatcher.Invoke - иначе дедлок. Длинный счёт
+        // BotCountOneFaze (шаг 4) под lock не берётся.
+        private readonly object _parametersLock = new object();
 
         private List<IIStrategyParameter> _parameters;
         private List<IIStrategyParameter> _parametersStandard;
@@ -1361,31 +1373,34 @@ namespace OsEngine.OsOptimizer
 
         public void SaveStandardParameters()
         {
-            if (_parameters == null ||
-                _parameters.Count == 0)
+            lock (_parametersLock)
             {
-                return;
-            }
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
-                    )
+                if (_parameters == null ||
+                    _parameters.Count == 0)
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
-                    {
-                        writer.WriteLine(_parameters[i].GetStringToSave());
-                    }
-
-                    writer.Close();
+                    return;
                 }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
 
-            SaveParametersOnOffByStrategy();
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
+                        )
+                    {
+                        for (int i = 0; i < _parameters.Count; i++)
+                        {
+                            writer.WriteLine(_parameters[i].GetStringToSave());
+                        }
+
+                        writer.Close();
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+
+                SaveParametersOnOffByStrategy();
+            }
         }
 
         /// <summary>
@@ -1396,41 +1411,44 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         public void ApplyStandardToWorking()
         {
-            List<IIStrategyParameter> standard = ParametersStandard;
-            List<IIStrategyParameter> working = Parameters;
-
-            if (standard == null || working == null)
+            lock (_parametersLock)
             {
-                return;
-            }
+                List<IIStrategyParameter> standard = ParametersStandard;
+                List<IIStrategyParameter> working = Parameters;
 
-            for (int i = 0; i < working.Count; i++)
-            {
-                IIStrategyParameter workingParam = working[i];
-
-                if (workingParam == null)
+                if (standard == null || working == null)
                 {
-                    continue;
+                    return;
                 }
 
-                IIStrategyParameter factoryParam = null;
-
-                for (int j = 0; j < standard.Count; j++)
+                for (int i = 0; i < working.Count; i++)
                 {
-                    if (standard[j] != null
-                        && standard[j].Name == workingParam.Name)
+                    IIStrategyParameter workingParam = working[i];
+
+                    if (workingParam == null)
                     {
-                        factoryParam = standard[j];
-                        break;
+                        continue;
                     }
-                }
 
-                if (factoryParam == null)
-                {
-                    continue;
-                }
+                    IIStrategyParameter factoryParam = null;
 
-                workingParam.LoadParamFromString(factoryParam.GetStringToSave().Split('#'));
+                    for (int j = 0; j < standard.Count; j++)
+                    {
+                        if (standard[j] != null
+                            && standard[j].Name == workingParam.Name)
+                        {
+                            factoryParam = standard[j];
+                            break;
+                        }
+                    }
+
+                    if (factoryParam == null)
+                    {
+                        continue;
+                    }
+
+                    workingParam.LoadParamFromString(factoryParam.GetStringToSave().Split('#'));
+                }
             }
         }
 
@@ -1438,42 +1456,48 @@ namespace OsEngine.OsOptimizer
         {
             get
             {
-                // снапшот собирается вместе с рабочим кэшем _parameters (равный Count);
-                // возвращаем кэш, без пересборки на каждом обращении
-                if (_parameters == null)
+                lock (_parametersLock)
                 {
-                    if (Parameters == null)
+                    // снапшот собирается вместе с рабочим кэшем _parameters (равный Count);
+                    // возвращаем кэш, без пересборки на каждом обращении
+                    if (_parameters == null)
                     {
-                        return null;
+                        if (Parameters == null)
+                        {
+                            return null;
+                        }
                     }
-                }
 
-                if (_parametersOn == null)
-                {
-                    BuildParametersOn();
-                }
+                    if (_parametersOn == null)
+                    {
+                        BuildParametersOn();
+                    }
 
-                return _parametersOn;
+                    return _parametersOn;
+                }
             }
         }
 
         private void BuildParametersOn()
         {
-            List<bool> parametersOn = new List<bool>();
-            for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+            lock (_parametersLock)
             {
-                parametersOn.Add(false);
+                List<bool> parametersOn = new List<bool>();
+                for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+                {
+                    parametersOn.Add(false);
+                }
+
+                List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
+
+                if (parametersOnSaveBefore != null &&
+                    parametersOnSaveBefore.Count == parametersOn.Count)
+                {
+                    parametersOn = parametersOnSaveBefore;
+                }
+
+                _parametersOn = parametersOn;
             }
-
-            List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
-
-            if (parametersOnSaveBefore != null &&
-                parametersOnSaveBefore.Count == parametersOn.Count)
-            {
-                parametersOn = parametersOnSaveBefore;
-            }
-
-            _parametersOn = parametersOn;
         }
 
         private List<bool> _parametersOn;

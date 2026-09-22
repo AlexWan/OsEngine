@@ -1520,6 +1520,14 @@ namespace OsEngine.MCP.Modules
 
         private object GetParams()
         {
+            // вся операция optimizer_params_get маршалится на UI-поток: кэши
+            // OptimizerMaster строятся/читаются на UI-потоке, а NotifyParametersChanged
+            // из set дергает синхронный Dispatcher.Invoke - без маршалинга дедлок
+            if (!MainWindow.GetDispatcher.CheckAccess())
+            {
+                return MainWindow.GetDispatcher.Invoke(new Func<object>(GetParams));
+            }
+
             OptimizerMaster master = GetMasterRequired();
 
             List<IIStrategyParameter> parameters = master.Parameters;
@@ -1623,6 +1631,13 @@ namespace OsEngine.MCP.Modules
 
         private object SetParams(JsonElement parameters)
         {
+            // вся операция optimizer_params_set (включая NotifyParametersChanged)
+            // маршалится на UI-поток - см. комментарий в GetParams
+            if (!MainWindow.GetDispatcher.CheckAccess())
+            {
+                return MainWindow.GetDispatcher.Invoke(new Func<object>(() => SetParams(parameters)));
+            }
+
             if (parameters.ValueKind != JsonValueKind.Object
                 || !parameters.TryGetProperty("parameters", out JsonElement itemsElement)
                 || itemsElement.ValueKind != JsonValueKind.Array)
