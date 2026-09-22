@@ -3110,8 +3110,15 @@ namespace OsEngine.OsOptimizer
             try
             {
                 List<IIStrategyParameter> par = _master.ParametersStandard;
+
+                if (par == null)
+                {
+                    return;
+                }
+
+                _master.ApplyStandardToWorking();
                 _master.SaveStandardParameters();
-                _parameters = par;
+                _parameters = _master.Parameters;
                 ReloadStrategy();
             }
             catch (Exception ex)

@@ -1848,6 +1848,7 @@ namespace OsEngine.MCP.Modules
                 throw new InvalidOperationException($"Failed to load standard parameters for robot '{master.StrategyName}'");
             }
 
+            master.ApplyStandardToWorking();
             master.SaveStandardParameters();
             master.NotifyParametersChanged();
 

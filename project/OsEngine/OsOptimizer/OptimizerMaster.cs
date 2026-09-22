@@ -1228,6 +1228,16 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
+                // рабочий кэш строится один раз на ключ (StrategyName, IsScript).
+                // сверка ключа при возврате закрывает прямые присваивания
+                // _strategyName/_isScript (Load, CreateBot), а не только сброс по событию
+                if (_parameters != null
+                    && _parametersCacheStrategy == _strategyName
+                    && _parametersCacheIsScript == _isScript)
+                {
+                    return _parameters;
+                }
+
                 BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
 
                 if (bot == null)
@@ -1241,25 +1251,26 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
-                {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
-
-                _parameters = new List<IIStrategyParameter>();
+                List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
 
                 for (int i = 0; i < bot.Parameters.Count; i++)
                 {
-                    _parameters.Add(bot.Parameters[i]);
+                    parameters.Add(bot.Parameters[i]);
                 }
 
-                for (int i = 0; i < _parameters.Count; i++)
+                for (int i = 0; i < parameters.Count; i++)
                 {
-                    GetValueParameterSaveByUser(_parameters[i]);
+                    GetValueParameterSaveByUser(parameters[i]);
                 }
 
                 bot.Delete();
+
+                _parameters = parameters;
+                _parametersCacheStrategy = _strategyName;
+                _parametersCacheIsScript = _isScript;
+
+                // снапшот on/off собирается вместе с рабочим кэшем (равный Count)
+                BuildParametersOn();
 
                 return _parameters;
             }
@@ -1274,6 +1285,15 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
+                // неизменяемый фабричный шаблон: bot.Parameters БЕЗ загрузки файла.
+                // собственный кэш, из рабочего _parameters не синхронизируется
+                if (_parametersStandard != null
+                    && _parametersStandardCacheStrategy == _strategyName
+                    && _parametersStandardCacheIsScript == _isScript)
+                {
+                    return _parametersStandard;
+                }
+
                 BotPanel bot = BotFactory.GetStrategyForName(_strategyName, "", StartProgram.IsOsOptimizer, _isScript);
 
                 if (bot == null)
@@ -1287,24 +1307,29 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
-                {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
-
-                _parameters = new List<IIStrategyParameter>();
+                List<IIStrategyParameter> parameters = new List<IIStrategyParameter>();
 
                 for (int i = 0; i < bot.Parameters.Count; i++)
                 {
-                    _parameters.Add(bot.Parameters[i]);
+                    parameters.Add(bot.Parameters[i]);
                 }
 
-                return _parameters;
+                _parametersStandard = parameters;
+                _parametersStandardCacheStrategy = _strategyName;
+                _parametersStandardCacheIsScript = _isScript;
+
+                return _parametersStandard;
             }
         }
 
         private List<IIStrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parametersStandard;
+
+        private string _parametersCacheStrategy;
+        private bool _parametersCacheIsScript;
+
+        private string _parametersStandardCacheStrategy;
+        private bool _parametersStandardCacheIsScript;
 
         private void GetValueParameterSaveByUser(IIStrategyParameter parameter)
         {
@@ -1363,28 +1388,94 @@ namespace OsEngine.OsOptimizer
             SaveParametersOnOffByStrategy();
         }
 
+        /// <summary>
+        /// копирует фабричные значения (ParametersStandard) в рабочий кэш _parameters.
+        /// Копирование in-place через LoadParamFromString: поля Start/Stop/Step/Defolt
+        /// read-only, простой установкой ValueX их не сбросить; ссылка UI на рабочий
+        /// список при этом сохраняется. _parametersOn не трогаем.
+        /// </summary>
+        public void ApplyStandardToWorking()
+        {
+            List<IIStrategyParameter> standard = ParametersStandard;
+            List<IIStrategyParameter> working = Parameters;
+
+            if (standard == null || working == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < working.Count; i++)
+            {
+                IIStrategyParameter workingParam = working[i];
+
+                if (workingParam == null)
+                {
+                    continue;
+                }
+
+                IIStrategyParameter factoryParam = null;
+
+                for (int j = 0; j < standard.Count; j++)
+                {
+                    if (standard[j] != null
+                        && standard[j].Name == workingParam.Name)
+                    {
+                        factoryParam = standard[j];
+                        break;
+                    }
+                }
+
+                if (factoryParam == null)
+                {
+                    continue;
+                }
+
+                workingParam.LoadParamFromString(factoryParam.GetStringToSave().Split('#'));
+            }
+        }
+
         public List<bool> ParametersOn
         {
             get
             {
-
-                _parametersOn = new List<bool>();
-                for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+                // снапшот собирается вместе с рабочим кэшем _parameters (равный Count);
+                // возвращаем кэш, без пересборки на каждом обращении
+                if (_parameters == null)
                 {
-                    _parametersOn.Add(false);
+                    if (Parameters == null)
+                    {
+                        return null;
+                    }
                 }
 
-                List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
-
-                if (parametersOnSaveBefore != null &&
-                    parametersOnSaveBefore.Count == _parametersOn.Count)
+                if (_parametersOn == null)
                 {
-                    _parametersOn = parametersOnSaveBefore;
+                    BuildParametersOn();
                 }
 
                 return _parametersOn;
             }
         }
+
+        private void BuildParametersOn()
+        {
+            List<bool> parametersOn = new List<bool>();
+            for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+            {
+                parametersOn.Add(false);
+            }
+
+            List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
+
+            if (parametersOnSaveBefore != null &&
+                parametersOnSaveBefore.Count == parametersOn.Count)
+            {
+                parametersOn = parametersOnSaveBefore;
+            }
+
+            _parametersOn = parametersOn;
+        }
+
         private List<bool> _parametersOn;
 
         private List<bool> GetParametersOnOffByStrategy()
