@@ -1023,7 +1023,7 @@ namespace OsEngine.Charts.CandleChart
         }
         private List<IIndicator> _indicators = new List<IIndicator>();
 
-        // BUG-0013: троттлинг лога повторного использования имени индикатора
+        // троттлинг лога повторного использования имени индикатора
         private readonly object _indicatorNameReuseLocker = new object();
         private readonly Dictionary<string, DateTime> _indicatorNameReuseLogTime = new Dictionary<string, DateTime>();
 
@@ -1053,7 +1053,7 @@ namespace OsEngine.Charts.CandleChart
                     {
                         if (_indicators[i].Name == indicator.Name)
                         {
-                            // BUG-0013: имя индикатора занято - возвращаем существующий (идемпотентность),
+                            // имя индикатора занято - возвращаем существующий (идемпотентность),
                             // но обязательно логируем (с троттлингом), иначе повторное использование
                             // имени остаётся незаметным.
                             LogIndicatorNameReuse(indicator.Name);
@@ -2151,7 +2151,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
-        /// BUG-0013: log a reuse of an existing indicator name (throttled, one message per name per 10 sec).
+        /// log a reuse of an existing indicator name (throttled, one message per name per 10 sec).
         /// Reuse itself is correct (idempotency), but silence made the original bug invisible.
         /// </summary>
         private void LogIndicatorNameReuse(string name)

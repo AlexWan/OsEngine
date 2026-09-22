@@ -637,7 +637,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
         public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, bool canDelete, params decimal[] parameters)
         {
-            // BUG-0013: старый overload сохранён без изменений. Прежнее имя индикатора
+            // старый overload сохранён без изменений. Прежнее имя индикатора
             // (NameStrategyUniq + typeName) сохраняется -> обратная совместимость с
             // существующими конфигами и файлами Engine\{Name}*.txt.
             return CreateIndicator(bot, typeName, area, canDelete, null, parameters);
@@ -646,7 +646,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Creates a new indicator of the specified type with an explicit instance key.<br/>
         /// The key makes the indicator name unique, so several indicators of the same type can coexist
-        /// on one tab (BUG-0013). Pass different keys for different instances.<br/>
+        /// on one tab. Pass different keys for different instances.<br/>
         /// The name is {NameStrategyUniq}{typeName}_{SanitizeInstanceName(instanceName)}_{hash8(instanceName)}.
         /// </summary>
         /// <param name="bot">Current bot</param>
@@ -691,7 +691,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// BUG-0013: sanitize an indicator instance key so that it is safe to use inside an indicator Name.<br/>
+        /// sanitize an indicator instance key so that it is safe to use inside an indicator Name.<br/>
         /// The Name is used as a file name (Engine\{Name}Parametrs.txt / Values.txt / Base.txt),
         /// inside the chart config (separator '@'), Values.txt (separator '&') and Parametrs.txt (separator '#').<br/>
         /// Forbidden characters are replaced with '_'. Path traversal ('..') is neutralised.
@@ -756,7 +756,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// BUG-0013: short deterministic hash (8 hex) of the raw instance key.<br/>
+        /// short deterministic hash (8 hex) of the raw instance key.<br/>
         /// Makes different raw keys stay different even if sanitizing collapses them to the same string
         /// (e.g. "a/b" and "a:b"). Practically unique (32 bit).
         /// </summary>
