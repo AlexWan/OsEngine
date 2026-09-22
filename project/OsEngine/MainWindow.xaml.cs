@@ -64,6 +64,7 @@ namespace OsEngine
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
             this.Closing += MainWindow_Closing;
 
@@ -326,6 +327,55 @@ namespace OsEngine
             else
             {
                 MessageBox.Show(message);
+            }
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            try
+            {
+                if (e.Exception is OutOfMemoryException)
+                { // фатальное исключение: не строим отчёт, лог и UI-диалог (под OOM это само по себе
+                  // рискованно), не выставляем e.Handled и даём процессу завершиться штатным крашем
+                    return;
+                }
+
+                if (e.Exception != null
+                    && e.Exception.ToString().Contains("(995):") == true)
+                { // игнорируем прерывания потока за делом по кансел токену
+                    e.Handled = true;
+                    return;
+                }
+
+                // исключение не фатальное: помечаем обработанным сразу, до отчёта и диалога,
+                // чтобы ошибка внутри отчёта/Reboot/MessageBox не привела к повторному крашу
+                e.Handled = true;
+
+                string message = OsLocalization.MainWindow.Message5 + " UI " + e.Exception;
+
+                message = _startProgram + "  " + message;
+
+                message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+                _messageToCrashServer = "Crash% " + message;
+                Thread worker = new Thread(SendMessageInCrashServer);
+                worker.Start();
+
+                ServerMaster.SendNewLogMessage(message, Logging.LogMessageType.Error);
+
+                if (PrimeSettingsMaster.RebootTradeUiLight == true &&
+                    RobotUiLite.IsRobotUiLightStart)
+                {
+                    Reboot(message);
+                }
+                else
+                {
+                    MessageBox.Show(message);
+                }
+            }
+            catch
+            {
+                // ошибка в самом обработчике: не зацикливаемся, пусть процесс завершится штатно
             }
         }
 
