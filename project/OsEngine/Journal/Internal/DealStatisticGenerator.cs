@@ -138,6 +138,24 @@ namespace OsEngine.Journal.Internal
             return false;
         }
 
+        /// <summary>
+        /// BUG-0014: единый net-классификатор. Прибыльная сделка = ProfitPortfolioAbs &gt; 0 (с учётом комиссии).
+        /// Проверка IsServiceDeal выполняется ДО этого предиката.
+        /// </summary>
+        private static bool IsNetWin(Position deal)
+        {
+            return deal.ProfitPortfolioAbs > 0;
+        }
+
+        /// <summary>
+        /// BUG-0014: единый net-классификатор. Убыточная сделка = ProfitPortfolioAbs &lt;= 0
+        /// (break-even считается убытком, как в GetLossDial). Проверка IsServiceDeal выполняется ДО предиката.
+        /// </summary>
+        private static bool IsNetLoss(Position deal)
+        {
+            return deal.ProfitPortfolioAbs <= 0;
+        }
+
         public static decimal GetAllProfitInAbsolute(Position[] deals, bool ignoreTax)
         {
             decimal profit = 0;
@@ -479,7 +497,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitPortfolioAbs > 0)
+                if (IsNetWin(deals[i]))
                 {
                     profitDeal++;
                 }
@@ -513,6 +531,11 @@ namespace OsEngine.Journal.Internal
 
         }
 
+        /// <summary>
+        /// BUG-0014: набор сделок классифицируется по net-прибыли (ProfitPortfolioAbs, с комиссией),
+        /// а значение остаётся gross (ProfitOperationAbs, «по движению»). Поэтому в среднее прибыли
+        /// попадают только net-прибыльные сделки; их gross-значение может быть больше/меньше net.
+        /// </summary>
         private static decimal GetAllMiddleProfitInProfitInAbsolute(Position[] deals)
         {
             decimal profit = 0;
@@ -523,7 +546,7 @@ namespace OsEngine.Journal.Internal
                 {
                     continue;
                 }
-                if (deals[i].ProfitOperationAbs > 0)
+                if (IsNetWin(deals[i]))
                 {
                     profit += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
@@ -542,6 +565,9 @@ namespace OsEngine.Journal.Internal
             return Math.Round(profit / GetProfitDeal(deals), 6);
         }
 
+        /// <summary>
+        /// BUG-0014: net-классификация (ProfitPortfolioAbs), значение gross (ProfitOperationPercent).
+        /// </summary>
         private static decimal GetAllMiddleProfitInProfitInPercent(Position[] deals)
         {
             decimal profit = 0;
@@ -552,7 +578,7 @@ namespace OsEngine.Journal.Internal
                 {
                     continue;
                 }
-                if (deals[i].ProfitOperationPercent > 0)
+                if (IsNetWin(deals[i]))
                 {
                     profit += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
                 }
@@ -639,7 +665,7 @@ namespace OsEngine.Journal.Internal
                 {
                     continue;
                 }
-                if (deals[i].ProfitPortfolioAbs > 0)
+                if (IsNetWin(deals[i]))
                 {
                     nowSeries++;
 
@@ -672,7 +698,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitPortfolioAbs <= 0)
+                if (IsNetLoss(deals[i]))
                 {
                     lossDeal++;
                 }
@@ -706,6 +732,12 @@ namespace OsEngine.Journal.Internal
 
         }
 
+        /// <summary>
+        /// BUG-0014: net-классификация (ProfitPortfolioAbs &lt;= 0), значение gross (ProfitOperationAbs).
+        /// ВАЖНО: после этого фильтра в среднее убытка попадают сделки с положительным движением,
+        /// но net &lt;= 0 (комиссия съела плюс), поэтому «по движению» средний убыток может стать
+        /// менее отрицательным и даже положительным.
+        /// </summary>
         private static decimal GetAllMiddleLossInLossInAbsolute(Position[] deals)
         {
             decimal loss = 0;
@@ -717,7 +749,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitOperationAbs <= 0)
+                if (IsNetLoss(deals[i]))
                 {
                     loss += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
@@ -731,6 +763,10 @@ namespace OsEngine.Journal.Internal
             return Math.Round(loss / GetLossDial(deals), 6);
         }
 
+        /// <summary>
+        /// BUG-0014: net-классификация (ProfitPortfolioAbs &lt;= 0), значение gross (ProfitOperationPercent).
+        /// Side-effect: сделки gross &gt; 0 / net &lt;= 0 попадают в средний убыток по движению.
+        /// </summary>
         private static decimal GetAllMiddleLossInLossInPercent(Position[] deals)
         {
             decimal loss = 0;
@@ -742,7 +778,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                if (deals[i].ProfitOperationPercent <= 0)
+                if (IsNetLoss(deals[i]))
                 {
                     loss += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
                 }
@@ -829,7 +865,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 } 
 
-                if (deals[i].ProfitPortfolioAbs <= 0)
+                if (IsNetLoss(deals[i]))
                 {
                     nowSeries++;
 
@@ -1003,6 +1039,11 @@ namespace OsEngine.Journal.Internal
             return Round(commissionTotal);
         }
 
+        /// <summary>
+        /// BUG-0014: Profit Factor намеренно считается по GROSS-прибыли (ProfitOperationAbs, без комиссии).
+        /// Это осознанная gross-метрика и НЕ унифицируется с net-классификатором (IsNetWin/IsNetLoss).
+        /// Break-even (ProfitOperationAbs == 0) учитывается как прибыль — предсуществующее поведение.
+        /// </summary>
         public static decimal GetProfitFactor(Position[] deals)
         {
             decimal commonProfitPunkt = 0m;
@@ -1031,6 +1072,10 @@ namespace OsEngine.Journal.Internal
             return Round(profitFactor);
         }
 
+        /// <summary>
+        /// BUG-0014: Payoff Ratio намеренно считается по GROSS-прибыли (ProfitOperationAbs, без комиссии).
+        /// Осознанная gross-метрика и НЕ унифицируется с net-классификатором (IsNetWin/IsNetLoss).
+        /// </summary>
         public static decimal GetPayOffRatio(Position[] deals)
         {
             decimal allProfit = 0;
