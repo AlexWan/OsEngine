@@ -334,12 +334,22 @@ namespace OsEngine
         {
             try
             {
+                if (e.Exception is OutOfMemoryException)
+                { // фатальное исключение: не строим отчёт, лог и UI-диалог (под OOM это само по себе
+                  // рискованно), не выставляем e.Handled и даём процессу завершиться штатным крашем
+                    return;
+                }
+
                 if (e.Exception != null
                     && e.Exception.ToString().Contains("(995):") == true)
                 { // игнорируем прерывания потока за делом по кансел токену
                     e.Handled = true;
                     return;
                 }
+
+                // исключение не фатальное: помечаем обработанным сразу, до отчёта и диалога,
+                // чтобы ошибка внутри отчёта/Reboot/MessageBox не привела к повторному крашу
+                e.Handled = true;
 
                 string message = OsLocalization.MainWindow.Message5 + " UI " + e.Exception;
 
@@ -362,13 +372,6 @@ namespace OsEngine
                 {
                     MessageBox.Show(message);
                 }
-
-                if (e.Exception is OutOfMemoryException)
-                { // фатальное исключение: не продолжаем работу, даём процессу завершиться
-                    return;
-                }
-
-                e.Handled = true;
             }
             catch
             {
