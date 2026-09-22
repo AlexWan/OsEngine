@@ -103,9 +103,9 @@ namespace OsEngine.Market.Servers.BCS
                 _subscribedSecurities.Clear();
                 _accessTokenExpireTime = DateTime.MinValue;
 
-                lock (_executionStateLocker)
+                lock (_pendingMyTradeFetchLocker)
                 {
-                    _executionStateByOrder.Clear();
+                    _pendingMyTradeFetchOrderNumbers.Clear();
                 }
 
                 _lastTradeTime.Clear();
@@ -2125,11 +2125,6 @@ namespace OsEngine.Market.Servers.BCS
                             string oldNumber = orderResponse.Data.OrderNumber;
                             string newNumber = orderResponse.Data.OrderId.Split('-')[2];
 
-                            lock (_executionStateLocker)
-                            {
-                                _executionStateByOrder.Remove(oldNumber);
-                            }
-
                             if (_changedOrderNumsMarket.Count > 0)
                             {
                                 // Проверяем менялся ли уже этот ордер
@@ -2282,16 +2277,6 @@ namespace OsEngine.Market.Servers.BCS
                 newOrder.Price = newOrder.TypeOrder == OrderPriceType.Limit ? orderEvent.Data.Price.ToDecimal() : orderEvent.Data.AveragePrice.ToDecimal();
                 newOrder.ServerType = ServerType.BCS;
 
-                if (stateType == OrderStateType.Done
-                    || stateType == OrderStateType.Cancel
-                    || stateType == OrderStateType.Fail)
-                {
-                    lock (_executionStateLocker)
-                    {
-                        _executionStateByOrder.Remove(orderEvent.Data.OrderNumber);
-                    }
-                }
-
                 if (_myPortfolios.Count == 1)
                 {
                     newOrder.PortfolioNumber = _myPortfolios[0].Number;
@@ -2303,7 +2288,7 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (orderEvent.Data.ExecutionType == "11") // сделка
                 {
-                    TryCreateMyTradeFromOrderEvent(orderEvent, newOrder);
+                    EnqueueMyTradeFetch(orderEvent, newOrder);
                 }
             }
             catch (Exception ex)
@@ -2312,127 +2297,38 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private readonly Dictionary<string, (decimal ExecutedQuantity, decimal ExecutionValue)> _executionStateByOrder
-            = new Dictionary<string, (decimal ExecutedQuantity, decimal ExecutionValue)>();
+        private readonly HashSet<string> _pendingMyTradeFetchOrderNumbers = new HashSet<string>();
 
-        private readonly string _executionStateLocker = "bcsExecutionStateLocker";
+        private readonly string _pendingMyTradeFetchLocker = "bcsPendingMyTradeFetchLocker";
 
-        private void TryCreateMyTradeFromOrderEvent(BcsOrdersResponse orderEvent, Order order)
+        private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order)
         {
             try
             {
-                string executionId = orderEvent.Data.ExecutionId;
-
-                if (string.IsNullOrEmpty(executionId))
+                lock (_pendingMyTradeFetchLocker)
                 {
-                    EnqueueMyTradeFetch(orderEvent, order, false, null);
-                    return;
-                }
-
-                if (IsMyTradeAlreadySent(executionId))
-                {
-                    return;
-                }
-
-                decimal lastQuantity = orderEvent.Data.LastQuantity.ToDecimal();
-                decimal executedQuantity = orderEvent.Data.ExecutedQuantity.ToDecimal();
-                decimal executionValue = orderEvent.Data.ExecutionValue.ToDecimal();
-
-                decimal lastPrice;
-
-                lock (_executionStateLocker)
-                {
-                    if (_executionStateByOrder.TryGetValue(orderEvent.Data.OrderNumber, out (decimal ExecutedQuantity, decimal ExecutionValue) prevState))
+                    // серия частичных исполнений по ордеру даёт серию событий - один фетч заберёт все сделки сразу
+                    if (_pendingMyTradeFetchOrderNumbers.Add(orderEvent.Data.OrderNumber) == false)
                     {
-                        // executionValue в событии кумулятивный, цену исполнения берём дельтой
-                        decimal deltaQty = executedQuantity - prevState.ExecutedQuantity;
-                        decimal deltaValue = executionValue - prevState.ExecutionValue;
-
-                        lastPrice = deltaQty > 0 && deltaValue > 0
-                            ? deltaValue / deltaQty
-                            : 0;
-
-                        _executionStateByOrder[orderEvent.Data.OrderNumber] = (executedQuantity, executionValue);
-                    }
-                    else
-                    {
-                        lastPrice = executedQuantity > 0 && executionValue > 0
-                            ? executionValue / executedQuantity
-                            : 0;
-
-                        _executionStateByOrder.Add(orderEvent.Data.OrderNumber, (executedQuantity, executionValue));
+                        return;
                     }
                 }
 
-                if (lastPrice <= 0 || lastQuantity <= 0)
+                MyTradeFetchRequest request = new MyTradeFetchRequest();
+                request.Ticker = orderEvent.Data.Ticker;
+                request.ClassCode = orderEvent.Data.ClassCode;
+                request.Side = orderEvent.Data.Side;
+                request.OrderNumber = orderEvent.Data.OrderNumber;
+                request.NumberOrderParent = order.NumberMarket;
+
+                if (MyTradesToFetchQueue != null)
                 {
-                    SendLogMessage($"MyTrade из события: неконсистентные данные по ордеру {orderEvent.Data.OrderNumber}. Уходим в фетч.", LogMessageType.System);
-
-                    MarkMyTradeSent(executionId);
-
-                    EnqueueMyTradeFetch(orderEvent, order, false, null);
-                    return;
+                    MyTradesToFetchQueue.Enqueue(request);
                 }
-
-                decimal volumeLots = lastQuantity;
-
-                Security security = GetSecurityByName(orderEvent.Data.Ticker, orderEvent.Data.ClassCode);
-
-                if (security != null && security.Lot > 0)
-                {
-                    volumeLots = lastQuantity / security.Lot;
-                }
-
-                MyTrade trade = new MyTrade();
-                trade.SecurityNameCode = order.SecurityNameCode;
-                trade.Price = lastPrice;
-                trade.Volume = volumeLots;
-                trade.NumberOrderParent = order.NumberMarket;
-                trade.NumberTrade = executionId;
-                trade.Time = ConvertUtsStringToDateTimeRu(orderEvent.Data.TransactionTime);
-                trade.Side = order.Side;
-
-                MarkMyTradeSent(executionId);
-
-                MyTradeEvent?.Invoke(trade);
-
-                // Фаза А: временный лог сверки с REST. Сам фетч только логирует, событие не шлёт.
-                EnqueueMyTradeFetch(orderEvent, order, true, trade);
             }
             catch (Exception ex)
             {
-                SendLogMessage($"MyTrade из события error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-
-                if (string.IsNullOrEmpty(orderEvent.Data.ExecutionId) == false)
-                {
-                    MarkMyTradeSent(orderEvent.Data.ExecutionId);
-                }
-
-                EnqueueMyTradeFetch(orderEvent, order, false, null);
-            }
-        }
-
-        private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order, bool shadowLogOnly, MyTrade wsTrade)
-        {
-            MyTradeFetchRequest request = new MyTradeFetchRequest();
-            request.Ticker = orderEvent.Data.Ticker;
-            request.ClassCode = orderEvent.Data.ClassCode;
-            request.Side = orderEvent.Data.Side;
-            request.OrderNumber = orderEvent.Data.OrderNumber;
-            request.NumberOrderParent = order.NumberMarket;
-            request.ShadowLogOnly = shadowLogOnly;
-
-            if (wsTrade != null)
-            {
-                request.WsNumberTrade = wsTrade.NumberTrade;
-                request.WsPrice = wsTrade.Price;
-                request.WsVolume = wsTrade.Volume;
-                request.WsTime = wsTrade.Time;
-            }
-
-            if (MyTradesToFetchQueue != null)
-            {
-                MyTradesToFetchQueue.Enqueue(request);
+                SendLogMessage($"Enqueue my trades fetch error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2455,6 +2351,11 @@ namespace OsEngine.Market.Servers.BCS
                     if (MyTradesToFetchQueue.TryDequeue(out request) == false)
                     {
                         continue;
+                    }
+
+                    lock (_pendingMyTradeFetchLocker)
+                    {
+                        _pendingMyTradeFetchOrderNumbers.Remove(request.OrderNumber);
                     }
 
                     FetchMyTrades(request);
@@ -2517,14 +2418,6 @@ namespace OsEngine.Market.Servers.BCS
                         continue;
                     }
 
-                    if (request.ShadowLogOnly)
-                    {
-                        SendLogMessage($"Сверка сделки. WS: id={request.WsNumberTrade}, цена={request.WsPrice}, объём(лот)={request.WsVolume}, время={request.WsTime}. "
-                            + $"REST: num={numberTrade}, цена={tradeRecord.price}, объём(лот)={tradeRecord.tradeQuantityLots}, время={tradeRecord.tradeDateTime}, "
-                            + $"уже отправлена ранее={IsMyTradeAlreadySent(numberTrade)}", LogMessageType.System);
-                        continue;
-                    }
-
                     if (IsMyTradeAlreadySent(numberTrade))
                     {
                         continue;
@@ -2583,11 +2476,6 @@ namespace OsEngine.Market.Servers.BCS
             public string Side;
             public string OrderNumber;
             public string NumberOrderParent;
-            public bool ShadowLogOnly;
-            public string WsNumberTrade;
-            public decimal WsPrice;
-            public decimal WsVolume;
-            public DateTime WsTime;
         }
 
         private OrderStateType GetOrderState(string status)
