@@ -339,14 +339,17 @@ namespace OsEngine.Robots.SyntheticBond
                     : screener.TabName);
                 flags.Add(screener.EmulatorIsOn);
 
-                if (screener.Tabs == null)
+                List<BotTabSimple> tabs = screener.Tabs;
+
+                if (tabs == null)
                 {
                     continue;
                 }
 
-                for (int j = 0; j < screener.Tabs.Count; j++)
+                // снапшот списка вкладок: воркер читает его, пока UI может менять состав
+                for (int j = 0; j < tabs.Count; j++)
                 {
-                    BotTabSimple tab = screener.Tabs[j];
+                    BotTabSimple tab = tabs[j];
 
                     if (tab == null)
                     {
@@ -676,6 +679,18 @@ namespace OsEngine.Robots.SyntheticBond
         {
             // выравнивание ног имеет смысл только в реале: в тестере исполнение мгновенное и полное
             if (StartProgram != StartProgram.IsOsTrader)
+            {
+                if (_pendingPairs.Count > 0)
+                {
+                    _pendingPairs.Clear();
+                }
+
+                return;
+            }
+
+            // в эмуляторе/оптимизаторе выравнивание тоже запрещено: OsTrader+paper
+            // проходит проверку StartProgram выше и иначе выставил бы ордера выравнивания
+            if (IsEmulatorOrTesterMode(out string reason))
             {
                 if (_pendingPairs.Count > 0)
                 {
@@ -1920,6 +1935,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         private void TryLqdtParking()
         {
+            if (IsEmulatorOrTesterMode(out string reason))
+            {
+                LogRealOnlyThrottled(reason);
+                return;
+            }
+
             if (_LqdtRegimeIsOn.ValueBool == false
                 || _tabLqdt.IsReadyToTrade == false
                 || _tabLqdt.Security == null
