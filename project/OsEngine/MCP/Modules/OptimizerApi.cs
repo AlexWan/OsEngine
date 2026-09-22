@@ -1655,37 +1655,41 @@ namespace OsEngine.MCP.Modules
 
             List<bool> parametersOn = master.ParametersOn;
 
-            foreach (JsonElement item in itemsElement.EnumerateArray())
+            // мутации значений/on-off рабочего кэша - под тем же lock, что и снапшот
+            lock (master.ParametersLock)
             {
-                if (!item.TryGetProperty("name", out JsonElement nameElement)
-                    || nameElement.ValueKind != JsonValueKind.String)
+                foreach (JsonElement item in itemsElement.EnumerateArray())
                 {
-                    throw new ArgumentException("Each parameter item must have a name");
-                }
-
-                string paramName = nameElement.GetString();
-                int index = -1;
-
-                for (int i = 0; i < masterParams.Count; i++)
-                {
-                    if (masterParams[i].Name == paramName)
+                    if (!item.TryGetProperty("name", out JsonElement nameElement)
+                        || nameElement.ValueKind != JsonValueKind.String)
                     {
-                        index = i;
-                        break;
+                        throw new ArgumentException("Each parameter item must have a name");
                     }
-                }
 
-                if (index < 0)
-                {
-                    throw new ArgumentException($"Parameter '{paramName}' not found in robot '{master.StrategyName}'");
-                }
+                    string paramName = nameElement.GetString();
+                    int index = -1;
 
-                ApplyParamValue(masterParams[index], item);
+                    for (int i = 0; i < masterParams.Count; i++)
+                    {
+                        if (masterParams[i].Name == paramName)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
 
-                if (item.TryGetProperty("on", out JsonElement onElement)
-                    && (onElement.ValueKind == JsonValueKind.True || onElement.ValueKind == JsonValueKind.False))
-                {
-                    parametersOn[index] = onElement.GetBoolean();
+                    if (index < 0)
+                    {
+                        throw new ArgumentException($"Parameter '{paramName}' not found in robot '{master.StrategyName}'");
+                    }
+
+                    ApplyParamValue(masterParams[index], item);
+
+                    if (item.TryGetProperty("on", out JsonElement onElement)
+                        && (onElement.ValueKind == JsonValueKind.True || onElement.ValueKind == JsonValueKind.False))
+                    {
+                        parametersOn[index] = onElement.GetBoolean();
+                    }
                 }
             }
 

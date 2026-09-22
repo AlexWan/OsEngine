@@ -1337,6 +1337,15 @@ namespace OsEngine.OsOptimizer
         // BotCountOneFaze (шаг 4) под lock не берётся.
         private readonly object _parametersLock = new object();
 
+        /// <summary>
+        /// тот же lock, что и у кэшей: UI/MCP берут его, мутируя рабочий кэш
+        /// (Insert/RemoveAt, значения, on/off), чтобы не рвать снапшот фонового счёта
+        /// </summary>
+        public object ParametersLock
+        {
+            get { return _parametersLock; }
+        }
+
         private List<IIStrategyParameter> _parameters;
         private List<IIStrategyParameter> _parametersStandard;
 
@@ -1511,8 +1520,13 @@ namespace OsEngine.OsOptimizer
         {
             lock (_parametersLock)
             {
-                parameters = _parameters;
-                parametersOn = _parametersOn;
+                // копии списков: вызывающий (фоновый счёт) не мутирует общий кэш
+                parameters = _parameters == null
+                    ? null
+                    : new List<IIStrategyParameter>(_parameters);
+                parametersOn = _parametersOn == null
+                    ? null
+                    : new List<bool>(_parametersOn);
             }
         }
 

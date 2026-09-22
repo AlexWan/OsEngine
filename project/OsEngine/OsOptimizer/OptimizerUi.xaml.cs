@@ -1099,8 +1099,13 @@ namespace OsEngine.OsOptimizer
 
         private void ReloadStrategy()
         {
-            _parameters = _master.Parameters;
-            _parametersActive = _master.ParametersOn;
+            // оба кэша берём под одним lock: одна генерация параметров и on/off
+            lock (_master.ParametersLock)
+            {
+                _parameters = _master.Parameters;
+                _parametersActive = _master.ParametersOn;
+            }
+
             PaintTableSources();
             PaintTableParameters();
             PaintCountBotsInOptimization();
@@ -2895,10 +2900,15 @@ namespace OsEngine.OsOptimizer
                             valueDefoult != param.ValueIntDefolt ||
                             stepType != param.StepType)
                         {
-                            _parameters.Insert(i_param, new StrategyParameterInt(parameter.Name, valueDefoult,
-                                valueStart, valueStop, valueStep));
-                            _parameters.RemoveAt(i_param + 1);
-                            ((StrategyParameterInt)_parameters[i_param]).StepType = stepType;
+                            // Insert+RemoveAt атомарно под lock кэшей: фоновый снапшот
+                            // не должен видеть промежуточное состояние списка
+                            lock (_master.ParametersLock)
+                            {
+                                _parameters.Insert(i_param, new StrategyParameterInt(parameter.Name, valueDefoult,
+                                    valueStart, valueStop, valueStep));
+                                _parameters.RemoveAt(i_param + 1);
+                                ((StrategyParameterInt)_parameters[i_param]).StepType = stepType;
+                            }
                         }
 
                         DataGridViewCheckBoxCell box = (DataGridViewCheckBoxCell)row.Cells[0];
@@ -2939,10 +2949,15 @@ namespace OsEngine.OsOptimizer
                             valueDefoult != param.ValueDecimalDefolt ||
                             stepType != param.StepType)
                         {
-                            _parameters.Insert(i_param, new StrategyParameterDecimal(parameter.Name, valueDefoult,
-                               valueStart, valueStop, valueStep));
-                            _parameters.RemoveAt(i_param + 1);
-                            ((StrategyParameterDecimal)_parameters[i_param]).StepType = stepType;
+                            // Insert+RemoveAt атомарно под lock кэшей: фоновый снапшот
+                            // не должен видеть промежуточное состояние списка
+                            lock (_master.ParametersLock)
+                            {
+                                _parameters.Insert(i_param, new StrategyParameterDecimal(parameter.Name, valueDefoult,
+                                   valueStart, valueStop, valueStep));
+                                _parameters.RemoveAt(i_param + 1);
+                                ((StrategyParameterDecimal)_parameters[i_param]).StepType = stepType;
+                            }
                         }
                         if (row.Cells[0].Value == null ||
                             (bool)row.Cells[0].Value == false)
@@ -2990,10 +3005,15 @@ namespace OsEngine.OsOptimizer
                             valueDefoult != param.ValueDecimalDefolt ||
                             stepType != param.StepType)
                         {
-                            _parameters.Insert(i_param, new StrategyParameterDecimalCheckBox(parameter.Name, valueDefoult,
-                               valueStart, valueStop, valueStep, true));
-                            _parameters.RemoveAt(i_param + 1);
-                            ((StrategyParameterDecimalCheckBox)_parameters[i_param]).StepType = stepType;
+                            // Insert+RemoveAt атомарно под lock кэшей: фоновый снапшот
+                            // не должен видеть промежуточное состояние списка
+                            lock (_master.ParametersLock)
+                            {
+                                _parameters.Insert(i_param, new StrategyParameterDecimalCheckBox(parameter.Name, valueDefoult,
+                                   valueStart, valueStop, valueStep, true));
+                                _parameters.RemoveAt(i_param + 1);
+                                ((StrategyParameterDecimalCheckBox)_parameters[i_param]).StepType = stepType;
+                            }
                         }
                         if (row.Cells[0].Value == null ||
                             (bool)row.Cells[0].Value == false)

@@ -224,6 +224,10 @@ namespace OsEngine.OsOptimizer
 
             optimizedParamToCheckCount = CopyParameters(optimizedParamToCheckCount);
 
+            // reset-on-copy: копия сбрасывается в Start (ReloadParam), чтобы число
+            // итераций не менялось; входной _parameters/_parametersOn не мутируется
+            ReloadAllParam(optimizedParamToCheckCount);
+
             int countBots = 0;
 
             bool isStart = true;
