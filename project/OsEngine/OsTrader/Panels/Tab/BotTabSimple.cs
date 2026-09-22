@@ -22,6 +22,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -636,7 +637,45 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
         public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, bool canDelete, params decimal[] parameters)
         {
-            Aindicator indicator = IndicatorsFactory.CreateIndicatorByName(typeName, $"{bot.NameStrategyUniq}{typeName}", canDelete);
+            // BUG-0013: старый overload сохранён без изменений. Прежнее имя индикатора
+            // (NameStrategyUniq + typeName) сохраняется -> обратная совместимость с
+            // существующими конфигами и файлами Engine\{Name}*.txt.
+            return CreateIndicator(bot, typeName, area, canDelete, null, parameters);
+        }
+
+        /// <summary>
+        /// Creates a new indicator of the specified type with an explicit instance key.<br/>
+        /// The key makes the indicator name unique, so several indicators of the same type can coexist
+        /// on one tab (BUG-0013). Pass different keys for different instances.<br/>
+        /// The name is {NameStrategyUniq}{typeName}_{SanitizeInstanceName(instanceName)}_{hash8(instanceName)}.
+        /// </summary>
+        /// <param name="bot">Current bot</param>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="area">The name of the area on which it will be placed. Default: "Prime" </param>
+        /// <param name="canDelete">Determines whether the user can remove the indicator from the chart.</param>
+        /// <param name="instanceName">Instance key. Null/empty -> legacy behaviour (single indicator name).</param>
+        /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, bool canDelete, string instanceName, params decimal[] parameters)
+        {
+            string indicatorName = $"{bot.NameStrategyUniq}{typeName}";
+
+            if (string.IsNullOrEmpty(instanceName) == false)
+            {
+                string sanitized = SanitizeInstanceName(instanceName);
+
+                if (string.IsNullOrEmpty(sanitized))
+                {
+                    // ключ после санитизации пуст: оставляем только детерминированный хэш,
+                    // чтобы разные "пустые" ключи не слились между собой
+                    indicatorName = indicatorName + "_" + GetInstanceNameHash(instanceName);
+                }
+                else
+                {
+                    indicatorName = indicatorName + "_" + sanitized + "_" + GetInstanceNameHash(instanceName);
+                }
+            }
+
+            Aindicator indicator = IndicatorsFactory.CreateIndicatorByName(typeName, indicatorName, canDelete);
             indicator = (Aindicator)CreateCandleIndicator(indicator, area);
 
             int parametersDigitCount = indicator.ParametersDigit.Count;
@@ -649,6 +688,94 @@ namespace OsEngine.OsTrader.Panels.Tab
                 parameterDigits[i].Value = parameters[i];
 
             return indicator;
+        }
+
+        /// <summary>
+        /// BUG-0013: sanitize an indicator instance key so that it is safe to use inside an indicator Name.<br/>
+        /// The Name is used as a file name (Engine\{Name}Parametrs.txt / Values.txt / Base.txt),
+        /// inside the chart config (separator '@'), Values.txt (separator '&') and Parametrs.txt (separator '#').<br/>
+        /// Forbidden characters are replaced with '_'. Path traversal ('..') is neutralised.
+        /// Returns null when nothing meaningful is left after sanitizing.
+        /// </summary>
+        private static string SanitizeInstanceName(string raw)
+        {
+            if (raw == null)
+            {
+                return null;
+            }
+
+            string value = raw.Trim();
+
+            // защита от path traversal
+            value = value.Replace("..", "_");
+
+            char[] invalidChars = System.IO.Path.GetInvalidFileNameChars();
+
+            StringBuilder builder = new StringBuilder(value.Length);
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+
+                bool isBad = char.IsControl(c)
+                    || c == '@'   // разделитель конфига чарта
+                    || c == '&'   // разделитель Values.txt
+                    || c == '#'   // разделитель Parametrs.txt
+                    || c == '^'
+                    || c == ';';
+
+                if (isBad == false)
+                {
+                    for (int j = 0; j < invalidChars.Length; j++)
+                    {
+                        if (c == invalidChars[j])
+                        {
+                            isBad = true;
+                            break;
+                        }
+                    }
+                }
+
+                builder.Append(isBad ? '_' : c);
+            }
+
+            string sanitized = builder.ToString().Trim(' ', '.');
+
+            if (sanitized.Length > 32)
+            {
+                sanitized = sanitized.Substring(0, 32);
+            }
+
+            // если не осталось ни одного осмысленного символа (только '_', пробелы, точки)
+            if (sanitized.Replace("_", "").Trim().Length == 0)
+            {
+                return null;
+            }
+
+            return sanitized;
+        }
+
+        /// <summary>
+        /// BUG-0013: short deterministic hash (8 hex) of the raw instance key.<br/>
+        /// Makes different raw keys stay different even if sanitizing collapses them to the same string
+        /// (e.g. "a/b" and "a:b"). Practically unique (32 bit).
+        /// </summary>
+        private static string GetInstanceNameHash(string raw)
+        {
+            using (System.Security.Cryptography.SHA1 sha = System.Security.Cryptography.SHA1.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(raw ?? string.Empty);
+                byte[] hash = sha.ComputeHash(bytes);
+
+                StringBuilder builder = new StringBuilder();
+
+                for (int i = 0; i < 4 && i < hash.Length; i++)
+                {
+                    builder.Append(hash[i].ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
         }
 
         /// <summary>

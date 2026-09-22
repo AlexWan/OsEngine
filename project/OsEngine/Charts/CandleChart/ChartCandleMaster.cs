@@ -1023,6 +1023,10 @@ namespace OsEngine.Charts.CandleChart
         }
         private List<IIndicator> _indicators = new List<IIndicator>();
 
+        // BUG-0013: троттлинг лога повторного использования имени индикатора
+        private readonly object _indicatorNameReuseLocker = new object();
+        private readonly Dictionary<string, DateTime> _indicatorNameReuseLogTime = new Dictionary<string, DateTime>();
+
         /// <summary>
         /// to create a new indicator. If there is already one with this name, the existing one returned
         /// создать новый индикатор. Если уже есть с таким именем, возвращается имеющийся
@@ -1049,6 +1053,11 @@ namespace OsEngine.Charts.CandleChart
                     {
                         if (_indicators[i].Name == indicator.Name)
                         {
+                            // BUG-0013: имя индикатора занято - возвращаем существующий (идемпотентность),
+                            // но обязательно логируем (с троттлингом), иначе повторное использование
+                            // имени остаётся незаметным.
+                            LogIndicatorNameReuse(indicator.Name);
+
                             return _indicators[i];
                         }
                     }
@@ -2138,6 +2147,36 @@ namespace OsEngine.Charts.CandleChart
                 // no MessageBox: it blocks a background thread in headless mode
                 // без MessageBox: в безлюдном режиме он блокирует фоновый поток
                 System.Diagnostics.Debug.WriteLine(message);
+            }
+        }
+
+        /// <summary>
+        /// BUG-0013: log a reuse of an existing indicator name (throttled, one message per name per 10 sec).
+        /// Reuse itself is correct (idempotency), but silence made the original bug invisible.
+        /// </summary>
+        private void LogIndicatorNameReuse(string name)
+        {
+            try
+            {
+                lock (_indicatorNameReuseLocker)
+                {
+                    DateTime now = DateTime.Now;
+                    DateTime last;
+
+                    if (_indicatorNameReuseLogTime.TryGetValue(name, out last)
+                        && (now - last).TotalSeconds < 10)
+                    {
+                        return;
+                    }
+
+                    _indicatorNameReuseLogTime[name] = now;
+                }
+
+                NewLogMessage("Indicator with name '" + name + "' already exists. Reusing existing indicator (duplicate CreateIndicator call).", LogMessageType.System);
+            }
+            catch
+            {
+                // ignore logging errors
             }
         }
 
