@@ -1226,7 +1226,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Connector.ServerUid = ServerUid;
             }
 
-            // BUG-0016: EventsIsOn у каждого таба индивидуальный (Engine\{TabName}ConnectorPrime.txt).
+            // EventsIsOn у каждого таба индивидуальный (Engine\{TabName}ConnectorPrime.txt).
             // Не перезаписываем его скринерным _eventsIsOn при загрузке/релоаде, иначе снятая
             // пользователем галка «События вкладки» сбрасывается в true после перезапуска.
             // Наследование _eventsIsOn новыми табами задаётся при создании (TryCreateTab).
@@ -1277,7 +1277,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.ServerType = ServerType;
             newTab.Connector.ServerFullName = ServerName;
             newTab.Connector.EmulatorIsOn = _emulatorIsOn;
-            // BUG-0016: новый таб наследует скринерный флаг «События вкладки».
+            // новый таб наследует скринерный флаг «События вкладки».
             // Раньше это делалось в UpdateTabSettings на каждом релоаде, что затирало
             // индивидуальный флаг таба; теперь применяется только при создании.
             newTab.Connector.EventsIsOn = _eventsIsOn;
