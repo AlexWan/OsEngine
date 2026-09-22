@@ -283,6 +283,12 @@ namespace OsEngine.Robots.SyntheticBond
 
         private bool IsTradeAllowed()
         {
+            if (IsEmulatorOrTesterMode(out string reason))
+            {
+                LogRealOnlyThrottled(reason);
+                return false;
+            }
+
             if (_base1 != null
                 && _base1.IsNonTradePeriodInConnector)
             {
@@ -295,6 +301,111 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             return true;
+        }
+
+        private bool IsEmulatorOrTesterMode(out string reason)
+        {
+            if (StartProgram != StartProgram.IsOsTrader)
+            {
+                reason = "tester/optimizer";
+                return true;
+            }
+
+            List<string> names = new List<string>();
+            List<bool> flags = new List<bool>();
+
+            BotTabSimple[] bases = { _base1, _base2, _base3, _base4, _base5, _base6, _base7, _base8, _base9, _base10 };
+            BotTabScreener[] screeners = { _futs1, _futs2, _futs3, _futs4, _futs5, _futs6, _futs7, _futs8, _futs9, _futs10 };
+
+            for (int i = 0; i < bases.Length; i++)
+            {
+                if (bases[i] != null)
+                {
+                    names.Add(string.IsNullOrEmpty(bases[i].Connector?.SecurityName)
+                        ? "base" + (i + 1)
+                        : bases[i].Connector.SecurityName);
+                    flags.Add(bases[i].EmulatorIsOn);
+                }
+
+                BotTabScreener screener = screeners[i];
+
+                if (screener == null)
+                {
+                    continue;
+                }
+
+                names.Add(string.IsNullOrEmpty(screener.TabName)
+                    ? "futs" + (i + 1)
+                    : screener.TabName);
+                flags.Add(screener.EmulatorIsOn);
+
+                if (screener.Tabs == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < screener.Tabs.Count; j++)
+                {
+                    BotTabSimple tab = screener.Tabs[j];
+
+                    if (tab == null)
+                    {
+                        continue;
+                    }
+
+                    names.Add(string.IsNullOrEmpty(tab.Connector?.SecurityName)
+                        ? "futs" + (i + 1) + "." + j
+                        : tab.Connector.SecurityName);
+                    flags.Add(tab.EmulatorIsOn);
+                }
+            }
+
+            if (_tabLqdt != null)
+            {
+                names.Add(string.IsNullOrEmpty(_tabLqdt.Connector?.SecurityName)
+                    ? "LQDT"
+                    : _tabLqdt.Connector.SecurityName);
+                flags.Add(_tabLqdt.EmulatorIsOn);
+            }
+
+            reason = FindEmulatorSource(names, flags);
+
+            return reason != null;
+        }
+
+        public static string FindEmulatorSource(List<string> names, List<bool> flags)
+        {
+            if (names == null
+                || flags == null
+                || names.Count != flags.Count)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < names.Count; i++)
+            {
+                if (flags[i])
+                {
+                    return names[i];
+                }
+            }
+
+            return null;
+        }
+
+        private DateTime _lastRealOnlyWarnTime = DateTime.MinValue;
+
+        private void LogRealOnlyThrottled(string reason)
+        {
+            // робот real-only: в эмуляторе/тестере входы, LQDT и выравнивание отключены
+            if ((DateTime.Now - _lastRealOnlyWarnTime).TotalMinutes < 5)
+            {
+                return;
+            }
+
+            _lastRealOnlyWarnTime = DateTime.Now;
+
+            LogFull("WARN: real-only robot. Trading disabled in emulator/tester. Source: " + reason);
         }
 
         private bool IsExitWindow(DateTime time)
