@@ -41,7 +41,8 @@ using System.Windows.Forms.Integration;
 Единственный выход — за N дней до экспирации (Days before expiration to exit),
 лимитками по стакану в окне ликвидности 10:00–18:00 будни, маркет — аварийно по дедлайну.
 
-Только реальная торговля (тестер/оптимизатор не используются).
+Только реальная торговля. В эмуляторе/тестере нет входов, LQDT-парковки и выравнивания ног
+(выход за N дней до экспирации намеренно не гейтится).
 
 Источники
 10 пар источников. В каждой паре BotTabSimple - базовая акция, BotTabScreener - фьючерсы на неё.
@@ -191,8 +192,8 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             Description = OsLocalization.ConvertToLocString(
-              "Eng:Scalper of synthetic bonds on the MOEX stock futures market. Accumulates a long stock + short futures position with limit orders placed at the counterparty levels of the order book, when the annualized contango yield exceeds the threshold (vs LQDT or fixed). Exits N days before futures expiration. Free money is parked in LQDT_" +
-              "Ru:Скальпер синтетических облигаций на рынке фьючерсов на акции MOEX. Набирает позицию лонг акция + шорт фьючерс лимитными ордерами по уровням контрагентов в стакане, когда годовая доходность контанго превышает порог (над LQDT или фиксированный). Выход за N дней до экспирации фьючерса. Свободные деньги паркуются в LQDT_");
+              "Eng:Scalper of synthetic bonds on the MOEX stock futures market. Accumulates a long stock + short futures position with limit orders placed at the counterparty levels of the order book, when the annualized contango yield exceeds the threshold (vs LQDT or fixed). Exits N days before futures expiration. Free money is parked in LQDT. Real trading only: in emulator/tester there are no entries, no LQDT parking and no leg alignment (the expiration exit is intentionally not gated)._"
+              + "Ru:Скальпер синтетических облигаций на рынке фьючерсов на акции MOEX. Набирает позицию лонг акция + шорт фьючерс лимитными ордерами по уровням контрагентов в стакане, когда годовая доходность контанго превышает порог (над LQDT или фиксированный). Выход за N дней до экспирации фьючерса. Свободные деньги паркуются в LQDT. Только реальная торговля: в эмуляторе/тестере нет входов, LQDT-парковки и выравнивания ног (выход по экспирации намеренно не гейтится)._");
 
             if (startProgram != StartProgram.IsOsOptimizer)
             {
@@ -1217,6 +1218,17 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            decimal actualCash = GetActualFreeCash();
+
+            // в реале брокерский кэш (rub) - обязательный источник правды:
+            // если он недоступен, входы отключаем вместо торговли на fallback-математике
+            if (StartProgram == StartProgram.IsOsTrader
+                && actualCash == -1)
+            {
+                LogCashUnavailableThrottled();
+                return;
+            }
+
             MarketDepth futBook = futuresSource.MarketDepth;
             MarketDepth baseBook = baseSource.MarketDepth;
 
@@ -1254,14 +1266,10 @@ namespace OsEngine.Robots.SyntheticBond
             // в реале кап считаем от собственной оценки портфеля:
             // честный кэш + инвестиции в акции + TMON + заблокированное ГО фьючерсов,
             // без брокерского плеча. Акции могут занять до cap% полного депо
-            if (StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader
+                && actualCash != -1)
             {
-                decimal actualCashForCap = GetActualFreeCash();
-
-                if (actualCashForCap != -1)
-                {
-                    portfolioValue = Math.Max(0, actualCashForCap) + baseInvested + GetLqdtValue() + GetFuturesGoTotal();
-                }
+                portfolioValue = Math.Max(0, actualCash) + baseInvested + GetLqdtValue() + GetFuturesGoTotal();
             }
 
             decimal freeMoney = GetFreeMoneyWithGo();
@@ -1993,6 +2001,14 @@ namespace OsEngine.Robots.SyntheticBond
             decimal lot = _tabLqdt.Security.Lot > 1 ? _tabLqdt.Security.Lot : 1;
 
             decimal idleCash = GetFreeMoneyWithGo() - GetLqdtValue();
+
+            // в реале при недоступном кэше (rub) не паркуем: GetFreeMoneyWithGo уже
+            // вызвал LogCashUnavailableThrottled, fallback-математике для LQDT не доверяем
+            if (StartProgram == StartProgram.IsOsTrader
+                && GetActualFreeCash() == -1)
+            {
+                return;
+            }
 
             decimal buffer = _lqdtFreeMoneyBuffer.ValueDecimal;
 
