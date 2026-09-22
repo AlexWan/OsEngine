@@ -64,6 +64,7 @@ namespace OsEngine
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
             this.Closing += MainWindow_Closing;
 
@@ -326,6 +327,52 @@ namespace OsEngine
             else
             {
                 MessageBox.Show(message);
+            }
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            try
+            {
+                if (e.Exception != null
+                    && e.Exception.ToString().Contains("(995):") == true)
+                { // игнорируем прерывания потока за делом по кансел токену
+                    e.Handled = true;
+                    return;
+                }
+
+                string message = OsLocalization.MainWindow.Message5 + " UI " + e.Exception;
+
+                message = _startProgram + "  " + message;
+
+                message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+                _messageToCrashServer = "Crash% " + message;
+                Thread worker = new Thread(SendMessageInCrashServer);
+                worker.Start();
+
+                ServerMaster.SendNewLogMessage(message, Logging.LogMessageType.Error);
+
+                if (PrimeSettingsMaster.RebootTradeUiLight == true &&
+                    RobotUiLite.IsRobotUiLightStart)
+                {
+                    Reboot(message);
+                }
+                else
+                {
+                    MessageBox.Show(message);
+                }
+
+                if (e.Exception is OutOfMemoryException)
+                { // фатальное исключение: не продолжаем работу, даём процессу завершиться
+                    return;
+                }
+
+                e.Handled = true;
+            }
+            catch
+            {
+                // ошибка в самом обработчике: не зацикливаемся, пусть процесс завершится штатно
             }
         }
 
