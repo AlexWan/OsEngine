@@ -82,7 +82,10 @@ namespace OsEngine.OsOptimizer
         {
             ReportsToFazes = new List<OptimizerFazeReport>();
 
-            int countBots = BotCountOneFaze(_parameters, _parametersOn);
+            // снапшот рабочего кэша под lock мастера; сам длинный счёт - вне lock
+            _master.GetParametersSnapshot(out List<IIStrategyParameter> parametersSnapshot, out List<bool> parametersOnSnapshot);
+
+            int countBots = BotCountOneFaze(parametersSnapshot, parametersOnSnapshot);
 
             _countAllServersMax = countBots * (_master.IterationCount * 2);
 
@@ -197,38 +200,25 @@ namespace OsEngine.OsOptimizer
 
         public int BotCountOneFaze(List<IIStrategyParameter> parameters, List<bool> parametersOn)
         {
-            List<IIStrategyParameter> allParam = parameters;
-
-            for (int i = 0; i < allParam.Count; i++)
+            // входной рабочий кэш (_parameters/_parametersOn) НЕ мутируем:
+            // счёт идёт по копии, значения выставляются в CopyParameters (ValueX = ValueXStart)
+            if (parameters == null
+                || parametersOn == null
+                || parametersOn.Count != parameters.Count)
             {
-                if (allParam[i].Type == StrategyParameterType.Int)
-                {
-                    ((StrategyParameterInt)allParam[i]).ValueInt = ((StrategyParameterInt)allParam[i]).ValueIntStart;
-                }
-                if (allParam[i].Type == StrategyParameterType.Decimal)
-                {
-                    ((StrategyParameterDecimal)allParam[i]).ValueDecimal = ((StrategyParameterDecimal)allParam[i]).ValueDecimalStart;
-                }
-                if (allParam[i].Type == StrategyParameterType.DecimalCheckBox)
-                {
-                    ((StrategyParameterDecimalCheckBox)allParam[i]).ValueDecimal = ((StrategyParameterDecimalCheckBox)allParam[i]).ValueDecimalStart;
-                }
+                return 0;
             }
-
-            List<bool> allOptimezedParam = parametersOn;
-
 
             // 1 consider how many passes we need to do in the first phase/
             // 1 считаем сколько проходов нам нужно сделать в первой фазе
 
             List<IIStrategyParameter> optimizedParamToCheckCount = new List<IIStrategyParameter>();
 
-            for (int i = 0; i < allParam.Count; i++)
+            for (int i = 0; i < parameters.Count; i++)
             {
-                if (allOptimezedParam[i])
+                if (parametersOn[i])
                 {
-                    optimizedParamToCheckCount.Add(allParam[i]);
-                    ReloadParam(allParam[i]);
+                    optimizedParamToCheckCount.Add(parameters[i]);
                 }
             }
 
@@ -403,7 +393,8 @@ namespace OsEngine.OsOptimizer
         private void StartOptimizeFazeInSample(OptimizerFaze faze, OptimizerFazeReport report,
             List<IIStrategyParameter> allParameters, List<bool> parametersToOptimization)
         {
-            ReloadAllParam(allParameters);
+            // ReloadAllParam(allParameters) здесь избыточен и мутировал бы рабочий кэш:
+            // on=true параметры переустанавливаются через ReloadAllParam(optimizeParamCurrent) ниже
 
             // 2 проходим первую фазу, когда нужно обойти все варианты
 

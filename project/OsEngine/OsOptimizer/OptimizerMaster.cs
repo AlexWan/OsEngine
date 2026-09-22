@@ -79,17 +79,20 @@ namespace OsEngine.OsOptimizer
 
         public int GetMaxBotsCount()
         {
-            if (_parameters == null ||
-                _parametersOn == null)
+            // снапшот рабочего кэша под lock; сам длинный счёт (BotCountOneFaze) - вне lock
+            GetParametersSnapshot(out List<IIStrategyParameter> parameters, out List<bool> parametersOn);
+
+            if (parameters == null ||
+                parametersOn == null)
             {
                 return 0;
             }
 
-            int value = _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn) * IterationCount * 2;
+            int value = _optimizerExecutor.BotCountOneFaze(parameters, parametersOn) * IterationCount * 2;
 
             if (LastInSample)
             {
-                value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn);
+                value = value - _optimizerExecutor.BotCountOneFaze(parameters, parametersOn);
             }
 
             return value;
@@ -1497,6 +1500,19 @@ namespace OsEngine.OsOptimizer
                 }
 
                 _parametersOn = parametersOn;
+            }
+        }
+
+        /// <summary>
+        /// снимок рабочего кэша (параметры + on/off) под lock: длинный счёт
+        /// BotCountOneFaze выполняется вне lock, чтобы не блокировать UI/API
+        /// </summary>
+        public void GetParametersSnapshot(out List<IIStrategyParameter> parameters, out List<bool> parametersOn)
+        {
+            lock (_parametersLock)
+            {
+                parameters = _parameters;
+                parametersOn = _parametersOn;
             }
         }
 
