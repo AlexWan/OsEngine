@@ -636,7 +636,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
         public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, bool canDelete, params decimal[] parameters)
         {
-            Aindicator indicator = IndicatorsFactory.CreateIndicatorByName(typeName, $"{bot.NameStrategyUniq}{typeName}", canDelete);
+            string baseName = $"{bot.NameStrategyUniq}{typeName}";
+            string indicatorName = GetNextIndicatorName(baseName);
+
+            Aindicator indicator = IndicatorsFactory.CreateIndicatorByName(typeName, indicatorName, canDelete);
             indicator = (Aindicator)CreateCandleIndicator(indicator, area);
 
             int parametersDigitCount = indicator.ParametersDigit.Count;
@@ -649,6 +652,40 @@ namespace OsEngine.OsTrader.Panels.Tab
                 parameterDigits[i].Value = parameters[i];
 
             return indicator;
+        }
+
+        // counters of indicators already created on this tab, keyed by base name
+        private readonly Dictionary<string, int> _indicatorNameCounters = new Dictionary<string, int>();
+        private readonly object _indicatorNameCountersLocker = new object();
+
+        /// <summary>
+        /// Name for the next indicator of this type on the tab: the first one keeps the legacy name,
+        /// each following one gets a numeric suffix (_2, _3, ...).
+        /// </summary>
+        private string GetNextIndicatorName(string baseName)
+        {
+            int number;
+
+            lock (_indicatorNameCountersLocker)
+            {
+                _indicatorNameCounters.TryGetValue(baseName, out int created);
+                created++;
+                _indicatorNameCounters[baseName] = created;
+                number = created;
+            }
+
+            return BuildIndicatorName(baseName, number);
+        }
+
+        // 1 -> base name, 2 -> base_2, 3 -> base_3, ...
+        private static string BuildIndicatorName(string baseName, int number)
+        {
+            if (string.IsNullOrEmpty(baseName) || number <= 1)
+            {
+                return baseName;
+            }
+
+            return baseName + "_" + number;
         }
 
         /// <summary>
