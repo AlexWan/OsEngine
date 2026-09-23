@@ -654,22 +654,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             return indicator;
         }
 
-        /// <summary>
-        /// How many indicators of each type have already been created on this tab.<br/>
-        /// Key - base indicator name ({NameStrategyUniq}{typeName}).
-        /// </summary>
+        // counters of indicators already created on this tab, keyed by base name
         private readonly Dictionary<string, int> _indicatorNameCounters = new Dictionary<string, int>();
         private readonly object _indicatorNameCountersLocker = new object();
 
         /// <summary>
-        /// Returns a free indicator name for the next indicator of a type on this tab.<br/>
-        /// Numbering is simple and deterministic: the first indicator keeps the legacy name
-        /// ({NameStrategyUniq}{typeName}), the second becomes {NameStrategyUniq}{typeName}_2,
-        /// the third {NameStrategyUniq}{typeName}_3, and so on.
-        /// This makes several indicators of the same type coexist on one tab while the old names,
-        /// configs and files (Engine\{Name}*.txt) stay intact.<br/>
-        /// The same creation order after a restart produces the same names, so indicators restored
-        /// from the chart config are reused (deduplicated by name) instead of being duplicated.
+        /// Name for the next indicator of this type on the tab: the first one keeps the legacy name,
+        /// each following one gets a numeric suffix (_2, _3, ...).
         /// </summary>
         private string GetNextIndicatorName(string baseName)
         {
@@ -686,10 +677,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             return BuildIndicatorName(baseName, number);
         }
 
-        /// <summary>
-        /// Builds an indicator name from the base name and the ordinal number of the indicator of
-        /// this type on the tab: 1 -> baseName, 2 -> baseName_2, 3 -> baseName_3, ...
-        /// </summary>
+        // 1 -> base name, 2 -> base_2, 3 -> base_3, ...
         private static string BuildIndicatorName(string baseName, int number)
         {
             if (string.IsNullOrEmpty(baseName) || number <= 1)

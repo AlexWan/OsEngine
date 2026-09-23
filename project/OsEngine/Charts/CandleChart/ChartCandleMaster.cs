@@ -1053,8 +1053,7 @@ namespace OsEngine.Charts.CandleChart
                     {
                         if (_indicators[i].Name == indicator.Name)
                         {
-                            // the name is already taken - return the existing indicator (idempotency),
-                            // but log it (throttled), otherwise the reuse stays invisible.
+                            // name is taken - return the existing indicator (idempotency), but log the reuse
                             LogIndicatorNameReuse(indicator.Name);
 
                             return _indicators[i];
@@ -1087,9 +1086,7 @@ namespace OsEngine.Charts.CandleChart
         }
 
         /// <summary>
-        /// Logs a reuse of an existing indicator name (throttled: one message per name per 10 sec).<br/>
-        /// The reuse itself is correct (idempotency, e.g. when indicators are restored from the chart
-        /// config on start), but it must not stay silent.
+        /// Logs a reuse of an existing indicator name (throttled: one message per name per 10 sec).
         /// </summary>
         private void LogIndicatorNameReuse(string name)
         {
