@@ -343,7 +343,17 @@ namespace OsEngine.Entity
 
                         if (requestCount < candlesToRequestCount)
                         {
-                            candlesToRequestCount = requestCount;
+                            // обрезаем до хвоста только если файловая история покрывает >= 95% запрошенной глубины.
+                            // иначе грузим полную глубину — докачается и недостающий префикс
+                            DateTime firstCandleTime = series.CandlesAll[0].TimeStart;
+
+                            DateTime neededStart = DateTime.Now.AddMinutes(
+                                -series.TimeFrameSpan.TotalMinutes * candlesToRequestCount * 0.85);
+
+                            if (firstCandleTime <= neededStart)
+                            {
+                                candlesToRequestCount = requestCount;
+                            }
                         }
                     }
 
