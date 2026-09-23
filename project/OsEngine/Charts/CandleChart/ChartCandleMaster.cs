@@ -1023,10 +1023,6 @@ namespace OsEngine.Charts.CandleChart
         }
         private List<IIndicator> _indicators = new List<IIndicator>();
 
-        // throttling of the "indicator name already exists" log
-        private readonly object _indicatorNameReuseLocker = new object();
-        private readonly Dictionary<string, DateTime> _indicatorNameReuseLogTime = new Dictionary<string, DateTime>();
-
         /// <summary>
         /// to create a new indicator. If there is already one with this name, the existing one returned
         /// создать новый индикатор. Если уже есть с таким именем, возвращается имеющийся
@@ -1053,9 +1049,6 @@ namespace OsEngine.Charts.CandleChart
                     {
                         if (_indicators[i].Name == indicator.Name)
                         {
-                            // name is taken - return the existing indicator (idempotency), but log the reuse
-                            LogIndicatorNameReuse(indicator.Name);
-
                             return _indicators[i];
                         }
                     }
@@ -1082,35 +1075,6 @@ namespace OsEngine.Charts.CandleChart
             {
                 SendErrorMessage(error);
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// Logs a reuse of an existing indicator name (throttled: one message per name per 10 sec).
-        /// </summary>
-        private void LogIndicatorNameReuse(string name)
-        {
-            try
-            {
-                lock (_indicatorNameReuseLocker)
-                {
-                    DateTime now = DateTime.Now;
-                    DateTime last;
-
-                    if (_indicatorNameReuseLogTime.TryGetValue(name, out last)
-                        && (now - last).TotalSeconds < 10)
-                    {
-                        return;
-                    }
-
-                    _indicatorNameReuseLogTime[name] = now;
-                }
-
-                NewLogMessage("Indicator with name '" + name + "' already exists. Reusing the existing indicator.", LogMessageType.System);
-            }
-            catch
-            {
-                // logging must never break indicator creation
             }
         }
 
