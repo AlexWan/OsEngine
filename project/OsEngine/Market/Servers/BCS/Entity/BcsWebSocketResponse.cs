@@ -1,10 +1,9 @@
 ﻿/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
-*/
+ */
 
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace OsEngine.Market.Servers.BCS.Entity
 {
@@ -55,171 +54,77 @@ namespace OsEngine.Market.Servers.BCS.Entity
 
     public class PublicMarketDataResponse
     {
-        [JsonPropertyName("responseType")]
-        public string ResponseType { get; set; }
-
-        [JsonPropertyName("subscribeType")]
-        public string? SubscribeType { get; set; }
-
-        [JsonPropertyName("ticker")]
-        public string Ticker { get; set; }
-
-        [JsonPropertyName("classCode")]
-        public string ClassCode { get; set; }
-
-        [JsonPropertyName("dateTime")]
-        public string? DateTime { get; set; }
-
-        [JsonPropertyName("side")]
-        public string Side { get; set; }
-
-        [JsonPropertyName("volume")]
-        public string? Volume { get; set; }
-
-        [JsonPropertyName("price")]
-        public string Price { get; set; }
-
-        [JsonPropertyName("quantity")]
-        public string Quantity { get; set; }
-
-        [JsonPropertyName("depth")]
-        public string Depth { get; set; }
-
-        [JsonPropertyName("bidVolume")]
-        public string BidVolume { get; set; }
-
-        [JsonPropertyName("askVolume")]
-        public string AskVolume { get; set; }
-
-        [JsonPropertyName("bids")]
-        public List<OrderBookEntry> Bids { get; set; }
-
-        [JsonPropertyName("asks")]
-        public List<OrderBookEntry> Asks { get; set; }
-
-        [JsonPropertyName("errors")]
-        public List<Error> Errors { get; set; }
+        public string responseType { get; set; }
+        public string subscribeType { get; set; }
+        public string ticker { get; set; }
+        public string classCode { get; set; }
+        public string dateTime { get; set; }
+        public string side { get; set; }
+        public string volume { get; set; }
+        public string price { get; set; }
+        public string quantity { get; set; }
+        public string depth { get; set; }
+        public string bidVolume { get; set; }
+        public string askVolume { get; set; }
+        public List<OrderBookEntry> bids { get; set; }
+        public List<OrderBookEntry> asks { get; set; }
+        public List<Error> errors { get; set; }
     }
 
     public class OrderBookEntry
     {
-        [JsonPropertyName("price")]
-        public string Price { get; set; }
-
-        [JsonPropertyName("quantity")]
-        public string Quantity { get; set; }
+        public string price { get; set; }
+        public string quantity { get; set; }
     }
 
     public class Error
     {
-        [JsonPropertyName("message")]
-        public string Message { get; set; }
-
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
-
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-
-        [JsonPropertyName("field")]
-        public string Field { get; set; }
+        public string message { get; set; }
+        public string code { get; set; }
+        public string type { get; set; }
+        public string field { get; set; }
     }
 
     public class BcsOrdersResponse
     {
-        [JsonPropertyName("originalClientOrderId")]
-        public string OriginalClientOrderId { get; set; }
-
-        [JsonPropertyName("clientOrderId")]
-        public string ClientOrderId { get; set; }
-
-        [JsonPropertyName("data")]
-        public Data Data { get; set; }
+        public string originalClientOrderId { get; set; }
+        public string clientOrderId { get; set; }
+        public Data data { get; set; }
     }
 
     public class Data
     {
-        [JsonPropertyName("messageType")]
-        public string MessageType { get; set; }
-
-        [JsonPropertyName("orderStatus")]
-        public string OrderStatus { get; set; }
-
-        [JsonPropertyName("executionType")]
-        public string ExecutionType { get; set; }
-
-        [JsonPropertyName("orderQuantity")]
-        public string OrderQuantity { get; set; }
-
-        [JsonPropertyName("executedQuantity")]
-        public string ExecutedQuantity { get; set; }
-
-        [JsonPropertyName("lastQuantity")]
-        public string LastQuantity { get; set; }
-
-        [JsonPropertyName("remainedQuantity")]
-        public string RemainedQuantity { get; set; }
-
-        [JsonPropertyName("ticker")]
-        public string Ticker { get; set; }
-
-        [JsonPropertyName("classCode")]
-        public string ClassCode { get; set; }
-
-        [JsonPropertyName("side")]
-        public string Side { get; set; }
-
-        [JsonPropertyName("orderType")]
-        public string OrderType { get; set; }
-
-        [JsonPropertyName("averagePrice")]
-        public string AveragePrice { get; set; }
-
-        [JsonPropertyName("orderId")]
-        public string OrderId { get; set; }
-
-        [JsonPropertyName("executionId")]
-        public string ExecutionId { get; set; }
-
-        [JsonPropertyName("price")]
-        public string Price { get; set; }
-
-        [JsonPropertyName("currency")]
-        public string Currency { get; set; }
-
-        [JsonPropertyName("clientCode")]
-        public string ClientCode { get; set; }
-
-        [JsonPropertyName("transactionTime")]
-        public string TransactionTime { get; set; }
-
-        [JsonPropertyName("tradeDate")]
-        public string TradeDate { get; set; }
-
-        [JsonPropertyName("orderNumber")]
-        public string OrderNumber { get; set; }
-
-        [JsonPropertyName("accruedCoupon")]
-        public string AccruedCoupon { get; set; }
-
-        [JsonPropertyName("executionValue")]
-        public string ExecutionValue { get; set; }
-
-        [JsonPropertyName("commission")]
-        public string Commission { get; set; }
-
-        [JsonPropertyName("securityExchange")]
-        public string SecurityExchange { get; set; }
-
-        [JsonPropertyName("rejectReason")]
-        public string RejectReason { get; set; }
+        public string messageType { get; set; }
+        public string orderStatus { get; set; }
+        public string executionType { get; set; }
+        public string orderQuantity { get; set; }
+        public string executedQuantity { get; set; }
+        public string lastQuantity { get; set; }
+        public string remainedQuantity { get; set; }
+        public string ticker { get; set; }
+        public string classCode { get; set; }
+        public string side { get; set; }
+        public string orderType { get; set; }
+        public string averagePrice { get; set; }
+        public string orderId { get; set; }
+        public string executionId { get; set; }
+        public string price { get; set; }
+        public string currency { get; set; }
+        public string clientCode { get; set; }
+        public string transactionTime { get; set; }
+        public string tradeDate { get; set; }
+        public string orderNumber { get; set; }
+        public string accruedCoupon { get; set; }
+        public string executionValue { get; set; }
+        public string commission { get; set; }
+        public string securityExchange { get; set; }
+        public string rejectReason { get; set; }
     }
-
 
     public class WarningSocketMessage
     {
         public Displayoptions displayOptions { get; set; }
-        public long timestamp { get; set; }
+        public string timestamp { get; set; }
         public string traceId { get; set; }
         public string type { get; set; }
     }
@@ -232,7 +137,7 @@ namespace OsEngine.Market.Servers.BCS.Entity
     public class ErrorSubscribeSocket
     {
         public Error[] errors { get; set; }
-        public long timestamp { get; set; }
+        public string timestamp { get; set; }
         public string traceId { get; set; }
         public string type { get; set; }
     }
