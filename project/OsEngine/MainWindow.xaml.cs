@@ -237,12 +237,32 @@ namespace OsEngine
                 return;
             }
 
+            // Немедленный Kill не должен ждать UI-диспетчер: уведомление MCP делаем
+            // неблокирующе (BeginInvoke), затем сразу убиваем процесс.
+            NotifyShutdownNonBlocking();
+
+            try { Process.GetCurrentProcess().Kill(); } catch { }
+        }
+
+        /// <summary>
+        /// Best-effort уведомление о завершении, не блокирующее вызывающий поток: только BeginInvoke,
+        /// результат не ждём. Если диспетчер уже мёртв — уведомление пропускаем, Kill всё равно выполнится.
+        /// </summary>
+        private void NotifyShutdownNonBlocking()
+        {
+            try
+            {
+                Dispatcher.BeginInvoke(new Action(RunImmediateTeardown));
+            }
+            catch { }
+        }
+
+        private void RunImmediateTeardown()
+        {
             try { ProccesIsWorked = false; } catch { }
             try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { }
             try { StopMcpHost(); } catch { }
             try { GlobalGUILayout.IsClosed = true; } catch { }
-
-            Process.GetCurrentProcess().Kill();
         }
 
         /// <summary>
@@ -317,10 +337,9 @@ namespace OsEngine
                 return;
             }
 
-            // Kill не должен блокироваться закрытием окна/освобождением ресурсов
-            try { _awaitUiBotsInfoLoading?.Dispose(); } catch { }
-
-            Process.GetCurrentProcess().Kill();
+            // Терминация не зависит от UI: Kill первым. Закрытие индикатора не требуется —
+            // процесс умирает; Dispose мог бы блокироваться на Dispatcher.Invoke.
+            try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
         /// <summary>
@@ -572,20 +591,33 @@ namespace OsEngine
                 process.StartInfo.FileName = exePath;
                 process.StartInfo.Arguments = arguments;
 
-                if (process.Start() == false)
+                bool started;
+
+                try
                 {
-                    throw new InvalidOperationException("Process.Start returned false");
+                    started = process.Start();
+                }
+                catch (Exception ex)
+                {
+                    started = false;
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
 
-                // новый процесс уже стартовал; старый завершается немедленно (Immediate)
+                if (started == false)
+                {
+                    // отказ Start: процесс остаётся живым и видимым; MCP, остановленный выше, возвращаем
+                    ServerMaster.SendNewLogMessage("terminal_open_mode: failed to start new process", Logging.LogMessageType.Error);
+                    try { StartMcpHost(); } catch { }
+                    return;
+                }
+
+                // новый процесс уже стартовал; старый завершается немедленно (Immediate).
+                // Вне обработки отказа Start, чтобы не «воскрешать» MCP при уже начатом завершении.
                 TerminateNow();
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-
-                // отказ Start: процесс остаётся живым и видимым; MCP, остановленный выше, возвращаем
-                try { StartMcpHost(); } catch { }
             }
         }
 
@@ -807,7 +839,24 @@ namespace OsEngine
             Process process = new Process();
             process.StartInfo.FileName = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
             process.StartInfo.Arguments = " -error " + message;
-            process.Start();
+
+            bool started;
+
+            try
+            {
+                started = process.Start();
+            }
+            catch (Exception ex)
+            {
+                started = false;
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+
+            if (started == false)
+            { // нового процесса нет — не убиваем себя без замены
+                ServerMaster.SendNewLogMessage("Reboot: failed to start new process", Logging.LogMessageType.Error);
+                return;
+            }
 
             TerminateNow();
         }
@@ -1024,42 +1073,50 @@ namespace OsEngine
         {
             List<int> result = new List<int>();
 
-            int myId = Process.GetCurrentProcess().Id;
-
-            Process[] processes = System.Diagnostics.Process.GetProcesses();
-
-            for (int i = 0; i < processes.Length; i++)
+            try
             {
-                Process p = processes[i];
+                int myId = Process.GetCurrentProcess().Id;
 
-                try
+                Process[] processes = System.Diagnostics.Process.GetProcesses();
+
+                for (int i = 0; i < processes.Length; i++)
                 {
-                    if (p.Id == myId)
-                    {
-                        continue;
-                    }
+                    Process p = processes[i];
 
-                    if (p.Modules == null)
+                    try
                     {
-                        continue;
-                    }
-
-                    for (int j = 0; j < p.Modules.Count; j++)
-                    {
-                        string fileName = p.Modules[j].FileName;
-
-                        if (fileName != null
-                            && fileName.EndsWith(myProgramPath, StringComparison.OrdinalIgnoreCase))
+                        if (p.Id == myId)
                         {
-                            result.Add(p.Id);
-                            break;
+                            continue;
+                        }
+
+                        if (p.Modules == null)
+                        {
+                            continue;
+                        }
+
+                        for (int j = 0; j < p.Modules.Count; j++)
+                        {
+                            string fileName = p.Modules[j].FileName;
+
+                            if (fileName != null
+                                && fileName.EndsWith(myProgramPath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                result.Add(p.Id);
+                                break;
+                            }
                         }
                     }
+                    catch
+                    {
+                        // процесс завершился/недоступен — пропускаем
+                    }
                 }
-                catch
-                {
-                    // процесс завершился/недоступен — пропускаем
-                }
+            }
+            catch
+            {
+                // не смогли перечислить процессы — считаем, что конфликтов нет
+                // (то же поведение, что и раньше в CheckAlreadyWorkEngine catch { return true; })
             }
 
             return result;
