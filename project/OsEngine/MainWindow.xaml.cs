@@ -237,32 +237,32 @@ namespace OsEngine
                 return;
             }
 
-            // Немедленный Kill не должен ждать UI-диспетчер: уведомление MCP делаем
-            // неблокирующе (BeginInvoke), затем сразу убиваем процесс.
+            // Не-UI teardown — синхронно ДО Kill: сигнал "закрыто" выставляется до убийства.
+            // Вызовы безопасны из любого потока и не ждут UI-диспетчер.
+            try { ProccesIsWorked = false; } catch { }
+            try { GlobalGUILayout.IsClosed = true; } catch { }
+            try { StopMcpHost(); } catch { }
+
+            // Только уведомление MCP — best-effort, результат не ждём (Kill не блокируется UI).
             NotifyShutdownNonBlocking();
 
             try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
         /// <summary>
-        /// Best-effort уведомление о завершении, не блокирующее вызывающий поток: только BeginInvoke,
-        /// результат не ждём. Если диспетчер уже мёртв — уведомление пропускаем, Kill всё равно выполнится.
+        /// Best-effort уведомление MCP о завершении: выполняется на пуле потоков, результат не ждём.
+        /// Немедленный Kill не должен ждать ни UI-диспетчер, ни уведомление.
         /// </summary>
         private void NotifyShutdownNonBlocking()
         {
             try
             {
-                Dispatcher.BeginInvoke(new Action(RunImmediateTeardown));
+                Task.Run(() =>
+                {
+                    try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { }
+                });
             }
             catch { }
-        }
-
-        private void RunImmediateTeardown()
-        {
-            try { ProccesIsWorked = false; } catch { }
-            try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { }
-            try { StopMcpHost(); } catch { }
-            try { GlobalGUILayout.IsClosed = true; } catch { }
         }
 
         /// <summary>
@@ -592,6 +592,7 @@ namespace OsEngine
                 process.StartInfo.Arguments = arguments;
 
                 bool started;
+                bool logged = false;
 
                 try
                 {
@@ -600,13 +601,19 @@ namespace OsEngine
                 catch (Exception ex)
                 {
                     started = false;
-                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    logged = true;
+                    ServerMaster.SendNewLogMessage("terminal_launch: failed to start new process: " + ex.Message, Logging.LogMessageType.Error);
                 }
 
                 if (started == false)
                 {
-                    // отказ Start: процесс остаётся живым и видимым; MCP, остановленный выше, возвращаем
-                    ServerMaster.SendNewLogMessage("terminal_open_mode: failed to start new process", Logging.LogMessageType.Error);
+                    // отказ Start: процесс остаётся живым и видимым; MCP, остановленный выше, возвращаем.
+                    // Лог ровно один: если исключение уже залогировано — не дублируем.
+                    if (logged == false)
+                    {
+                        ServerMaster.SendNewLogMessage("terminal_launch: failed to start new process", Logging.LogMessageType.Error);
+                    }
+
                     try { StartMcpHost(); } catch { }
                     return;
                 }
