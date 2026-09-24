@@ -79,36 +79,42 @@ namespace OsEngine
                 if (winVersion < 6)
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message1);
-                    Close();
+                    AbortStartup();
+                    return;
                 }
                 if (!CheckDotNetVersion())
                 {
-                    Close();
+                    AbortStartup();
+                    return;
                 }
 
                 if (!CheckWorkWithDirectory())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message2);
-                    Close();
+                    AbortStartup();
+                    return;
                 }
 
                 if (!CheckOutSomeLibrariesNearby())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message6);
-                    Close();
+                    AbortStartup();
+                    return;
                 }
 
                 if (!CheckAlreadyWorkEngine())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message7);
-                    Close();
+                    AbortStartup();
+                    return;
                 }
 
             }
             catch (Exception)
             {
                 MessageBox.Show(OsLocalization.MainWindow.Message3);
-                Close();
+                AbortStartup();
+                return;
             }
 
             if (Debugger.IsAttached)
@@ -176,35 +182,115 @@ namespace OsEngine
             StartButtonBlinkAnimation();
         }
 
+        private int _shutdownRequested;
+        private int _shutdownCompleted;
+        private bool _applicationShutdownRequested;
+        private AwaitObject _awaitUiBotsInfoLoading;
+        private AwaitUi _awaitUi;
+
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_applicationShutdownRequested || Dispatcher.HasShutdownStarted)
+            {
+                // приложение уже завершается извне (Application.Shutdown из UpdateModuleUi):
+                // окна не показываем, Close не отменяем — позволяем закрыться и убиваем процесс
+                TerminateNow();
+                return;
+            }
+
+            if (_shutdownRequested != 0)
+            {
+                // повторный Closing во время уже идущего завершения
+                e.Cancel = true;
+                return;
+            }
+
+            // отменяем этот Close: завершаемся сами по сторожу (немодально, с досохранением)
+            e.Cancel = true;
+            BeginGracefulShutdown(false);
+        }
+
+        /// <summary>
+        /// Приложение уже завершается извне (<see cref="Application.Shutdown"/>).
+        /// MainWindow_Closing в этом случае не должен показывать окна. Вызывать в UI-потоке
+        /// перед Application.Current.Shutdown().
+        /// </summary>
+        public void NotifyApplicationShutdownInitiated()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(NotifyApplicationShutdownInitiated);
+                return;
+            }
+
+            _applicationShutdownRequested = true;
+        }
+
+        /// <summary>
+        /// Немедленное завершение: безопасно из любого потока, без WPF-UI и без _isProgrammaticClose.
+        /// Вызывающий поток убивает процесс сам, WPF-Closing при этом не проходит.
+        /// </summary>
+        private void TerminateNow()
+        {
+            if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
+            {
+                return;
+            }
+
+            try { ProccesIsWorked = false; } catch { }
+            try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { }
+            try { StopMcpHost(); } catch { }
+            try { GlobalGUILayout.IsClosed = true; } catch { }
+
+            Process.GetCurrentProcess().Kill();
+        }
+
+        /// <summary>
+        /// Грациозное завершение (только UI-поток): немодальное окно ожидания и гарантированный
+        /// Kill по сторожу через graceMs. programmatic=true — выставить IsProgrammaticClose для окон режимов.
+        /// </summary>
+        private void BeginGracefulShutdown(bool programmatic)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => BeginGracefulShutdown(programmatic));
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
+            {
+                return;
+            }
+
+            if (programmatic)
+            {
+                _isProgrammaticClose = true;
+            }
+
+            // сторож вооружается ДО UI-операций: исключение ниже не оставит скрытого «зомби» без Kill
+            StartGuaranteedKill(12000);
+
             try
             {
+                ProccesIsWorked = false;
                 _mcpMaster?.SendTerminalStopped("shutting_down");
-
                 StopMcpHost();
-
                 GlobalGUILayout.IsClosed = true;
 
-                if (ProccesIsWorked == true)
+                try
                 {
-                    ProccesIsWorked = false;
-
-                    if (this.IsVisible == false)
-                    {
-                        _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
-                        AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
-
-                        Thread worker = new Thread(Await7Seconds);
-                        worker.Start();
-
-                        ui.ShowDialog();
-                    }
+                    _activeModeWindow?.Close();
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
 
-                Thread.Sleep(5000);
+                Hide();
 
-                Process.GetCurrentProcess().Kill();
+                _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
+                _awaitUi = new AwaitUi(_awaitUiBotsInfoLoading);
+                _awaitUi.Show();
             }
             catch (Exception ex)
             {
@@ -212,14 +298,38 @@ namespace OsEngine
             }
         }
 
-        private AwaitObject _awaitUiBotsInfoLoading;
-
-        private void Await7Seconds()
+        /// <summary>
+        /// Сторож завершения, независимый от UI-диспетчера: Kill сработает даже если диспетчер остановлен.
+        /// </summary>
+        private void StartGuaranteedKill(int graceMs)
         {
-            // Это нужно чтобы потоки сохраняющие данные в файловую систему штатно завершили свою работу
-            // This is necessary for threads saving data to the file system to complete their work properly
-            Thread.Sleep(7000);
-            _awaitUiBotsInfoLoading.Dispose();
+            Task.Run(async () =>
+            {
+                try { await Task.Delay(graceMs).ConfigureAwait(false); } catch { }
+                FinishTerminalShutdown();
+            });
+        }
+
+        private void FinishTerminalShutdown()
+        {
+            if (Interlocked.CompareExchange(ref _shutdownCompleted, 1, 0) != 0)
+            {
+                return;
+            }
+
+            // Kill не должен блокироваться закрытием окна/освобождением ресурсов
+            try { _awaitUiBotsInfoLoading?.Dispose(); } catch { }
+
+            Process.GetCurrentProcess().Kill();
+        }
+
+        /// <summary>
+        /// Явный выход при неудачной инициализации: при ShutdownMode.OnExplicitShutdown нельзя
+        /// полагаться на авто-завершение по последнему окну, поэтому убиваем процесс сразу.
+        /// </summary>
+        private void AbortStartup()
+        {
+            try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -461,13 +571,21 @@ namespace OsEngine
                 Process process = new Process();
                 process.StartInfo.FileName = exePath;
                 process.StartInfo.Arguments = arguments;
-                process.Start();
 
-                Process.GetCurrentProcess().Kill();
+                if (process.Start() == false)
+                {
+                    throw new InvalidOperationException("Process.Start returned false");
+                }
+
+                // новый процесс уже стартовал; старый завершается немедленно (Immediate)
+                TerminateNow();
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+
+                // отказ Start: процесс остаётся живым и видимым; MCP, остановленный выше, возвращаем
+                try { StartMcpHost(); } catch { }
             }
         }
 
@@ -515,26 +633,16 @@ namespace OsEngine
 
         private void StopTerminalProgramInternal()
         {
-            _isProgrammaticClose = true;
-            ProccesIsWorked = false;
-
-            try
-            {
-                _activeModeWindow?.Close();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-
-            Close();
+            // программная остановка = грациозное завершение с досохранением
+            BeginGracefulShutdown(true);
         }
 
         private void KillTerminalProgram()
         {
             try
             {
-                Process.GetCurrentProcess().Kill();
+                // контракт terminal_kill — немедленное убийство без grace
+                TerminateNow();
             }
             catch (Exception ex)
             {
@@ -690,13 +798,18 @@ namespace OsEngine
                 return;
             }
 
-            App.app.Shutdown();
+            if (_shutdownRequested != 0)
+            { // завершение уже идёт (в т.ч. рекурсивный Reboot) — повторно не перезапускаемся
+                return;
+            }
+
+            // новый процесс стартует ДО TerminateNow(): старый убивает себя последним
             Process process = new Process();
             process.StartInfo.FileName = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
             process.StartInfo.Arguments = " -error " + message;
             process.Start();
 
-            Process.GetCurrentProcess().Kill();
+            TerminateNow();
         }
 
         #region Block and Unblock interface
@@ -874,68 +987,82 @@ namespace OsEngine
             {
                 string myDirectory = Directory.GetCurrentDirectory();
 
-                Process[] ps1 = System.Diagnostics.Process.GetProcesses();
-
-                List<Process> process = new List<Process>();
-
-                for (int i = 0; i < ps1.Length; i++)
-                {
-                    Process p = ps1[i];
-
-                    try
-                    {
-                        string mainStr = p.MainWindowHandle.ToString();
-
-                        if (mainStr == "0")
-                        {
-                            continue;
-                        }
-
-                        if (p.MainModule.FileName != ""
-                            && p.Modules != null)
-                        {
-                            process.Add(p);
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                }
-
-                int osEngineCount = 0;
-
                 string myProgramPath = myDirectory + "\\OsEngine.exe";
 
-                for (int i = 0; i < process.Count; i++)
-                {
-                    Process p = process[i];
+                // После рестарта старый процесс убивается Immediate, но новому нужно дождаться его
+                // исчезновения (гонка Start->Kill). Ждём исчезновения конфликтующего процесса, а не
+                // фиксированную паузу; сверху ограничено 3 секундами.
+                DateTime deadline = DateTime.Now.AddSeconds(3);
 
-                    for (int j = 0; p.Modules != null && j < p.Modules.Count; j++)
+                while (true)
+                {
+                    if (GetConflictingOsEngineProcessIds(myProgramPath).Count == 0)
                     {
-                        if (p.Modules[j].FileName == null)
-                        {
-                            continue;
-                        }
-
-                        if (p.Modules[j].FileName.EndsWith(myProgramPath))
-                        {
-                            osEngineCount++;
-                        }
+                        return true;
                     }
-                }
 
-                if (osEngineCount > 0)
-                {
-                    return false;
-                }
+                    if (DateTime.Now >= deadline)
+                    {
+                        return false;
+                    }
 
-                return true;
+                    Thread.Sleep(250);
+                }
             }
             catch
             {
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Ids живых процессов, в модулях которых есть файл, оканчивающийся на наш путь
+        /// (текущий процесс не учитывается). Конфликт определяется по модулю, а не по
+        /// MainWindowHandle, чтобы живой, но скрытый/безоконный старый процесс не считался «свободно».
+        /// </summary>
+        private List<int> GetConflictingOsEngineProcessIds(string myProgramPath)
+        {
+            List<int> result = new List<int>();
+
+            int myId = Process.GetCurrentProcess().Id;
+
+            Process[] processes = System.Diagnostics.Process.GetProcesses();
+
+            for (int i = 0; i < processes.Length; i++)
+            {
+                Process p = processes[i];
+
+                try
+                {
+                    if (p.Id == myId)
+                    {
+                        continue;
+                    }
+
+                    if (p.Modules == null)
+                    {
+                        continue;
+                    }
+
+                    for (int j = 0; j < p.Modules.Count; j++)
+                    {
+                        string fileName = p.Modules[j].FileName;
+
+                        if (fileName != null
+                            && fileName.EndsWith(myProgramPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            result.Add(p.Id);
+                            break;
+                        }
+                    }
+                }
+                catch
+                {
+                    // процесс завершился/недоступен — пропускаем
+                }
+            }
+
+            return result;
         }
 
         #endregion
@@ -954,15 +1081,12 @@ namespace OsEngine
                 _activeModeWindow = candleOneUi;
                 candleOneUi.ShowDialog();
                 _activeModeWindow = null;
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonTesterLight_Click(object sender, RoutedEventArgs e)
@@ -977,15 +1101,12 @@ namespace OsEngine
                 _activeModeWindow = candleOneUi;
                 candleOneUi.ShowDialog();
                 _activeModeWindow = null;
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonRobotCandleOne_Click(object sender, RoutedEventArgs e)
@@ -1000,15 +1121,12 @@ namespace OsEngine
                 _activeModeWindow = candleOneUi;
                 candleOneUi.ShowDialog();
                 _activeModeWindow = null;
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonRobotLight_Click(object sender, RoutedEventArgs e)
@@ -1023,15 +1141,12 @@ namespace OsEngine
                 _activeModeWindow = candleOneUi;
                 candleOneUi.ShowDialog();
                 _activeModeWindow = null;
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonData_Click(object sender, RoutedEventArgs e)
@@ -1047,15 +1162,12 @@ namespace OsEngine
                 ui.ShowDialog();
                 _activeModeWindow = null;
                 _mcpMaster?.SetOsDataMaster(null);
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(5000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonConverter_Click(object sender, RoutedEventArgs e)
@@ -1069,15 +1181,12 @@ namespace OsEngine
                 _activeModeWindow = ui;
                 ui.ShowDialog();
                 _activeModeWindow = null;
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonOptimizer_Click(object sender, RoutedEventArgs e)
@@ -1094,15 +1203,12 @@ namespace OsEngine
                 ui.ShowDialog();
                 _activeModeWindow = null;
                 _mcpMaster?.SetOptimizerMaster(null);
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void ButtonSettings_Click(object sender, RoutedEventArgs e)
@@ -1156,15 +1262,12 @@ namespace OsEngine
                 Hide();
                 OsCandleConverterUi ui = new OsCandleConverterUi();
                 ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
+                BeginGracefulShutdown(false);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.ToString());
             }
-            Process.GetCurrentProcess().Kill();
         }
 
         private void CommandLineInterfaceProcess()
@@ -1747,10 +1850,7 @@ namespace OsEngine
 
                 if(ui.IsUpdated == true)
                 {
-                    Close();
-                    ProccesIsWorked = false;
-                    Thread.Sleep(5000);
-                    Process.GetCurrentProcess().Kill();
+                    BeginGracefulShutdown(false);
                 }
                 else
                 {
