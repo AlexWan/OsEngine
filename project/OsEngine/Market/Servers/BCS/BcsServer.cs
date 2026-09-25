@@ -1701,7 +1701,7 @@ namespace OsEngine.Market.Servers.BCS
 
         #region 8 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         List<Security> _subscribedSecurities = new List<Security>();
 
@@ -1771,15 +1771,8 @@ namespace OsEngine.Market.Servers.BCS
                         depth = ((ServerParameterEnum)ServerParameters[8]).Value;
                     }
 
-                    // trades subscription
-                    string tradesMessage = $"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}";
-                    string depthMessage = $"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}";
-
-                    webSocketPublic.SendAsync(tradesMessage);
-
-                    _rateGateSubscribe.WaitToProceed();
-                    // market depth subscription
-                    webSocketPublic.SendAsync(depthMessage);
+                    webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
+                    webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
                 }
             }
             catch (Exception exception)
@@ -1827,15 +1820,8 @@ namespace OsEngine.Market.Servers.BCS
 
                                 if (argsList.Count > 0)
                                 {
-                                    string unsubscrTradesMessage = $"{{\"subscribeType\": 1,\"dataType\": 2,\"instruments\":[{string.Join(",", argsList)}]}}";
-
-                                    webSocketPublic.SendAsync(unsubscrTradesMessage);
-
-                                    _rateGateSubscribe.WaitToProceed();
-
-                                    string unsubscrDepthMessage = $"{{\"subscribeType\": 1,\"dataType\": 0,\"depth\": {depth},\"instruments\":[{string.Join(",", argsList)}]}}";
-
-                                    webSocketPublic.SendAsync(unsubscrDepthMessage);
+                                    webSocketPublic.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 0,\"depth\": {depth},\"instruments\":[{string.Join(",", argsList)}]}}");
+                                    webSocketPublic.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 2,\"instruments\":[{string.Join(",", argsList)}]}}");
                                 }
                             }
                         }
@@ -1911,6 +1897,10 @@ namespace OsEngine.Market.Servers.BCS
                                     }
                                 }
                             }
+                            else
+                            {
+                                SendLogMessage($"BCS market data warning: {warning.displayOptions.text}", LogMessageType.System);
+                            }
 
                             Thread.Sleep(500);
                             continue;
@@ -1955,8 +1945,38 @@ namespace OsEngine.Market.Servers.BCS
                             }
                             else
                             {
+                                if (response.bids == null || response.asks == null
+                                    || response.bids.Count == 0 || response.asks.Count == 0)
+                                {
+                                    // диагностика: стакан пустой/не распарсился — показываем сырое сообщение
+                                    SendLogMessage($"BCS OrderBook пустой или не распарсился: {message}", LogMessageType.System);
+                                }
+
                                 UpdateMarketDepth(response);
                             }
+                        }
+                        if (response.responseType.Equals("OrderBookSuccess")
+                            || response.responseType.Equals("LastTradesSuccess"))
+                        {
+                            SendLogMessage($"BCS market data: подписка подтверждена {response.responseType} {response.ticker} {response.classCode}", LogMessageType.System);
+                        }
+                    }
+                    else
+                    {
+                        // диагностика: сообщение не распознано как данные — проверяем ошибку подписки
+                        ErrorSubscribeSocket errorSocket = JsonConvert.DeserializeAnonymousType(message, new ErrorSubscribeSocket());
+
+                        if (errorSocket != null && errorSocket.errors != null)
+                        {
+                            for (int k = 0; k < errorSocket.errors.Length; k++)
+                            {
+                                Error error = errorSocket.errors[k];
+                                SendLogMessage($"BCS ошибка подписки: {error.message} (Код: {error.code})", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"BCS неизвестное сообщение market data: {message}", LogMessageType.System);
                         }
                     }
                 }
