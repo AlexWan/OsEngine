@@ -185,8 +185,6 @@ namespace OsEngine
         private int _shutdownRequested;
         private int _shutdownCompleted;
         private bool _applicationShutdownRequested;
-        private AwaitObject _awaitUiBotsInfoLoading;
-        private AwaitUi _awaitUi;
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -226,13 +224,15 @@ namespace OsEngine
                 return;
             }
 
+            // ссылку захватываем ДО StopMcpHost (он обнуляет _mcpMaster), уведомление — best-effort, не блокирует Kill
+            McpMaster mcp = _mcpMaster;
+
             try { ProccesIsWorked = false; } catch { }
             try { GlobalGUILayout.IsClosed = true; } catch { }
+
+            try { Task.Run(() => { try { mcp?.SendTerminalStopped("shutting_down"); } catch { } }); } catch { }
+
             try { StopMcpHost(); } catch { }
-
-            // уведомление MCP — best-effort, не блокирует Kill
-            try { Task.Run(() => { try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { } }); } catch { }
-
             try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
@@ -276,9 +276,9 @@ namespace OsEngine
 
                 Hide();
 
-                _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
-                _awaitUi = new AwaitUi(_awaitUiBotsInfoLoading);
-                _awaitUi.Show();
+                AwaitObject awaitObj = new AwaitObject(OsLocalization.Trader.Label391, 100, 0, true);
+                AwaitUi awaitUi = new AwaitUi(awaitObj);
+                awaitUi.Show();
             }
             catch (Exception ex)
             {
