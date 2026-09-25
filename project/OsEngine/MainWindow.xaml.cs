@@ -239,34 +239,34 @@ namespace OsEngine
         /// <summary>Грациозное завершение: только UI-поток, немодальное окно + гарантированный Kill сторожем (~12 с).</summary>
         private void BeginGracefulShutdown(bool programmatic)
         {
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(() => BeginGracefulShutdown(programmatic));
-                return;
-            }
-
-            if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
-            {
-                return;
-            }
-
-            if (programmatic)
-            {
-                _isProgrammaticClose = true;
-            }
-
-            // сторож вооружается ДО UI-операций: исключение ниже не оставит скрытого «зомби» без Kill
-            Task.Run(async () =>
-            {
-                try { await Task.Delay(12000).ConfigureAwait(false); } catch { }
-                if (Interlocked.Exchange(ref _shutdownCompleted, 1) == 0)
-                {
-                    try { Process.GetCurrentProcess().Kill(); } catch { }
-                }
-            });
-
             try
             {
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.Invoke(() => BeginGracefulShutdown(programmatic));
+                    return;
+                }
+
+                if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
+                {
+                    return;
+                }
+
+                if (programmatic)
+                {
+                    _isProgrammaticClose = true;
+                }
+
+                // сторож вооружается ДО UI-операций: исключение ниже не оставит скрытого «зомби» без Kill
+                Task.Run(async () =>
+                {
+                    try { await Task.Delay(12000).ConfigureAwait(false); } catch { }
+                    if (Interlocked.Exchange(ref _shutdownCompleted, 1) == 0)
+                    {
+                        try { Process.GetCurrentProcess().Kill(); } catch { }
+                    }
+                });
+
                 ProccesIsWorked = false;
                 _mcpMaster?.SendTerminalStopped("shutting_down");
                 StopMcpHost();
