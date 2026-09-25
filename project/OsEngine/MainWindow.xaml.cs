@@ -191,30 +191,22 @@ namespace OsEngine
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (_applicationShutdownRequested || Dispatcher.HasShutdownStarted)
-            {
-                // приложение уже завершается извне (Application.Shutdown из UpdateModuleUi):
-                // окна не показываем, Close не отменяем — позволяем закрыться и убиваем процесс
+            { // завершение инициировано извне (Application.Shutdown) — окна не показываем
                 TerminateNow();
                 return;
             }
 
             if (_shutdownRequested != 0)
-            {
-                // повторный Closing во время уже идущего завершения
+            { // повторный Closing во время уже идущего завершения
                 e.Cancel = true;
                 return;
             }
 
-            // отменяем этот Close: завершаемся сами по сторожу (немодально, с досохранением)
-            e.Cancel = true;
+            e.Cancel = true; // завершаемся сами по сторожу (немодально, с досохранением)
             BeginGracefulShutdown(false);
         }
 
-        /// <summary>
-        /// Приложение уже завершается извне (<see cref="Application.Shutdown"/>).
-        /// MainWindow_Closing в этом случае не должен показывать окна. Вызывать в UI-потоке
-        /// перед Application.Current.Shutdown().
-        /// </summary>
+        /// <summary>Приложение уже завершается извне — MainWindow_Closing не должен показывать окна. UI-поток.</summary>
         public void NotifyApplicationShutdownInitiated()
         {
             if (!Dispatcher.CheckAccess())
@@ -226,10 +218,7 @@ namespace OsEngine
             _applicationShutdownRequested = true;
         }
 
-        /// <summary>
-        /// Немедленное завершение: безопасно из любого потока, без WPF-UI и без _isProgrammaticClose.
-        /// Вызывающий поток убивает процесс сам, WPF-Closing при этом не проходит.
-        /// </summary>
+        /// <summary>Немедленное завершение: из любого потока, без WPF-операций, Kill не ждёт UI-диспетчер.</summary>
         private void TerminateNow()
         {
             if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
@@ -237,38 +226,17 @@ namespace OsEngine
                 return;
             }
 
-            // Не-UI teardown — синхронно ДО Kill: сигнал "закрыто" выставляется до убийства.
-            // Вызовы безопасны из любого потока и не ждут UI-диспетчер.
             try { ProccesIsWorked = false; } catch { }
             try { GlobalGUILayout.IsClosed = true; } catch { }
             try { StopMcpHost(); } catch { }
 
-            // Только уведомление MCP — best-effort, результат не ждём (Kill не блокируется UI).
-            NotifyShutdownNonBlocking();
+            // уведомление MCP — best-effort, не блокирует Kill
+            try { Task.Run(() => { try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { } }); } catch { }
 
             try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
-        /// <summary>
-        /// Best-effort уведомление MCP о завершении: выполняется на пуле потоков, результат не ждём.
-        /// Немедленный Kill не должен ждать ни UI-диспетчер, ни уведомление.
-        /// </summary>
-        private void NotifyShutdownNonBlocking()
-        {
-            try
-            {
-                Task.Run(() =>
-                {
-                    try { _mcpMaster?.SendTerminalStopped("shutting_down"); } catch { }
-                });
-            }
-            catch { }
-        }
-
-        /// <summary>
-        /// Грациозное завершение (только UI-поток): немодальное окно ожидания и гарантированный
-        /// Kill по сторожу через graceMs. programmatic=true — выставить IsProgrammaticClose для окон режимов.
-        /// </summary>
+        /// <summary>Грациозное завершение: только UI-поток, немодальное окно + гарантированный Kill сторожем (~12 с).</summary>
         private void BeginGracefulShutdown(bool programmatic)
         {
             if (!Dispatcher.CheckAccess())
@@ -288,7 +256,14 @@ namespace OsEngine
             }
 
             // сторож вооружается ДО UI-операций: исключение ниже не оставит скрытого «зомби» без Kill
-            StartGuaranteedKill(12000);
+            Task.Run(async () =>
+            {
+                try { await Task.Delay(12000).ConfigureAwait(false); } catch { }
+                if (Interlocked.Exchange(ref _shutdownCompleted, 1) == 0)
+                {
+                    try { Process.GetCurrentProcess().Kill(); } catch { }
+                }
+            });
 
             try
             {
@@ -297,14 +272,7 @@ namespace OsEngine
                 StopMcpHost();
                 GlobalGUILayout.IsClosed = true;
 
-                try
-                {
-                    _activeModeWindow?.Close();
-                }
-                catch (Exception ex)
-                {
-                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-                }
+                try { _activeModeWindow?.Close(); } catch (Exception ex) { ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error); }
 
                 Hide();
 
@@ -318,34 +286,7 @@ namespace OsEngine
             }
         }
 
-        /// <summary>
-        /// Сторож завершения, независимый от UI-диспетчера: Kill сработает даже если диспетчер остановлен.
-        /// </summary>
-        private void StartGuaranteedKill(int graceMs)
-        {
-            Task.Run(async () =>
-            {
-                try { await Task.Delay(graceMs).ConfigureAwait(false); } catch { }
-                FinishTerminalShutdown();
-            });
-        }
-
-        private void FinishTerminalShutdown()
-        {
-            if (Interlocked.CompareExchange(ref _shutdownCompleted, 1, 0) != 0)
-            {
-                return;
-            }
-
-            // Терминация не зависит от UI: Kill первым. Закрытие индикатора не требуется —
-            // процесс умирает; Dispose мог бы блокироваться на Dispatcher.Invoke.
-            try { Process.GetCurrentProcess().Kill(); } catch { }
-        }
-
-        /// <summary>
-        /// Явный выход при неудачной инициализации: при ShutdownMode.OnExplicitShutdown нельзя
-        /// полагаться на авто-завершение по последнему окну, поэтому убиваем процесс сразу.
-        /// </summary>
+        /// <summary>Явный выход при неудачной инициализации (OnExplicitShutdown не завершит процесс по последнему окну).</summary>
         private void AbortStartup()
         {
             try { Process.GetCurrentProcess().Kill(); } catch { }
@@ -1041,18 +982,49 @@ namespace OsEngine
         {
             try
             {
-                string myDirectory = Directory.GetCurrentDirectory();
+                string myProgramPath = Directory.GetCurrentDirectory() + "\\OsEngine.exe";
+                int myId = Process.GetCurrentProcess().Id;
 
-                string myProgramPath = myDirectory + "\\OsEngine.exe";
-
-                // После рестарта старый процесс убивается Immediate, но новому нужно дождаться его
-                // исчезновения (гонка Start->Kill). Ждём исчезновения конфликтующего процесса, а не
-                // фиксированную паузу; сверху ограничено 3 секундами.
+                // После рестарта старый процесс убивается немедленно — ждём его исчезновения (<=3 с).
+                // Конфликт определяется по модулю, а не по MainWindowHandle (живой скрытый процесс тоже конфликт).
                 DateTime deadline = DateTime.Now.AddSeconds(3);
 
                 while (true)
                 {
-                    if (GetConflictingOsEngineProcessIds(myProgramPath).Count == 0)
+                    bool conflict = false;
+
+                    Process[] processes = System.Diagnostics.Process.GetProcesses();
+
+                    for (int i = 0; i < processes.Length && conflict == false; i++)
+                    {
+                        Process p = processes[i];
+
+                        try
+                        {
+                            if (p.Id == myId || p.Modules == null)
+                            {
+                                continue;
+                            }
+
+                            for (int j = 0; j < p.Modules.Count; j++)
+                            {
+                                string fileName = p.Modules[j].FileName;
+
+                                if (fileName != null
+                                    && fileName.EndsWith(myProgramPath, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    conflict = true;
+                                    break;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // процесс завершился/недоступен — пропускаем
+                        }
+                    }
+
+                    if (conflict == false)
                     {
                         return true;
                     }
@@ -1069,64 +1041,6 @@ namespace OsEngine
             {
                 return true;
             }
-        }
-
-        /// <summary>
-        /// Ids живых процессов, в модулях которых есть файл, оканчивающийся на наш путь
-        /// (текущий процесс не учитывается). Конфликт определяется по модулю, а не по
-        /// MainWindowHandle, чтобы живой, но скрытый/безоконный старый процесс не считался «свободно».
-        /// </summary>
-        private List<int> GetConflictingOsEngineProcessIds(string myProgramPath)
-        {
-            List<int> result = new List<int>();
-
-            try
-            {
-                int myId = Process.GetCurrentProcess().Id;
-
-                Process[] processes = System.Diagnostics.Process.GetProcesses();
-
-                for (int i = 0; i < processes.Length; i++)
-                {
-                    Process p = processes[i];
-
-                    try
-                    {
-                        if (p.Id == myId)
-                        {
-                            continue;
-                        }
-
-                        if (p.Modules == null)
-                        {
-                            continue;
-                        }
-
-                        for (int j = 0; j < p.Modules.Count; j++)
-                        {
-                            string fileName = p.Modules[j].FileName;
-
-                            if (fileName != null
-                                && fileName.EndsWith(myProgramPath, StringComparison.OrdinalIgnoreCase))
-                            {
-                                result.Add(p.Id);
-                                break;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // процесс завершился/недоступен — пропускаем
-                    }
-                }
-            }
-            catch
-            {
-                // не смогли перечислить процессы — считаем, что конфликтов нет
-                // (то же поведение, что и раньше в CheckAlreadyWorkEngine catch { return true; })
-            }
-
-            return result;
         }
 
         #endregion
