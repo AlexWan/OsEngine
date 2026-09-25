@@ -34,6 +34,14 @@ namespace OsEngine.Market.Servers.Plaza
 
         public PlazaServerRealization()
         {
+            try
+            {
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
             ServerStatus = ServerConnectStatus.Disconnect;
             _statusNeeded = ServerConnectStatus.Disconnect;
 
