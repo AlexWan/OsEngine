@@ -17,6 +17,10 @@ namespace OsEngine
         {
             app = this;
 
+            // завершением управляем сами (Kill/Shutdown); авто-завершение по последнему окну
+            // ломало закрытие MainWindow (Application.DoShutdown по закрывающемуся окну)
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             Themes.ThemeManager.Apply(Themes.ThemeManager.Load());
 
             base.OnActivated(e);

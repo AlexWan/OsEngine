@@ -607,6 +607,7 @@ namespace OsEngine.UpdateModule
                 Process.Start(startInfo);
 
                 // Закрываем приложение
+                (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
@@ -1460,6 +1461,7 @@ namespace OsEngine.UpdateModule
                     Process.Start(startInfo);
 
                     // Закрываем OsEngine
+                    (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
                     Application.Current.Shutdown();
 
                 }
@@ -1480,6 +1482,7 @@ namespace OsEngine.UpdateModule
                     };
 
                     Process.Start(cmdStartInfo);
+                    (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
                     Application.Current.Shutdown();
                 }
             }

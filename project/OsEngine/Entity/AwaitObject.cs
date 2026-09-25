@@ -19,6 +19,7 @@ namespace OsEngine.Entity
             if(needStartFakeValueMove)
             {
                 Thread worker = new Thread(FakeMoveValueTreadArea);
+                worker.IsBackground = true;
                 worker.Start();
             }
         }
