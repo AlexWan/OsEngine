@@ -940,8 +940,22 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9
-                && _master.Start())
+            bool started = false;
+
+            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9)
+            {
+                try
+                {
+                    started = _master.Start();
+                }
+                catch (Exception ex)
+                {
+                    _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    return;
+                }
+            }
+
+            if (started)
             {
                 ButtonGo.Content = OsLocalization.Optimizer.Label32;
                 StopUserActivity();
