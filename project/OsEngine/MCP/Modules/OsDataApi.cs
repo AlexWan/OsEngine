@@ -161,7 +161,7 @@ namespace OsEngine.MCP.Modules
                             {
                                 type = "array",
                                 items = new { type = "string" },
-                                description = "Timeframes to load, e.g. Min5, Hour1, Day"
+                                description = "Timeframes to load, e.g. Min5, Hour1, Day. Use 'MarketDepthHistory' for historical market depth (QscalpMarketDepth only)"
                             },
                             date_from = new { type = "string", description = "Load start date in ISO 8601 format" },
                             date_to = new { type = "string", description = "Load end date in ISO 8601 format" }
@@ -217,7 +217,7 @@ namespace OsEngine.MCP.Modules
                                     {
                                         type = "array",
                                         items = new { type = "string" },
-                                        description = "Timeframes to load, e.g. Min5, Hour1, Day"
+                                        description = "Timeframes to load, e.g. Min5, Hour1, Day. Use 'MarketDepthHistory' for historical market depth (QscalpMarketDepth only)"
                                     },
                                     date_from = new { type = "string", description = "Load start date in ISO 8601 format" },
                                     date_to = new { type = "string", description = "Load end date in ISO 8601 format" },
@@ -345,7 +345,7 @@ namespace OsEngine.MCP.Modules
                         {
                             name = new { type = "string", description = "Set name" },
                             security = new { type = "string", description = "Security name" },
-                            timeframe = new { type = "string", description = "Timeframe, e.g. Min1" }
+                            timeframe = new { type = "string", description = "Timeframe, e.g. Min1 or MarketDepthHistory" }
                         },
                         required = new[] { "name", "security", "timeframe" }
                     }
@@ -445,7 +445,7 @@ namespace OsEngine.MCP.Modules
                 string name = ParseRequiredString(parameters, "name");
                 string sourceName = ParseRequiredString(parameters, "source");
                 string serverInstanceName = ParseRequiredString(parameters, "source_name");
-                List<TimeFrame> timeframes = ParseTimeFrameList(parameters, "timeframes");
+                ParsedTimeFrames parsed = ParseTimeFrames(parameters, "timeframes");
                 DateTime dateFrom = ParseDateTime(parameters, "date_from");
                 DateTime dateTo = ParseDateTime(parameters, "date_to");
 
@@ -458,7 +458,15 @@ namespace OsEngine.MCP.Modules
                     };
                 }
 
-                OsDataSet set = master.CreateSet(name, source, serverInstanceName, timeframes, dateFrom, dateTo);
+                IServerPermission permission = ServerMaster.GetServerPermission(source);
+                ValidateMarketDepthMode(parsed, permission);
+
+                OsDataSet set = master.CreateSet(name, source, serverInstanceName, parsed.TimeFrames, dateFrom, dateTo);
+
+                if (parsed.MarketDepthHistory)
+                {
+                    master.UpdateSetSettings(set.SetName, s => s.TfMarketDepthHistIsOn = true);
+                }
 
                 return new
                 {
@@ -466,7 +474,7 @@ namespace OsEngine.MCP.Modules
                     regime = set.BaseSettings.Regime.ToString(),
                     source = set.BaseSettings.Source.ToString(),
                     source_name = set.BaseSettings.SourceName,
-                    timeframes = OsDataMaster.GetActiveTimeFrames(set.BaseSettings).ConvertAll(tf => tf.ToString()),
+                    timeframes = ToApiTimeFrames(set.BaseSettings),
                     date_from = set.BaseSettings.TimeStart,
                     date_to = set.BaseSettings.TimeEnd
                 };
@@ -579,15 +587,13 @@ namespace OsEngine.MCP.Modules
                     };
                 }
 
-                List<TimeFrame> timeframes = OsDataMaster.GetActiveTimeFrames(set.BaseSettings);
-
                 return new
                 {
                     name = set.SetName,
                     regime = set.BaseSettings.Regime.ToString(),
                     source = set.BaseSettings.Source.ToString(),
                     source_name = set.BaseSettings.SourceName,
-                    timeframes = timeframes.ConvertAll(tf => tf.ToString()),
+                    timeframes = ToApiTimeFrames(set.BaseSettings),
                     date_from = set.BaseSettings.TimeStart,
                     date_to = set.BaseSettings.TimeEnd,
                     market_depth_depth = set.BaseSettings.MarketDepthDepth
@@ -673,23 +679,27 @@ namespace OsEngine.MCP.Modules
 
                     if (settingsElement.TryGetProperty("timeframes", out JsonElement timeframesElement))
                     {
-                        List<TimeFrame> timeframes = ParseTimeFrameList(timeframesElement);
+                        ParsedTimeFrames parsed = ParseTimeFrames(timeframesElement);
 
-                        for (int i = 0; i < timeframes.Count; i++)
+                        for (int i = 0; i < parsed.TimeFrames.Count; i++)
                         {
                             if (permission != null &&
-                                !OsDataMaster.IsTimeFrameSupportedByServer(timeframes[i], permission))
+                                !OsDataMaster.IsTimeFrameSupportedByServer(parsed.TimeFrames[i], permission))
                             {
-                                throw new ArgumentException($"Timeframe '{timeframes[i]}' is not supported by server '{settings.Source}'");
+                                throw new ArgumentException($"Timeframe '{parsed.TimeFrames[i]}' is not supported by server '{settings.Source}'");
                             }
                         }
 
+                        ValidateMarketDepthMode(parsed, permission);
+
                         OsDataMaster.ResetAllTimeFrameFlags(settings);
 
-                        for (int i = 0; i < timeframes.Count; i++)
+                        for (int i = 0; i < parsed.TimeFrames.Count; i++)
                         {
-                            OsDataMaster.SetTimeFrameFlag(settings, timeframes[i], true);
+                            OsDataMaster.SetTimeFrameFlag(settings, parsed.TimeFrames[i], true);
                         }
+
+                        settings.TfMarketDepthHistIsOn = parsed.MarketDepthHistory;
                     }
 
                     if (settingsElement.TryGetProperty("date_from", out JsonElement dateFromElement)
@@ -1122,7 +1132,16 @@ namespace OsEngine.MCP.Modules
             return value;
         }
 
-        private List<TimeFrame> ParseTimeFrameList(JsonElement parameters, string propertyName)
+        private const string MarketDepthHistoryName = "MarketDepthHistory";
+
+        private struct ParsedTimeFrames
+        {
+            public List<TimeFrame> TimeFrames;
+            public bool MarketDepthLive;
+            public bool MarketDepthHistory;
+        }
+
+        private ParsedTimeFrames ParseTimeFrames(JsonElement parameters, string propertyName)
         {
             if (parameters.ValueKind != JsonValueKind.Object
                 || !parameters.TryGetProperty(propertyName, out JsonElement element)
@@ -1131,17 +1150,20 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException($"Parameter '{propertyName}' is required and must be an array of strings");
             }
 
-            return ParseTimeFrameList(element);
+            return ParseTimeFrames(element);
         }
 
-        private List<TimeFrame> ParseTimeFrameList(JsonElement element)
+        private ParsedTimeFrames ParseTimeFrames(JsonElement element)
         {
             if (element.ValueKind != JsonValueKind.Array)
             {
                 throw new ArgumentException("Timeframes must be an array of strings");
             }
 
-            List<TimeFrame> result = new List<TimeFrame>();
+            ParsedTimeFrames result = new ParsedTimeFrames
+            {
+                TimeFrames = new List<TimeFrame>()
+            };
 
             foreach (JsonElement item in element.EnumerateArray())
             {
@@ -1152,15 +1174,70 @@ namespace OsEngine.MCP.Modules
 
                 string timeFrameName = item.GetString();
 
+                if (string.Equals(timeFrameName, MarketDepthHistoryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.MarketDepthHistory = true;
+                    result.TimeFrames.Add(TimeFrame.MarketDepth);
+                    continue;
+                }
+
                 if (!Enum.TryParse<TimeFrame>(timeFrameName, true, out TimeFrame timeFrame))
                 {
                     throw new ArgumentException($"Unknown timeframe '{timeFrameName}'");
                 }
 
-                result.Add(timeFrame);
+                if (timeFrame == TimeFrame.MarketDepth)
+                {
+                    result.MarketDepthLive = true;
+                }
+
+                result.TimeFrames.Add(timeFrame);
+            }
+
+            if (result.MarketDepthLive && result.MarketDepthHistory)
+            {
+                throw new ArgumentException($"Timeframes '{TimeFrame.MarketDepth}' and '{MarketDepthHistoryName}' are mutually exclusive");
             }
 
             return result;
+        }
+
+        private List<string> ToApiTimeFrames(SettingsToLoadSecurity settings)
+        {
+            List<TimeFrame> frames = OsDataMaster.GetActiveTimeFrames(settings);
+            List<string> result = new List<string>(frames.Count);
+
+            for (int i = 0; i < frames.Count; i++)
+            {
+                if (frames[i] == TimeFrame.MarketDepth && settings.TfMarketDepthHistIsOn)
+                {
+                    result.Add(MarketDepthHistoryName);
+                }
+                else
+                {
+                    result.Add(frames[i].ToString());
+                }
+            }
+
+            return result;
+        }
+
+        private void ValidateMarketDepthMode(ParsedTimeFrames parsed, IServerPermission permission)
+        {
+            if (permission == null)
+            {
+                return;
+            }
+
+            if (parsed.MarketDepthLive && !permission.DataFeedTfMarketDepthCanLoad)
+            {
+                throw new ArgumentException($"Live market depth ('{TimeFrame.MarketDepth}') is not supported by this server");
+            }
+
+            if (parsed.MarketDepthHistory && !permission.DataFeedTfMarketDepthHistoryCanLoad)
+            {
+                throw new ArgumentException($"Market depth history ('{MarketDepthHistoryName}') is not supported by this server");
+            }
         }
 
         private DateTime ParseDateTime(JsonElement parameters, string propertyName)
@@ -1339,7 +1416,13 @@ namespace OsEngine.MCP.Modules
                 string securityName = ParseRequiredString(parameters, "security");
                 string timeFrameName = ParseRequiredString(parameters, "timeframe");
 
-                if (!Enum.TryParse<TimeFrame>(timeFrameName, true, out TimeFrame timeFrame))
+                TimeFrame timeFrame;
+
+                if (string.Equals(timeFrameName, MarketDepthHistoryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    timeFrame = TimeFrame.MarketDepth;
+                }
+                else if (!Enum.TryParse<TimeFrame>(timeFrameName, true, out timeFrame))
                 {
                     return new McpJsonRpcError
                     {
@@ -1423,7 +1506,9 @@ namespace OsEngine.MCP.Modules
                 {
                     name = set.SetName,
                     security = securityName,
-                    timeframe = timeFrame.ToString(),
+                    timeframe = timeFrame == TimeFrame.MarketDepth && loader.MDType == MarketDepthsLoaderType.History
+                        ? MarketDepthHistoryName
+                        : timeFrame.ToString(),
                     time_start = loader.TimeStart,
                     time_end = loader.TimeEnd,
                     objects_count = loader.Objects(),

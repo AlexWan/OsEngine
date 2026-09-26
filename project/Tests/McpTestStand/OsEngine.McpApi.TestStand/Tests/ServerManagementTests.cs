@@ -30,6 +30,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestGetTradeConnectors();
             TestGetDataConnectors();
             TestGetConnectorPermissions();
+            TestGetDataTimeFrames();
         }
 
         private void TestGetList()
@@ -336,6 +337,126 @@ namespace OsEngine.McpApi.TestStand.Tests
                 _context.PrintResponse("");
                 _context.RecordFail(Module, method, error.Message);
             }
+        }
+
+        private void TestGetDataTimeFrames()
+        {
+            const string method = "server_management_get_data_timeframes";
+
+            try
+            {
+                object qscalpRequest = new { type = "QscalpMarketDepth" };
+                _context.PrintRequest(Module, method, qscalpRequest);
+                string qscalpResponse = _context.Client.ToolsCall(method, qscalpRequest);
+                _context.PrintResponse(qscalpResponse);
+
+                using (var document = JsonDocument.Parse(qscalpResponse))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (!TryExtractToolResult(root, out JsonElement resultElement, out string error))
+                    {
+                        _context.RecordFail(Module, method, error);
+                        return;
+                    }
+
+                    if (!TryGetTimeFrames(resultElement, out JsonElement qscalpTimeFrames, out error))
+                    {
+                        _context.RecordFail(Module, method, error);
+                        return;
+                    }
+
+                    bool hasHistory = false;
+                    bool hasLive = false;
+
+                    foreach (JsonElement tf in qscalpTimeFrames.EnumerateArray())
+                    {
+                        string name = tf.GetString() ?? string.Empty;
+
+                        if (name == "MarketDepthHistory") hasHistory = true;
+                        if (name == "MarketDepth") hasLive = true;
+                    }
+
+                    if (!hasHistory)
+                    {
+                        _context.RecordFail(Module, method, "QscalpMarketDepth should support MarketDepthHistory");
+                        return;
+                    }
+
+                    if (hasLive)
+                    {
+                        _context.RecordFail(Module, method, "QscalpMarketDepth should not support live MarketDepth");
+                        return;
+                    }
+                }
+
+                object tInvestRequest = new { type = "TInvest" };
+                _context.PrintRequest(Module, method, tInvestRequest);
+                string tInvestResponse = _context.Client.ToolsCall(method, tInvestRequest);
+                _context.PrintResponse(tInvestResponse);
+
+                using (var document = JsonDocument.Parse(tInvestResponse))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (!TryExtractToolResult(root, out JsonElement resultElement, out string error))
+                    {
+                        _context.RecordFail(Module, method, error);
+                        return;
+                    }
+
+                    if (!TryGetTimeFrames(resultElement, out JsonElement tInvestTimeFrames, out error))
+                    {
+                        _context.RecordFail(Module, method, error);
+                        return;
+                    }
+
+                    bool hasLive = false;
+                    bool hasHistory = false;
+
+                    foreach (JsonElement tf in tInvestTimeFrames.EnumerateArray())
+                    {
+                        string name = tf.GetString() ?? string.Empty;
+
+                        if (name == "MarketDepth") hasLive = true;
+                        if (name == "MarketDepthHistory") hasHistory = true;
+                    }
+
+                    if (!hasLive)
+                    {
+                        _context.RecordFail(Module, method, "TInvest should support live MarketDepth");
+                        return;
+                    }
+
+                    if (hasHistory)
+                    {
+                        _context.RecordFail(Module, method, "TInvest should not support MarketDepthHistory");
+                        return;
+                    }
+                }
+
+                _context.RecordPass(Module, method, "timeframes correct for QscalpMarketDepth and TInvest");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private static bool TryGetTimeFrames(JsonElement resultElement, out JsonElement timeframesElement, out string error)
+        {
+            error = string.Empty;
+            timeframesElement = default;
+
+            if (!resultElement.TryGetProperty("timeframes", out timeframesElement)
+                || timeframesElement.ValueKind != JsonValueKind.Array)
+            {
+                error = "timeframes array is missing";
+                return false;
+            }
+
+            return true;
         }
 
         private static bool TryExtractToolResult(JsonElement root, out JsonElement resultElement, out string error)

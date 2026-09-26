@@ -1430,6 +1430,7 @@ namespace OsEngine.MCP
                     case "server_management_get_trade_connectors":
                     case "server_management_get_data_connectors":
                     case "server_management_get_connector_permissions":
+                    case "server_management_get_data_timeframes":
                         response = _serverManagementApi.Handle(request);
                         break;
 

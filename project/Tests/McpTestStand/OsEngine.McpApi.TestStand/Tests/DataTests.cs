@@ -25,6 +25,10 @@ namespace OsEngine.McpApi.TestStand.Tests
         private const string MoexTimeFrame = "Min30";
         private static readonly string[] MoexSecurities = new[] { "SBER", "VTBR", "GAZP", "LKOH" };
 
+        private const string QscalpServerType = "QscalpMarketDepth";
+        private const string QscalpHistorySetName = "McpMdHistorySet";
+        private const string QscalpLiveSetName = "McpMdLiveSet";
+
         private readonly TestContext _context;
 
         public DataTests(TestContext context)
@@ -48,6 +52,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestCreateSet();
             TestDeleteSet();
             TestSetSettingsGetAndSet();
+            TestMarketDepthHistory();
             TestSecuritiesGetAddRemove();
             TestSetOnOff();
             TestDownloadFlow();
@@ -1458,6 +1463,174 @@ namespace OsEngine.McpApi.TestStand.Tests
                 _context.PrintResponse("");
                 _context.RecordFail(Module, method, $"TestPrepareMoexSetForTester failed: {error.Message}");
             }
+        }
+
+        private void TestMarketDepthHistory()
+        {
+            const string createMethod = "data_create_set";
+            const string getMethod = "data_set_settings_get";
+
+            // QscalpMarketDepth is the only connector with market depth history
+            // (DataFeedTfMarketDepthCanLoad=false, DataFeedTfMarketDepthHistoryCanLoad=true).
+            // Static permission, so no live subscription is required.
+
+            try
+            {
+                _context.Client.ToolsCall("server_management_activate", new { type = QscalpServerType });
+            }
+            catch
+            {
+                // ignore - fall back to the default instance name
+            }
+
+            // positive: "MarketDepthHistory" must be accepted and round-trip in settings
+
+            DeleteSetSafe(QscalpHistorySetName);
+
+            object historyRequest = new
+            {
+                name = QscalpHistorySetName,
+                source = QscalpServerType,
+                source_name = QscalpServerType,
+                timeframes = new[] { "MarketDepthHistory" },
+                date_from = "2026-09-01T00:00:00",
+                date_to = "2026-09-02T00:00:00"
+            };
+
+            _context.PrintRequest(Module, "MarketDepthHistory create", historyRequest);
+            string historyCreateResponse = _context.Client.ToolsCall(createMethod, historyRequest);
+            _context.PrintResponse(historyCreateResponse);
+
+            using (var document = JsonDocument.Parse(historyCreateResponse))
+            {
+                JsonElement result = document.RootElement;
+
+                if (result.TryGetProperty("IsError", out JsonElement isError) && isError.GetBoolean())
+                {
+                    _context.RecordFail(Module, "MarketDepthHistory create", "IsError is true");
+                    return;
+                }
+
+                string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                using (var innerDocument = JsonDocument.Parse(text))
+                {
+                    JsonElement root = innerDocument.RootElement;
+
+                    if (root.TryGetProperty("code", out _))
+                    {
+                        _context.RecordFail(Module, "MarketDepthHistory create", "create returned error: " + text);
+                        return;
+                    }
+
+                    if (!root.TryGetProperty("timeframes", out JsonElement timeframesElement)
+                        || !ContainsString(timeframesElement, "MarketDepthHistory"))
+                    {
+                        _context.RecordFail(Module, "MarketDepthHistory create", "timeframes does not contain MarketDepthHistory");
+                        return;
+                    }
+                }
+            }
+
+            _context.RecordPass(Module, "MarketDepthHistory create", "set with MarketDepthHistory created");
+
+            _context.PrintRequest(Module, "MarketDepthHistory settings get", new { name = QscalpHistorySetName });
+            string historyGetResponse = _context.Client.ToolsCall(getMethod, new { name = QscalpHistorySetName });
+            _context.PrintResponse(historyGetResponse);
+
+            using (var document = JsonDocument.Parse(historyGetResponse))
+            {
+                JsonElement result = document.RootElement;
+
+                if (!result.TryGetProperty("IsError", out JsonElement isError) || isError.GetBoolean())
+                {
+                    _context.RecordFail(Module, "MarketDepthHistory settings get", "IsError is true");
+                    return;
+                }
+
+                string text = result.GetProperty("Content")[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                using (var innerDocument = JsonDocument.Parse(text))
+                {
+                    if (!innerDocument.RootElement.TryGetProperty("timeframes", out JsonElement timeframesElement)
+                        || !ContainsString(timeframesElement, "MarketDepthHistory"))
+                    {
+                        _context.RecordFail(Module, "MarketDepthHistory settings get", "settings timeframes does not contain MarketDepthHistory");
+                        return;
+                    }
+                }
+            }
+
+            _context.RecordPass(Module, "MarketDepthHistory settings get", "MarketDepthHistory round-trips in settings");
+
+            // negative: live "MarketDepth" must be rejected for a history-only server
+
+            DeleteSetSafe(QscalpLiveSetName);
+
+            object liveRequest = new
+            {
+                name = QscalpLiveSetName,
+                source = QscalpServerType,
+                source_name = QscalpServerType,
+                timeframes = new[] { "MarketDepth" },
+                date_from = "2026-09-01T00:00:00",
+                date_to = "2026-09-02T00:00:00"
+            };
+
+            _context.PrintRequest(Module, "MarketDepth live reject", liveRequest);
+            string liveCreateResponse = _context.Client.ToolsCall(createMethod, liveRequest);
+            _context.PrintResponse(liveCreateResponse);
+
+            using (var document = JsonDocument.Parse(liveCreateResponse))
+            {
+                JsonElement result = document.RootElement;
+
+                string text = result.TryGetProperty("Content", out JsonElement content) && content.GetArrayLength() > 0
+                    ? content[0].GetProperty("Text").GetString() ?? string.Empty
+                    : string.Empty;
+
+                bool rejected = false;
+
+                if (!string.IsNullOrEmpty(text))
+                {
+                    using (var innerDocument = JsonDocument.Parse(text))
+                    {
+                        if (innerDocument.RootElement.TryGetProperty("code", out _))
+                        {
+                            rejected = true;
+                        }
+                    }
+                }
+
+                if (!rejected)
+                {
+                    _context.RecordFail(Module, "MarketDepth live reject", "live MarketDepth was not rejected for QscalpMarketDepth");
+                    return;
+                }
+            }
+
+            _context.RecordPass(Module, "MarketDepth live reject", "live MarketDepth correctly rejected for QscalpMarketDepth");
+
+            DeleteSetSafe(QscalpHistorySetName);
+            DeleteSetSafe(QscalpLiveSetName);
+        }
+
+        private bool ContainsString(JsonElement arrayElement, string value)
+        {
+            if (arrayElement.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            foreach (JsonElement item in arrayElement.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String && item.GetString() == value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsSuccessResponse(string response, out string text)

@@ -89,6 +89,7 @@
 | `server_management_get_trade_connectors` | Список типов коннекторов, доступных для торговли |
 | `server_management_get_data_connectors` | Полный список типов коннекторов для загрузки рыночных данных |
 | `server_management_get_connector_permissions` | Разрешения коннектора (`IServerPermission`): таймфреймы, торговые права, плечо, время жизни ордеров |
+| `server_management_get_data_timeframes` | Список таймфреймов, доступных для скачивания с коннектора (`type`). `"MarketDepthHistory"` — история стакана |
 | `server_instance_get_params` | Параметры экземпляра сервера (пароли маскируются) |
 | `server_instance_set_params` | Установить параметры экземпляра сервера |
 | `server_instance_create` | Создать новый экземпляр коннектора указанного типа |
@@ -113,17 +114,17 @@
 | `wiki_dividends_get_past` | Ближайшая прошлая запись дивидендов (`ticker`, `date`, `refresh`) |
 | `wiki_dividends_search_by_date` | Поиск дивидендов по дате закрытия реестра (`ticker`, `date`, `refresh`) |
 | `data_get_sets` | Список существующих сетов данных OsData |
-| `data_create_set` | Создать сет данных (`name`, `source`, `source_name`, `timeframes`, `date_from`, `date_to`) |
+| `data_create_set` | Создать сет данных (`name`, `source`, `source_name`, `timeframes`, `date_from`, `date_to`). В `timeframes` можно `"MarketDepthHistory"` — история стакана (только `QscalpMarketDepth`) |
 | `data_delete_set` | Удалить сет данных по имени |
 | `data_set_settings_get` | Настройки сета данных |
-| `data_set_settings_set` | Частично обновить настройки сета (`regime`, `timeframes`, `date_from`, `date_to`, `market_depth_depth`) |
+| `data_set_settings_set` | Частично обновить настройки сета (`regime`, `timeframes`, `date_from`, `date_to`, `market_depth_depth`). `timeframes` принимает `"MarketDepthHistory"` |
 | `data_set_securities_get` | Список бумаг в сете данных |
 | `data_set_securities_add` | Добавить бумаги в сет данных |
 | `data_set_securities_remove` | Удалить бумаги из сета данных |
 | `data_set_on` | Включить сет данных (запустить загрузку) |
 | `data_set_off` | Выключить сет данных |
 | `data_get_set_status` | Агрегированный статус загрузки сета (`regime`, `status`, `percent_load`) |
-| `data_get_security_status` | Статус загрузки бумаги/таймфрейма (`time_start`, `time_end`, `objects_count`, `percent_load`, `status`) |
+| `data_get_security_status` | Статус загрузки бумаги/таймфрейма (`time_start`, `time_end`, `objects_count`, `percent_load`, `status`). `timeframe` принимает `"MarketDepthHistory"` |
 | `bot_get_list` | Список загруженных роботов |
 | `bot_create` | Создать нового робота |
 | `bot_delete` | Удалить робота |
@@ -195,6 +196,8 @@
 | `encryption_disable` | Выключить шифрование и расшифровать ключи (деструктивно) |
 
 **Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов **с расширением**: `SBER.txt`, а не `SBER`. Во вкладки робота через `optimizer_bot_tab_set_config` передавать имя с `.txt`.
+
+**Важно про историю стакана (`MarketDepthHistory`).** В движке «история стакана» — это не отдельный timeframe, а режим `MarketDepth`. Через MCP он задаётся значением `"MarketDepthHistory"` в списке `timeframes` (в `data_create_set` / `data_set_settings_set`, и принимается в `data_get_security_status`). Поддерживает только коннектор `QscalpMarketDepth` (у него `DataFeedTfMarketDepthHistoryCanLoad = true`, а живой `MarketDepth` — `false`). Значения `"MarketDepth"` (живой) и `"MarketDepthHistory"` взаимоисключающие: на сервере без поддержки нужного режима MCP вернёт ошибку.
 
 ---
 
@@ -357,7 +360,7 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 ./OsEngine.McpApi.TestStand.exe --transport v2 --module StreamableHttp
 ```
 
-- V2: **196/196**; V1: **187/187**. Модуль `StreamableHttp` (10 проверок) — транспорт/сессии/события V2.
+- V2: **200/200**; V1: **191/191**. Модуль `StreamableHttp` (10 проверок) — транспорт/сессии/события V2.
 
 ---
 

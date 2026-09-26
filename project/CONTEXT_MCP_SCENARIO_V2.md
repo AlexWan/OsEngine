@@ -230,6 +230,20 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 11. Когда `status == Load` и `percent_load` = 100 (или реальное значение < 100 при частичной загрузке) — сообщить, что скачивание завершено.
 12. По желанию выключить сет: `osengine_data_set_off` `{"name":"MyDownloadSet"}`.
 
+## Сценарий 11б. Скачать исторические стаканы (MarketDepthHistory)
+
+> История стакана (`MarketDepthHistory`) — это режим `MarketDepth`, поддерживаемый **только** коннектором `QscalpMarketDepth` (у него `DataFeedTfMarketDepthHistoryCanLoad = true`, а живой `MarketDepth` — `false`). Качаются `.qsh`-файлы истории стакана.
+
+1. Режим OsData (Сценарий 8, шаг 1–2).
+2. Активировать Qscalp: `osengine_server_management_activate` `{"type":"QscalpMarketDepth"}` → `name` = `source_name`.
+3. Создать сет с таймфреймом `"MarketDepthHistory"`:
+   `osengine_data_create_set` `{"name":"MyMdSet","source":"QscalpMarketDepth","source_name":"QscalpMarketDepth","timeframes":["MarketDepthHistory"],"date_from":"2026-09-01T00:00:00","date_to":"2026-09-02T00:00:00"}`.
+4. Добавить бумагу (тикер из справочника Qscalp): `osengine_data_set_securities_add` `{"name":"MyMdSet","securities":[{"name":"SBER","class":"...","exchange":""}]}`.
+5. `osengine_data_set_on` `{"name":"MyMdSet"}` → загрузка `.qsh`.
+6. Мониторить `osengine_data_get_set_status` / `osengine_data_get_security_status` `{"name":"MyMdSet","security":"SBER","timeframe":"MarketDepthHistory"}`.
+
+> Не путай: `"MarketDepth"` (живой стакан) на Qscalp **не поддерживается** — MCP вернёт ошибку. Используй именно `"MarketDepthHistory"`.
+
 ## Сценарий 12. Журнал робота после теста
 
 > Работает в режиме тестера (`IsTester`); предполагается, что тест завершён (`regime: Pause`, `progress_percent: 100`). Если журнал пуст (всё по нулям) — тест ещё не гоняли, это не ошибка; сначала прогони тест (Сценарий 14).

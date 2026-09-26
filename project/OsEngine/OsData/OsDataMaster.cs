@@ -457,7 +457,8 @@ namespace OsEngine.OsData
                 case TimeFrame.Hour4: return permission.DataFeedTf4HourCanLoad;
                 case TimeFrame.Day: return permission.DataFeedTfDayCanLoad;
                 case TimeFrame.Tick: return permission.DataFeedTfTickCanLoad;
-                case TimeFrame.MarketDepth: return permission.DataFeedTfMarketDepthCanLoad;
+                case TimeFrame.MarketDepth: return permission.DataFeedTfMarketDepthCanLoad
+                    || permission.DataFeedTfMarketDepthHistoryCanLoad;
                 default: return false;
             }
         }

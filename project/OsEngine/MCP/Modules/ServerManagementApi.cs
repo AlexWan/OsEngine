@@ -6,10 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.MCP.Json;
+using OsEngine.OsData;
 
 namespace OsEngine.MCP.Modules
 {
@@ -71,6 +73,10 @@ namespace OsEngine.MCP.Modules
 
                     case "server_management_get_connector_permissions":
                         response.Result = GetConnectorPermissions(request.Params);
+                        break;
+
+                    case "server_management_get_data_timeframes":
+                        response.Result = GetDataTimeFrames(request.Params);
                         break;
 
                     default:
@@ -153,6 +159,24 @@ namespace OsEngine.MCP.Modules
                 {
                     Name = "server_management_get_connector_permissions",
                     Description = "Get OsEngine IServerPermission for a connector type (data feed timeframes, trade permissions, order lifetime, leverage, etc.)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            type = new
+                            {
+                                type = "string",
+                                description = "Server type name, e.g. TInvest, BinanceSpot, MoexDataServer"
+                            }
+                        },
+                        required = new[] { "type" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "server_management_get_data_timeframes",
+                    Description = "Get the list of timeframes supported for OsData download from a connector type. 'MarketDepthHistory' means historical market depth",
                     InputSchema = new
                     {
                         type = "object",
@@ -312,6 +336,49 @@ namespace OsEngine.MCP.Modules
                     permissions = document.RootElement.Clone()
                 };
             }
+        }
+
+        private static object GetDataTimeFrames(JsonElement parameters)
+        {
+            ServerType serverType = ParseServerType(parameters);
+
+            IServerPermission permission = ServerMaster.GetServerPermission(serverType);
+
+            List<string> timeframes = new List<string>();
+
+            if (permission != null)
+            {
+                TimeFrame[] all = (TimeFrame[])Enum.GetValues(typeof(TimeFrame));
+
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (all[i] == TimeFrame.MarketDepth)
+                    {
+                        continue;
+                    }
+
+                    if (OsDataMaster.IsTimeFrameSupportedByServer(all[i], permission))
+                    {
+                        timeframes.Add(all[i].ToString());
+                    }
+                }
+
+                if (permission.DataFeedTfMarketDepthCanLoad)
+                {
+                    timeframes.Add(TimeFrame.MarketDepth.ToString());
+                }
+
+                if (permission.DataFeedTfMarketDepthHistoryCanLoad)
+                {
+                    timeframes.Add("MarketDepthHistory");
+                }
+            }
+
+            return new
+            {
+                type = serverType.ToString(),
+                timeframes = timeframes
+            };
         }
 
         private static ServerType ParseServerType(JsonElement parameters)
