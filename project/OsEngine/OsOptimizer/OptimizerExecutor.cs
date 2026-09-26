@@ -38,6 +38,12 @@ namespace OsEngine.OsOptimizer
 
         public bool Start(List<bool> parametersOn, List<IIStrategyParameter> parameters)
         {
+            if (parameters == null || parametersOn == null)
+            {
+                SendLogMessage(OsLocalization.Optimizer.Message44, LogMessageType.System);
+                return false;
+            }
+
             if (_primeThreadWorker != null)
             {
                 SendLogMessage(OsLocalization.Optimizer.Message1, LogMessageType.System);

@@ -1564,7 +1564,7 @@ namespace OsEngine.OsOptimizer
                 errors.Add("No strategy selected (optimizer_bot_set)");
             }
 
-            if (_parametersOn == null)
+            if (_parametersOn == null || _parameters == null)
             {
                 errors.Add("Optimization parameters are not loaded");
             }
@@ -1834,6 +1834,18 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
+            if (_parameters == null)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message44);
+                ui.ShowDialog();
+                SendLogMessage(OsLocalization.Optimizer.Message44, LogMessageType.System);
+
+                if (NeedToMoveUiToEvent != null)
+                {
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.Parameters);
+                }
+                return false;
+            }
 
             // проверка наличия и состояния параметра Regime 
             bool onRgimeOff = false;
