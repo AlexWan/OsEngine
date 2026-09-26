@@ -1908,6 +1908,11 @@ namespace OsEngine.OsOptimizer
         {
             // 2 - Start 3 - End
 
+            if (_master == null || _master.Fazes == null)
+            {
+                return;
+            }
+
             int indexColumn = e.ColumnIndex;
 
             if (indexColumn != 2 && indexColumn != 3)
@@ -1916,6 +1921,11 @@ namespace OsEngine.OsOptimizer
             }
 
             int indexRow = e.RowIndex;
+
+            if (indexRow < 0 || indexRow >= _master.Fazes.Count)
+            {
+                return;
+            }
 
             try
             {
@@ -1943,11 +1953,45 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            PaintTableOptimizeFazes();
+            SchedulePaintTableOptimizeFazes();
 
             if (_master.Fazes.Count != 0)
             {
                 WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+            }
+        }
+
+        private bool _fazesRepaintScheduled;
+
+        private void SchedulePaintTableOptimizeFazes()
+        {
+            if (_gridFazes == null || !_gridFazes.IsHandleCreated || _fazesRepaintScheduled)
+            {
+                return;
+            }
+
+            _fazesRepaintScheduled = true;
+
+            try
+            {
+                _gridFazes.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        if (_gridFazes != null && !_gridFazes.IsDisposed)
+                        {
+                            PaintTableOptimizeFazes();
+                        }
+                    }
+                    finally
+                    {
+                        _fazesRepaintScheduled = false;
+                    }
+                }));
+            }
+            catch
+            {
+                _fazesRepaintScheduled = false;
             }
         }
 
@@ -1958,6 +2002,8 @@ namespace OsEngine.OsOptimizer
                 _gridFazes.Invoke(new Action(PaintTableOptimizeFazes));
                 return;
             }
+
+            try { _gridFazes.EndEdit(); } catch { }
 
             _gridFazes.Rows.Clear();
 
