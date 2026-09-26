@@ -90,6 +90,11 @@ namespace OsEngine.Market.Servers.BCS
             worker5.Name = "BcsMyTradesMessageReader";
             worker5.IsBackground = true;
             worker5.Start();
+
+            Thread worker6 = new Thread(CheckDepthSubscriptions);
+            worker6.Name = "BcsCheckDepthSubscriptions";
+            worker6.IsBackground = true;
+            worker6.Start();
         }
 
         private WebProxy _myProxy;
@@ -99,21 +104,6 @@ namespace OsEngine.Market.Servers.BCS
             try
             {
                 _myProxy = proxy;
-                _myPortfolios.Clear();
-                _subscribedSecurities.Clear();
-                _accessTokenExpireTime = DateTime.MinValue;
-
-                lock (_pendingMyTradeFetchLocker)
-                {
-                    _pendingMyTradeFetchOrderNumbers.Clear();
-                }
-
-                _lastTradeTime.Clear();
-
-                lock (_sentMyTradesLocker)
-                {
-                    _sentMyTradesNumbers.Clear();
-                }
 
                 SendLogMessage("Start Bcs Connection", LogMessageType.System);
 
@@ -263,6 +253,22 @@ namespace OsEngine.Market.Servers.BCS
         {
             _myPortfolios.Clear();
             _securitiesLots.Clear();
+            _accessTokenExpireTime = DateTime.MinValue;
+            _hasLimitReached = false;
+
+            lock (_depthSubscribeLocker)
+            {
+                _depthSubscribeTimes.Clear();
+                _depthSubscribeAttempts.Clear();
+                _loggedEmptyDepth.Clear();
+            }
+
+            lock (_pendingMyTradeFetchLocker)
+            {
+                _pendingMyTradeFetchOrderNumbers.Clear();
+            }
+
+            _lastTradeTime.Clear();
 
             lock (_sentMyTradesLocker)
             {
@@ -533,6 +539,13 @@ namespace OsEngine.Market.Servers.BCS
                     }
 
                     if ((instrumentType == SecurityType.Stock || instrumentType == SecurityType.Fund) && item.boards[0].classCode != "TQBR")
+                    {
+                        continue;
+                    }
+
+                    if (instrumentType == SecurityType.Stock
+                        && item.bcsScore.ToDecimal() == 0
+                        && item.priceChangeMonth.ToDecimal() == 0)
                     {
                         continue;
                     }
@@ -1472,7 +1485,19 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     string message = e.Exception.ToString();
 
-                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    if (message.Contains("status code '403'"))
+                    {
+                        lock (_subscribeLimitLocker)
+                        {
+                            if (!_hasLimitReached)
+                            {
+                                _hasLimitReached = true;
+                                SendLogMessage("BCS достигнут лимит соединений WebSocket. Новые подписки остановлены.",
+                                    LogMessageType.Error);
+                            }
+                        }
+                    }
+                    else if (message.Contains("The remote party closed the WebSocket connection"))
                     {
                         // ignore
                     }
@@ -1701,7 +1726,13 @@ namespace OsEngine.Market.Servers.BCS
 
         #region 8 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(220));
+
+        private readonly object _depthSubscribeLocker = new object();
+        private readonly Dictionary<string, DateTime> _depthSubscribeTimes = new Dictionary<string, DateTime>();
+        private readonly Dictionary<string, int> _depthSubscribeAttempts = new Dictionary<string, int>();
+        private readonly TimeSpan _depthConfirmTimeout = TimeSpan.FromSeconds(90);
+        private readonly HashSet<string> _loggedEmptyDepth = new HashSet<string>();
 
         List<Security> _subscribedSecurities = new List<Security>();
 
@@ -1735,13 +1766,15 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 40 == 0)
+                    && _subscribedSecurities.Count % 45 == 0)
                 {
                     WebSocket newSocket = CreateNewSocketMarketData();
 
                     DateTime timeEnd = DateTime.Now.AddSeconds(10);
 
-                    while (newSocket.ReadyState != WebSocketState.Open)
+                    while (newSocket != null
+                        && newSocket.ReadyState != WebSocketState.Open
+                        && !_hasLimitReached)
                     {
                         Thread.Sleep(1000);
 
@@ -1751,11 +1784,17 @@ namespace OsEngine.Market.Servers.BCS
                         }
                     }
 
-                    if (newSocket.ReadyState == WebSocketState.Open)
+                    if (newSocket != null && newSocket.ReadyState == WebSocketState.Open)
                     {
                         _webSocketPublicList.Add(newSocket);
                         webSocketPublic = newSocket;
                     }
+                }
+
+                if (_hasLimitReached)
+                {
+                    _subscribedSecurities.Remove(security);
+                    return;
                 }
 
                 if (webSocketPublic != null)
@@ -1773,11 +1812,129 @@ namespace OsEngine.Market.Servers.BCS
 
                     webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
                     webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
+
+                    lock (_depthSubscribeLocker)
+                    {
+                        _depthSubscribeTimes[security.Name] = DateTime.Now;
+                        _depthSubscribeAttempts[security.Name] = 0;
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage($"Subscribe error {security.Name} " + exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CheckDepthSubscriptions()
+        {
+            while (true)
+            {
+                Thread.Sleep(10000);
+
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
+
+                    List<string> toResubscribe = new List<string>();
+                    List<string> toStop = new List<string>();
+
+                    lock (_depthSubscribeLocker)
+                    {
+                        foreach (KeyValuePair<string, DateTime> pair in _depthSubscribeTimes)
+                        {
+                            if (DateTime.Now - pair.Value > _depthConfirmTimeout)
+                            {
+                                int attempts;
+                                _depthSubscribeAttempts.TryGetValue(pair.Key, out attempts);
+
+                                if (attempts < 3)
+                                {
+                                    toResubscribe.Add(pair.Key);
+                                }
+                                else
+                                {
+                                    toStop.Add(pair.Key);
+                                }
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < toResubscribe.Count; i++)
+                    {
+                        ReSubscribeDepth(toResubscribe[i]);
+                    }
+
+                    for (int i = 0; i < toStop.Count; i++)
+                    {
+                        lock (_depthSubscribeLocker)
+                        {
+                            _depthSubscribeTimes.Remove(toStop[i]);
+                            _depthSubscribeAttempts.Remove(toStop[i]);
+                        }
+
+                        SendLogMessage($"BCS 3 попытки исчерпаны, стакан по инструменту не найден: {toStop[i]}", LogMessageType.System);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void ReSubscribeDepth(string securityName)
+        {
+            if (_hasLimitReached)
+            {
+                return;
+            }
+
+            Security security = null;
+
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            {
+                if (_subscribedSecurities[i].Name == securityName)
+                {
+                    security = _subscribedSecurities[i];
+                    break;
+                }
+            }
+
+            if (security == null || _webSocketPublicList.Count == 0)
+            {
+                return;
+            }
+
+            WebSocket webSocketPublic = _webSocketPublicList[_webSocketPublicList.Count - 1];
+
+            if (webSocketPublic == null || webSocketPublic.ReadyState != WebSocketState.Open)
+            {
+                return;
+            }
+
+            _rateGateSubscribe.WaitToProceed();
+
+            string depth = ((ServerParameterBool)ServerParameters[17]).Value == false
+                ? "1"
+                : ((ServerParameterEnum)ServerParameters[8]).Value;
+
+            string depthMessage = $"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}";
+
+            SendLogMessage($"BCS re-subscribe depth {security.Name}: {depthMessage}", LogMessageType.System);
+
+            webSocketPublic.SendAsync(depthMessage);
+
+            lock (_depthSubscribeLocker)
+            {
+                _depthSubscribeTimes[securityName] = DateTime.Now;
+
+                int attempts;
+                _depthSubscribeAttempts.TryGetValue(securityName, out attempts);
+                _depthSubscribeAttempts[securityName] = attempts + 1;
             }
         }
 
@@ -1945,18 +2102,32 @@ namespace OsEngine.Market.Servers.BCS
                             }
                             else
                             {
-                                if (response.bids == null || response.asks == null
-                                    || response.bids.Count == 0 || response.asks.Count == 0)
+                                if (response.bids != null && response.asks != null
+                                    && response.bids.Count == 0 && response.asks.Count == 0)
                                 {
-                                    // диагностика: стакан пустой/не распарсился — показываем сырое сообщение
-                                    SendLogMessage($"BCS OrderBook пустой или не распарсился: {message}", LogMessageType.System);
+                                    lock (_depthSubscribeLocker)
+                                    {
+                                        if (_loggedEmptyDepth.Add(response.ticker))
+                                        {
+                                            SendLogMessage($"BCS стакан пустой: {response.ticker} (инструмент не торгуется или требует тест/квалификацию)", LogMessageType.System);
+                                        }
+                                    }
                                 }
 
                                 UpdateMarketDepth(response);
                             }
                         }
-                        if (response.responseType.Equals("OrderBookSuccess")
-                            || response.responseType.Equals("LastTradesSuccess"))
+                        if (response.responseType.Equals("OrderBookSuccess"))
+                        {
+                            lock (_depthSubscribeLocker)
+                            {
+                                _depthSubscribeTimes.Remove(response.ticker);
+                                _depthSubscribeAttempts.Remove(response.ticker);
+                            }
+
+                            SendLogMessage($"BCS market data: подписка подтверждена {response.responseType} {response.ticker} {response.classCode}", LogMessageType.System);
+                        }
+                        else if (response.responseType.Equals("LastTradesSuccess"))
                         {
                             SendLogMessage($"BCS market data: подписка подтверждена {response.responseType} {response.ticker} {response.classCode}", LogMessageType.System);
                         }
@@ -2027,7 +2198,7 @@ namespace OsEngine.Market.Servers.BCS
                 return;
             }
 
-            if (depthData.bids.Count == 0 ||
+            if (depthData.bids.Count == 0 &&
                 depthData.asks.Count == 0)
             {
                 return;
