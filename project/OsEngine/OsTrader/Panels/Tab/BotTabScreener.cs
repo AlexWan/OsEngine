@@ -585,6 +585,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SaveSettings()
         {
+            if (_isLoadingSettings)
+            {
+                // LoadSettings assigns CandleCreateMethodType, whose setter saves: that would rewrite the file it is
+                // still reading, before the securities are read. On Windows the open reader blocks the write; on
+                // Linux it does not, and every start wiped the securities list from the file.
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerSet.txt", false))
@@ -621,6 +629,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Load settings
         /// </summary>
+        private bool _isLoadingSettings;
+
         public void LoadSettings()
         {
             if (!File.Exists(@"Engine\" + TabName + @"ScreenerSet.txt"))
@@ -630,6 +640,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CandleSeriesRealization.Init(_startProgram);
                 return;
             }
+
+            _isLoadingSettings = true;
+
             try
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"ScreenerSet.txt"))
@@ -708,6 +721,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 CandleSeriesRealization.Init(_startProgram);
 
                 // ignore
+            }
+            finally
+            {
+                _isLoadingSettings = false;
             }
         }
 
