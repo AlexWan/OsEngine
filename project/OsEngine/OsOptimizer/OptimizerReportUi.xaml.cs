@@ -502,8 +502,15 @@ namespace OsEngine.OsOptimizer
 
         private void _gridFazesEnd_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            PaintTableResults();
-            PaintSeriesResultsChart();
+            try
+            {
+                PaintTableResults();
+                PaintSeriesResultsChart();
+            }
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
