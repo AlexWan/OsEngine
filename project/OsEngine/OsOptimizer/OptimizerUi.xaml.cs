@@ -1020,12 +1020,26 @@ namespace OsEngine.OsOptimizer
         private void DatePickerEnd_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             _lastUpdateTimePicker = DateTime.Now;
+
+            if (DatePickerEnd.SelectedDate == null)
+            {
+                DatePickerEnd.SelectedDate = _master.TimeEnd;
+                return;
+            }
+
             _master.TimeEnd = DatePickerEnd.SelectedDate.Value;
         }
 
         private void DatePickerStart_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             _lastUpdateTimePicker = DateTime.Now;
+
+            if (DatePickerStart.SelectedDate == null)
+            {
+                DatePickerStart.SelectedDate = _master.TimeStart;
+                return;
+            }
+
             _master.TimeStart = DatePickerStart.SelectedDate.Value;
         }
 
