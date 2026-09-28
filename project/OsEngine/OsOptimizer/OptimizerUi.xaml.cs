@@ -720,7 +720,14 @@ namespace OsEngine.OsOptimizer
 
         private void ComboBoxThreadsCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CreateThreadsProgressBars();
+            try
+            {
+                CreateThreadsProgressBars();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<ProgressBar> _progressBars;
@@ -884,105 +891,119 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonPositionSupport_Click(object sender, RoutedEventArgs e)
         {
-            _master.ShowManualControlDialog();
+            try
+            {
+                _master.ShowManualControlDialog();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonGo_Click(object sender, RoutedEventArgs e)
         {
-            AindicatorCacheServer.Clear();
-
-            SaveParametersFromTable();
-
-            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 &&
-                 _reports != null)
+            try
             {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label33);
+                AindicatorCacheServer.Clear();
 
-                ui.ShowDialog();
+                SaveParametersFromTable();
 
-                if (!ui.UserAcceptAction)
+                if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 &&
+                     _reports != null)
                 {
-                    return;
-                }
-            }
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label33);
 
-            _testIsEnd = false;
+                    ui.ShowDialog();
 
-            int botsCount = _master.GetMaxBotsCount();
-
-            if (botsCount > 100000)
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label60);
-
-                ui.ShowDialog();
-
-                if (!ui.UserAcceptAction)
-                {
-                    return;
-                }
-            }
-
-            if (_master.Fazes != null &&
-                _master.Fazes.Count > 1 &&
-                (_master.FilterDealsCountIsOn
-                || _master.FilterMaxDrawDownIsOn
-                || _master.FilterMiddleProfitIsOn
-                || _master.FilterProfitFactorIsOn
-                || _master.FilterProfitIsOn))
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label61);
-
-                ui.ShowDialog();
-
-                if (!ui.UserAcceptAction)
-                {
-                    return;
-                }
-            }
-
-            bool started = false;
-
-            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9)
-            {
-                try
-                {
-                    started = _master.Start();
-                }
-                catch (Exception ex)
-                {
-                    _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
-                    return;
-                }
-            }
-
-            if (started)
-            {
-                ButtonGo.Content = OsLocalization.Optimizer.Label32;
-                StopUserActivity();
-
-                ProgressBarPrime.Value = 0;
-
-                if (_progressBars != null && _progressBars.Count > 0)
-                {
-                    for (int i2 = 0; i2 < _progressBars.Count; i2++)
+                    if (!ui.UserAcceptAction)
                     {
-                        _progressBars[i2].Value = 0;
+                        return;
                     }
                 }
-            }
-            else if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label32)
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label51);
 
-                ui.ShowDialog();
+                _testIsEnd = false;
 
-                if (!ui.UserAcceptAction)
+                int botsCount = _master.GetMaxBotsCount();
+
+                if (botsCount > 100000)
                 {
-                    return;
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label60);
+
+                    ui.ShowDialog();
+
+                    if (!ui.UserAcceptAction)
+                    {
+                        return;
+                    }
                 }
 
-                _master.Stop();
-                ButtonGo.Content = OsLocalization.Optimizer.Label9;
+                if (_master.Fazes != null &&
+                    _master.Fazes.Count > 1 &&
+                    (_master.FilterDealsCountIsOn
+                    || _master.FilterMaxDrawDownIsOn
+                    || _master.FilterMiddleProfitIsOn
+                    || _master.FilterProfitFactorIsOn
+                    || _master.FilterProfitIsOn))
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label61);
+
+                    ui.ShowDialog();
+
+                    if (!ui.UserAcceptAction)
+                    {
+                        return;
+                    }
+                }
+
+                bool started = false;
+
+                if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9)
+                {
+                    try
+                    {
+                        started = _master.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                        return;
+                    }
+                }
+
+                if (started)
+                {
+                    ButtonGo.Content = OsLocalization.Optimizer.Label32;
+                    StopUserActivity();
+
+                    ProgressBarPrime.Value = 0;
+
+                    if (_progressBars != null && _progressBars.Count > 0)
+                    {
+                        for (int i2 = 0; i2 < _progressBars.Count; i2++)
+                        {
+                            _progressBars[i2].Value = 0;
+                        }
+                    }
+                }
+                else if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label32)
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Optimizer.Label51);
+
+                    ui.ShowDialog();
+
+                    if (!ui.UserAcceptAction)
+                    {
+                        return;
+                    }
+
+                    _master.Stop();
+                    ButtonGo.Content = OsLocalization.Optimizer.Label9;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1019,28 +1040,42 @@ namespace OsEngine.OsOptimizer
 
         private void DatePickerEnd_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _lastUpdateTimePicker = DateTime.Now;
-
-            if (DatePickerEnd.SelectedDate == null)
+            try
             {
-                DatePickerEnd.SelectedDate = _master.TimeEnd;
-                return;
-            }
+                _lastUpdateTimePicker = DateTime.Now;
 
-            _master.TimeEnd = DatePickerEnd.SelectedDate.Value;
+                if (DatePickerEnd.SelectedDate == null)
+                {
+                    DatePickerEnd.SelectedDate = _master.TimeEnd;
+                    return;
+                }
+
+                _master.TimeEnd = DatePickerEnd.SelectedDate.Value;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void DatePickerStart_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            _lastUpdateTimePicker = DateTime.Now;
-
-            if (DatePickerStart.SelectedDate == null)
+            try
             {
-                DatePickerStart.SelectedDate = _master.TimeStart;
-                return;
-            }
+                _lastUpdateTimePicker = DateTime.Now;
 
-            _master.TimeStart = DatePickerStart.SelectedDate.Value;
+                if (DatePickerStart.SelectedDate == null)
+                {
+                    DatePickerStart.SelectedDate = _master.TimeStart;
+                    return;
+                }
+
+                _master.TimeStart = DatePickerStart.SelectedDate.Value;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private bool _filterTextUpdating;
@@ -1075,54 +1110,68 @@ namespace OsEngine.OsOptimizer
 
         private void CheckBoxFilterIsOn_Click(object sender, RoutedEventArgs e)
         {
-            _master.FilterProfitIsOn = CheckBoxFilterProfitIsOn.IsChecked.Value;
-            _master.FilterMaxDrawDownIsOn = CheckBoxFilterMaxDrowDownIsOn.IsChecked.Value;
-            _master.FilterMiddleProfitIsOn = CheckBoxFilterMiddleProfitIsOn.IsChecked.Value;
-            _master.FilterProfitFactorIsOn = CheckBoxFilterProfitFactorIsOn.IsChecked.Value;
-            _master.FilterDealsCountIsOn = CheckBoxFilterDealsCount.IsChecked.Value;
+            try
+            {
+                _master.FilterProfitIsOn = CheckBoxFilterProfitIsOn.IsChecked.Value;
+                _master.FilterMaxDrawDownIsOn = CheckBoxFilterMaxDrowDownIsOn.IsChecked.Value;
+                _master.FilterMiddleProfitIsOn = CheckBoxFilterMiddleProfitIsOn.IsChecked.Value;
+                _master.FilterProfitFactorIsOn = CheckBoxFilterProfitFactorIsOn.IsChecked.Value;
+                _master.FilterDealsCountIsOn = CheckBoxFilterDealsCount.IsChecked.Value;
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
-            List<string> namesForOptimization = BotFactory.GetNamesStrategyWithParametersSync();
-
-            List<string> scriptsNames = BotFactory.GetScriptsNamesStrategy();
-
-            List<string> includeNames = BotFactory.GetIncludeNamesStrategy();
-
-            for (int i = 0; i < scriptsNames.Count; i++)
+            try
             {
-                if (namesForOptimization.Find(s => s == scriptsNames[i]) == null)
+                List<string> namesForOptimization = BotFactory.GetNamesStrategyWithParametersSync();
+
+                List<string> scriptsNames = BotFactory.GetScriptsNamesStrategy();
+
+                List<string> includeNames = BotFactory.GetIncludeNamesStrategy();
+
+                for (int i = 0; i < scriptsNames.Count; i++)
                 {
-                    scriptsNames.RemoveAt(i);
-                    i--;
+                    if (namesForOptimization.Find(s => s == scriptsNames[i]) == null)
+                    {
+                        scriptsNames.RemoveAt(i);
+                        i--;
+                    }
                 }
-            }
 
-            for (int i = 0; i < includeNames.Count; i++)
-            {
-                if (namesForOptimization.Find(s => s == includeNames[i]) == null)
+                for (int i = 0; i < includeNames.Count; i++)
                 {
-                    includeNames.RemoveAt(i);
-                    i--;
+                    if (namesForOptimization.Find(s => s == includeNames[i]) == null)
+                    {
+                        includeNames.RemoveAt(i);
+                        i--;
+                    }
                 }
+
+                BotCreateUi2 ui = new BotCreateUi2(includeNames, scriptsNames,
+                    StartProgram.IsOsOptimizer, null);
+
+                ui.ShowDialog();
+
+                if (ui.IsAccepted == false)
+                {
+                    return;
+                }
+
+                _master.StrategyName = ui.NameStrategy;
+                _master.IsScript = ui.IsScript;
+                _master.CreateBot();
+                TextBoxStrategyName.Text = ui.NameStrategy;
+                ReloadStrategy();
             }
-
-            BotCreateUi2 ui = new BotCreateUi2(includeNames, scriptsNames,
-                StartProgram.IsOsOptimizer, null);
-
-            ui.ShowDialog();
-
-            if (ui.IsAccepted == false)
+            catch (Exception ex)
             {
-                return;
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
-            _master.StrategyName = ui.NameStrategy;
-            _master.IsScript = ui.IsScript;
-            _master.CreateBot();
-            TextBoxStrategyName.Text = ui.NameStrategy;
-            ReloadStrategy();
         }
 
         private void ReloadStrategy()
@@ -1718,47 +1767,54 @@ namespace OsEngine.OsOptimizer
 
         private void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            // здесь только работа с BotTabIndex!!! Имя + Таймфрейм
-
-            int rowIndex = e.RowIndex;
-            int columnIndex = e.ColumnIndex;
-
-            if (columnIndex != 2 &&
-                columnIndex != 3)
+            try
             {
-                return;
-            }
+                // здесь только работа с BotTabIndex!!! Имя + Таймфрейм
 
-            BotPanel bot = _master.BotToTest;
+                int rowIndex = e.RowIndex;
+                int columnIndex = e.ColumnIndex;
 
-            List<IIBotTab> sources = bot.GetTabs();
-
-            if (rowIndex >= sources.Count)
-            {
-                return;
-            }
-
-            IIBotTab curTab = sources[rowIndex];
-
-            if (curTab.TabType != BotTabType.Simple)
-            {
-                return;
-            }
-
-            BotTabSimple simpleTab = (BotTabSimple)curTab;
-
-            if (columnIndex == 2)
-            {
-                simpleTab.Connector.SecurityName = _gridSources.Rows[rowIndex].Cells[2].Value.ToString();
-            }
-            else if (columnIndex == 3)
-            {
-                TimeFrame newFrame = new TimeFrame();
-
-                if (Enum.TryParse(_gridSources.Rows[rowIndex].Cells[3].Value.ToString(), out newFrame))
+                if (columnIndex != 2 &&
+                    columnIndex != 3)
                 {
-                    simpleTab.Connector.TimeFrame = newFrame;
+                    return;
                 }
+
+                BotPanel bot = _master.BotToTest;
+
+                List<IIBotTab> sources = bot.GetTabs();
+
+                if (rowIndex >= sources.Count)
+                {
+                    return;
+                }
+
+                IIBotTab curTab = sources[rowIndex];
+
+                if (curTab.TabType != BotTabType.Simple)
+                {
+                    return;
+                }
+
+                BotTabSimple simpleTab = (BotTabSimple)curTab;
+
+                if (columnIndex == 2)
+                {
+                    simpleTab.Connector.SecurityName = _gridSources.Rows[rowIndex].Cells[2].Value.ToString();
+                }
+                else if (columnIndex == 3)
+                {
+                    TimeFrame newFrame = new TimeFrame();
+
+                    if (Enum.TryParse(_gridSources.Rows[rowIndex].Cells[3].Value.ToString(), out newFrame))
+                    {
+                        simpleTab.Connector.TimeFrame = newFrame;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1849,18 +1905,25 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonCreateOptimizeFazes_Click(object sender, RoutedEventArgs e)
         {
-            _master.ReloadFazes();
-            PaintTableOptimizeFazes();
-
-            if (_master.Fazes == null ||
-                _master.Fazes.Count == 0)
+            try
             {
-                return;
+                _master.ReloadFazes();
+                PaintTableOptimizeFazes();
+
+                if (_master.Fazes == null ||
+                    _master.Fazes.Count == 0)
+                {
+                    return;
+                }
+
+                WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+
+                PaintCountBotsInOptimization();
             }
-
-            WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
-
-            PaintCountBotsInOptimization();
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private DataGridView _gridFazes;
@@ -2232,12 +2295,19 @@ namespace OsEngine.OsOptimizer
 
         private void _gridParameters_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int columnIndx = e.ColumnIndex;
-            _lastRowClickParamGridNum = e.RowIndex;
-
-            if (columnIndx == 0)
+            try
             {
-                Task.Run(StopRedactTableTask);
+                int columnIndx = e.ColumnIndex;
+                _lastRowClickParamGridNum = e.RowIndex;
+
+                if (columnIndx == 0)
+                {
+                    Task.Run(StopRedactTableTask);
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3152,8 +3222,15 @@ namespace OsEngine.OsOptimizer
 
         private void _gridParameters_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            SaveParametersFromTable();
-            Task.Run(new Action(PaintCountBotsInOptimization));
+            try
+            {
+                SaveParametersFromTable();
+                Task.Run(new Action(PaintCountBotsInOptimization));
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private object _locker = new object();
@@ -3299,8 +3376,15 @@ namespace OsEngine.OsOptimizer
 
         private void _gridFazesEnd_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            PaintTableResults();
-            PaintSeriesResultsChart();
+            try
+            {
+                PaintTableResults();
+                PaintSeriesResultsChart();
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
