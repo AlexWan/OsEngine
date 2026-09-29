@@ -137,6 +137,18 @@ namespace OsEngine.Market.Servers.MOEX
 
             securities = CreateFuturesSection(securities);
 
+            HashSet<string> seenSecurities = new HashSet<string>();
+
+            for (int i = securities.Count - 1; i >= 0; i--)
+            {
+                string key = securities[i].Name + "|" + securities[i].NameClass;
+
+                if (seenSecurities.Add(key) == false)
+                {
+                    securities.RemoveAt(i);
+                }
+            }
+
             SecurityEvent?.Invoke(securities);
 
             SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);

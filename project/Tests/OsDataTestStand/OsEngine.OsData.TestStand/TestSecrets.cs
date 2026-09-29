@@ -30,8 +30,10 @@ namespace OsEngine.OsData.TestStand
         /// 1. Environment variables.
         /// 2. Local test-secrets.json next to the executable.
         /// 3. Interactive console prompt (and save to test-secrets.json).
+        /// When allowPrompt is false (non-interactive run), no prompt is shown and
+        /// empty secrets are returned instead of blocking on Console.ReadLine().
         /// </summary>
-        public static TestSecrets Load(string baseDirectory)
+        public static TestSecrets Load(string baseDirectory, bool allowPrompt = true)
         {
             string filePath = Path.Combine(baseDirectory, FileName);
 
@@ -54,6 +56,13 @@ namespace OsEngine.OsData.TestStand
 
             Console.WriteLine("[Secrets] Test secrets not found.");
             Console.WriteLine($"[Secrets] Environment variables {TypeEnvVar} and {ParametersEnvVar} are not set, and {filePath} does not exist.");
+
+            if (allowPrompt == false)
+            {
+                Console.WriteLine("[Secrets] Non-interactive run: continuing with empty secrets.");
+                return new TestSecrets();
+            }
+
             Console.WriteLine("[Secrets] Please enter connector credentials. They will be saved to a local file (ignored by git).");
 
             return PromptAndSave(filePath);

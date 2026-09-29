@@ -258,7 +258,7 @@ namespace OsEngine.OsData.TestStand
                     Console.WriteLine();
 
                     string testStandDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                    TestSecrets secrets = TestSecrets.Load(testStandDirectory);
+                    TestSecrets secrets = TestSecrets.Load(testStandDirectory, allowPrompt: !options.NoWait);
 
                     var context = new TestContext(
                         client,
