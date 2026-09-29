@@ -22,7 +22,13 @@ namespace OsEngine.Market.Servers.TData.Entity
             if (!File.Exists(csvFilePath))
                 return trades;
 
-            string targetSec = security.Name + "_" + security.NameClass;
+            // В тиковом архиве ETF записаны с доской TQBR (как акции), а не TQTF/TQIF —
+            // нормализуем доску, иначе ETF не найдутся в архиве.
+            string classForMatch = security.NameClass;
+            if (classForMatch == "TQTF" || classForMatch == "TQIF")
+                classForMatch = "TQBR";
+
+            string targetSec = security.Name + "_" + classForMatch;
 
             const string targetTradeSource = "EXCHANGE";
 

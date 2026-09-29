@@ -49,45 +49,7 @@ OsEngine/MCP/
     McpProtocolApi.cs       // initialize, tools/list, tools/call, notifications/initialized
 ```
 
-Тестовый стенд находится в `Tests/McpTestStand/OsEngine.McpApi.TestStand/`:
-
-```
-Tests/McpTestStand/OsEngine.McpApi.TestStand/
-  Program.cs                // Точка входа, запуск OsEngine, оркестрация
-  McpApiClient.cs           // Синхронный HTTP-клиент
-  TestContext.cs            // Контекст прогона и печать отчёта
-  TestRunner.cs             // Запуск модульных тестов
-  TestResult.cs             // Результат одного теста
-  Tests/                    // Модульные тесты
-    ProtocolTests.cs
-    TerminalTests.cs
-    LogsTests.cs
-    SettingsTests.cs
-    ConfigTests.cs
-    ServerManagementTests.cs
-    ServerInstanceTests.cs
-    WikiRobotsTests.cs
-    WikiIndicatorsTests.cs
-    WikiSecuritiesTests.cs
-    WikiDividendsTests.cs
-    SseTests.cs
-    ErrorTests.cs
-    DataTests.cs
-    TesterTests.cs          // tester_* and bot_* via tester mode
-    SystemLoadTests.cs      // system_load_* via BotStationLight mode
-    ComparePositionsTests.cs // compare_positions_* via BotStationLight mode
-    ProxyTests.cs           // proxy_* via BotStationLight mode
-    OptimizerTests.cs       // optimizer_* via Optimizer mode
-```
-
-По умолчанию стенд прогоняет все 21 модуль подряд. Аргумент `--module` (или `-m`) запускает только выбранные модули: номер модуля (1–21) или подстрока его имени без учёта регистра, несколько значений — через запятую. Нумерация соответствует порядку полного прогона: 1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement, 6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators, 11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal, 16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption, 21 StreamableHttp. Пропущенные модули не перезапускают OsEngine и не тратят время. Если фильтр не совпал ни с одним модулем, стенд печатает нумерованный список модулей и завершается с ошибкой.
-
-```bash
-./OsEngine.McpApi.TestStand.exe                      # все модули
-./OsEngine.McpApi.TestStand.exe --module Tester      # только модуль Tester
-./OsEngine.McpApi.TestStand.exe --module 5,6         # ServerManagement и ServerInstance
-./OsEngine.McpApi.TestStand.exe --module Wiki        # все wiki_* модули
-```
+Тестовый стенд: [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md) — описание, запуск, модули и отчёт.
 
 ---
 
@@ -1316,110 +1278,7 @@ data: {"event":"server_instance.log","timestamp":"2026-06-22T18:10:07","payload"
 
 ## 2.9. Тестовый стенд
 
-Репозиторий содержит консольный тестовый стенд:
-
-```
-Tests/McpTestStand/OsEngine.McpApi.TestStand/
-```
-
-Стенд запускает `OsEngine.exe`, дожидается готовности MCP API и последовательно проверяет каждый модуль:
-
-| Модуль | Что проверяется |
-|--------|-----------------|
-| Protocol | `initialize`, `notifications/initialized`, `tools/list` |
-| Logs | `log_get_emergency_log`, `log_get_mcp_log` |
-| Settings | `prime_settings_get`, `prime_settings_set` |
-| Config | `mcp_settings_get`, `mcp_settings_set` |
-| Server Management | `server_management_get_list`, `server_management_activate`, `server_management_get_trade_connectors`, `server_management_get_data_connectors`, `server_management_get_connector_permissions` |
-| Server Instance | `server_instance_get_params`, `server_instance_set_params`, `server_instance_create`, `server_instance_delete`, `server_instance_connect`, `server_instance_disconnect`, `server_instance_get_status`, `server_instance_get_securities`, `server_instance_get_portfolios`, `server_instance_get_log` |
-| Wiki Robots | `wiki_robots_list`, `wiki_robot_info` |
-| Wiki Indicators | `wiki_indicators_list`, `wiki_indicator_info` |
-| Wiki Securities | `wiki_securities_moex_iss`, `wiki_securities_tinvest`, `wiki_securities_alor`, `wiki_securities_qscalp`, `wiki_securities_mapping_info` |
-| SSE | подключение к `/api/v1/events`, события `terminal.launched` и `heartbeat` |
-| Errors | HTTP 401, `-32601`, неизвестный инструмент, невалидные параметры |
-| Terminal | `ping`, `terminal_get_status`, `terminal_launch`, `terminal_stop`, `terminal_kill`, `terminal_open_mode` |
-| Data | `data_get_sets`, `data_create_set`, `data_delete_set`, `data_set_settings_get`, `data_set_settings_set`, `data_set_securities_get`, `data_set_securities_add`, `data_set_securities_remove`, `data_set_on`, `data_set_off`, `data_get_set_status`, `data_get_security_status` |
-| Robot | `bot_get_list`, `bot_create`, `bot_delete`, `bot_get_params`, `bot_set_params`, `bot_click_param_button`, `bot_get_sources`, `bot_get_config_tab_simple`, `bot_set_config_tab_simple`, `bot_get_config_tab_screener`, `bot_set_config_tab_screener`, `bot_get_config_tab_index`, `bot_set_config_tab_index` |
-| Journal | `bot_journal_get_settings`, `bot_journal_set_settings`, `bot_journal_get_summary`, `bot_journal_get_equity`, `bot_journal_get_statistics`, `bot_journal_get_drawdown`, `bot_journal_get_volume`, `bot_journal_get_open_positions`, `bot_journal_get_closed_positions` |
-| Tester | `tester_data_get_config`, `tester_data_get_available_sets`, `tester_data_set_config`, `tester_execution_get_config`, `tester_execution_set_config`, `tester_portfolio_get_config`, `tester_portfolio_set_config`, `tester_start`, `tester_pause`, `tester_stop`, `tester_fast_forward`, `tester_step_forward`, `tester_get_status` |
-
-### Запуск
-
-```bash
-cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
-./OsEngine.McpApi.TestStand.exe
-```
-
-> **Важно:** стенд запускать только с **явного разрешения пользователя**.
->
-> Стенд работает в foreground. При запуске из Kimi Shell он создаёт собственное видимое консольное окно, а вывод дублируется в это окно, в исходный stdout и в лог-файл `mcp-test-stand-yyyyMMdd-HHmmss.log` рядом с `.exe`. Запрещено использовать `run_in_background=true`. Длительность прогона — около 4 минут; дожидаться завершения через `TaskOutput(block=true)` или автоматическое уведомление.
-
-### Аргументы командной строки
-
-| Аргумент | Описание |
-|----------|----------|
-| `path/to/OsEngine.exe` | Путь к OsEngine (по умолчанию `../../../../../../OsEngine/bin/Debug/OsEngine.exe`) |
-| `--port <port>` | Порт MCP (по умолчанию `6500`) |
-| `--api-key <key>` | Ключ (по умолчанию `osengine-mcp-default-key`) |
-| `--timeout <seconds>` | Таймаут ожидания готовности (по умолчанию `60`) |
-| `--no-wait` | Не ждать нажатия клавиши в конце |
-
-### Настройка секретов коннектора
-
-Некоторые тесты (например, подключение к бирже) требуют реальных учётных данных. Тестовый стенд **не хранит секреты в исходном коде** и **не коммитит их**. Секреты загружаются по следующему приоритету:
-
-1. **Переменные окружения** (удобно для CI/CD):
-   ```bash
-   set OSENGINE_TEST_CONNECTOR_TYPE=TInvest
-   set OSENGINE_TEST_CONNECTOR_PARAMETERS={"Token":"..."}
-   ```
-
-2. **Локальный файл `test-secrets.json`** рядом с `.exe` (удобно для ручного запуска):
-   ```json
-   {
-     "connector": {
-       "type": "TInvest",
-       "parameters": {
-         "Token": "..."
-       }
-     }
-   }
-   ```
-
-3. **Интерактивный консольный prompt** — если и env vars, и файл отсутствуют, стенд спросит тип коннектора и параметры, а затем сохранит их в `test-secrets.json`.
-
-Файл `test-secrets.json` добавлен в `.gitignore` и не должен попадать в репозиторий. При выводе запросов значения параметров, чьи имена содержат `token`, `key`, `secret` или `password`, маскируются.
-
-### Пример отчёта
-
-```
---- Module Summary ---
-PROTOCOL:          3/3 passed
-LOGS:              3/3 passed
-SETTINGS:          2/2 passed
-CONFIG:            2/2 passed
-SERVER_MANAGEMENT: 5/5 passed
-SERVER_INSTANCE:   5/5 passed
-SSE:               1/1 passed
-ERRORS:            4/4 passed
-WIKI_ROBOTS:       6/6 passed
-WIKI_INDICATORS:   7/7 passed
-WIKI_SECURITIES:  12/12 passed
-WIKI_DIVIDENDS:   12/12 passed
-DATA:             16/16 passed
-TESTER:           43/43 passed
-TERMINAL:         13/13 passed
-SYSTEMLOAD:        4/4 passed
-COMPAREPOSITIONS:  5/5 passed
-PROXY:             8/8 passed
-OPTIMIZER:        20/20 passed
-ENCRYPTION:       16/16 passed
-STREAMABLE_HTTP: 10/10 passed
-
-Total: 196/196 passed in 338.6s
-```
-
-Если стенд запущен двойным кликом из проводника, окно консоли остаётся открытым до нажатия клавиши.
+Описание, запуск, модули, секреты и отчёт — в [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md).
 
 ---
 
@@ -1531,17 +1390,4 @@ OsEngine не поддерживает несколько процессов, р
 
 ### 3.6. Что делает тестовый стенд
 
-Тестовый стенд уже устанавливает правильный `WorkingDirectory`:
-
-```csharp
-string workingDirectory = Path.GetDirectoryName(osEnginePath) ?? string.Empty;
-
-osEngineProcess = Process.Start(new ProcessStartInfo(osEnginePath)
-{
-    WorkingDirectory = workingDirectory,
-    UseShellExecute = false,
-    CreateNoWindow = false
-});
-```
-
-Поэтому при запуске через стенд проблема Message6 не возникает. Ошибки обычно связаны либо с правами, либо с тем, что предыдущий процесс `OsEngine.exe` ещё не завершился (Message7).
+Тестовый стенд сам выставляет правильный `WorkingDirectory` при запуске OsEngine — подробнее в [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md).

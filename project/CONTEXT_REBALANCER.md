@@ -336,5 +336,5 @@ private decimal CalculateVolumeForMoney(BotTabSimple tab, decimal money)
 
 - `CONTEXT_ROBOTS.md` — каталог готовых роботов.
 - `CONTEXT_ROBOTS_ARCHITECTURE.md` — архитектура роботов в OsEngine.
-- `CONTEXT_DIVIDENDS.md` — работа с дивидендами через `WikiMaster`.
+- `Tests/CONTEXT_DIVIDENDS_UPDATER.md` — работа с дивидендами через `WikiMaster`.
 - `CONTEXT_CODING_GUIDELINES.md` — стиль кода.

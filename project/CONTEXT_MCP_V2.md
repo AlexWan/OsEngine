@@ -353,14 +353,7 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 
 ## 11. Тестовый стенд
 
-`Tests/McpTestStand/OsEngine.McpApi.TestStand/`. Флаг транспорта: `--transport v1|v2` (по умолчанию `v1`).
-
-```bash
-./OsEngine.McpApi.TestStand.exe --transport v2              # все модули по V2
-./OsEngine.McpApi.TestStand.exe --transport v2 --module StreamableHttp
-```
-
-- V2: **200/200**; V1: **191/191**. Модуль `StreamableHttp` (10 проверок) — транспорт/сессии/события V2.
+Описание, запуск, модули и отчёт — в [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md).
 
 ---
 

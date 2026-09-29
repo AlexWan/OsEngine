@@ -494,11 +494,19 @@ namespace OsEngine.Market.Servers.TData
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
 
-                List<TSecurityResponse> futures = new List<TSecurityResponse>(root.Instruments.Values);
+                Dictionary<string, TSecurityResponse>.Enumerator enumerator = root.Instruments.GetEnumerator();
 
-                for (int i = 0; i < futures.Count; i++)
+                while (enumerator.MoveNext())
                 {
-                    TSecurityResponse item = futures[i];
+                    if (enumerator.Current.Value.ClassCode != "TQTF" && enumerator.Current.Value.ClassCode != "TQIF")
+                        root.Instruments.Remove(enumerator.Current.Key);
+                }
+
+                List<TSecurityResponse> etfInstruments = new List<TSecurityResponse>(root.Instruments.Values);
+
+                for (int i = 0; i < etfInstruments.Count; i++)
+                {
+                    TSecurityResponse item = etfInstruments[i];
 
                     Security newSecurity = new Security();
 
@@ -522,7 +530,8 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> etfSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values);
+                    List<TSecurityResponse> etfSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values)
+                        .FindAll(instrument => instrument.ClassCode == "TQTF" || instrument.ClassCode == "TQIF");
 
                     if (etfSecCandles.Count > 0)
                     {
