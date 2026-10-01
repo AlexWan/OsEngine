@@ -350,6 +350,11 @@ namespace OsEngine
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            if (e.ExceptionObject is OutOfMemoryException)
+            { // фатальное исключение: не строим отчёт, лог и UI-диалог под OOM
+                return;
+            }
+
             string message = OsLocalization.MainWindow.Message5 + " THREAD " + e.ExceptionObject;
 
             message = _startProgram + "  " + message;
@@ -373,6 +378,13 @@ namespace OsEngine
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
+            if (e.Exception is OutOfMemoryException
+                || (e.Exception != null && e.Exception.InnerException is OutOfMemoryException))
+            { // фатальное исключение: не строим отчёт, лог и UI-диалог под OOM
+                e.SetObserved();
+                return;
+            }
+
             if (e.Exception != null
                 && e.Exception.ToString().Contains("(995):") == true)
             { // игнорируем прерывания потока за делом по кансел токену
