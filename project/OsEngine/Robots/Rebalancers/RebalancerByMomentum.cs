@@ -178,7 +178,22 @@ namespace OsEngine.Robots.Rebalancers
 
         private void OnGoldKeltnerParameterChanged()
         {
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if (_tabGold == null || _tabGold.Indicators == null || _tabGold.Indicators.Count < 1)
+            {
+                return;
+            }
+
             Aindicator keltnerGold = _tabGold.Indicators[0] as Aindicator;
+
+            if (keltnerGold == null)
+            {
+                return;
+            }
 
             ((IndicatorParameterInt)keltnerGold.Parameters[0]).ValueInt = _goldKeltnerEmaPeriod.ValueInt;
             ((IndicatorParameterInt)keltnerGold.Parameters[1]).ValueInt = _goldKeltnerAtrPeriod.ValueInt;
@@ -190,7 +205,23 @@ namespace OsEngine.Robots.Rebalancers
 
         private void OnGoldMomentumParameterChanged()
         {
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if (_tabGold == null || _tabGold.Indicators == null || _tabGold.Indicators.Count < 2)
+            {
+                return;
+            }
+
             Aindicator momentumGold = _tabGold.Indicators[1] as Aindicator;
+
+            if (momentumGold == null)
+            {
+                return;
+            }
+
             ((IndicatorParameterInt)momentumGold.Parameters[0]).ValueInt = _goldMomentumLookback.ValueInt;
             momentumGold.Reload();
             momentumGold.Save();
@@ -198,6 +229,11 @@ namespace OsEngine.Robots.Rebalancers
 
         private void OnMomentumStocksParameterChanged()
         {
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             for (int i = 0; i < _tabScreenerStocks._indicators.Count; i++)
             {
                 if (_tabScreenerStocks._indicators[i].Num == 2)
@@ -212,6 +248,11 @@ namespace OsEngine.Robots.Rebalancers
 
         private void OnKeltnerStocksParameterChanged()
         {
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             for (int i = 0; i < _tabScreenerStocks._indicators.Count; i++)
             {
                 if (_tabScreenerStocks._indicators[i].Num == 1)
