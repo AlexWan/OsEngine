@@ -13,7 +13,13 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Journal.Internal;
 using OsEngine.MCP.Json;
+using OsEngine.OsTrader;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.OsTrader.Panels.Tab.Internal;
+using JournalClass = OsEngine.Journal.Journal;
 
 namespace OsEngine.MCP.Modules
 {
@@ -115,6 +121,10 @@ namespace OsEngine.MCP.Modules
 
                     case "tester_get_status":
                         response.Result = GetTesterStatus();
+                        break;
+
+                    case "tester_get_report":
+                        response.Result = GetReport();
                         break;
 
                     default:
@@ -266,6 +276,12 @@ namespace OsEngine.MCP.Modules
                 {
                     Name = "tester_get_status",
                     Description = "Get tester status: regime, current time, start/end time, fast forward",
+                    InputSchema = new { type = "object", properties = new { }, required = new string[0] }
+                },
+                new McpTool
+                {
+                    Name = "tester_get_report",
+                    Description = "Get full test run report: date, robots with parameters and sources, data set, tester settings, overall statistics, per-robot results, positions, and cash flows (taxes, margin, dividends)",
                     InputSchema = new { type = "object", properties = new { }, required = new string[0] }
                 }
             };
@@ -820,6 +836,401 @@ namespace OsEngine.MCP.Modules
             }
 
             return GetPortfolioConfig();
+        }
+
+        #endregion
+
+        #region Report
+
+        private object GetReport()
+        {
+            TesterServer server = GetTesterServerRequired();
+
+            List<BotPanel> bots = new List<BotPanel>();
+            if (OsTraderMaster.Master != null && OsTraderMaster.Master.PanelsArray != null)
+            {
+                bots = OsTraderMaster.Master.PanelsArray;
+            }
+
+            return new
+            {
+                date = DateTime.Now.ToString("yyyy-MM-dd"),
+                robots = BuildRobots(bots),
+                data_set = BuildDataSet(server),
+                tester_settings = BuildTesterSettings(server),
+                statistics_full = ComputeStats(CollectAllPositions(bots)),
+                robot_results = BuildRobotResults(bots),
+                positions = BuildPositions(bots),
+                cash_flows = BuildCashFlows(server)
+            };
+        }
+
+        private List<object> BuildRobots(List<BotPanel> bots)
+        {
+            List<object> result = new List<object>();
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                BotPanel bot = bots[i];
+                if (bot == null)
+                {
+                    continue;
+                }
+
+                List<object> parameters = new List<object>();
+                if (bot.Parameters != null)
+                {
+                    for (int j = 0; j < bot.Parameters.Count; j++)
+                    {
+                        parameters.Add(SerializeParameter(bot.Parameters[j]));
+                    }
+                }
+
+                List<object> sources = new List<object>();
+
+                if (bot.TabsSimple != null)
+                {
+                    for (int j = 0; j < bot.TabsSimple.Count; j++)
+                    {
+                        sources.Add(BuildSimpleSource(bot.TabsSimple[j]));
+                    }
+                }
+
+                if (bot.TabsScreener != null)
+                {
+                    for (int j = 0; j < bot.TabsScreener.Count; j++)
+                    {
+                        sources.Add(BuildScreenerSource(bot.TabsScreener[j]));
+                    }
+                }
+
+                if (bot.TabsPair != null)
+                {
+                    for (int j = 0; j < bot.TabsPair.Count; j++)
+                    {
+                        sources.Add(BuildPairSource(bot.TabsPair[j]));
+                    }
+                }
+
+                result.Add(new
+                {
+                    name = bot.NameStrategyUniq,
+                    parameters = parameters,
+                    sources = sources
+                });
+            }
+
+            return result;
+        }
+
+        private object BuildSimpleSource(BotTabSimple tab)
+        {
+            return new
+            {
+                security = tab.Security?.Name ?? string.Empty,
+                timeframe = tab.TimeFrameBuilder?.TimeFrame.ToString() ?? string.Empty,
+                portfolio = tab.Portfolio?.Number ?? string.Empty,
+                commission_type = tab.CommissionType.ToString(),
+                commission_value = tab.CommissionValue,
+                position_support = BuildPositionSupport(tab.ManualPositionSupport)
+            };
+        }
+
+        private object BuildScreenerSource(BotTabScreener tab)
+        {
+            List<object> securities = new List<object>();
+            if (tab.SecuritiesNames != null)
+            {
+                for (int i = 0; i < tab.SecuritiesNames.Count; i++)
+                {
+                    securities.Add(tab.SecuritiesNames[i]?.SecurityName ?? string.Empty);
+                }
+            }
+
+            return new
+            {
+                securities = securities,
+                timeframe = tab.TimeFrame.ToString(),
+                portfolio = tab.PortfolioName,
+                commission_type = tab.CommissionType.ToString(),
+                commission_value = tab.CommissionValue
+            };
+        }
+
+        private object BuildPairSource(BotTabPair tab)
+        {
+            List<string> securities = new List<string>();
+
+            if (tab.Pairs != null)
+            {
+                for (int i = 0; i < tab.Pairs.Count; i++)
+                {
+                    string first = tab.Pairs[i]?.Tab1?.Security?.Name ?? string.Empty;
+                    string second = tab.Pairs[i]?.Tab2?.Security?.Name ?? string.Empty;
+                    securities.Add(first + "/" + second);
+                }
+            }
+
+            return new { securities = securities };
+        }
+
+        private object BuildPositionSupport(BotManualControl support)
+        {
+            if (support == null)
+            {
+                return null;
+            }
+
+            return new
+            {
+                stop_is_on = support.StopIsOn,
+                profit_is_on = support.ProfitIsOn
+            };
+        }
+
+        private object BuildDataSet(TesterServer server)
+        {
+            string setName = server.SourceDataType == TesterSourceDataType.Set
+                ? GetSetDisplayName(server.ActiveSet)
+                : null;
+
+            List<object> securities = new List<object>();
+            if (server.Securities != null)
+            {
+                for (int i = 0; i < server.Securities.Count; i++)
+                {
+                    securities.Add(server.Securities[i]?.Name ?? string.Empty);
+                }
+            }
+
+            return new
+            {
+                name = setName,
+                securities = securities
+            };
+        }
+
+        private object BuildTesterSettings(TesterServer server)
+        {
+            return new
+            {
+                time_start = server.TimeStart.ToString("O"),
+                time_end = server.TimeEnd.ToString("O"),
+                order_execution_type = server.OrderExecutionType.ToString(),
+                slippage_to_simple_order = server.SlippageToSimpleOrder,
+                slippage_to_stop_order = server.SlippageToStopOrder,
+                margin_trading = server.ProfitMarketIsOn,
+                start_portfolio = server.StartPortfolio
+            };
+        }
+
+        private List<Position> CollectAllPositions(List<BotPanel> bots)
+        {
+            List<Position> result = new List<Position>();
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                List<JournalClass> journals = bots[i].GetJournals();
+                if (journals == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < journals.Count; j++)
+                {
+                    if (journals[j]?.AllPosition != null)
+                    {
+                        result.AddRange(journals[j].AllPosition);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private Dictionary<string, object> ComputeStats(List<Position> positions)
+        {
+            Dictionary<string, object> stats = new Dictionary<string, object>
+            {
+                ["profit_abs"] = 0m,
+                ["profit_percent"] = 0m,
+                ["max_drawdown"] = 0m,
+                ["profit_factor"] = 0m,
+                ["trades"] = 0
+            };
+
+            if (positions != null && positions.Count > 0)
+            {
+                Position[] deals = positions.ToArray();
+
+                stats["profit_abs"] = PositionStatisticGenerator.GetAllProfitInAbsolute(deals, true);
+                stats["profit_percent"] = Math.Round(PositionStatisticGenerator.GetAllProfitPercent(deals, true), 4);
+                stats["max_drawdown"] = Math.Round(PositionStatisticGenerator.GetMaxDownPercent(deals), 4);
+                stats["profit_factor"] = Math.Round(PositionStatisticGenerator.GetProfitFactor(deals), 4);
+                stats["trades"] = PositionStatisticGenerator.GetAllDealsCount(deals);
+            }
+
+            return stats;
+        }
+
+        private List<object> BuildRobotResults(List<BotPanel> bots)
+        {
+            List<object> result = new List<object>();
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                BotPanel bot = bots[i];
+
+                List<Position> positions = new List<Position>();
+                List<JournalClass> journals = bot.GetJournals();
+                if (journals != null)
+                {
+                    for (int j = 0; j < journals.Count; j++)
+                    {
+                        if (journals[j]?.AllPosition != null)
+                        {
+                            positions.AddRange(journals[j].AllPosition);
+                        }
+                    }
+                }
+
+                Dictionary<string, object> item = ComputeStats(positions);
+                item["robot"] = bot.NameStrategyUniq;
+                result.Add(item);
+            }
+
+            return result;
+        }
+
+        private List<object> BuildPositions(List<BotPanel> bots)
+        {
+            List<object> result = new List<object>();
+            List<Position> positions = CollectAllPositions(bots);
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                result.Add(PositionToDto(positions[i]));
+            }
+
+            return result;
+        }
+
+        private object PositionToDto(Position pos)
+        {
+            string direction = pos.Direction == Side.Buy ? "Long" : (pos.Direction == Side.Sell ? "Short" : "None");
+
+            return new
+            {
+                number = pos.Number,
+                bot_name = pos.NameBot ?? string.Empty,
+                security_name = pos.SecurityName ?? string.Empty,
+                direction = direction,
+                state = pos.State.ToString(),
+                open_time = pos.TimeOpen == DateTime.MinValue ? null : pos.TimeOpen.ToString("O"),
+                close_time = pos.TimeClose == DateTime.MinValue ? null : pos.TimeClose.ToString("O"),
+                entry_price = pos.EntryPrice,
+                close_price = pos.ClosePrice,
+                volume = pos.MaxVolume,
+                profit_abs = pos.ProfitPortfolioAbs,
+                profit_percent = pos.ProfitPortfolioPercent,
+                commission = pos.CommissionTotal()
+            };
+        }
+
+        private List<object> BuildCashFlows(TesterServer server)
+        {
+            List<object> result = new List<object>();
+
+            if (server.DividendPayments != null)
+            {
+                for (int i = 0; i < server.DividendPayments.Count; i++)
+                {
+                    DividendInfo dividend = server.DividendPayments[i];
+                    result.Add(new
+                    {
+                        type = "dividend",
+                        time = dividend.PaymentDate.ToString("O"),
+                        bot_name = dividend.BotName,
+                        security_name = dividend.SecurityName,
+                        volume = dividend.Volume,
+                        amount = dividend.Sum
+                    });
+                }
+            }
+
+            if (server.MarginPayments != null)
+            {
+                for (int i = 0; i < server.MarginPayments.Count; i++)
+                {
+                    ChargeInfo charge = server.MarginPayments[i];
+                    result.Add(new
+                    {
+                        type = "margin",
+                        time = charge.Date.ToString("O"),
+                        bot_name = charge.BotName,
+                        amount = charge.Sum,
+                        comment = charge.Comment
+                    });
+                }
+            }
+
+            if (server.TaxPayments != null)
+            {
+                for (int i = 0; i < server.TaxPayments.Count; i++)
+                {
+                    ChargeInfo charge = server.TaxPayments[i];
+                    result.Add(new
+                    {
+                        type = "tax",
+                        time = charge.Date.ToString("O"),
+                        bot_name = charge.BotName,
+                        amount = charge.Sum,
+                        comment = charge.Comment
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        private object SerializeParameter(IIStrategyParameter param)
+        {
+            string value = null;
+
+            switch (param.Type)
+            {
+                case StrategyParameterType.Int:
+                    value = ((StrategyParameterInt)param).ValueInt.ToString();
+                    break;
+                case StrategyParameterType.Decimal:
+                    value = ((StrategyParameterDecimal)param).ValueDecimal.ToString();
+                    break;
+                case StrategyParameterType.String:
+                    value = ((StrategyParameterString)param).ValueString;
+                    break;
+                case StrategyParameterType.Bool:
+                    value = ((StrategyParameterBool)param).ValueBool.ToString();
+                    break;
+                case StrategyParameterType.TimeOfDay:
+                    value = ((StrategyParameterTimeOfDay)param).Value.ToString();
+                    break;
+                case StrategyParameterType.CheckBox:
+                    value = ((StrategyParameterCheckBox)param).CheckState.ToString();
+                    break;
+                case StrategyParameterType.DecimalCheckBox:
+                    value = ((StrategyParameterDecimalCheckBox)param).ValueDecimal.ToString();
+                    break;
+                default:
+                    value = null;
+                    break;
+            }
+
+            return new
+            {
+                name = param.Name,
+                type = param.Type.ToString(),
+                value = value
+            };
         }
 
         #endregion

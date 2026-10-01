@@ -1514,6 +1514,7 @@ namespace OsEngine.MCP
                     case "tester_step_forward":
                     case "tester_stop":
                     case "tester_get_status":
+                    case "tester_get_report":
                         response = _testerApi.Handle(request);
                         break;
 

@@ -157,6 +157,14 @@
 | `bot_journal_get_volume` | Объёмы торговли по бумагам/плечу |
 | `bot_journal_get_open_positions` | Открытые позиции |
 | `bot_journal_get_closed_positions` | Закрытые позиции |
+| `tester_data_get_config` / `tester_data_set_config` | Конфигурация данных тестера (источник: сет/папка, тип данных, диапазон дат) |
+| `tester_data_get_available_sets` | Список доступных сетов OsData для тестера |
+| `tester_get_securities` | Бумаги, загруженные в тестер |
+| `tester_execution_get_config` / `tester_execution_set_config` | Настройки исполнения ордеров (проскальзывания, тип исполнения, неторговые периоды) |
+| `tester_portfolio_get_config` / `tester_portfolio_set_config` | Стартовый портфель и расчёт портфеля |
+| `tester_start` / `tester_pause` / `tester_fast_forward` / `tester_step_forward` / `tester_stop` | Управление прогоном тестера |
+| `tester_get_status` | Статус тестера: режим, текущее время, начало/конец, fast-forward, прогресс |
+| `tester_get_report` | Полный отчёт прогона: `date`, `robots` (имя + параметры + источники с бумагой/ТФ/портфелем/комиссией/сопровождением), `data_set`, `tester_settings`, `statistics_full`, `robot_results`, `positions`, `cash_flows` (налоги/маржа/дивиденды) |
 | `system_load_get_current` | Последние точки загруженности системы (RAM, CPU, очереди) |
 | `system_load_get_history` | История точек загруженности по типу (`Ram`, `Cpu`, `Ecq`, `Moq`) |
 | `system_load_get_settings` | Настройки сбора загруженности |
