@@ -1290,6 +1290,12 @@ namespace OsEngine.Entity
         {
             string[] arraySave = save.Split('#');
 
+            // the save format has at least 25 fields; a shorter string is structurally broken
+            if (arraySave.Length < 25)
+            {
+                throw new PositionParseException(arraySave.Length);
+            }
+
             Enum.TryParse(arraySave[0], true, out Direction);
 
             NameBot = arraySave[2];

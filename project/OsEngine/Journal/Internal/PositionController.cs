@@ -110,33 +110,65 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            if (!File.Exists(@"Engine\" + _name + @"DealController.txt"))
+            string mainPath = @"Engine\" + _name + @"DealController.txt";
+
+            if (!File.Exists(mainPath))
             {
                 return;
             }
+
             try
             {
-                // 1 count the number of transactions in the file
-                //1 считаем кол-во сделок в файле
+                List<string> lines = ReadAllLines(mainPath);
+
+                // 1 validate the header. If it is unreadable the file is structurally broken
+                // and a previous good version (.bak) is tried
+
+                bool headerOk = TryReadHeader(lines, out CommissionType commissionType, out decimal commissionValue);
+
+                int firstDealIndex = 2;
+
+                if (!headerOk)
+                {
+                    SendNewLogMessage(
+                        "DealController file structure is broken. Trying backup. File: " + mainPath,
+                        LogMessageType.System);
+
+                    // (i) keep the broken file for diagnostics before touching anything
+                    PreserveCorruptFile(mainPath);
+
+                    // (ii) read the backup, (iii) restore the main file from it when valid
+                    List<string> recoveredLines = TryRecoverFromBackup(mainPath);
+
+                    if (recoveredLines != null)
+                    {
+                        lines = recoveredLines;
+                        headerOk = TryReadHeader(lines, out commissionType, out commissionValue);
+                        SendNewLogMessage("DealController restored from backup. File: " + mainPath, LogMessageType.System);
+                    }
+                    else
+                    {
+                        // no usable backup (for example the first run after the upgrade):
+                        // load whatever valid records are left, broken ones are skipped.
+                        // deals still start after the two header lines, the header is never
+                        // fed to the record parser
+                        SendNewLogMessage(
+                            "DealController backup is missing or broken. Loading with skips. File: " + mainPath,
+                            LogMessageType.System);
+                    }
+                }
+
+                if (headerOk)
+                {
+                    _commissionType = commissionType;
+                    _commissionValue = commissionValue;
+                }
 
                 List<string> deals = new List<string>();
 
-                using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"DealController.txt"))
+                for (int line = firstDealIndex; line < lines.Count; line++)
                 {
-                    try
-                    {
-                        Enum.TryParse(reader.ReadLine(), out _commissionType);
-                        _commissionValue = reader.ReadLine().ToDecimal();
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    while (!reader.EndOfStream)
-                    {
-                        deals.Add(reader.ReadLine());
-                    }
+                    deals.Add(lines[line]);
                 }
 
                 if (deals.Count == 0)
@@ -149,27 +181,32 @@ namespace OsEngine.Journal.Internal
                     return;
                 }
 
+                // 2 load the deals. A broken record is skipped and reported, other records load
+
                 List<Position> positions = new List<Position>();
 
                 int i = 0;
+                int dealIndex = 0;
+                int skippedRecords = 0;
+
                 foreach (string deal in deals)
                 {
                     try
                     {
-                        string[] dealFields = deal.Split('#');
-
-                        // damaged record: too few fields, parsing by indexes is impossible
-                        if (dealFields.Length < 25)
-                        {
-                            SendNewLogMessage(
-                                "Skip damaged position record. Fields count: " + dealFields.Length,
-                                LogMessageType.System);
-                            continue;
-                        }
-
                         positions.Add(new Position());
                         positions[i].SetDealFromString(deal);
                         UpdateOpenPositionArray(positions[i], false);
+                    }
+                    catch (PositionParseException parseError)
+                    {
+                        int fileLine = dealIndex + firstDealIndex + 1;
+                        SendNewLogMessage(
+                            "Skip corrupted position record. File line: " + fileLine
+                            + ", fields: " + parseError.FieldsCount,
+                            LogMessageType.System);
+                        positions.Remove(positions[i]);
+                        i--;
+                        skippedRecords++;
                     }
                     catch (Exception error)
                     {
@@ -179,6 +216,14 @@ namespace OsEngine.Journal.Internal
                     }
 
                     i++;
+                    dealIndex++;
+                }
+
+                if (skippedRecords != 0)
+                {
+                    SendNewLogMessage(
+                        "DealController loaded with skipped records. Count: " + skippedRecords,
+                        LogMessageType.System);
                 }
 
                 _deals = positions;
@@ -194,6 +239,178 @@ namespace OsEngine.Journal.Internal
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<string> ReadAllLines(string path)
+        {
+            List<string> lines = new List<string>();
+
+            using (StreamReader reader = new StreamReader(path))
+            {
+                while (!reader.EndOfStream)
+                {
+                    lines.Add(reader.ReadLine());
+                }
+            }
+
+            return lines;
+        }
+
+        /// <summary>
+        /// The save file starts with two header lines: commission type and commission value.
+        /// A file shorter than that, or with an unreadable header, is structurally broken.
+        /// Exactly two lines with a valid header means an empty journal and is valid.
+        /// </summary>
+        private bool TryReadHeader(List<string> lines, out CommissionType commissionType, out decimal commissionValue)
+        {
+            commissionType = CommissionType.None;
+            commissionValue = 0;
+
+            if (lines == null || lines.Count < 2)
+            {
+                return false;
+            }
+
+            if (!Enum.TryParse(lines[0], out commissionType))
+            {
+                return false;
+            }
+
+            // reject numeric junk that Enum.TryParse accepts as an undefined value
+            if (!Enum.IsDefined(typeof(CommissionType), commissionType))
+            {
+                return false;
+            }
+
+            // the value is written with the current culture, so a decimal comma is possible.
+            // NumberStyles.Float (no AllowThousands) keeps "0,5" -> 0.5 instead of 5
+            if (!decimal.TryParse(
+                    lines[1].Trim().Replace(',', '.'),
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture,
+                    out commissionValue))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Structural recovery: preserve the broken main file and restore it from a valid .bak.
+        /// Returns restored lines, or null if there is no usable backup.
+        /// </summary>
+        private List<string> TryRecoverFromBackup(string mainPath)
+        {
+            string backupPath = mainPath + ".bak";
+
+            try
+            {
+                if (!File.Exists(backupPath))
+                {
+                    return null;
+                }
+
+                List<string> backupLines = ReadAllLines(backupPath);
+
+                if (!TryReadHeader(backupLines, out _, out _))
+                {
+                    return null;
+                }
+
+                StringBuilder content = new StringBuilder();
+
+                for (int i = 0; i < backupLines.Count; i++)
+                {
+                    content.Append(backupLines[i] + "\r\n");
+                }
+
+                SaveStringAtomically(mainPath, content.ToString(), null);
+
+                return backupLines;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage("DealController backup recovery error. " + error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Keep a copy of a broken save file for diagnostics. Old copies are rotated.
+        /// </summary>
+        private void PreserveCorruptFile(string mainPath)
+        {
+            try
+            {
+                string corruptDir = @"Engine\Corrupt";
+
+                if (!Directory.Exists(corruptDir))
+                {
+                    Directory.CreateDirectory(corruptDir);
+                }
+
+                string fileName = Path.GetFileNameWithoutExtension(mainPath);
+                string corruptPath = Path.Combine(
+                    corruptDir,
+                    fileName + "." + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".corrupt");
+
+                File.Copy(mainPath, corruptPath, true);
+
+                CleanupCorruptFiles(corruptDir, fileName, 5);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage("Corrupt file preserve error. " + error.Message, LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Rotate only the corrupt copies that belong to this controller (same file name prefix).
+        /// </summary>
+        private void CleanupCorruptFiles(string corruptDir, string fileName, int keepCount)
+        {
+            try
+            {
+                List<string> own = new List<string>();
+
+                string[] files = Directory.GetFiles(corruptDir, "*.corrupt");
+
+                for (int i = 0; i < files.Length; i++)
+                {
+                    string current = Path.GetFileName(files[i]);
+
+                    if (current.StartsWith(fileName + "."))
+                    {
+                        own.Add(files[i]);
+                    }
+                }
+
+                if (own.Count <= keepCount)
+                {
+                    return;
+                }
+
+                own.Sort(StringComparer.Ordinal);
+
+                int toDelete = own.Count - keepCount;
+
+                for (int i = 0; i < toDelete; i++)
+                {
+                    try
+                    {
+                        File.Delete(own[i]);
+                    }
+                    catch
+                    {
+                        // ignore: cleanup must not break loading
+                    }
+                }
+            }
+            catch
+            {
+                // ignore: cleanup must not break loading
             }
         }
 
@@ -348,7 +565,16 @@ namespace OsEngine.Journal.Internal
         }
         private decimal _commissionValue;
 
-        private bool _needToSave;
+        // set from position mutation threads, read/cleared by WatcherHome save thread
+        private volatile bool _needToSave;
+
+        private int _saveErrorCount;
+
+        private DateTime _lastSaveErrorLogUtc = DateTime.MinValue;
+
+        private bool _replaceUnsupportedLogged;
+
+        private static readonly UTF8Encoding _utf8NoBom = new UTF8Encoding(false);
 
         private void SavePositions()
         {
@@ -362,28 +588,118 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
+            // reset at the start: an update that happens during saving sets it back to true
+            // and will be written on the next tick; a failed save restores it in catch
             _needToSave = false;
 
             try
             {
-                string saveString = GetSaveString();
+                List<Position> deals;
 
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealController.txt", false))
+                lock (_dealsLocker)
                 {
-                    writer.Write(saveString);
+                    deals = _deals == null ? null : new List<Position>(_deals);
                 }
+
+                string saveString = GetSaveString(deals);
+
+                SaveStringAtomically(@"Engine\" + _name + @"DealController.txt", saveString);
+
+                _saveErrorCount = 0;
             }
             catch (Exception error)
             {
-                if (error.ToString().Contains("cannot access"))
-                {
-                    return;
-                }
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                _needToSave = true;
+                LogSaveError("DealController", error, ref _saveErrorCount);
             }
         }
 
-        private string GetSaveString()
+        private void SaveStringAtomically(string targetPath, string content)
+        {
+            SaveStringAtomically(targetPath, content, targetPath + ".bak");
+        }
+
+        /// <summary>
+        /// Save the string to the target file atomically: write to a temp file, flush to disk,
+        /// then replace/move the target. The target file is never truncated in place.
+        /// When backupPath is null the replace does not touch any backup file.
+        /// </summary>
+        private void SaveStringAtomically(string targetPath, string content, string backupPath)
+        {
+            string tmpPath = targetPath + ".tmp";
+            bool tmpConsumed = false;
+
+            try
+            {
+                using (FileStream stream = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    byte[] bytes = _utf8NoBom.GetBytes(content ?? string.Empty);
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush(true);
+                }
+
+                if (File.Exists(targetPath))
+                {
+                    try
+                    {
+                        // Engine volume is expected to be NTFS, where Replace is atomic.
+                        File.Replace(tmpPath, targetPath, backupPath, true);
+                        tmpConsumed = true;
+                        return;
+                    }
+                    catch (Exception replaceError)
+                    {
+                        // Replace may be unsupported (non-NTFS volume) or the destination may be
+                        // locked by an antivirus/reader. Degrade to an overwriting move below.
+                        if (!_replaceUnsupportedLogged)
+                        {
+                            _replaceUnsupportedLogged = true;
+                            SendNewLogMessage(
+                                "Atomic replace is not available, fallback to move. " + replaceError.Message,
+                                LogMessageType.System);
+                        }
+                    }
+                }
+
+                File.Move(tmpPath, targetPath, true);
+                tmpConsumed = true;
+            }
+            finally
+            {
+                // do not leave a stale temp file behind if the save failed
+                if (!tmpConsumed && File.Exists(tmpPath))
+                {
+                    try
+                    {
+                        File.Delete(tmpPath);
+                    }
+                    catch
+                    {
+                        // ignore: the next save attempt overwrites the temp file
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throttled save error log: first failure is logged, repeats are collapsed into one
+        /// message per minute until saving succeeds again
+        /// </summary>
+        private void LogSaveError(string what, Exception error, ref int errorCount)
+        {
+            errorCount++;
+
+            bool first = errorCount == 1;
+            bool windowElapsed = DateTime.UtcNow - _lastSaveErrorLogUtc > TimeSpan.FromSeconds(60);
+
+            if (first || windowElapsed)
+            {
+                _lastSaveErrorLogUtc = DateTime.UtcNow;
+                SendNewLogMessage(what + " save error. Failed attempts: " + errorCount + ". " + error, LogMessageType.Error);
+            }
+        }
+
+        private string GetSaveString(List<Position> deals)
         {
             StringBuilder result = new StringBuilder();
 
@@ -392,8 +708,6 @@ namespace OsEngine.Journal.Internal
 
             if (_startProgram == StartProgram.IsOsTrader)
             {
-                List<Position> deals = _deals;
-
                 for (int i = 0; deals != null && i < deals.Count; i++)
                 {
                     Position pos = deals[i];
@@ -403,7 +717,7 @@ namespace OsEngine.Journal.Internal
                         continue;
                     }
 
-                    result.Append(deals[i].GetStringForSave() + "\r\n");
+                    result.Append(pos.GetStringForSave() + "\r\n");
                 }
             }
 
@@ -1031,7 +1345,9 @@ namespace OsEngine.Journal.Internal
 
         private List<PositionOpenerToStopLimit> _actualStopLimits;
 
-        private bool _needToSaveStopLimit;
+        private volatile bool _needToSaveStopLimit;
+
+        private int _stopLimitSaveErrorCount;
 
         private void TrySaveStopLimits()
         {
@@ -1046,40 +1362,36 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
+            // reset at the start: an update during saving sets it back to true and will be
+            // written on the next tick; a failed save restores it in catch
             _needToSaveStopLimit = false;
 
             try
             {
-                if (_actualStopLimits == null
-                   || _actualStopLimits.Count == 0)
-                { // очищаем файл от записей
-                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
-                    {
-
-                    }
-                    return;
-                }
-
                 string positionsString = "";
 
-                for (int i = 0; i < _actualStopLimits.Count; i++)
+                if (_actualStopLimits != null
+                    && _actualStopLimits.Count != 0)
                 {
-                    if (_actualStopLimits[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
+                    for (int i = 0; i < _actualStopLimits.Count; i++)
                     {
-                        positionsString += _actualStopLimits[i].GetSaveString() + "\n";
+                        if (_actualStopLimits[i].LifeTimeType == PositionOpenerToStopLifeTimeType.NoLifeTime)
+                        {
+                            positionsString += _actualStopLimits[i].GetSaveString() + "\n";
+                        }
                     }
                 }
 
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"DealControllerStopLimits.txt", false))
-                {
-                    writer.Write(positionsString);
-                }
+                // an empty string atomically clears the file, same as the previous truncate path
+                SaveStringAtomically(@"Engine\" + _name + @"DealControllerStopLimits.txt", positionsString);
+
+                _stopLimitSaveErrorCount = 0;
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                _needToSaveStopLimit = true;
+                LogSaveError("DealControllerStopLimits", error, ref _stopLimitSaveErrorCount);
             }
-
         }
 
         public List<PositionOpenerToStopLimit> LoadStopLimits()
