@@ -65,22 +65,35 @@ namespace OsEngine.OsTester.TestStand.Tests
 
         private void EnsureSet(SetSpec spec)
         {
-            if (SetExists(spec.Name))
+            decimal percent = GetSetPercentLoad(spec.Name);
+
+            // 100% достижим не всегда (выходные, неторговые дни) — считаем полным от 50%.
+            if (percent >= 50m)
             {
-                Console.WriteLine($"[Data] Сет {spec.Name} уже есть.");
+                Console.WriteLine($"[Data] Сет {spec.Name} уже есть ({percent}%).");
                 return;
+            }
+
+            if (percent >= 0m)
+            {
+                Console.WriteLine($"[Data] Сет {spec.Name} неполный ({percent}%) — удаляю и перекачиваю.");
+                ToolsCall("data_delete_set", new { name = spec.Name });
             }
 
             DownloadSet(spec);
         }
 
-        private bool SetExists(string name)
+        /// <summary>
+        /// Процент загрузки сета из data_get_sets.
+        /// -1 — сета нет; 0..100 — сет есть, с такой полнотой.
+        /// </summary>
+        private decimal GetSetPercentLoad(string name)
         {
             string response = QuietCall("data_get_sets", new { });
 
             if (!TryParseJson(response, out JsonElement root) || root.ValueKind != JsonValueKind.Array)
             {
-                return false;
+                return -1m;
             }
 
             foreach (JsonElement item in root.EnumerateArray())
@@ -89,13 +102,21 @@ namespace OsEngine.OsTester.TestStand.Tests
                     ? nameElement.GetString() ?? string.Empty
                     : string.Empty;
 
-                if (setName == name || setName == "Set_" + name)
+                if (setName != name && setName != "Set_" + name)
                 {
-                    return true;
+                    continue;
                 }
+
+                if (item.TryGetProperty("percent_load", out JsonElement percentElement)
+                    && percentElement.ValueKind == JsonValueKind.Number)
+                {
+                    return percentElement.GetDecimal();
+                }
+
+                return 0m;
             }
 
-            return false;
+            return -1m;
         }
 
         private void DownloadSet(SetSpec spec)
