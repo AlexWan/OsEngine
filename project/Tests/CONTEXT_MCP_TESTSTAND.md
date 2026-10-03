@@ -2,8 +2,8 @@
 
 > Описание тестового стенда `OsEngine.McpApi.TestStand` — детерминированная проверка
 > MCP API OsEngine (всех групп инструментов) через HTTP/JSON-RPC.
-> Это **эталонный стенд**, по образцу которого построен `OsDataTestStand`
-> (см. [`CONTEXT_OSDATA_TESTSTAND.md`](CONTEXT_OSDATA_TESTSTAND.md)).
+> Это **эталонный стенд**, по образцу которого построены `OsDataTestStand` и `OsTesterTestStand`
+> (см. [`CONTEXT_OSDATA_TESTSTAND.md`](CONTEXT_OSDATA_TESTSTAND.md) и [`CONTEXT_OSTESTER_TESTSTAND.md`](CONTEXT_OSTESTER_TESTSTAND.md)).
 
 ## 1. Цель
 

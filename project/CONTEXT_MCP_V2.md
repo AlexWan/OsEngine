@@ -359,9 +359,11 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 
 ---
 
-## 11. Тестовый стенд
+## 11. Тестовые стенды
 
-Описание, запуск, модули и отчёт — в [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md).
+- **MCP API** — [`CONTEXT_MCP_TESTSTAND.md`](Tests/CONTEXT_MCP_TESTSTAND.md) — эталонный стенд проверки MCP API (все группы инструментов).
+- **OsData** — [`CONTEXT_OSDATA_TESTSTAND.md`](Tests/CONTEXT_OSDATA_TESTSTAND.md) — проверка коннекторов данных.
+- **Тестер** — [`CONTEXT_OSTESTER_TESTSTAND.md`](Tests/CONTEXT_OSTESTER_TESTSTAND.md) — авто-тест тестера (TesterLight).
 
 ---
 

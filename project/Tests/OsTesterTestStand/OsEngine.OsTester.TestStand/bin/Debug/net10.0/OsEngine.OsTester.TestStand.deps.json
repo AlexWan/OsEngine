@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "OsEngine.OsTester.TestStand/1.0.0": {
+        "runtime": {
+          "OsEngine.OsTester.TestStand.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "OsEngine.OsTester.TestStand/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

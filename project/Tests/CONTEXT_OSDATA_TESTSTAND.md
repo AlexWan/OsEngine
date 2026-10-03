@@ -3,6 +3,9 @@
 > Описание тестового стенда `OsEngine.OsData.TestStand` — детерминированная проверка данных OsData
 > (бумаги, свечи, тики, стаканы) через MCP OsEngine. Стенд доступен внешним агентам
 > для штатного теста коннектора и точечной проверки конкретной бумаги.
+>
+> По образцу этого стенда построен стенд тестера `OsEngine.OsTester.TestStand`
+> (см. [`CONTEXT_OSTESTER_TESTSTAND.md`](CONTEXT_OSTESTER_TESTSTAND.md)).
 
 ## 1. Цель
 
