@@ -2107,11 +2107,22 @@ namespace OsEngine.MCP.Modules
                 needReload = true;
             }
 
+            // без портфеля скринер не создаёт внутренние вкладки (TabsReadyToLoad).
+            // в тестере портфель эмулируемый — GodMode
+            if (string.IsNullOrEmpty(screener.PortfolioName))
+            {
+                screener.PortfolioName = "GodMode";
+                needReload = true;
+            }
+
             screener.SaveSettings();
 
             if (needReload)
             {
+                // внутренние вкладки пересоздаём синхронно — иначе настройки
+                // (комиссия и т.п.) не попадут в уже созданные вкладки.
                 screener.NeedToReloadTabs = true;
+                screener.TryReLoadTabs();
             }
         }
 

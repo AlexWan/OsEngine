@@ -1508,6 +1508,8 @@ namespace OsEngine.MCP
                     case "tester_execution_set_config":
                     case "tester_portfolio_get_config":
                     case "tester_portfolio_set_config":
+                    case "tester_charges_get_config":
+                    case "tester_charges_set_config":
                     case "tester_start":
                     case "tester_pause":
                     case "tester_fast_forward":

@@ -34,7 +34,13 @@ namespace OsEngine.OsData
                 TextBoxFolderName.IsEnabled = false;
             }
 
-            TextBoxFolderName.Text = set.SetName.Split('_')[1];
+            string setName = set.SetName;
+            if (setName != null && setName.StartsWith("Set_"))
+            {
+                setName = setName.Substring("Set_".Length);
+            }
+
+            TextBoxFolderName.Text = setName;
 
             if (_set.BaseSettings.Source == ServerType.None
                 && (set.SetName == null || set.SetName == "Set_"))

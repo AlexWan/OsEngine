@@ -167,10 +167,16 @@ namespace OsEngine.Market.Servers.Tester
             {
                 ComboBoxSets.Items.Add(sets[i]);
             }
-            if (!string.IsNullOrEmpty(_server.ActiveSet) &&
-                _server.ActiveSet.Split('_').Length == 2)
+            if (!string.IsNullOrEmpty(_server.ActiveSet))
             {
-                ComboBoxSets.SelectedItem = _server.ActiveSet.Split('_')[1];
+                string activeSetName = Path.GetFileName(_server.ActiveSet);
+
+                if (activeSetName.StartsWith("Set_"))
+                {
+                    activeSetName = activeSetName.Substring("Set_".Length);
+                }
+
+                ComboBoxSets.SelectedItem = activeSetName;
             }
 
             ComboBoxSets.SelectionChanged += ComboBoxSets_SelectionChanged;

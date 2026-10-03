@@ -844,6 +844,15 @@ namespace OsEngine.Market.Servers.Tester
 
         public bool TestingFastIsActivate;
 
+        /// <summary>
+        /// True when the tester has started receiving data (first candle/tick/depth).
+        /// Fast-forward can only be enabled after this becomes true.
+        /// </summary>
+        public bool DataIsActive
+        {
+            get { return _dataIsActive; }
+        }
+
         public void TestingPausePlay()
         {
             if (TesterRegime == TesterRegime.NotActive)
@@ -4091,20 +4100,22 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < folders.Length; i++)
             {
-                string pathCurrent = folders[i];
+                string folderName = Path.GetFileName(folders[i]);
 
-                if (pathCurrent.Contains("Set_") == false)
+                if (folderName.StartsWith("Set_") == false)
                 {
                     continue;
                 }
 
-                if (pathCurrent.Split('_').Length == 2)
-                {
-                    string setName = pathCurrent.Split('_')[1];
+                string setName = folderName.Substring("Set_".Length);
 
-                    sets.Add(setName);
-                    SendLogMessage(OsLocalization.Market.Label244 + ": " + setName, LogMessageType.System);
+                if (string.IsNullOrWhiteSpace(setName))
+                {
+                    continue;
                 }
+
+                sets.Add(setName);
+                SendLogMessage(OsLocalization.Market.Label244 + ": " + setName, LogMessageType.System);
             }
 
             if (sets.Count == 0)

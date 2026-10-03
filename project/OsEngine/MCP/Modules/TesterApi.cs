@@ -99,6 +99,14 @@ namespace OsEngine.MCP.Modules
                         response.Result = SetPortfolioConfig(request.Params);
                         break;
 
+                    case "tester_charges_get_config":
+                        response.Result = GetChargesConfig();
+                        break;
+
+                    case "tester_charges_set_config":
+                        response.Result = SetChargesConfig(request.Params);
+                        break;
+
                     case "tester_start":
                         response.Result = StartTesting(request.Params);
                         break;
@@ -230,6 +238,28 @@ namespace OsEngine.MCP.Modules
                         {
                             start_portfolio = new { type = "number" },
                             portfolio_calculation_enabled = new { type = "boolean" }
+                        },
+                        required = new string[0]
+                    }
+                },
+                new McpTool
+                {
+                    Name = "tester_charges_get_config",
+                    Description = "Get tester charges configuration (dividends, taxes, margin)",
+                    InputSchema = new { type = "object", properties = new { }, required = new string[0] }
+                },
+                new McpTool
+                {
+                    Name = "tester_charges_set_config",
+                    Description = "Set tester charges configuration (dividends, taxes, margin)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            dividends_is_on = new { type = "boolean" },
+                            taxes_is_on = new { type = "boolean" },
+                            margin_regime = new { type = "string", description = "Off, Summ, Percent" }
                         },
                         required = new string[0]
                     }
@@ -607,9 +637,21 @@ namespace OsEngine.MCP.Modules
 
             server.TestingStart();
 
-            if (enableFastForward && !server.TestingFastIsActivate)
+            if (enableFastForward && server.TesterRegime == TesterRegime.Play)
             {
-                server.TestingFastOnOff();
+                // TestingFastOnOff не срабатывает, пока тестер не получил первый бар
+                // (DataIsActive == false). Ждём начала потока данных и только потом включаем fast-forward.
+                DateTime deadline = DateTime.Now.AddSeconds(10);
+
+                while (DateTime.Now < deadline && server.DataIsActive == false)
+                {
+                    System.Threading.Thread.Sleep(200);
+                }
+
+                if (server.DataIsActive && server.TestingFastIsActivate == false)
+                {
+                    server.TestingFastOnOff();
+                }
             }
 
             return GetTesterStatus();
@@ -836,6 +878,52 @@ namespace OsEngine.MCP.Modules
             }
 
             return GetPortfolioConfig();
+        }
+
+        #endregion
+
+        #region Charges configuration
+
+        private object GetChargesConfig()
+        {
+            TesterServer server = GetTesterServerRequired();
+
+            return new
+            {
+                dividends_is_on = server.DividendsIsOn,
+                taxes_is_on = server.TaxesIsOn,
+                margin_regime = server.MarginRegime
+            };
+        }
+
+        private object SetChargesConfig(JsonElement parameters)
+        {
+            TesterServer server = GetTesterServerRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (parameters.TryGetProperty("dividends_is_on", out JsonElement dividendsElement)
+                && (dividendsElement.ValueKind == JsonValueKind.True || dividendsElement.ValueKind == JsonValueKind.False))
+            {
+                server.DividendsIsOn = dividendsElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("taxes_is_on", out JsonElement taxesElement)
+                && (taxesElement.ValueKind == JsonValueKind.True || taxesElement.ValueKind == JsonValueKind.False))
+            {
+                server.TaxesIsOn = taxesElement.GetBoolean();
+            }
+
+            if (parameters.TryGetProperty("margin_regime", out JsonElement marginElement)
+                && marginElement.ValueKind == JsonValueKind.String)
+            {
+                server.MarginRegime = marginElement.GetString();
+            }
+
+            return GetChargesConfig();
         }
 
         #endregion
