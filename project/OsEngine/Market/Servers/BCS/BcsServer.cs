@@ -145,7 +145,6 @@ namespace OsEngine.Market.Servers.BCS
                 Timeout = TimeSpan.FromSeconds(30)
             };
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiAccessToken);
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
@@ -278,6 +277,13 @@ namespace OsEngine.Market.Servers.BCS
             UnsubscribeAllSecurities();
             _subscribedSecurities.Clear();
             DeleteWebSocketConnection();
+
+            WebSocketDataMessage = new ConcurrentQueue<string>();
+            WebSocketPortfolioMessage = new ConcurrentQueue<string>();
+            WebSocketMyOrdersAndTradesMessage = new ConcurrentQueue<string>();
+            MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
+
+            _lastMdTime = DateTime.MinValue;
 
             _httpClient?.Dispose();
             _httpClient = null;
@@ -493,7 +499,7 @@ namespace OsEngine.Market.Servers.BCS
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error parsing securities: {ex.Message}");
+                        SendLogMessage($"Error parsing securities: {ex}", LogMessageType.Error);
                         return securitiesResp;
                     }
                 }
@@ -501,7 +507,7 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     string errorMsg = response.Content.ReadAsStringAsync().Result;
 
-                    SendLogMessage($"Stock securities request error. Status: {response.StatusCode}-{response.ReasonPhrase}\n" +
+                    SendLogMessage($"Securities request error. Status: {response.StatusCode}-{response.ReasonPhrase}\n" +
                         $"Msg: {errorMsg}\n" +
                         $"Try: {tryCount} downloading securities {type}", LogMessageType.Error);
 
@@ -512,7 +518,7 @@ namespace OsEngine.Market.Servers.BCS
                     continue;
                 }
 
-            } while (bcsSec.Count == 100 && tryCount < 5);
+            } while ((bcsSec.Count == 100 || tryCount > 1) && tryCount < 5);
 
             if (tryCount == 5)
             {
@@ -525,9 +531,9 @@ namespace OsEngine.Market.Servers.BCS
 
         private void UpdateSecuritiesFromServer(List<BcsSecurity> securities)
         {
-            try
+            for (int i = 0; i < securities.Count; i++)
             {
-                for (int i = 0; i < securities.Count; i++)
+                try
                 {
                     BcsSecurity item = securities[i];
 
@@ -583,22 +589,18 @@ namespace OsEngine.Market.Servers.BCS
                         newSecurity.NominalCurrent = item.faceValue.ToDecimal();
                         newSecurity.NominalInitial = item.faceValue.ToDecimal();
 
-                        if (DateTime.TryParseExact(item.emissionDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                        DateTime emissionDate = ParseBcsDate(item.emissionDate);
+
+                        if (emissionDate != DateTime.MinValue)
                         {
-                            newSecurity.PlacementDate = result;
+                            newSecurity.PlacementDate = emissionDate;
                         }
                     }
 
-                    if (string.IsNullOrEmpty(item.maturityDate) == false && item.maturityDate != "0")
+                    DateTime matDate = ParseBcsDate(item.maturityDate);
+
+                    if (matDate != DateTime.MinValue)
                     {
-                        DateTime matDate = DateTime.MinValue;
-
-                        int year = Convert.ToInt32(item.maturityDate.Substring(0, 4));
-                        int month = Convert.ToInt32(item.maturityDate.Substring(4, 2));
-                        int day = Convert.ToInt32(item.maturityDate.Substring(6, 2));
-
-                        matDate = new DateTime(year, month, day);
-
                         if (newSecurity.SecurityType == SecurityType.Futures)
                         {
                             newSecurity.Expiration = matDate;
@@ -619,10 +621,11 @@ namespace OsEngine.Market.Servers.BCS
                     }
                     _securities.Add(newSecurity);
                 }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Security parsing error:\n {ex.Message} - {ex.StackTrace}", LogMessageType.Error);
+                catch (Exception ex)
+                {
+                    // одна битая бумага не должна ронять всю пачку
+                    SendLogMessage($"Security parsing error ({securities[i].ticker}):\n {ex.Message} - {ex.StackTrace}", LogMessageType.Error);
+                }
             }
         }
 
@@ -683,7 +686,19 @@ namespace OsEngine.Market.Servers.BCS
 
                 string json;
 
-                using (HttpClient client = new HttpClient())
+                HttpClientHandler moexHandler = new HttpClientHandler();
+
+                if (_myProxy != null)
+                {
+                    moexHandler.Proxy = _myProxy;
+                    moexHandler.UseProxy = true;
+                }
+                else
+                {
+                    moexHandler.UseProxy = false;
+                }
+
+                using (HttpClient client = new HttpClient(moexHandler))
                 {
                     client.Timeout = TimeSpan.FromSeconds(15);
 
@@ -774,9 +789,10 @@ namespace OsEngine.Market.Servers.BCS
                     SecurityEvent?.Invoke(_securities);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // тихо игнорируем. ГО и лимиты останутся нулевыми
+                // функция вспомогательная - не пугаем пользователя ошибкой, но след в логе оставляем
+                SendLogMessage("MOEX ISS недоступен: гарантийное обеспечение и ценовые лимиты фьючерсов не загружены (на торговлю не влияет). " + ex.Message, LogMessageType.System);
             }
         }
 
@@ -854,7 +870,15 @@ namespace OsEngine.Market.Servers.BCS
                         decimal currBlocked = portfT365term[j].locked.ToDecimal();
                         decimal currUnrealizedPl = quantity == 0 ? 0 : portfT365term[j].unrealizedPL.ToDecimal(); // после закрытия позиции фьючерса нереализованная прибыль отображается до клиринга
 
-                        decimal posCurrBalance = quantity * currPrice;
+                        // рублевая оценка из API: у облигаций цена в % от номинала, у валютных позиций цена не в рублях -
+                        // quantity * currentPrice для них некорректно
+                        decimal posCurrBalance = portfT365term[j].currentValueRub.ToDecimal();
+
+                        if (posCurrBalance == 0 && quantity != 0)
+                        {
+                            posCurrBalance = quantity * currPrice;
+                        }
+
                         totalBalance += posCurrBalance;
                         totalBlocked += currBlocked;
                         totalUnrealizedPl += currUnrealizedPl;
@@ -889,16 +913,19 @@ namespace OsEngine.Market.Servers.BCS
                             if (security != null)
                             {
                                 _securitiesLots[security.Name] = security.Lot;
-                                posPortf.ValueCurrent = quantity / security.Lot;
-                                posPortf.ValueBegin = quantity / security.Lot;
+
+                                decimal lot = security.Lot > 0 ? security.Lot : 1;
+                                posPortf.ValueCurrent = quantity / lot;
+                                posPortf.ValueBegin = quantity / lot;
+                                posPortf.ValueBlocked = currBlocked / lot;
                             }
                             else
                             {
                                 posPortf.ValueCurrent = quantity;
                                 posPortf.ValueBegin = quantity;
+                                posPortf.ValueBlocked = currBlocked;
                             }
 
-                            posPortf.ValueBlocked = currBlocked;
                             posPortf.PortfolioName = portfT365term[j].account;
                             posPortf.UnrealizedPnl = currUnrealizedPl;
 
@@ -910,14 +937,16 @@ namespace OsEngine.Market.Servers.BCS
 
                             if (_securitiesLots.TryGetValue(posPortf.SecurityNameCode, out decimal lot))
                             {
-                                posPortf.ValueCurrent = quantity / lot;
+                                decimal safeLot = lot > 0 ? lot : 1;
+                                posPortf.ValueCurrent = quantity / safeLot;
+                                posPortf.ValueBlocked = currBlocked / safeLot;
                             }
                             else
                             {
                                 posPortf.ValueCurrent = quantity;
+                                posPortf.ValueBlocked = currBlocked;
                             }
 
-                            posPortf.ValueBlocked = currBlocked;
                             posPortf.UnrealizedPnl = currUnrealizedPl;
                         }
                     }
@@ -1016,7 +1045,8 @@ namespace OsEngine.Market.Servers.BCS
 
             if (timeFrame == "D" && endTime.Date > DateTime.Now.Date.AddDays(-1))
             {
-                endTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
+                // отсекаем незакрытую дневную свечу текущего дня: её TimeStart равен полуночи, поэтому -1 мс
+                endTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0).AddMilliseconds(-1);
             }
 
             string classCode = GetClassCode(security);
@@ -1085,10 +1115,18 @@ namespace OsEngine.Market.Servers.BCS
             {
                 _rateGateCandles.WaitToProceed();
 
+                // сервер трактует время в запросе как UTC (суффикс Z), внутреннее время коннектора — московское
+                // SpecifyKind: движок присылает Kind=Local, ConvertTimeToUtc требует Unspecified
+                DateTime startUnspec = DateTime.SpecifyKind(startTime, DateTimeKind.Unspecified);
+                DateTime endUnspec = DateTime.SpecifyKind(endTime, DateTimeKind.Unspecified);
+
+                string startUtc = TimeZoneInfo.ConvertTimeToUtc(startUnspec, _moscowTimeZone).ToString("yyyy-MM-ddTHH:mm:00Z");
+                string endUtc = TimeZoneInfo.ConvertTimeToUtc(endUnspec, _moscowTimeZone).ToString("yyyy-MM-ddTHH:mm:00Z");
+
                 string path = "/trade-api-market-data-connector/api/v1/candles-chart?"
                     + "classCode=" + Uri.EscapeDataString(classCode) + "&ticker=" + Uri.EscapeDataString(security.Name)
-                    + "&startDate=" + Uri.EscapeDataString(startTime.ToString("yyyy-MM-ddTHH:mm:00Z"))
-                    + "&endDate=" + Uri.EscapeDataString(endTime.ToString("yyyy-MM-ddTHH:mm:00Z"))
+                    + "&startDate=" + Uri.EscapeDataString(startUtc)
+                    + "&endDate=" + Uri.EscapeDataString(endUtc)
                     + "&timeFrame=" + Uri.EscapeDataString(timeFrame);
 
                 // "/trade-api-market-data-connector/api/v1/candles-chart?classCode=TQBR&ticker=ALRS&startDate=2026-07-01T00%3A00%3A00Z&endDate=2026-07-10T00%3A00%3A00Z&timeFrame=H1";
@@ -1153,9 +1191,9 @@ namespace OsEngine.Market.Servers.BCS
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.UtcNow ||
+                startTime >= DateTime.Now ||
                 actualTime > endTime ||
-                actualTime > DateTime.UtcNow)
+                actualTime > DateTime.Now)
             {
                 return false;
             }
@@ -2626,70 +2664,86 @@ namespace OsEngine.Market.Servers.BCS
         {
             try
             {
-                _rateGateMyTrades.WaitToProceed();
+                int page = -1;
+                int totalPages = 0;
 
-                string path = _tradesSearchPath + "?page=0&size=100&sort=tradeDateTime,desc";
-
-                Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>
+                do
                 {
-                    { "tickers", new string[] { request.Ticker } },
-                    { "classCodes", new string[] { request.ClassCode } },
-                    { "side", request.Side },
-                    { "startDateTime", DateTime.UtcNow.AddMinutes(-5).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
-                    { "endDateTime", DateTime.UtcNow.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
-                };
+                    _rateGateMyTrades.WaitToProceed();
 
-                string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+                    page++;
 
-                HttpResponseMessage response = CreateHttpRequestAsync(path, HttpMethod.Post, jsonRequest).Result;
+                    string path = _tradesSearchPath + $"?page={page}&size=100&sort=tradeDateTime,desc";
 
-                if (response == null || response.StatusCode != HttpStatusCode.OK)
-                {
-                    return;
-                }
-
-                string responseMsg = response.Content.ReadAsStringAsync().Result;
-                BcsTradesListResponse tradesResponse = JsonConvert.DeserializeAnonymousType(responseMsg, new BcsTradesListResponse());
-
-                if (tradesResponse == null || tradesResponse.records == null || tradesResponse.records.Length == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < tradesResponse.records.Length; i++)
-                {
-                    BcsTrade tradeRecord = tradesResponse.records[i];
-
-                    if (string.IsNullOrEmpty(tradeRecord.orderNum) || tradeRecord.orderNum != request.OrderNumber)
+                    // окно от начала дня: этот фетч - запасной путь, сделка могла случиться задолго до него
+                    // (задержка очереди, потеря событий, восстановление через GetOrderStatus)
+                    Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>
                     {
-                        continue;
+                        { "tickers", new string[] { request.Ticker } },
+                        { "classCodes", new string[] { request.ClassCode } },
+                        { "side", request.Side },
+                        { "startDateTime", DateTime.UtcNow.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
+                        { "endDateTime", DateTime.UtcNow.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+                    };
+
+                    string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                    HttpResponseMessage response = CreateHttpRequestAsync(path, HttpMethod.Post, jsonRequest).Result;
+
+                    if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return;
                     }
 
-                    string numberTrade = tradeRecord.tradeNum;
+                    string responseMsg = response.Content.ReadAsStringAsync().Result;
+                    BcsTradesListResponse tradesResponse = JsonConvert.DeserializeAnonymousType(responseMsg, new BcsTradesListResponse());
 
-                    if (string.IsNullOrEmpty(numberTrade))
+                    if (tradesResponse == null || tradesResponse.records == null || tradesResponse.records.Length == 0)
                     {
-                        continue;
+                        break;
                     }
 
-                    if (IsMyTradeAlreadySent(numberTrade))
+                    if (int.TryParse(tradesResponse.totalPages, out int pages))
                     {
-                        continue;
+                        totalPages = pages;
                     }
 
-                    MyTrade trade = new MyTrade();
-                    trade.SecurityNameCode = tradeRecord.ticker;
-                    trade.Price = tradeRecord.price.ToDecimal();
-                    trade.Volume = tradeRecord.tradeQuantityLots.ToDecimal();
-                    trade.NumberOrderParent = request.NumberOrderParent;
-                    trade.NumberTrade = numberTrade;
-                    trade.Time = ConvertUtsStringToDateTimeRu(tradeRecord.tradeDateTime);
-                    trade.Side = tradeRecord.side == "1" ? Side.Buy : Side.Sell;
+                    for (int i = 0; i < tradesResponse.records.Length; i++)
+                    {
+                        BcsTrade tradeRecord = tradesResponse.records[i];
 
-                    MarkMyTradeSent(numberTrade);
+                        if (string.IsNullOrEmpty(tradeRecord.orderNum) || tradeRecord.orderNum != request.OrderNumber)
+                        {
+                            continue;
+                        }
 
-                    MyTradeEvent?.Invoke(trade);
-                }
+                        string numberTrade = tradeRecord.tradeNum;
+
+                        if (string.IsNullOrEmpty(numberTrade))
+                        {
+                            continue;
+                        }
+
+                        if (IsMyTradeAlreadySent(numberTrade))
+                        {
+                            continue;
+                        }
+
+                        MyTrade trade = new MyTrade();
+                        trade.SecurityNameCode = tradeRecord.ticker;
+                        trade.Price = tradeRecord.price.ToDecimal();
+                        trade.Volume = tradeRecord.tradeQuantityLots.ToDecimal();
+                        trade.NumberOrderParent = request.NumberOrderParent;
+                        trade.NumberTrade = numberTrade;
+                        trade.Time = ConvertUtsStringToDateTimeRu(tradeRecord.tradeDateTime);
+                        trade.Side = tradeRecord.side == "1" ? Side.Buy : Side.Sell;
+
+                        MarkMyTradeSent(numberTrade);
+
+                        MyTradeEvent?.Invoke(trade);
+                    }
+
+                } while (page + 1 < totalPages);
             }
             catch (Exception ex)
             {
@@ -2716,7 +2770,7 @@ namespace OsEngine.Market.Servers.BCS
 
                 _sentMyTradesNumbers.Add(numberTrade);
 
-                while (_sentMyTradesNumbers.Count > 200)
+                while (_sentMyTradesNumbers.Count > 1000)
                 {
                     _sentMyTradesNumbers.RemoveAt(0);
                 }
@@ -2892,11 +2946,21 @@ namespace OsEngine.Market.Servers.BCS
                 string type = order.TypeOrder == OrderPriceType.Market ? "1" : "2";
 
                 decimal quantity = 0;
-                Security security = GetSecurityByName(order.SecurityNameCode, order.SecurityClassCode);
+                Security security = GetSecurityForOrder(order.SecurityNameCode, order.SecurityClassCode);
 
                 if (security != null)
                 {
-                    quantity = (order.Volume - order.VolumeExecute) * security.Lot;
+                    // если лот неизвестен, считаем что объём уже задан в штуках
+                    decimal lot = security.Lot > 0 ? security.Lot : 1;
+                    quantity = (order.Volume - order.VolumeExecute) * lot;
+                }
+
+                if (security == null
+                    || quantity <= 0)
+                {
+                    // orderQuantity по спеке минимум 1 - нулевой остаток на биржу не отправляем
+                    SendLogMessage($"Change order price skipped. Security {order.SecurityNameCode} / {order.SecurityClassCode} not found in securities lists or remaining quantity is zero. Order not changed.", LogMessageType.Error);
+                    return;
                 }
 
                 string orderId = "";
@@ -3237,7 +3301,7 @@ namespace OsEngine.Market.Servers.BCS
         {
             List<Order> orders = new List<Order>();
             int page = -1;
-            int totalRecords = 0;
+            int totalPages = 0;
 
             try
             {
@@ -3269,9 +3333,12 @@ namespace OsEngine.Market.Servers.BCS
                         string responseMsg = orderListResponse.Content.ReadAsStringAsync().Result;
                         BcsOrdersListResponse ordersResponse = JsonConvert.DeserializeAnonymousType(responseMsg, new BcsOrdersListResponse());
 
-                        if (ordersResponse != null && ordersResponse.records.Length > 0)
+                        if (ordersResponse != null && ordersResponse.records != null && ordersResponse.records.Length > 0)
                         {
-                            totalRecords = Convert.ToInt32(ordersResponse.totalRecords);
+                            if (int.TryParse(ordersResponse.totalPages, out int pages))
+                            {
+                                totalPages = pages;
+                            }
 
                             for (int i = 0; i < ordersResponse.records.Length; i++)
                             {
@@ -3285,7 +3352,7 @@ namespace OsEngine.Market.Servers.BCS
                         }
                         else
                         {
-                            return null;
+                            break;
                         }
                     }
                     else
@@ -3295,7 +3362,7 @@ namespace OsEngine.Market.Servers.BCS
                         return null;
                     }
 
-                } while (totalRecords == 100);
+                } while (page + 1 < totalPages);
 
                 return orders;
             }
@@ -3318,13 +3385,11 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     order.SecurityNameCode = security.Name;
                     order.SecurityClassCode = security.NameClass;
-                    order.Volume = record.orderQuantityLots.ToDecimal() / security.Lot;
                 }
                 else
                 {
                     order.SecurityNameCode = record.ticker;
                     order.SecurityClassCode = record.classCode;
-                    order.Volume = record.orderQuantityLots.ToDecimal();
                 }
 
                 if (_userNumberByOrderId.TryGetValue(record.orderId, out int userNumber))
@@ -3335,7 +3400,15 @@ namespace OsEngine.Market.Servers.BCS
                 order.NumberMarket = record.orderNum;
                 order.TimeCallBack = ConvertUtsStringToDateTimeRu(record.updateDateTime);
                 order.Price = record.price.ToDecimal();
+
+                if (order.Price == 0)
+                {
+                    // у рыночных заявок price приходит нулевой, реальная цена исполнения в averagePrice
+                    order.Price = record.averagePrice.ToDecimal();
+                }
+
                 order.Volume = record.orderQuantityLots.ToDecimal();
+                order.VolumeExecute = record.executedQuantityLots.ToDecimal();
                 order.Side = record.side == "1" ? Side.Buy : Side.Sell;
 
                 if (_myPortfolios.Count == 1)
@@ -3359,11 +3432,12 @@ namespace OsEngine.Market.Servers.BCS
                     order.TimeCreate = ConvertUtsStringToDateTimeRu(record.updateDateTime);
                 }
 
-                if (record.orderType == " 1")
+                if (record.orderType == "1")
                     order.TypeOrder = OrderPriceType.Market;
-                else if (record.orderType == "2")
-                    order.TypeOrder = OrderPriceType.Limit;
-                else order.TypeOrder = OrderPriceType.Iceberg;
+                else if (record.orderType == "3")
+                    order.TypeOrder = OrderPriceType.Iceberg;
+                else
+                    order.TypeOrder = OrderPriceType.Limit; // типы 2 и 10 — лимитные, 4-7 и 11 — стоп/тейк, порождающие лимитные
 
                 order.ServerType = ServerType.BCS;
 
@@ -3403,6 +3477,10 @@ namespace OsEngine.Market.Servers.BCS
                 for (int i = 0; i < maxRetries; i++)
                 {
                     using HttpRequestMessage request = new HttpRequestMessage(method, path);
+
+                    // заголовок ставим на каждый запрос: фоновый поток перевыпускает access-токен раз в сутки,
+                    // дефолтный заголовок HttpClient после перевыпуска остаётся со старым токеном
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiAccessToken);
 
                     if (method == HttpMethod.Post && !string.IsNullOrEmpty(body))
                     {
@@ -3479,6 +3557,28 @@ namespace OsEngine.Market.Servers.BCS
         {
             DateTime startTimeUtc = DateTime.Parse(timeString, null, DateTimeStyles.RoundtripKind);
             return TimeZoneInfo.ConvertTimeFromUtc(startTimeUtc, _moscowTimeZone);
+        }
+
+        private DateTime ParseBcsDate(string value)
+        {
+            if (string.IsNullOrEmpty(value) || value == "0")
+            {
+                return DateTime.MinValue;
+            }
+
+            // встречающиеся у БКС форматы: 20261217, 2026-12-17, 2026-12-17T00:00:00.000Z
+            if (DateTime.TryParseExact(value, new[] { "yyyyMMdd", "yyyy-MM-dd" },
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+            {
+                return result;
+            }
+
+            if (DateTime.TryParse(value, null, DateTimeStyles.RoundtripKind, out result))
+            {
+                return result;
+            }
+
+            return DateTime.MinValue;
         }
 
         private Guid GetClientOrderId(int key)
