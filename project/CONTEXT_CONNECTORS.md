@@ -75,6 +75,22 @@ OsEngine/Market/Servers/<Имя>/
 
 Имена: папка и классы — по имени биржи/брокера (`BCS/BcsServer.cs`, `TInvest/TInvestServer.cs`). Namespace = путь (`OsEngine.Market.Servers.BCS`).
 
+### 1.4.1. Классы `Entity/` (DTO под JSON)
+
+`Entity/` — только «плоские» DTO под ответы API. Три правила:
+
+1. **Никаких сериализационных атрибутов** (`[JsonPropertyName]`, `[JsonProperty]`, `[JsonIgnore]`). Имя свойства пишется ровно как поле в JSON (БКС/Т-Инвестиции шлют camelCase — так и называем: `orderStatus`, `clientOrderId`, `executionValue`). Newtonsoft десериализует регистронезависимо, поэтому атрибуты — мёртвый шум, их быть не должно.
+2. **Все скалярные свойства — `string`, без nullable `?`.** Числа, булевы, таймстемпы — тоже `string`; конвертацию в нужный тип делает класс коннектора через `ToDecimal()`/`ToDouble()` и т.п. (см. 10.5). Исключение — вложенные коллекции/объекты (`List<OrderBookEntry>`, `Record[]`, `Data data`) — они сами DTO, а не «значения».
+3. **Никакой логики в Entity** — только `{ get; set; }`.
+
+```csharp
+public class Data
+{
+    public string orderStatus { get; set; }    // в JSON поле "orderStatus"
+    public string executionValue { get; set; } // в JSON поле "executionValue"
+}
+```
+
 ### 1.5. Регистрация нового сервера
 
 Новый коннектор регистрируется в `OsEngine/Market/ServerMaster.cs` в **трёх** местах (пропуск любого — сервер не появится в UI или упадёт):
@@ -428,7 +444,7 @@ if (webSocketPublic.ReadyState == WebSocketState.Open
 
 - `GetActiveOrders(startIndex, count)` / `GetHistoricalOrders(startIndex, count)` — постраничная выгрузка из API (пагинация, сортировка по времени убыв.), маппинг в `Order` через общий конвертер.
 - `GetAllActivOrders` — для восстановления после реконнекта (permission `CanQueryOrdersAfterReconnect`).
-- `GetOrderStatus(Order)` — только запрос и возврат статуса; **не вызывай из него `MyOrderEvent`** — опрос статуса не должен порождать событие (дубли в роботах, ошибка BCS). События — только из сокета исполнения.
+- `GetOrderStatus(Order)` — запрос статуса одной заявки и возврат `OrderStateType`. Идеал (реализован в BCS): чистый запрос без `MyOrderEvent`, события — только из сокета исполнения. Но поллинг-механика хаба (`AServerOrdersHub.ActiveStateOrderCheckStatusEvent`) **игнорирует возвращаемое значение** и реагирует только на события, поэтому большинство коннекторов (OKX, BitGet, TInvest, Bybit) всё же эмитят `MyOrderEvent`/`MyTradeEvent` из `GetOrderStatus` — иначе заявка после 5 попыток объявляется потерянной. Эмиссия из `GetOrderStatus` не ошибка; главное — не плодить дубли по одной и той же заявке (дедупликация по `NumberUser`/`tradeId`).
 
 ---
 
@@ -437,6 +453,8 @@ if (webSocketPublic.ReadyState == WebSocketState.Open
 ### 9.1. DataFeedPermissions
 
 Что может качать OsData из этого коннектора: `DataFeedTf*CanLoad` по таймфреймам (секунды, тики, стакан) и минуты/часы/дни. Правило: включён только тот ТФ, который реально отдаёт реализация (`GetCandleTimeFrame`/тики/стакан). Пример рассинхрона: у BCS `TradeTimeFramePermission.Hour2 = true`, а `GetCandleTimeFrame` H2 не умеет — пользователь видит ТФ, но данных не получает.
+
+Секундные таймфреймы — отдельная ось: с биржи они **не качаются** (`DataFeedTf*Second* = false`), а строятся самим движком из тиков (ветка `TotalMinutes < 1` в `CandleManager.StandardStarter` → `GetAllTradesToSecurity` → `PreLoad`). Поэтому `TradeTimeFramePermission.TimeFrameSec*IsOn = true` легально для любого коннектора, отдающего тики (канал `trades`), и не означает, что секунды можно скачать в OsData. Не путай эти два уровня: `DataFeedTf*` — что скачивается, `TradeTimeFramePermission` — чем можно торговать.
 
 ### 9.2. TradePermissions и TimeFramePermission
 
