@@ -87,9 +87,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         public void Connect(WebProxy proxy)
         {
-            string result = GetRequest("http://iss.moex.com/iss/engines/");
+            string result = GetRequest("https://iss.moex.com/iss/engines/");
 
-            if (result == null)
+            if (string.IsNullOrEmpty(result))
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
             }
@@ -123,35 +123,42 @@ namespace OsEngine.Market.Servers.MOEX
 
         public void GetSecurities()
         {
-            List<Security> securities = new List<Security>();
-
-            SendLogMessage("Securities downloading...", LogMessageType.System);
-
-            List<string> engines = GetEngines();
-
-            List<string> markets = GetMarkets(engines);
-
-            List<string> classes = GetClasses(markets);
-
-            securities = GetSecurities(classes);
-
-            securities = CreateFuturesSection(securities);
-
-            HashSet<string> seenSecurities = new HashSet<string>();
-
-            for (int i = securities.Count - 1; i >= 0; i--)
+            try
             {
-                string key = securities[i].Name + "|" + securities[i].NameClass;
+                List<Security> securities = new List<Security>();
 
-                if (seenSecurities.Add(key) == false)
+                SendLogMessage("Securities downloading...", LogMessageType.System);
+
+                List<string> engines = GetEngines();
+
+                List<string> markets = GetMarkets(engines);
+
+                List<string> classes = GetClasses(markets);
+
+                securities = GetSecurities(classes);
+
+                securities = CreateFuturesSection(securities);
+
+                HashSet<string> seenSecurities = new HashSet<string>();
+
+                for (int i = securities.Count - 1; i >= 0; i--)
                 {
-                    securities.RemoveAt(i);
+                    string key = securities[i].Name + "|" + securities[i].NameClass;
+
+                    if (seenSecurities.Add(key) == false)
+                    {
+                        securities.RemoveAt(i);
+                    }
                 }
+
+                SecurityEvent?.Invoke(securities);
+
+                SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
             }
-
-            SecurityEvent?.Invoke(securities);
-
-            SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
+            catch (Exception ex)
+            {
+                SendLogMessage("Securities downloading error: " + ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private List<Security> CreateFuturesSection(List<Security> securities)
@@ -170,6 +177,12 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < allFutures.Count; i++)
             {
+                if (allFutures[i].Name.Length == 0
+                    || char.IsDigit(allFutures[i].Name[allFutures[i].Name.Length - 1]) == false)
+                {
+                    continue; // бессрочный фьючерс (тикер заканчивается маркером F, а не годом) — историю не генерируем
+                }
+
                 string name = allFutures[i].Name.Substring(0, allFutures[i].Name.Length - 2);
 
                 bool isInArray = false;
@@ -474,9 +487,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         private List<string> GetEngines()
         {
-            // запрос типов площадок http://iss.moex.com/iss/engines.json
+            // запрос типов площадок https://iss.moex.com/iss/engines.json
 
-            string request = GetRequest("http://iss.moex.com/iss/engines.json");
+            string request = GetRequest("https://iss.moex.com/iss/engines.json");
 
             List<string> result = new List<string>();
 
@@ -492,7 +505,11 @@ namespace OsEngine.Market.Servers.MOEX
                 if (str == "state" ||
                     str == "interventions" ||
                     str == "offboard" ||
-                    str == "commodity")
+                    str == "commodity" ||
+                    str == "agro" ||
+                    str == "otc" ||
+                    str == "quotes" ||
+                    str == "money")
                 {
                     continue;
                 }
@@ -509,7 +526,7 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < engines.Count; i++)
             {
-                string str = "http://iss.moex.com/iss/engines/";
+                string str = "https://iss.moex.com/iss/engines/";
                 str += engines[i];
                 str += "/markets.json";
                 requests.Add(str);
@@ -541,7 +558,7 @@ namespace OsEngine.Market.Servers.MOEX
 
             return result;
 
-            // запрос типов торгов по площадке http://iss.moex.com/iss/engines/stock/markets.json
+            // запрос типов торгов по площадке https://iss.moex.com/iss/engines/stock/markets.json
         }
 
         private List<string> GetClasses(List<string> markets)
@@ -550,9 +567,9 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < markets.Count; i++)
             {
-                // запрос классов бумаг по площадке и типу торгов http://iss.moex.com/iss/engines/stock/markets/shares/boards.json
+                // запрос классов бумаг по площадке и типу торгов https://iss.moex.com/iss/engines/stock/markets/shares/boards.json
 
-                string str = "http://iss.moex.com/iss/engines/";
+                string str = "https://iss.moex.com/iss/engines/";
                 str += markets[i].Split('#')[0];
                 str += "/markets/";
                 str += markets[i].Split('#')[1];
@@ -631,8 +648,8 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < classes.Count; i++)
             {
-                // запрос всех бумаг по классу http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json
-                string str = "http://iss.moex.com/iss/engines/";
+                // запрос всех бумаг по классу https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json
+                string str = "https://iss.moex.com/iss/engines/";
                 str += classes[i].Split('#')[0];
                 str += "/markets/";
                 str += classes[i].Split('#')[1];
@@ -665,7 +682,20 @@ namespace OsEngine.Market.Servers.MOEX
                     Security newSec = new Security();
                     newSec.Name = innerArray[0].ToString();
                     newSec.NameId = newSec.Name + "#" + classes[i];
-                    newSec.NameClass = classes[i].Split('#')[3] + "#" + classes[i].Split('#')[2];
+
+                    string boardCode = classes[i].Split('#')[2];
+
+                    if (boardCode == "RFUD"
+                        && newSec.Name.Length > 0
+                        && char.IsDigit(newSec.Name[newSec.Name.Length - 1]) == false)
+                    {
+                        newSec.NameClass = "Фьючерсы бессрочные#RFUD";
+                    }
+                    else
+                    {
+                        newSec.NameClass = classes[i].Split('#')[3] + "#" + boardCode;
+                    }
+
                     newSec.NameFull = innerArray[2].ToString();
 
                     result.Add(newSec);
@@ -885,7 +915,7 @@ namespace OsEngine.Market.Servers.MOEX
         {
             string[] classes = security.NameId.Split('#');
 
-            string str = "http://iss.moex.com/iss/engines/";
+            string str = "https://iss.moex.com/iss/engines/";
             str += classes[1];
             str += "/markets/";
             str += classes[2];
@@ -953,8 +983,8 @@ namespace OsEngine.Market.Servers.MOEX
             // ТФ которые есть: 1 минута, 10 минут, 60 минут
             // за раз 500 свечек
 
-            // "http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2014-01-01&interval=60&start=0";
-            //  http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/LKOH/candles.json?from=2014-04-01-&interval=1&start=500
+            // "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/SBER/candles.json?from=2014-01-01&interval=60&start=0";
+            //  https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/LKOH/candles.json?from=2014-04-01-&interval=1&start=500
         }
 
         #endregion
@@ -973,8 +1003,8 @@ namespace OsEngine.Market.Servers.MOEX
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
+                SendLogMessage("GetRequest error. Url: " + url + ". " + error.ToString(), LogMessageType.Error);
+                return string.Empty;
             }
         }
 
