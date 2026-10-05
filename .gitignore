@@ -55,6 +55,9 @@ bld/
 test-secrets.json
 Tests/McpTestStand/**/test-secrets.json
 
+# Connectors test stand secrets (connector tokens must never be committed)
+project/Tests/ConnectorsTestStand/**/*-token.txt
+
 # WikiConnectionTest build outputs and runtime settings
 Tests/WikiConnectionTest/**/bin/
 Tests/WikiConnectionTest/**/obj/
