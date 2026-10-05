@@ -56,7 +56,7 @@ test-secrets.json
 Tests/McpTestStand/**/test-secrets.json
 
 # Connectors test stand secrets (connector tokens must never be committed)
-Tests/ConnectorsTestStand/**/*-token.txt
+project/Tests/ConnectorsTestStand/**/*-token.txt
 
 # WikiConnectionTest build outputs and runtime settings
 Tests/WikiConnectionTest/**/bin/
@@ -346,4 +346,3 @@ __pycache__/
 
 # Private MCP API development context (work-in-progress, not for other developers)
 project/CONTEXT_MCP_API_DEVELOPMENT.md
-*.txt
