@@ -717,34 +717,40 @@ namespace OsEngine.OsOptimizer
                 }
                 else if (parametersToCopy[i].Type == StrategyParameterType.Int)
                 {
-                    newParam = new StrategyParameterInt(parametersToCopy[i].Name,
-                        ((StrategyParameterInt)parametersToCopy[i]).ValueIntDefolt,
-                        ((StrategyParameterInt)parametersToCopy[i]).ValueIntStart,
-                        ((StrategyParameterInt)parametersToCopy[i]).ValueIntStop,
-                        ((StrategyParameterInt)parametersToCopy[i]).ValueIntStep);
-                    ((StrategyParameterInt)newParam).ValueInt = ((StrategyParameterInt)parametersToCopy[i]).ValueIntStart;
-                    ((StrategyParameterInt)newParam).StepType = ((StrategyParameterInt)parametersToCopy[i]).StepType;
+                    StrategyParameterInt source = (StrategyParameterInt)parametersToCopy[i];
+
+                    // the constructor throws on start > stop, so clamp the stop up to the start
+                    int stop = source.ValueIntStart > source.ValueIntStop ? source.ValueIntStart : source.ValueIntStop;
+
+                    newParam = new StrategyParameterInt(source.Name, source.ValueIntDefolt,
+                        source.ValueIntStart, stop, source.ValueIntStep);
+                    ((StrategyParameterInt)newParam).ValueInt = source.ValueIntStart;
+                    ((StrategyParameterInt)newParam).StepType = source.StepType;
                 }
                 else if (parametersToCopy[i].Type == StrategyParameterType.Decimal)
                 {
-                    newParam = new StrategyParameterDecimal(parametersToCopy[i].Name,
-                        ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalDefolt,
-                        ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStart,
-                        ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStop,
-                        ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStep);
-                    ((StrategyParameterDecimal)newParam).ValueDecimal = ((StrategyParameterDecimal)parametersToCopy[i]).ValueDecimalStart;
-                    ((StrategyParameterDecimal)newParam).StepType = ((StrategyParameterDecimal)parametersToCopy[i]).StepType;
+                    StrategyParameterDecimal source = (StrategyParameterDecimal)parametersToCopy[i];
+
+                    // the constructor throws on start > stop, so clamp the stop up to the start
+                    decimal stop = source.ValueDecimalStart > source.ValueDecimalStop ? source.ValueDecimalStart : source.ValueDecimalStop;
+
+                    newParam = new StrategyParameterDecimal(source.Name, source.ValueDecimalDefolt,
+                        source.ValueDecimalStart, stop, source.ValueDecimalStep);
+                    ((StrategyParameterDecimal)newParam).ValueDecimal = source.ValueDecimalStart;
+                    ((StrategyParameterDecimal)newParam).StepType = source.StepType;
                 }
                 else if (parametersToCopy[i].Type == StrategyParameterType.DecimalCheckBox)
                 {
-                    newParam = new StrategyParameterDecimalCheckBox(parametersToCopy[i].Name,
-                        ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalDefolt,
-                        ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStart,
-                        ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStop,
-                        ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStep,
-                        Convert.ToBoolean(((StrategyParameterDecimalCheckBox)parametersToCopy[i]).CheckState));
-                    ((StrategyParameterDecimalCheckBox)newParam).ValueDecimal = ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).ValueDecimalStart;
-                    ((StrategyParameterDecimalCheckBox)newParam).StepType = ((StrategyParameterDecimalCheckBox)parametersToCopy[i]).StepType;
+                    StrategyParameterDecimalCheckBox source = (StrategyParameterDecimalCheckBox)parametersToCopy[i];
+
+                    // the constructor throws on start > stop, so clamp the stop up to the start
+                    decimal stop = source.ValueDecimalStart > source.ValueDecimalStop ? source.ValueDecimalStart : source.ValueDecimalStop;
+
+                    newParam = new StrategyParameterDecimalCheckBox(source.Name, source.ValueDecimalDefolt,
+                        source.ValueDecimalStart, stop, source.ValueDecimalStep,
+                        Convert.ToBoolean(source.CheckState));
+                    ((StrategyParameterDecimalCheckBox)newParam).ValueDecimal = source.ValueDecimalStart;
+                    ((StrategyParameterDecimalCheckBox)newParam).StepType = source.StepType;
                 }
 
                 newParameters.Add(newParam);
