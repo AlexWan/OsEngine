@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
     }
 
-    public class BinanceServerFuturesRealization : IServerRealization
+    public class BinanceServerFuturesRealization : IServerRealization, IServerMarginInfo
     {
         #region 1 Constructor, Status, Connection
 
@@ -610,10 +610,65 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<Portfolio> _portfolios = new List<Portfolio>();
 
+        private Dictionary<string, SecurityMarginInfo> _marginInfo = new Dictionary<string, SecurityMarginInfo>();
+
+        public SecurityMarginInfo GetMarginInfo(string securityNameCode)
+        {
+            // the dictionary is replaced as a whole on every update, so readers need no lock
+            Dictionary<string, SecurityMarginInfo> info = _marginInfo;
+
+            if (securityNameCode != null
+                && info.TryGetValue(securityNameCode, out SecurityMarginInfo result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        private void UpdateMarginInfo(List<PositionFutures> positions)
+        {
+            // leverage and isolated flag come with every account response, there is no need for an additional request
+            if (positions == null)
+            {
+                return;
+            }
+
+            Dictionary<string, SecurityMarginInfo> info = new Dictionary<string, SecurityMarginInfo>();
+            DateTime now = DateTime.UtcNow;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                PositionFutures position = positions[i];
+
+                if (string.IsNullOrEmpty(position.symbol)
+                    || string.IsNullOrEmpty(position.leverage)
+                    || info.ContainsKey(position.symbol))
+                {
+                    continue;
+                }
+
+                // in Hedge mode a symbol has several entries (BOTH, LONG, SHORT) with the same settings
+                SecurityMarginInfo item = new SecurityMarginInfo();
+                item.SecurityNameCode = position.symbol;
+                item.Leverage = position.leverage.ToDecimal();
+                item.IsIsolated = string.Equals(position.isolated, "true", StringComparison.OrdinalIgnoreCase);
+                item.TimeUpdate = now;
+                info[position.symbol] = item;
+            }
+
+            if (info.Count > 0)
+            {
+                _marginInfo = info;
+            }
+        }
+
         private void UpdatePortfolio(AccountResponseFutures portfs, bool IsUpdateValueBegin)
         {
             try
             {
+                UpdateMarginInfo(portfs.positions);
+
                 Portfolio myPortfolio = _portfolios.Find(p => p.Number == "BinanceFutures");
 
                 if (myPortfolio == null)

@@ -4491,6 +4491,32 @@ namespace OsEngine.Market.Servers
 
         public ComparePositionsModule ComparePositionsModule;
 
+        /// <summary>
+        /// margin mode and leverage of the security as the exchange reported them last time.
+        /// Null if the connector does not provide this data or it has not been received yet
+        /// режим маржи и плечо инструмента по последним данным биржи.
+        /// Null, если коннектор не отдаёт эти данные или они ещё не получены
+        /// </summary>
+        public SecurityMarginInfo GetMarginInfo(string securityNameCode)
+        {
+            IServerMarginInfo provider = _serverRealization as IServerMarginInfo;
+
+            if (provider == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return provider.GetMarginInfo(securityNameCode);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
         public void ShowComparePositionsModuleDialog(string portfolioName)
         {
             ComparePositionsModuleUi myUi = null;
