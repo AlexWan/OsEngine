@@ -695,6 +695,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
 
             tabFutures.SecuritiesClass = futuresSecurity[0].NameClass;
             tabFutures.TimeFrame = timeFrame;
@@ -930,6 +931,7 @@ namespace OsEngine.Robots.SyntheticBond
             tabSpot.Connector.SecurityName = spotSecurity.Name;
             tabSpot.Connector.SecurityClass = spotSecurity.NameClass;
             tabSpot.Connector.PortfolioName = portfolio.Number;
+            tabSpot.Connector.Save();
             tabSpot.Connector.CommissionType = CommissionType.Percent;
             tabSpot.Connector.CommissionValue = 0.04m;
 
