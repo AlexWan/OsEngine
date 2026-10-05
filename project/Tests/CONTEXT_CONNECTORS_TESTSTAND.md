@@ -104,7 +104,8 @@ OsEngine.Connectors.TestStand.exe --connector BinanceFutures --security ETHUSDT 
 
 Аргументы: `--connector`, `--security`, `--class`, `--securities` (список через `_`),
 `--volume`, `--token-file`, `--live-trade`, `--test`, `--module/-m`, `--port`,
-`--api-key`, `--timeout`, `--no-wait`, позиционный — путь к OsEngine.exe.
+`--api-key`, `--timeout`, `--transport v1|v2` (дефолт v2), `--no-wait`,
+позиционный — путь к OsEngine.exe.
 Приоритет: CLI > `test-stand-config.json` > встроенные дефолты (TInvest / SBER / Stock rub).
 
 ## Что на выходе

@@ -227,7 +227,7 @@ namespace OsEngine.Connectors.TestStand
                 throw new FileNotFoundException($"OsEngine.exe not found: {options.OsEnginePath}");
             }
 
-            using (OsEngineProcessController processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey))
+            using (OsEngineProcessController processController = new OsEngineProcessController(options.OsEnginePath, options.Port, options.ApiKey, options.StreamableHttp))
             {
                 try
                 {
@@ -237,6 +237,7 @@ namespace OsEngine.Connectors.TestStand
                         ?? throw new InvalidOperationException("MCP client is not available after process restart");
 
                     Console.WriteLine("Running tests...");
+                    Console.WriteLine($"MCP transport: {(options.StreamableHttp ? "v2 (streamable HTTP)" : "v1 (legacy)")}");
 
                     if (options.ModuleFilter.Length > 0)
                     {
@@ -426,7 +427,8 @@ namespace OsEngine.Connectors.TestStand
                 Port = config.Port,
                 ApiKey = config.ApiKey,
                 TimeoutSeconds = config.TimeoutSeconds,
-                NoWait = false
+                NoWait = false,
+                StreamableHttp = config.Transport != "v1"
             };
 
             for (int i = 0; i < args.Length; i++)
@@ -458,6 +460,19 @@ namespace OsEngine.Connectors.TestStand
                 else if (arg == "--live-trade")
                 {
                     options.LiveTrade = true;
+                }
+                else if (arg == "--transport" && i + 1 < args.Length)
+                {
+                    string transport = args[++i];
+
+                    if (transport == "v1")
+                    {
+                        options.StreamableHttp = false;
+                    }
+                    else if (transport == "v2")
+                    {
+                        options.StreamableHttp = true;
+                    }
                 }
                 else if (arg == "--test" && i + 1 < args.Length)
                 {
@@ -544,6 +559,7 @@ namespace OsEngine.Connectors.TestStand
             public int TimeoutSeconds;
             public bool NoWait;
             public bool LiveTrade;
+            public bool StreamableHttp;
             public string ModuleFilter = string.Empty;
             public string TestFilter = "all";
         }

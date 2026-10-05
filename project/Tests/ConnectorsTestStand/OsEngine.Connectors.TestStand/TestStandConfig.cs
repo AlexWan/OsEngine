@@ -29,6 +29,11 @@ namespace OsEngine.Connectors.TestStand
 
         public int TimeoutSeconds { get; set; } = 60;
 
+        /// <summary>
+        /// MCP transport: "v2" (streamable HTTP, default) or "v1" (legacy).
+        /// </summary>
+        public string Transport { get; set; } = "v2";
+
         public ServerTestsConfig ServerTests { get; set; } = new ServerTestsConfig();
 
         public class ServerTestsConfig

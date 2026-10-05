@@ -13,20 +13,35 @@ namespace OsEngine.Connectors.TestStand
 {
     /// <summary>
     /// Synchronous HTTP client for OsEngine MCP API.
+    /// Supports both transports via the streamableHttp flag:
+    /// - v1: POST /api/v1/mcp (plain JSON-RPC, PascalCase wrapper);
+    /// - v2: /api/v2/mcp (Streamable HTTP: session, MCP-Protocol-Version, camelCase).
+    /// High-level methods (SendRequest/ToolsCall/...) normalize the v2 camelCase
+    /// wrapper back to PascalCase so tool calls are transport-agnostic.
     /// </summary>
     public class McpApiClient : IDisposable
     {
+        private const string ProtocolVersion = "2024-11-05";
+
         private readonly HttpClient _httpClient;
+        private readonly bool _streamableHttp;
+        private string _sessionId;
+        private readonly object _sessionLocker = new object();
 
         public string BaseUrl { get; }
         public string ApiKey { get; }
 
-        public McpApiClient(string baseUrl, string apiKey)
+        public bool StreamableHttp => _streamableHttp;
+
+        private string RpcPath => _streamableHttp ? "/api/v2/mcp" : "/api/v1/mcp";
+
+        public McpApiClient(string baseUrl, string apiKey, bool streamableHttp = true)
         {
             try
             {
                 BaseUrl = baseUrl.TrimEnd('/');
                 ApiKey = apiKey;
+                _streamableHttp = streamableHttp;
                 _httpClient = new HttpClient();
                 _httpClient.DefaultRequestHeaders.Add("X-Api-Key", ApiKey);
             }
@@ -50,12 +65,48 @@ namespace OsEngine.Connectors.TestStand
 
                 string json = JsonSerializer.Serialize(request);
 
-                using (StringContent content = new StringContent(json, Encoding.UTF8, "application/json"))
-                using (HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/v1/mcp") { Content = content })
-                using (HttpResponseMessage response = _httpClient.Send(httpRequest))
+                if (_streamableHttp && method != "initialize")
                 {
-                    response.EnsureSuccessStatusCode();
-                    return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    EnsureSession();
+                }
+
+                using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                using (var httpRequest = new HttpRequestMessage(HttpMethod.Post, BaseUrl + RpcPath) { Content = content })
+                {
+                    httpRequest.Headers.Add("Accept", "application/json, text/event-stream");
+
+                    if (_streamableHttp && method != "initialize")
+                    {
+                        lock (_sessionLocker)
+                        {
+                            if (_sessionId != null)
+                            {
+                                httpRequest.Headers.Add("Mcp-Session-Id", _sessionId);
+                                httpRequest.Headers.Add("MCP-Protocol-Version", ProtocolVersion);
+                            }
+                        }
+                    }
+
+                    using (HttpResponseMessage response = _httpClient.Send(httpRequest))
+                    {
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            string errorBody = string.Empty;
+                            try
+                            {
+                                errorBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                            }
+                            catch
+                            {
+                                // тело ошибки необязательно
+                            }
+
+                            throw new InvalidOperationException($"HTTP {(int)response.StatusCode}: {errorBody}");
+                        }
+
+                        CaptureSession(response);
+                        return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    }
                 }
             }
             catch (Exception error)
@@ -85,7 +136,14 @@ namespace OsEngine.Connectors.TestStand
 
                     if (root.TryGetProperty("result", out JsonElement resultElement))
                     {
-                        return resultElement.GetRawText();
+                        string resultJson = resultElement.GetRawText();
+
+                        if (_streamableHttp)
+                        {
+                            resultJson = NormalizeWrapper(resultJson);
+                        }
+
+                        return resultJson;
                     }
 
                     return "null";
@@ -101,9 +159,9 @@ namespace OsEngine.Connectors.TestStand
         {
             return SendRequest("initialize", new
             {
-                protocolVersion = "2024-11-05",
+                protocolVersion = ProtocolVersion,
                 capabilities = new { },
-                clientInfo = new { name = "ConnectorsTestStand", version = "1.0.0" }
+                clientInfo = new { name = "OsEngine.Connectors.TestStand", version = "1.0.0" }
             });
         }
 
@@ -128,7 +186,7 @@ namespace OsEngine.Connectors.TestStand
                 {
                     SendRequest("initialize", new
                     {
-                        protocolVersion = "2024-11-05",
+                        protocolVersion = ProtocolVersion,
                         capabilities = new { },
                         clientInfo = new { name = "test-stand", version = "1.0.0" }
                     });
@@ -138,12 +196,105 @@ namespace OsEngine.Connectors.TestStand
                 catch (Exception error)
                 {
                     lastError = error.Message;
+
+                    if (lastError.Contains("Encryptor is locked"))
+                    {
+                        return;
+                    }
+
                     Thread.Sleep(500);
                 }
             }
 
             throw new TimeoutException($"MCP API did not become ready in {timeout}. Last error: {lastError}");
         }
+
+        #region Private helpers
+
+        private void EnsureSession()
+        {
+            lock (_sessionLocker)
+            {
+                if (_sessionId != null)
+                {
+                    return;
+                }
+            }
+
+            SendRaw("initialize", new
+            {
+                protocolVersion = ProtocolVersion,
+                capabilities = new { },
+                clientInfo = new { name = "test-stand", version = "1.0.0" }
+            });
+        }
+
+        private void CaptureSession(HttpResponseMessage response)
+        {
+            if (!_streamableHttp)
+            {
+                return;
+            }
+
+            if (response.Headers.TryGetValues("Mcp-Session-Id", out var values))
+            {
+                foreach (string value in values)
+                {
+                    lock (_sessionLocker)
+                    {
+                        _sessionId = value;
+                    }
+                    return;
+                }
+            }
+        }
+
+        // v2 отдаёт camelCase-обёртку, тесты парсят PascalCase — приводим к единому виду
+        private static string NormalizeWrapper(string resultJson)
+        {
+            try
+            {
+                using (JsonDocument document = JsonDocument.Parse(resultJson))
+                {
+                    JsonElement root = document.RootElement;
+
+                    if (root.ValueKind != JsonValueKind.Object)
+                    {
+                        return resultJson;
+                    }
+
+                    if (root.TryGetProperty("content", out JsonElement content)
+                        && content.ValueKind == JsonValueKind.Array)
+                    {
+                        var items = new System.Collections.Generic.List<object>();
+
+                        foreach (JsonElement item in content.EnumerateArray())
+                        {
+                            string type = item.TryGetProperty("type", out JsonElement t) ? t.GetString() ?? "text" : "text";
+                            string text = item.TryGetProperty("text", out JsonElement x) ? x.GetString() ?? string.Empty : string.Empty;
+                            items.Add(new { Type = type, Text = text });
+                        }
+
+                        bool isError = root.TryGetProperty("isError", out JsonElement e) && e.ValueKind == JsonValueKind.True;
+
+                        return JsonSerializer.Serialize(new { Content = items, IsError = isError });
+                    }
+
+                    if (root.TryGetProperty("tools", out JsonElement tools))
+                    {
+                        return JsonSerializer.Serialize(new { Tools = tools });
+                    }
+                }
+            }
+            catch
+            {
+                // нормализация не должна ломать тест — вернём как есть
+            }
+
+            return resultJson;
+        }
+
+        #endregion
 
         public void Dispose()
         {
