@@ -197,12 +197,8 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                if (!CheckApiKeyInformation(PublicKey))
-                {
-                    Disconnect();
-                    return;
-                }
-
+                // проверка ключа выполняется один раз в Connect(). Здесь только быстрые проверки сокетов —
+                // метод вызывается из событий сокетов и не должен делать синхронные REST-запросы
                 if (webSocketPrivate == null
                     || webSocketPrivate?.ReadyState != WebSocketState.Open)
                 {
@@ -273,7 +269,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -323,6 +319,7 @@ namespace OsEngine.Market.Servers.Bybit
             _listMarketDepthLinear.Clear();
             _listMarketDepthInverse.Clear();
             _listMarketDepthOption.Clear();
+            _lastMessageTimeBySocket.Clear();
 
             Disconnect();
         }
@@ -362,7 +359,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Margin mode error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Margin mode error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -399,7 +396,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Position mode error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Position mode error: {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -678,11 +675,21 @@ namespace OsEngine.Market.Servers.Bybit
                     _securities = _securities.OrderBy(s => s.Name).ToList();
                 }
 
+                // словарь разрядностей объёма для быстрого доступа из потоков сокетов — без линейного поиска на каждый тик
+                Dictionary<string, int> volumeDecimals = new Dictionary<string, int>();
+
+                for (int i = 0; i < _securities.Count; i++)
+                {
+                    volumeDecimals[_securities[i].Name] = _securities[i].DecimalsVolume;
+                }
+
+                _volumeDecimalsBySecurity = volumeDecimals;
+
                 SecurityEvent?.Invoke(_securities);
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Securities request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Securities request error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -851,7 +858,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Securities request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Securities request error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -903,7 +910,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                 }
             }
         }
@@ -1029,7 +1036,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"CreateQueryPortfolio>. Portfolio request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"CreateQueryPortfolio>. Portfolio request error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1174,7 +1181,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Position request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Position request error. {ex.ToString()}", LogMessageType.Error);
                 return positionOnBoards;
             }
         }
@@ -1282,7 +1289,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Position request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Position request error. {ex.ToString()}", LogMessageType.Error);
                 return positionOnBoards;
             }
         }
@@ -1405,7 +1412,7 @@ namespace OsEngine.Market.Servers.Bybit
                         {
                             SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                         }
-                            
+
                         break;
                     }
 
@@ -1437,7 +1444,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Candles request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"Candles request error. {ex.ToString()}", LogMessageType.Error);
             }
 
             return null;
@@ -1450,7 +1457,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 result = CreatePublicQuery(parameters, Method.GET, "/v5/market/kline");
 
-                if (result.Content != null 
+                if (result.Content != null
                     && !result.Content.Contains("\"retCode\":10006"))
                 {
                     break;
@@ -1503,7 +1510,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetListCandles>. Candles request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"GetListCandles>. Candles request error. {ex.ToString()}", LogMessageType.Error);
                 return new List<Candle>();
             }
             return candles;
@@ -1579,7 +1586,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1597,7 +1604,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicSpot.OnError += WebSocketPublic_Error;
             webSocketPublicSpot.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicSpot.ConnectAsync();
+            webSocketPublicSpot.ConnectAsync(TimeSpan.FromSeconds(30)); // таймаут на установку соединения, иначе на мёртвом маршруте нет ни OnOpen, ни OnError
 
             return webSocketPublicSpot;
         }
@@ -1616,7 +1623,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicLinear.OnError += WebSocketPublic_Error;
             webSocketPublicLinear.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicLinear.ConnectAsync();
+            webSocketPublicLinear.ConnectAsync(TimeSpan.FromSeconds(30)); // таймаут на установку соединения, иначе на мёртвом маршруте нет ни OnOpen, ни OnError
 
             return webSocketPublicLinear;
         }
@@ -1636,7 +1643,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicInverse.OnError += WebSocketPublic_Error;
             webSocketPublicInverse.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicInverse.ConnectAsync();
+            webSocketPublicInverse.ConnectAsync(TimeSpan.FromSeconds(30)); // таймаут на установку соединения, иначе на мёртвом маршруте нет ни OnOpen, ни OnError
 
             return webSocketPublicInverse;
         }
@@ -1656,7 +1663,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicOption.OnError += WebSocketPublic_Error;
             webSocketPublicOption.OnClose += WebSocketPublic_Closed;
 
-            webSocketPublicOption.ConnectAsync();
+            webSocketPublicOption.ConnectAsync(TimeSpan.FromSeconds(30)); // таймаут на установку соединения, иначе на мёртвом маршруте нет ни OnOpen, ни OnError
 
             return webSocketPublicOption;
         }
@@ -1679,11 +1686,11 @@ namespace OsEngine.Market.Servers.Bybit
                 webSocketPrivate.OnError += WebSocketPrivate_Error;
                 webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
 
-                webSocketPrivate.ConnectAsync();
+                webSocketPrivate.ConnectAsync(TimeSpan.FromSeconds(30)); // таймаут на установку соединения, иначе на мёртвом маршруте нет ни OnOpen, ни OnError
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1704,7 +1711,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1753,7 +1760,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1779,9 +1786,19 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void WebSocketPrivate_MessageReceived(object sender, MessageEventArgs e)
         {
+            if (sender is WebSocket webSocket)
+            {
+                _lastMessageTimeBySocket[webSocket] = DateTime.UtcNow;
+            }
+
             if (ServerStatus != ServerConnectStatus.Connect)
             {
-                return;
+                // пропускаем только ответ авторизации — его нужно обработать независимо от статуса
+                if (e.Data == null
+                    || !e.Data.Contains("\"op\":\"auth\""))
+                {
+                    return;
+                }
             }
 
             if (concurrentQueueMessagePrivateWebSocket != null)
@@ -1792,6 +1809,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void WebSocketPublic_MessageReceivedSpot(object sender, MessageEventArgs e)
         {
+            if (sender is WebSocket webSocket)
+            {
+                _lastMessageTimeBySocket[webSocket] = DateTime.UtcNow;
+            }
+
             if (ServerStatus != ServerConnectStatus.Connect)
             {
                 return;
@@ -1805,6 +1827,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void WebSocketPublic_MessageReceivedLinear(object sender, MessageEventArgs e)
         {
+            if (sender is WebSocket webSocket)
+            {
+                _lastMessageTimeBySocket[webSocket] = DateTime.UtcNow;
+            }
+
             if (ServerStatus != ServerConnectStatus.Connect)
             {
                 return;
@@ -1818,6 +1845,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void WebSocketPublicInverse_OnMessage(object sender, MessageEventArgs e)
         {
+            if (sender is WebSocket webSocket)
+            {
+                _lastMessageTimeBySocket[webSocket] = DateTime.UtcNow;
+            }
+
             if (ServerStatus != ServerConnectStatus.Connect)
             {
                 return;
@@ -1831,6 +1863,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void WebSocketPublicOption_OnMessage(object sender, MessageEventArgs e)
         {
+            if (sender is WebSocket webSocket)
+            {
+                _lastMessageTimeBySocket[webSocket] = DateTime.UtcNow;
+            }
+
             if (ServerStatus != ServerConnectStatus.Connect)
             {
                 return;
@@ -1888,7 +1925,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1900,6 +1937,8 @@ namespace OsEngine.Market.Servers.Bybit
         #endregion 7
 
         #region 8 WebSocket check alive
+
+        private ConcurrentDictionary<WebSocket, DateTime> _lastMessageTimeBySocket = new ConcurrentDictionary<WebSocket, DateTime>();
 
         private void ThreadCheckAliveWebSocketThread()
         {
@@ -1919,11 +1958,8 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    if (!CheckApiKeyInformation(PublicKey))
-                    {
-                        continue;
-                    }
-
+                    // живость проверяем ping-пакетами и контролем входящих сообщений (CheckSocketsAliveByLastMessage),
+                    // без синхронного REST-запроса — он мог висеть бесконечно при мёртвом соединении
                     for (int i = 0; i < _webSocketPublicSpot.Count; i++)
                     {
                         WebSocket webSocketPublicSpot = _webSocketPublicSpot[i];
@@ -1967,12 +2003,90 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         webSocketPrivate?.SendAsync("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                     }
+
+                    CheckSocketsAliveByLastMessage();
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                 }
             }
+        }
+
+        private void CheckSocketsAliveByLastMessage()
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    return;
+                }
+
+                DateTime timeNow = DateTime.UtcNow;
+                bool hasDeadSocket = false;
+
+                for (int i = 0; i < _webSocketPublicSpot.Count; i++)
+                {
+                    hasDeadSocket |= IsSocketDeadByTimeout(_webSocketPublicSpot[i], timeNow, "public spot " + i);
+                }
+
+                for (int i = 0; i < _webSocketPublicLinear.Count; i++)
+                {
+                    hasDeadSocket |= IsSocketDeadByTimeout(_webSocketPublicLinear[i], timeNow, "public linear " + i);
+                }
+
+                for (int i = 0; i < _webSocketPublicInverse.Count; i++)
+                {
+                    hasDeadSocket |= IsSocketDeadByTimeout(_webSocketPublicInverse[i], timeNow, "public inverse " + i);
+                }
+
+                for (int i = 0; i < _webSocketPublicOption.Count; i++)
+                {
+                    hasDeadSocket |= IsSocketDeadByTimeout(_webSocketPublicOption[i], timeNow, "public option " + i);
+                }
+
+                hasDeadSocket |= IsSocketDeadByTimeout(webSocketPrivate, timeNow, "private");
+
+                if (hasDeadSocket)
+                {
+                    // сокет мёртв — уходим в Disconnect, дальше движок штатно запускает реконнект
+                    Disconnect();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool IsSocketDeadByTimeout(WebSocket socket, DateTime timeNow, string socketName)
+        {
+            if (socket == null)
+            {
+                // при активном статусе сокет обязан существовать — его отсутствие означает сломанное состояние
+                SendLogMessage($"Bybit WebSocket {socketName} is null while server is connected", LogMessageType.Error);
+                return true;
+            }
+
+            if (socket.ReadyState != WebSocketState.Open)
+            {
+                SendLogMessage($"Bybit WebSocket {socketName} state is {socket.ReadyState} while server is connected", LogMessageType.Error);
+                return true;
+            }
+
+            // первый заход только фиксирует время — даём сокету полный таймаут на первое сообщение или pong
+            DateTime lastMessageTime = _lastMessageTimeBySocket.GetOrAdd(socket, timeNow);
+
+            double silenceSeconds = (timeNow - lastMessageTime).TotalSeconds;
+
+            // порог ~3 интервала ping (19 сек): за это время на живом сокете гарантированно приходит хотя бы pong
+            if (silenceSeconds > 60)
+            {
+                SendLogMessage($"Bybit WebSocket {socketName}: no messages for {silenceSeconds:F0} seconds. Connection is dead", LogMessageType.Error);
+                return true;
+            }
+
+            return false;
         }
 
         #endregion  8
@@ -2256,7 +2370,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
         }
         private void GetFundingData(string security)
@@ -2331,7 +2445,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                 }
             }
             webSocketPrivate = null;
@@ -2373,7 +2487,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                         }
 
                         if (webSocketPublicSpot.ReadyState == WebSocketState.Open)
@@ -2387,7 +2501,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
 
             _webSocketPublicSpot.Clear();
@@ -2424,7 +2538,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                         }
 
                         if (webSocketPublicLinear.ReadyState == WebSocketState.Open)
@@ -2439,7 +2553,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
 
             _webSocketPublicLinear.Clear();
@@ -2476,7 +2590,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                         }
 
                         if (webSocketPublicInverse.ReadyState == WebSocketState.Open)
@@ -2491,7 +2605,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
 
             _webSocketPublicInverse.Clear();
@@ -2530,7 +2644,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                         catch (Exception ex)
                         {
-                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                            SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
                         }
 
                         if (webSocketPublicOption.ReadyState == WebSocketState.Open)
@@ -2545,7 +2659,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"{ex.ToString()}", LogMessageType.Error);
             }
 
             _webSocketPublicOption.Clear();
@@ -2705,7 +2819,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(3000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -2734,10 +2848,23 @@ namespace OsEngine.Market.Servers.Bybit
                         }
 
                         SubscribeMessage subscribeMessage =
-                          JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
+                           JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
 
                         if (subscribeMessage.op == "pong")
                         {
+                            continue;
+                        }
+
+                        if (subscribeMessage.op == "auth")
+                        {
+                            if (subscribeMessage.success != null
+                                && subscribeMessage.success.ToLower() == "false")
+                            {
+                                // ошибка авторизации приватного потока — логируем причину и уходим в реконнект
+                                SendLogMessage("Bybit WebSocket private auth error: " + subscribeMessage.ret_msg, LogMessageType.Error);
+                                Disconnect();
+                            }
+
                             continue;
                         }
 
@@ -2762,7 +2889,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(3000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -2819,18 +2946,19 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
+        private Dictionary<string, int> _volumeDecimalsBySecurity = new Dictionary<string, int>();
+
         private int GetVolumeDecimals(string security)
         {
-            for (int i = 0; i < _securities.Count; i++)
+            int decimals;
+
+            if (_volumeDecimalsBySecurity.TryGetValue(security, out decimals))
             {
-                if (security == _securities[i].Name)
-                {
-                    return _securities[i].DecimalsVolume;
-                }
+                return decimals;
             }
 
             return 0;
@@ -2923,7 +3051,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2966,7 +3094,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3010,7 +3138,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3054,7 +3182,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3098,7 +3226,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3319,7 +3447,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3372,7 +3500,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3414,7 +3542,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3456,7 +3584,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3498,7 +3626,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -3548,24 +3676,17 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private decimal GetOpenInterest(string securityNameCode)
         {
-            if (_allTickers.Count == 0
-                || _allTickers == null)
-            {
-                return 0;
-            }
+            Tickers ticker;
 
-            for (int i = 0; i < _allTickers.Count; i++)
+            if (_allTickers.TryGetValue(securityNameCode, out ticker))
             {
-                if (_allTickers[i].SecurityName == securityNameCode)
-                {
-                    return _allTickers[i].OpenInterest.ToDecimal();
-                }
+                return ticker.OpenInterest.ToDecimal();
             }
 
             return 0;
@@ -3579,7 +3700,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private ConcurrentQueue<string> _concurrentQueueTickersOption = new ConcurrentQueue<string>();
 
-        private List<Tickers> _allTickers = new List<Tickers>();
+        private ConcurrentDictionary<string, Tickers> _allTickers = new ConcurrentDictionary<string, Tickers>();
 
         private void UpdateTicker(string message, Category category)
         {
@@ -3637,23 +3758,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (responseTicker.data.openInterestValue != null)
                 {
                     tickers.OpenInterest = responseTicker.data.openInterestValue;
-
-                    bool isInArray = false;
-
-                    for (int i = 0; i < _allTickers.Count; i++)
-                    {
-                        if (_allTickers[i].SecurityName == tickers.SecurityName)
-                        {
-                            _allTickers[i].OpenInterest = tickers.OpenInterest;
-                            isInArray = true;
-                            break;
-                        }
-                    }
-
-                    if (isInArray == false)
-                    {
-                        _allTickers.Add(tickers);
-                    }
+                    _allTickers[tickers.SecurityName] = tickers;
                 }
 
                 Funding funding = new Funding();
@@ -3677,7 +3782,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3766,7 +3871,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 parameters["side"] = side;
-                parameters["order_type"] = type;
+                parameters["orderType"] = type;
                 parameters["qty"] = order.Volume.ToString().Replace(",", ".");
 
                 if (order.TypeOrder == OrderPriceType.Limit)
@@ -3830,7 +3935,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3901,7 +4006,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage("ChangeOrderPrice Fail. " + order.SecurityNameCode + ex.Message, LogMessageType.Error);
+                SendLogMessage("ChangeOrderPrice Fail. " + order.SecurityNameCode + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3994,7 +4099,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($" Cancel Order Error. Order num {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($" Cancel Order Error. Order num {ex.ToString()}", LogMessageType.Error);
                 return false;
             }
         }
@@ -4030,7 +4135,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"CancelAllOrdersToSecurity>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"CancelAllOrdersToSecurity>. Order error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -4047,7 +4152,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"CancelAllOrders>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"CancelAllOrders>. Order error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -4064,7 +4169,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetAllActivOrders>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"GetAllActivOrders>. Order error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -4287,7 +4392,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetOpenOrders>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"GetOpenOrders>. Order error. {ex.ToString()}", LogMessageType.Error);
                 return;
             }
         }
@@ -4374,7 +4479,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetMyTradesHistory>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"GetMyTradesHistory>. Order error. {ex.ToString()}", LogMessageType.Error);
                 return null;
             }
         }
@@ -4514,7 +4619,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"GetOrderStatus>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"GetOrderStatus>. Order error. {ex.ToString()}", LogMessageType.Error);
             }
 
             return OrderStateType.None;
@@ -4525,6 +4630,8 @@ namespace OsEngine.Market.Servers.Bybit
         #region 12 Query
 
         private const string RecvWindow = "50000";
+
+        private const int RestTimeoutMls = 15000;
 
         private static readonly RateGate _sharedRateGate = new RateGate(1, TimeSpan.FromMilliseconds(15));
 
@@ -4580,7 +4687,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return false;
             }
 
@@ -4626,6 +4733,7 @@ namespace OsEngine.Market.Servers.Bybit
                 request.AddHeader("referer", "OsEngine");
 
                 RestClient client = new RestClient(RestUrl);
+                client.Timeout = RestTimeoutMls; // без таймаута Execute висит бесконечно на мёртвом соединении и замораживает поток реконнекта движка
 
                 if (_myProxy != null)
                 {
@@ -4658,10 +4766,10 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 //if (ex.Message.Contains("A task was canceled") == false)
                 //{
-                //    SendLogMessage(ex.Message, LogMessageType.Error);
+                //    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 //}
 
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
 
                 return null;
             }
@@ -4681,6 +4789,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 RestRequest requestRest = new RestRequest(path, method);
                 RestClient client = new RestClient(RestUrl);
+                client.Timeout = RestTimeoutMls; // см. CreatePrivateQuery
 
                 if (_myProxy != null)
                 {
@@ -4713,10 +4822,10 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 //if (ex.Message.Contains("A task was canceled") == false)
                 //{
-                //    SendLogMessage(ex.Message, LogMessageType.Error);
+                //    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 //}
 
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -4749,6 +4858,7 @@ namespace OsEngine.Market.Servers.Bybit
                     long UtcNowUnixTimeMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     RestRequest requestRest = new RestRequest("/v5/market/time", Method.GET);
                     RestClient client = new RestClient(RestUrl);
+                    client.Timeout = RestTimeoutMls; // см. CreatePrivateQuery
 
                     if (_myProxy != null)
                     {
@@ -4792,10 +4902,10 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     //if (ex.Message.Contains("A task was canceled") == false)
                     //{
-                    //    SendLogMessage(ex.Message, LogMessageType.Error);
+                    //    SendLogMessage(ex.ToString(), LogMessageType.Error);
                     //}
 
-                    SendLogMessage(ex.Message, LogMessageType.Error);
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
 
                 return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -4874,7 +4984,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                SendLogMessage($"SetLeverage: {security.Name} - {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage($"SetLeverage: {security.Name} - {ex.ToString()}", LogMessageType.Error);
             }
         }
 
