@@ -51,6 +51,7 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false); // 12
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword); // 13
             CreateParameterBoolean(OsLocalization.Market.ReconnectingAfterNoneOrder, true); // 14
+            CreateParameterBoolean(OsLocalization.Market.UseCreditMargin, true); // 15
 
             ServerParameters[4].Comment = OsLocalization.Market.Label160;
             ServerParameters[5].Comment = OsLocalization.Market.Label193;
@@ -63,6 +64,7 @@ namespace OsEngine.Market.Servers.Transaq
             ServerParameters[12].Comment = OsLocalization.Market.Label309;
             ServerParameters[13].Comment = OsLocalization.Market.Label105;
             ServerParameters[14].Comment = OsLocalization.Market.Label315;
+            ServerParameters[15].Comment = OsLocalization.Market.UseCreditMarginDescription;
         }
     }
 
@@ -168,6 +170,7 @@ namespace OsEngine.Market.Servers.Transaq
             _fullLog = ((ServerParameterBool)ServerParameters[12]).Value;
             ServerParameterButton btn = ((ServerParameterButton)ServerParameters[13]);
             _reconectingAfterNone = ((ServerParameterBool)ServerParameters[14]).Value;
+            _useCredit = ((ServerParameterBool)ServerParameters[15]).Value;
 
             IServerParameter fullDepthParam = ServerParameters.Find(p => p.Name == OsLocalization.Market.ServerParam10);
 
@@ -439,6 +442,10 @@ namespace OsEngine.Market.Servers.Transaq
         private bool _fullMarketDepthIsOn;
 
         private bool _reconectingAfterNone = false;
+
+        private bool _useCredit = true;
+
+        private ConcurrentDictionary<string, bool> _securityUseCredit = new ConcurrentDictionary<string, bool>();
 
         #endregion
 
@@ -900,6 +907,11 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             security.SecurityType = SecurityType.Bond;
                         }
+
+                        bool useCreditAllowed = securityData.Opmask != null
+                            && securityData.Opmask.Usecredit == "yes";
+
+                        _securityUseCredit[security.Name + "_" + security.NameClass] = useCreditAllowed;
 
                         security.Lot = securityData.Lotsize.ToDecimal();
 
@@ -2218,9 +2230,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                 order.Comment = order.NumberUser.ToString();
 
-                if (needSec.NameClass == "TQBR")
+                if (_useCredit
+                    && needSec.SecurityType != SecurityType.Futures
+                    && needSec.SecurityType != SecurityType.Option
+                    && IsUseCreditAllowed(needSec))
                 {
-                    cmd += "<usecredit> true </usecredit>";
+                    cmd += "<usecredit/>";
                 }
 
                 if (needSec.NameClass == "FUT")
@@ -2271,6 +2286,18 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private bool IsUseCreditAllowed(Security security)
+        {
+            string key = security.Name + "_" + security.NameClass;
+
+            if (_securityUseCredit.TryGetValue(key, out bool allowed))
+            {
+                return allowed;
+            }
+
+            return false;
         }
 
         private List<Order> _sendOrders = new List<Order>();
