@@ -1254,6 +1254,15 @@ namespace OsEngine.Market.Servers.TInvest
                 candles = GetCandleHistoryFromDays(fromDateTime, toDateTime, security, tf, tryCount);
             }
 
+            if (tf == TimeFrame.Day
+                && candles != null)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].TimeStart = candles[i].TimeStart.Date;
+                }
+            }
+
             return candles;
         }
 
