@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.TInvest.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1396,11 +1397,11 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         private decimal GetTotalVariationMargin(PortfolioResponse portfolio)
-        {
+                {
             if (portfolio.TotalVarMarginSettled != null)
             {   // общая расчётная вар. маржа, которая будет начислена/списана в клиринг
                 return GetValue(portfolio.TotalVarMarginSettled);
-            }
+                }
 
             if (portfolio.TotalVarMargin != null)
             {   // общая текущая вар. маржа
@@ -6375,16 +6376,6 @@ namespace OsEngine.Market.Servers.TInvest
         public event Action<SecurityVolumes> Volume24hUpdateEvent { add { } remove { } }
 
         #endregion
-    }
-
-    public class MarketDataStreamWrapper
-    {
-        public AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> StreamClient { get; set; }
-        public List<MarketDataRequest> Subscriptions { get; set; } = new List<MarketDataRequest>();
-        public bool IsConnected { get; set; }
-        public DateTime LastMessageTime { get; set; }
-        public string Name { get; set; } // For logging purposes
-        public Task ReadingTask { get; set; }
     }
 
     public class TinSecuritiesData
