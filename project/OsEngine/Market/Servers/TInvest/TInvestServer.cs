@@ -2000,6 +2000,15 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            if (tf == TimeFrame.Day
+                && candles != null)
+            {
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    candles[i].TimeStart = candles[i].TimeStart.Date;
+                }
+            }
+
             _getCandlesErrorsCount = 0;
             return candles;
         }
