@@ -74,6 +74,12 @@ namespace OsEngine.Robots.SyntheticBond
         private StrategyParameterBool _resetErrorsAtStartOfDay;
         private StrategyParameterInt _delayInRealMs;
 
+        private StrategyParameterInt _alignMaxAgeSec;
+        private StrategyParameterInt _maxDataAgeSec;
+        private StrategyParameterInt _maxClockSkewSec;
+        private StrategyParameterInt _unhedgedMaxBlockSec;
+        private StrategyParameterInt _closingTimeoutSec;
+
         private NonTradePeriods _tradePeriodsSettings;
         private StrategyParameterButton _tradePeriodButton;
 
@@ -138,6 +144,12 @@ namespace OsEngine.Robots.SyntheticBond
             _failCancelOrdersToReaction = CreateParameter("Fail cancel orders to reaction", 10, 1, 1000, 1, "Errors reaction");
             _resetErrorsAtStartOfDay = CreateParameter("Reset error counters at start of day", true, "Errors reaction");
             _delayInRealMs = CreateParameter("Delay in real, ms", 3000, 0, 10000, 100, "Errors reaction");
+
+            _alignMaxAgeSec = CreateParameter("Align max age, sec", 120, 10, 3600, 10, "Errors reaction");
+            _maxDataAgeSec = CreateParameter("Max data age, sec", 5, 1, 600, 1, "Errors reaction");
+            _maxClockSkewSec = CreateParameter("Max clock skew, sec", 5, 1, 600, 1, "Errors reaction");
+            _unhedgedMaxBlockSec = CreateParameter("Unhedged max block, sec", 600, 60, 86400, 60, "Errors reaction");
+            _closingTimeoutSec = CreateParameter("Closing state timeout, sec", 20, 5, 600, 5, "Errors reaction");
 
             _LqdtRegimeIsOn = CreateParameter("LQDT regime is on", true, "LQDT");
             _LqdtYieldDays = CreateParameter("LQDT yield days", 10, 5, 60, 5, "LQDT");
@@ -418,6 +430,22 @@ namespace OsEngine.Robots.SyntheticBond
 
         private readonly Dictionary<string, DateTime> _exitStartTime = new Dictionary<string, DateTime>();
 
+        private readonly List<UnhedgedLeg> _unhedgedLegs = new List<UnhedgedLeg>();
+        private bool _unhedgedFlag;
+        private DateTime _unhedgedSince = DateTime.MinValue;
+        private DateTime _lastUnhedgedLogTime = DateTime.MinValue;
+        private bool _dataAgeWarned;
+
+        // a leg that must be closed but could not be closed in one pass; driven by TryCloseUnhedgedLegs
+        private sealed class UnhedgedLeg
+        {
+            public BotTabSimple Tab;
+            public Position Pos;
+            public int Stage;
+            public DateTime StageTime;
+            public DateTime LastCloseTryAt;
+        }
+
         private void ScalperLogic()
         {
             TryResetErrorsAtStartOfDay();
@@ -428,6 +456,9 @@ namespace OsEngine.Robots.SyntheticBond
             }
 
             TryTimeoutLimitOrders();
+
+            // non-blocking: advance the scheduled close of unhedged legs registered earlier
+            TryCloseUnhedgedLegs();
 
             TryAlignPairs();
 
@@ -579,10 +610,42 @@ namespace OsEngine.Robots.SyntheticBond
                 (BotTabSimple baseTab, Position basePos, BotTabSimple futTab, Position futPos, DateTime time, int stage, DateTime stageTime, decimal initialBaseVolume, decimal alignVolumeNet, Position alignPos) = _pendingPairs[i];
 
                 if (baseTab == null
-                    || basePos == null
-                    || futTab == null
+                    || futTab == null)
+                {
+                    _pendingPairs.RemoveAt(i);
+                    continue;
+                }
+
+                // null legs: decide only after the entry timeout, then register the surviving leg
+                // for the scheduled close instead of dropping it silently
+                if (basePos == null
                     || futPos == null)
                 {
+                    if ((DateTime.Now - time).TotalSeconds < _limitOrderTimeoutSec.ValueInt + 2)
+                    {
+                        continue;
+                    }
+
+                    RegisterUnhedgedLeg(baseTab, basePos);
+                    RegisterUnhedgedLeg(futTab, futPos);
+
+                    LogFull("ALIGN: leg was not opened, pair from " + time.ToString("HH:mm:ss")
+                        + " removed, surviving leg registered for close");
+
+                    _pendingPairs.RemoveAt(i);
+                    continue;
+                }
+
+                // terminal (B): pair did not converge in _alignMaxAgeSec, hand the legs to the closer
+                if ((DateTime.Now - time).TotalSeconds > _alignMaxAgeSec.ValueInt)
+                {
+                    RegisterUnhedgedLeg(baseTab, basePos);
+                    RegisterUnhedgedLeg(baseTab, alignPos);
+                    RegisterUnhedgedLeg(futTab, futPos);
+
+                    LogFull("ALIGN max age reached, pair from " + time.ToString("HH:mm:ss")
+                        + " removed, legs registered for flatten");
+
                     _pendingPairs.RemoveAt(i);
                     continue;
                 }
@@ -628,9 +691,237 @@ namespace OsEngine.Robots.SyntheticBond
                     AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 3 final",
                         ref initialBaseVolume, ref alignVolumeNet, ref alignPos);
 
+                    // если пара всё ещё не сбалансирована — ноги уходят в плановое закрытие,
+                    // а не теряются вместе с парой
+                    if (!IsPairBalanced(baseTab, basePos, futPos, alignPos))
+                    {
+                        RegisterUnhedgedLeg(baseTab, basePos);
+                        RegisterUnhedgedLeg(baseTab, alignPos);
+                        RegisterUnhedgedLeg(futTab, futPos);
+
+                        LogFull("ALIGN not balanced, pair from " + time.ToString("HH:mm:ss")
+                            + " removed, legs registered for flatten");
+                    }
+
                     _pendingPairs.RemoveAt(i);
                 }
             }
+        }
+
+        private bool IsPairBalanced(BotTabSimple baseTab, Position basePos, Position futPos, Position alignPos)
+        {
+            decimal baseLot = 1;
+
+            if (baseTab.Security != null
+                && baseTab.Security.Lot > 1)
+            {
+                baseLot = baseTab.Security.Lot;
+            }
+
+            decimal mult = GetMultByBase(baseTab);
+            decimal expectedBase = Math.Floor(futPos.OpenVolume * mult / baseLot);
+            decimal actualBase = (basePos != null ? basePos.OpenVolume : 0)
+                + (alignPos != null ? alignPos.OpenVolume : 0);
+
+            return Math.Abs(expectedBase - actualBase) < baseLot;
+        }
+
+        /// <summary>
+        /// any close path (terminal flatten, null/failed entry leg) registers the leg here;
+        /// TryCloseUnhedgedLegs then closes it in non-blocking scheduled passes
+        /// </summary>
+        private void RegisterUnhedgedLeg(BotTabSimple tab, Position pos)
+        {
+            if (tab == null
+                || pos == null
+                || pos.OpenVolume <= 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _unhedgedLegs.Count; i++)
+            {
+                if (_unhedgedLegs[i].Tab == tab
+                    && _unhedgedLegs[i].Pos == pos)
+                {
+                    return;
+                }
+            }
+
+            _unhedgedLegs.Add(new UnhedgedLeg
+            {
+                Tab = tab,
+                Pos = pos,
+                Stage = 0,
+                StageTime = DateTime.Now,
+                LastCloseTryAt = DateTime.MinValue
+            });
+
+            if (_unhedgedFlag == false)
+            {
+                _unhedgedFlag = true;
+                _unhedgedSince = DateTime.Now;
+            }
+
+            LogFull("UNHEDGED: leg registered for close. Position " + pos.Number
+                + " on " + tab.Connector?.SecurityName + ", volume " + pos.OpenVolume);
+        }
+
+        /// <summary>
+        /// non-blocking per-pass driver: cancel orders, then close at market after the pause,
+        /// with a timeout for a leg stuck in the Closing state
+        /// </summary>
+        private void TryCloseUnhedgedLegs()
+        {
+            if (_unhedgedLegs.Count == 0)
+            {
+                _unhedgedFlag = false;
+                return;
+            }
+
+            for (int i = _unhedgedLegs.Count - 1; i >= 0; i--)
+            {
+                UnhedgedLeg leg = _unhedgedLegs[i];
+
+                if (leg == null
+                    || leg.Tab == null
+                    || leg.Pos == null
+                    || leg.Pos.OpenVolume <= 0)
+                {
+                    _unhedgedLegs.RemoveAt(i);
+                    continue;
+                }
+
+                if (leg.Stage == 0)
+                { // cancel possible active orders, close on a later pass
+                    leg.Tab.CloseAllOrderToPosition(leg.Pos);
+                    leg.Stage = 1;
+                    leg.StageTime = DateTime.Now;
+
+                    LogUnhedgedThrottled("UNHEDGED: cancelling orders of position " + leg.Pos.Number);
+                    continue;
+                }
+
+                if (leg.Stage == 1)
+                { // non-blocking pause, then close at market
+                    if ((DateTime.Now - leg.StageTime).TotalSeconds < GetAlignPauseSec())
+                    {
+                        continue;
+                    }
+
+                    if (leg.Pos.State == PositionStateType.Closing
+                        && leg.LastCloseTryAt != DateTime.MinValue
+                        && (DateTime.Now - leg.LastCloseTryAt).TotalSeconds < _closingTimeoutSec.ValueInt)
+                    {
+                        continue; // close already in progress
+                    }
+
+                    leg.Tab.CloseAtMarket(leg.Pos, leg.Pos.OpenVolume);
+                    leg.LastCloseTryAt = DateTime.Now;
+                    leg.Stage = 2;
+
+                    LogUnhedgedThrottled("UNHEDGED: close at market position " + leg.Pos.Number
+                        + ", volume " + leg.Pos.OpenVolume);
+                    continue;
+                }
+
+                // Stage 2: wait for the fill
+                if (leg.Pos.State == PositionStateType.Closing
+                    && (DateTime.Now - leg.LastCloseTryAt).TotalSeconds > _closingTimeoutSec.ValueInt)
+                { // stuck in Closing: force cancel and close again
+                    leg.Tab.CloseAllOrderToPosition(leg.Pos);
+                    leg.Tab.CloseAtMarket(leg.Pos, leg.Pos.OpenVolume);
+                    leg.LastCloseTryAt = DateTime.Now;
+
+                    LogUnhedgedThrottled("UNHEDGED: forced retry closing position " + leg.Pos.Number);
+                    continue;
+                }
+
+                if (leg.Pos.State != PositionStateType.Closing)
+                { // close was rejected or did not start, retry from stage 1
+                    leg.Stage = 1;
+                    leg.StageTime = DateTime.Now;
+                }
+            }
+
+            if (_unhedgedLegs.Count == 0)
+            {
+                _unhedgedFlag = false;
+            }
+        }
+
+        private void LogUnhedgedThrottled(string message)
+        {
+            if ((DateTime.Now - _lastUnhedgedLogTime).TotalSeconds < 60)
+            {
+                return;
+            }
+
+            _lastUnhedgedLogTime = DateTime.Now;
+
+            LogFull(message);
+        }
+
+        /// <summary>
+        /// price (PriceBest*) and volumes both come from the order book feed, so freshness is
+        /// measured by MarketDepth.Time; missing landmarks skip the gate instead of blocking
+        /// </summary>
+        private bool IsDataFresh(BotTabSimple baseTab, BotTabSimple futTab, MarketDepth baseBook, MarketDepth futBook)
+        {
+            DateTime baseNow = baseTab.TimeServerCurrent;
+            DateTime futNow = futTab.TimeServerCurrent;
+
+            if (baseNow != DateTime.MinValue
+                && baseBook != null
+                && baseBook.Time != DateTime.MinValue)
+            {
+                double baseAge = Math.Abs((baseNow - baseBook.Time).TotalSeconds);
+
+                if (baseAge > _maxDataAgeSec.ValueInt)
+                {
+                    LogDataStaleOnce("base data age " + Math.Round(baseAge, 1) + " sec");
+                    return false;
+                }
+            }
+
+            if (futNow != DateTime.MinValue
+                && futBook != null
+                && futBook.Time != DateTime.MinValue)
+            {
+                double futAge = Math.Abs((futNow - futBook.Time).TotalSeconds);
+
+                if (futAge > _maxDataAgeSec.ValueInt)
+                {
+                    LogDataStaleOnce("futures data age " + Math.Round(futAge, 1) + " sec");
+                    return false;
+                }
+            }
+
+            if (baseNow != DateTime.MinValue
+                && futNow != DateTime.MinValue)
+            {
+                double skew = Math.Abs((baseNow - futNow).TotalSeconds);
+
+                if (skew > _maxClockSkewSec.ValueInt)
+                {
+                    LogDataStaleOnce("clock skew " + Math.Round(skew, 1) + " sec");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void LogDataStaleOnce(string details)
+        {
+            if (_dataAgeWarned)
+            {
+                return;
+            }
+
+            _dataAgeWarned = true;
+
+            LogFull("WARN ENTRY skipped: stale/desync data (" + details + ")");
         }
 
         private double GetAlignPauseSec()
@@ -667,8 +958,17 @@ namespace OsEngine.Robots.SyntheticBond
             decimal mult = GetMultByBase(baseTab);
 
             decimal expectedBase = Math.Floor(futPos.OpenVolume * mult / baseLot);
-            decimal actualBase = initialBaseVolume + alignVolumeNet;
+            decimal actualBase = basePos.OpenVolume + (alignPos != null ? alignPos.OpenVolume : 0);
             decimal diff = expectedBase - actualBase;
+
+            // не трогаем ногу, пока по ней есть незавершённые заявки или она ещё открывается:
+            // иначе diff посчитается по неполному объёму и будет повторная докупка
+            if (basePos.State == PositionStateType.Opening
+                || OrdersHasActive(basePos.OpenOrders)
+                || (alignPos != null && (alignPos.State == PositionStateType.Opening || OrdersHasActive(alignPos.OpenOrders))))
+            {
+                return;
+            }
 
             if (diff >= baseLot)
             { // докупка базы: доливка в живую позицию, либо новая позиция если нога умерла
@@ -679,8 +979,6 @@ namespace OsEngine.Robots.SyntheticBond
                     LogFull(logTag + ": pair from " + entryTime.ToString("HH:mm:ss")
                         + " | base " + actualBase + " / fut " + futPos.OpenVolume
                         + " | buy base to position " + diff);
-
-                    alignVolumeNet += diff;
                 }
                 else
                 {
@@ -694,7 +992,6 @@ namespace OsEngine.Robots.SyntheticBond
                     if (newPos != null)
                     {
                         alignPos = newPos;
-                        alignVolumeNet += diff;
                     }
                 }
             }
@@ -712,7 +1009,6 @@ namespace OsEngine.Robots.SyntheticBond
                         + " | base " + actualBase + " / fut " + futPos.OpenVolume
                         + " | close base from position " + closeV);
 
-                    alignVolumeNet -= closeV;
                     toClose -= closeV;
                 }
 
@@ -727,7 +1023,6 @@ namespace OsEngine.Robots.SyntheticBond
                         + " | base " + actualBase + " / fut " + futPos.OpenVolume
                         + " | close base from align pos " + closeV);
 
-                    alignVolumeNet -= closeV;
                     toClose -= closeV;
                 }
 
@@ -788,7 +1083,10 @@ namespace OsEngine.Robots.SyntheticBond
             LogFull("HEARTBEAT: regime " + _regime.ValueString
                 + " | best yield " + Math.Round(_lastBestYieldAnn, 2) + "% ann"
                 + " | free " + Math.Round(GetFreeMoneyWithGo(), 0)
-                + " | open pairs " + openPairs);
+                + " | open pairs " + openPairs
+                + " | pending pairs " + _pendingPairs.Count
+                + " | unhedged legs " + _unhedgedLegs.Count
+                + (_unhedgedFlag ? " (UNHEDGED)" : ""));
         }
 
         private void TryResetErrorsAtStartOfDay()
@@ -876,6 +1174,18 @@ namespace OsEngine.Robots.SyntheticBond
                 || _pendingPairs.Count > 0)
             {
                 return;
+            }
+
+            // незакрытая (нехеджированная) нога блокирует новые входы; если её не удаётся закрыть
+            // слишком долго, входы освобождаются, чтобы робот не встал, но нога продолжает закрываться
+            if (_unhedgedFlag)
+            {
+                if ((DateTime.Now - _unhedgedSince).TotalSeconds < _unhedgedMaxBlockSec.ValueInt)
+                {
+                    return;
+                }
+
+                LogUnhedgedThrottled("UNHEDGED: legs not closed for too long, entries unblocked");
             }
 
             // cooldown считаем от факта размещения входа, а не от исполнения:
@@ -1104,12 +1414,19 @@ namespace OsEngine.Robots.SyntheticBond
                 return;
             }
 
+            if (!IsDataFresh(baseSource, futuresSource, baseBook, futBook))
+            {
+                return;
+            }
+
             decimal mult = GetMultByBase(baseSource);
 
-            decimal futBidPrice = (decimal)futBook.Bids[0].Price;
+            // цена лимитки — тот же ряд, что и в расчёте доходности (best bid/ask),
+            // объёмы для сайзинга — из стакана
+            decimal futBidPrice = futuresSource.PriceBestBid;
             decimal futBidVolume = (decimal)futBook.Bids[0].Bid;
 
-            decimal baseAskPrice = (decimal)baseBook.Asks[0].Price;
+            decimal baseAskPrice = baseSource.PriceBestAsk;
             decimal baseAskVolume = (decimal)baseBook.Asks[0].Ask;
 
             decimal baseLot = 1;
