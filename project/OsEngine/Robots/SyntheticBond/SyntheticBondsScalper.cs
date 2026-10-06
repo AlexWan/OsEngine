@@ -420,7 +420,7 @@ namespace OsEngine.Robots.SyntheticBond
 
         private readonly List<(BotTabSimple Tab, Position Pos, DateTime Time)> _pendingLimits = new List<(BotTabSimple, Position, DateTime)>();
 
-        private readonly List<(BotTabSimple BaseTab, Position BasePos, BotTabSimple FutTab, Position FutPos, DateTime Time, int Stage, DateTime StageTime, decimal InitialBaseVolume, decimal AlignVolumeNet, Position AlignPos)> _pendingPairs = new List<(BotTabSimple, Position, BotTabSimple, Position, DateTime, int, DateTime, decimal, decimal, Position)>();
+        private readonly List<(BotTabSimple BaseTab, Position BasePos, BotTabSimple FutTab, Position FutPos, DateTime Time, int Stage, DateTime StageTime, Position AlignPos)> _pendingPairs = new List<(BotTabSimple, Position, BotTabSimple, Position, DateTime, int, DateTime, Position)>();
 
         private int _failOpenOrdersCountFact = 0;
         private int _failCancelOrdersCountFact = 0;
@@ -434,7 +434,7 @@ namespace OsEngine.Robots.SyntheticBond
         private bool _unhedgedFlag;
         private DateTime _unhedgedSince = DateTime.MinValue;
         private DateTime _lastUnhedgedLogTime = DateTime.MinValue;
-        private bool _dataAgeWarned;
+        private string _lastDataAgeCause;
 
         // a leg that must be closed but could not be closed in one pass; driven by TryCloseUnhedgedLegs
         private sealed class UnhedgedLeg
@@ -444,6 +444,7 @@ namespace OsEngine.Robots.SyntheticBond
             public int Stage;
             public DateTime StageTime;
             public DateTime LastCloseTryAt;
+            public bool CloseSent;
         }
 
         private void ScalperLogic()
@@ -607,7 +608,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = _pendingPairs.Count - 1; i >= 0; i--)
             {
-                (BotTabSimple baseTab, Position basePos, BotTabSimple futTab, Position futPos, DateTime time, int stage, DateTime stageTime, decimal initialBaseVolume, decimal alignVolumeNet, Position alignPos) = _pendingPairs[i];
+                (BotTabSimple baseTab, Position basePos, BotTabSimple futTab, Position futPos, DateTime time, int stage, DateTime stageTime, Position alignPos) = _pendingPairs[i];
 
                 if (baseTab == null
                     || futTab == null)
@@ -663,7 +664,7 @@ namespace OsEngine.Robots.SyntheticBond
 
                     LogFull("ALIGN stage 1: orders cancelled, pair from " + time.ToString("HH:mm:ss"));
 
-                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 1, DateTime.Now, initialBaseVolume, alignVolumeNet, alignPos);
+                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 1, DateTime.Now, alignPos);
                     continue;
                 }
 
@@ -674,10 +675,9 @@ namespace OsEngine.Robots.SyntheticBond
                         continue;
                     }
 
-                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 2",
-                        ref initialBaseVolume, ref alignVolumeNet, ref alignPos);
+                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 2", ref alignPos);
 
-                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 2, DateTime.Now, initialBaseVolume, alignVolumeNet, alignPos);
+                    _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 2, DateTime.Now, alignPos);
                     continue;
                 }
 
@@ -688,23 +688,56 @@ namespace OsEngine.Robots.SyntheticBond
                         continue;
                     }
 
-                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 3 final",
-                        ref initialBaseVolume, ref alignVolumeNet, ref alignPos);
+                    AlignPairToNeutral(baseTab, basePos, futPos, time, "ALIGN stage 3 final", ref alignPos);
 
-                    // если пара всё ещё не сбалансирована — ноги уходят в плановое закрытие,
-                    // а не теряются вместе с парой
-                    if (!IsPairBalanced(baseTab, basePos, futPos, alignPos))
+                    if (IsPairBalanced(baseTab, basePos, futPos, alignPos))
                     {
-                        RegisterUnhedgedLeg(baseTab, basePos);
-                        RegisterUnhedgedLeg(baseTab, alignPos);
-                        RegisterUnhedgedLeg(futTab, futPos);
-
-                        LogFull("ALIGN not balanced, pair from " + time.ToString("HH:mm:ss")
-                            + " removed, legs registered for flatten");
+                        _pendingPairs.RemoveAt(i);
+                        continue;
                     }
+
+                    // в этом же проходе мог быть выставлен корректирующий ордер, а его исполнение
+                    // асинхронно: не флэттим пару, пока есть заявки в рынке или ноги в Opening,
+                    // иначе CloseAllOrderToPosition в драйвере отменит только что отправленную коррекцию
+                    if (PairLegsInFlight(basePos, alignPos, futPos))
+                    {
+                        _pendingPairs[i] = (baseTab, basePos, futTab, futPos, time, 2, DateTime.Now, alignPos);
+                        continue;
+                    }
+
+                    // пару не удаётся свести, а незавершённых заявок нет — ноги уходят в плановое закрытие
+                    RegisterUnhedgedLeg(baseTab, basePos);
+                    RegisterUnhedgedLeg(baseTab, alignPos);
+                    RegisterUnhedgedLeg(futTab, futPos);
+
+                    LogFull("ALIGN not balanced, pair from " + time.ToString("HH:mm:ss")
+                        + " removed, legs registered for flatten");
 
                     _pendingPairs.RemoveAt(i);
                 }
+            }
+        }
+
+        /// <summary>
+        /// true while any leg still has an order in the market or is opening; a pair must not be
+        /// handed to the flatten driver in this state
+        /// </summary>
+        private bool PairLegsInFlight(Position basePos, Position alignPos, Position futPos)
+        {
+            return LegInFlight(basePos)
+                || LegInFlight(alignPos)
+                || LegInFlight(futPos);
+
+            bool LegInFlight(Position position)
+            {
+                if (position == null)
+                {
+                    return false;
+                }
+
+                return position.State == PositionStateType.Opening
+                    || OrdersHasActive(position.OpenOrders)
+                    || OrdersHasActive(position.CloseOrders);
             }
         }
 
@@ -734,7 +767,7 @@ namespace OsEngine.Robots.SyntheticBond
         {
             if (tab == null
                 || pos == null
-                || pos.OpenVolume <= 0)
+                || (pos.OpenVolume <= 0 && pos.State != PositionStateType.Opening))
             {
                 return;
             }
@@ -785,9 +818,21 @@ namespace OsEngine.Robots.SyntheticBond
 
                 if (leg == null
                     || leg.Tab == null
-                    || leg.Pos == null
-                    || leg.Pos.OpenVolume <= 0)
+                    || leg.Pos == null)
                 {
+                    _unhedgedLegs.RemoveAt(i);
+                    continue;
+                }
+
+                if (leg.Pos.OpenVolume <= 0)
+                {
+                    // Opening/Closing еще в процессе — ждём объём, иначе закрывать нечего
+                    if (leg.Pos.State == PositionStateType.Opening
+                        || leg.Pos.State == PositionStateType.Closing)
+                    {
+                        continue;
+                    }
+
                     _unhedgedLegs.RemoveAt(i);
                     continue;
                 }
@@ -795,6 +840,7 @@ namespace OsEngine.Robots.SyntheticBond
                 if (leg.Stage == 0)
                 { // cancel possible active orders, close on a later pass
                     leg.Tab.CloseAllOrderToPosition(leg.Pos);
+                    leg.CloseSent = false;
                     leg.Stage = 1;
                     leg.StageTime = DateTime.Now;
 
@@ -809,14 +855,15 @@ namespace OsEngine.Robots.SyntheticBond
                         continue;
                     }
 
-                    if (leg.Pos.State == PositionStateType.Closing
+                    if (leg.CloseSent
                         && leg.LastCloseTryAt != DateTime.MinValue
                         && (DateTime.Now - leg.LastCloseTryAt).TotalSeconds < _closingTimeoutSec.ValueInt)
                     {
-                        continue; // close already in progress
+                        continue; // close already sent, wait for it
                     }
 
                     leg.Tab.CloseAtMarket(leg.Pos, leg.Pos.OpenVolume);
+                    leg.CloseSent = true;
                     leg.LastCloseTryAt = DateTime.Now;
                     leg.Stage = 2;
 
@@ -826,22 +873,26 @@ namespace OsEngine.Robots.SyntheticBond
                 }
 
                 // Stage 2: wait for the fill
-                if (leg.Pos.State == PositionStateType.Closing
-                    && (DateTime.Now - leg.LastCloseTryAt).TotalSeconds > _closingTimeoutSec.ValueInt)
-                { // stuck in Closing: force cancel and close again
-                    leg.Tab.CloseAllOrderToPosition(leg.Pos);
-                    leg.Tab.CloseAtMarket(leg.Pos, leg.Pos.OpenVolume);
-                    leg.LastCloseTryAt = DateTime.Now;
+                if (leg.Pos.State == PositionStateType.Closing)
+                {
+                    if (leg.LastCloseTryAt != DateTime.MinValue
+                        && (DateTime.Now - leg.LastCloseTryAt).TotalSeconds > _closingTimeoutSec.ValueInt)
+                    { // stuck in Closing: force cancel and close again
+                        leg.Tab.CloseAllOrderToPosition(leg.Pos);
+                        leg.Tab.CloseAtMarket(leg.Pos, leg.Pos.OpenVolume);
+                        leg.CloseSent = true;
+                        leg.LastCloseTryAt = DateTime.Now;
 
-                    LogUnhedgedThrottled("UNHEDGED: forced retry closing position " + leg.Pos.Number);
+                        LogUnhedgedThrottled("UNHEDGED: forced retry closing position " + leg.Pos.Number);
+                    }
+
                     continue;
                 }
 
-                if (leg.Pos.State != PositionStateType.Closing)
-                { // close was rejected or did not start, retry from stage 1
-                    leg.Stage = 1;
-                    leg.StageTime = DateTime.Now;
-                }
+                // close was rejected or did not start, retry from stage 1
+                leg.CloseSent = false;
+                leg.Stage = 1;
+                leg.StageTime = DateTime.Now;
             }
 
             if (_unhedgedLegs.Count == 0)
@@ -909,17 +960,20 @@ namespace OsEngine.Robots.SyntheticBond
                 }
             }
 
+            _lastDataAgeCause = null;
+
             return true;
         }
 
         private void LogDataStaleOnce(string details)
         {
-            if (_dataAgeWarned)
+            // логируем при смене причины, чтобы отказ входа был понятен, но без спама
+            if (details == _lastDataAgeCause)
             {
                 return;
             }
 
-            _dataAgeWarned = true;
+            _lastDataAgeCause = details;
 
             LogFull("WARN ENTRY skipped: stale/desync data (" + details + ")");
         }
@@ -938,15 +992,8 @@ namespace OsEngine.Robots.SyntheticBond
         }
 
         private void AlignPairToNeutral(BotTabSimple baseTab, Position basePos, Position futPos,
-            DateTime entryTime, string logTag,
-            ref decimal initialBaseVolume, ref decimal alignVolumeNet, ref Position alignPos)
+            DateTime entryTime, string logTag, ref Position alignPos)
         {
-            // объём исходной ноги запоминаем на первом проходе, дальше считаем от него + сделки выравнивания
-            if (initialBaseVolume < 0)
-            {
-                initialBaseVolume = basePos.OpenVolume;
-            }
-
             decimal baseLot = 1;
 
             if (baseTab.Security != null
@@ -965,7 +1012,11 @@ namespace OsEngine.Robots.SyntheticBond
             // иначе diff посчитается по неполному объёму и будет повторная докупка
             if (basePos.State == PositionStateType.Opening
                 || OrdersHasActive(basePos.OpenOrders)
-                || (alignPos != null && (alignPos.State == PositionStateType.Opening || OrdersHasActive(alignPos.OpenOrders))))
+                || OrdersHasActive(basePos.CloseOrders)
+                || (alignPos != null
+                    && (alignPos.State == PositionStateType.Opening
+                        || OrdersHasActive(alignPos.OpenOrders)
+                        || OrdersHasActive(alignPos.CloseOrders))))
             {
                 return;
             }
@@ -1535,7 +1586,7 @@ namespace OsEngine.Robots.SyntheticBond
             if (futPos != null
                 || basePos != null)
             {
-                _pendingPairs.Add((baseSource, basePos, futuresSource, futPos, now, 0, now, -1m, 0m, null));
+                _pendingPairs.Add((baseSource, basePos, futuresSource, futPos, now, 0, now, null));
 
                 _lastEntryTime = now;
             }
