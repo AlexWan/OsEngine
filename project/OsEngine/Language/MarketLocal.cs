@@ -1988,6 +1988,14 @@ namespace OsEngine.Language
             "Eng:Other_" +
             "Ru:Другое_");
 
+        public string UseCreditMargin => OsLocalization.ConvertToLocString(
+            "Eng:Use credit (margin)_" +
+            "Ru:Использовать кредит (плечо)_");
+
+        public string UseCreditMarginDescription => OsLocalization.ConvertToLocString(
+            "Eng:Allow the use of broker credit (leverage) when placing orders. Applies to instruments for which the broker allows credit (opmask usecredit). Not applicable to FORTS._" +
+            "Ru:Разрешить использование кредита брокера (плеча) при выставлении заявок. Действует для инструментов, по которым брокер разрешает кредит (opmask usecredit). Не применяется на FORTS._");
+
         public string UseStockDescription => OsLocalization.ConvertToLocString(
             "Eng:Load stocks into the securities list and allow trading them._" +
             "Ru:Загружать акции в список бумаг и разрешить торговлю ими._");
