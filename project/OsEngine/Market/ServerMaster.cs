@@ -370,6 +370,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.TInvest);
+                serverTypes.Add(ServerType.TInvestAutoFollow);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
@@ -809,6 +810,10 @@ namespace OsEngine.Market
                     else if (type == ServerType.TInvest)
                     {
                         newServer = new TInvestServer(uniqueNum);
+                    }
+                    else if (type == ServerType.TInvestAutoFollow)
+                    {
+                        newServer = new TInvestAutoFollowServer(uniqueNum);
                     }
                     else if (type == ServerType.GateIoSpot)
                     {
@@ -1646,6 +1651,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TInvestServerPermission();
                 }
+                else if (type == ServerType.TInvestAutoFollow)
+                {
+                    serverPermission = new TInvestAutoFollowServerPermission();
+                }
                 else if (type == ServerType.GateIoFutures)
                 {
                     serverPermission = new GateIoServerFuturesPermission();
@@ -2304,6 +2313,12 @@ namespace OsEngine.Market
         /// подключение к Т-Инвестициям (версия 3 коннектора)
         /// </summary>
         TInvest,
+
+        /// <summary>
+        /// connection to T-Invest autofollow service (strategies and signals)
+        /// подключение к сервису автоследования Т-Инвестиций (стратегии и сигналы)
+        /// </summary>
+        TInvestAutoFollow,
 
         /// <summary>
         /// Connecting to different forex brokers via the MT5 terminal
