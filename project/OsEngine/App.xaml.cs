@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -44,7 +46,127 @@ namespace OsEngine
 
         void WindowLoaded(object sender, RoutedEventArgs e)
         {
-            ((Window)sender).StateChanged += WindowStateChanged;
+            Window w = (Window)sender;
+            w.StateChanged += WindowStateChanged;
+
+            // защита от отрицательных размеров окна: при minimize/restore/maximize WPF WindowChrome
+            // может построить отрицательный normal/restore Rect (ArgumentException "Ширина и высота
+            // не должны быть отрицательными"); клампим размеры в WndProc до неотрицательных
+            HwndSource source = (HwndSource)PresentationSource.FromVisual(w);
+
+            if (source != null)
+            {
+                IntPtr handle = source.Handle;
+
+                // добавляем хук идемпотентно и снимаем ровно тот же экземпляр делегата
+                if (_hookedHandles.Add(handle))
+                {
+                    source.AddHook(_windowSizeGuardHook);
+                }
+
+                w.Closed += (s, args) =>
+                {
+                    try
+                    {
+                        if (_hookedHandles.Remove(handle))
+                        {
+                            source.RemoveHook(_windowSizeGuardHook);
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                };
+            }
+        }
+
+        private const int WM_WINDOWPOSCHANGING = 0x0046;
+        private const int WM_GETMINMAXINFO = 0x0024;
+
+        private static readonly HashSet<IntPtr> _hookedHandles = new HashSet<IntPtr>();
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WINDOWPOS
+        {
+            public IntPtr hwnd;
+            public IntPtr hwndInsertAfter;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public uint flags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MINMAXINFO
+        {
+            public POINT ptReserved;
+            public POINT ptMaxSize;
+            public POINT ptMaxPosition;
+            public POINT ptMinTrackSize;
+            public POINT ptMaxTrackSize;
+        }
+
+        private static readonly HwndSourceHook _windowSizeGuardHook = WindowSizeGuardHook;
+
+        private static IntPtr WindowSizeGuardHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            // быстрый выход для нецелевых сообщений: хук висит почти на всех окнах
+            if (msg != WM_WINDOWPOSCHANGING
+                && msg != WM_GETMINMAXINFO)
+            {
+                return IntPtr.Zero;
+            }
+
+            try
+            {
+                if (msg == WM_WINDOWPOSCHANGING)
+                {
+                    WINDOWPOS pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
+
+                    if (pos.cx < 0
+                        || pos.cy < 0)
+                    {
+                        if (pos.cx < 0) pos.cx = 0;
+                        if (pos.cy < 0) pos.cy = 0;
+
+                        Marshal.StructureToPtr(pos, lParam, false);
+                    }
+                }
+                else // WM_GETMINMAXINFO
+                {
+                    MINMAXINFO info = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+
+                    bool changed = false;
+
+                    // клампим только минимальный трек (0 — допустимый минимум).
+                    // ptMaxSize/ptMaxTrackSize НЕ трогаем: 0 сломал бы максимизацию/растягивание.
+                    // ptMaxPosition НЕ трогаем: отрицательные координаты допустимы на левых мониторах
+                    if (info.ptMinTrackSize.X < 0) { info.ptMinTrackSize.X = 0; changed = true; }
+                    if (info.ptMinTrackSize.Y < 0) { info.ptMinTrackSize.Y = 0; changed = true; }
+
+                    if (changed)
+                    {
+                        Marshal.StructureToPtr(info, lParam, false);
+                    }
+                }
+            }
+            catch
+            {
+                // защитный хук не должен ломать обработку сообщений
+            }
+
+            // write-back сделан через StructureToPtr; сообщение НЕ помечаем обработанным,
+            // чтобы DefWindowProc продолжил обработку
+            return IntPtr.Zero;
         }
 
         void WindowStateChanged(object sender, EventArgs e)
