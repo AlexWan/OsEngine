@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -55,10 +56,23 @@ namespace OsEngine
 
             if (source != null)
             {
-                source.AddHook(_windowSizeGuardHook);
+                IntPtr handle = source.Handle;
+
+                // добавляем хук идемпотентно и снимаем ровно тот же экземпляр делегата
+                if (_hookedHandles.Add(handle))
+                {
+                    source.AddHook(_windowSizeGuardHook);
+                }
+
                 w.Closed += (s, args) =>
                 {
-                    try { source.RemoveHook(_windowSizeGuardHook); }
+                    try
+                    {
+                        if (_hookedHandles.Remove(handle))
+                        {
+                            source.RemoveHook(_windowSizeGuardHook);
+                        }
+                    }
                     catch
                     {
                         // ignore
@@ -69,6 +83,8 @@ namespace OsEngine
 
         private const int WM_WINDOWPOSCHANGING = 0x0046;
         private const int WM_GETMINMAXINFO = 0x0024;
+
+        private static readonly HashSet<IntPtr> _hookedHandles = new HashSet<IntPtr>();
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT
@@ -102,6 +118,13 @@ namespace OsEngine
 
         private static IntPtr WindowSizeGuardHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            // быстрый выход для нецелевых сообщений: хук висит почти на всех окнах
+            if (msg != WM_WINDOWPOSCHANGING
+                && msg != WM_GETMINMAXINFO)
+            {
+                return IntPtr.Zero;
+            }
+
             try
             {
                 if (msg == WM_WINDOWPOSCHANGING)
@@ -117,20 +140,17 @@ namespace OsEngine
                         Marshal.StructureToPtr(pos, lParam, false);
                     }
                 }
-                else if (msg == WM_GETMINMAXINFO)
+                else // WM_GETMINMAXINFO
                 {
                     MINMAXINFO info = Marshal.PtrToStructure<MINMAXINFO>(lParam);
 
                     bool changed = false;
 
-                    if (info.ptMaxSize.X < 0) { info.ptMaxSize.X = 0; changed = true; }
-                    if (info.ptMaxSize.Y < 0) { info.ptMaxSize.Y = 0; changed = true; }
+                    // клампим только минимальный трек (0 — допустимый минимум).
+                    // ptMaxSize/ptMaxTrackSize НЕ трогаем: 0 сломал бы максимизацию/растягивание.
+                    // ptMaxPosition НЕ трогаем: отрицательные координаты допустимы на левых мониторах
                     if (info.ptMinTrackSize.X < 0) { info.ptMinTrackSize.X = 0; changed = true; }
                     if (info.ptMinTrackSize.Y < 0) { info.ptMinTrackSize.Y = 0; changed = true; }
-                    if (info.ptMaxTrackSize.X < 0) { info.ptMaxTrackSize.X = 0; changed = true; }
-                    if (info.ptMaxTrackSize.Y < 0) { info.ptMaxTrackSize.Y = 0; changed = true; }
-
-                    // ptMaxPosition НЕ трогаем: отрицательные координаты допустимы на левых мониторах
 
                     if (changed)
                     {
@@ -143,6 +163,8 @@ namespace OsEngine
                 // защитный хук не должен ломать обработку сообщений
             }
 
+            // write-back сделан через StructureToPtr; сообщение НЕ помечаем обработанным,
+            // чтобы DefWindowProc продолжил обработку
             return IntPtr.Zero;
         }
 
