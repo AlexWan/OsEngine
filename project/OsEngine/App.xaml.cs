@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -44,7 +45,105 @@ namespace OsEngine
 
         void WindowLoaded(object sender, RoutedEventArgs e)
         {
-            ((Window)sender).StateChanged += WindowStateChanged;
+            Window w = (Window)sender;
+            w.StateChanged += WindowStateChanged;
+
+            // защита от отрицательных размеров окна: при minimize/restore/maximize WPF WindowChrome
+            // может построить отрицательный normal/restore Rect (ArgumentException "Ширина и высота
+            // не должны быть отрицательными"); клампим размеры в WndProc до неотрицательных
+            HwndSource source = (HwndSource)PresentationSource.FromVisual(w);
+
+            if (source != null)
+            {
+                source.AddHook(_windowSizeGuardHook);
+                w.Closed += (s, args) =>
+                {
+                    try { source.RemoveHook(_windowSizeGuardHook); }
+                    catch
+                    {
+                        // ignore
+                    }
+                };
+            }
+        }
+
+        private const int WM_WINDOWPOSCHANGING = 0x0046;
+        private const int WM_GETMINMAXINFO = 0x0024;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WINDOWPOS
+        {
+            public IntPtr hwndInsertAfter;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public uint flags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MINMAXINFO
+        {
+            public POINT ptReserved;
+            public POINT ptMaxSize;
+            public POINT ptMaxPosition;
+            public POINT ptMinTrackSize;
+            public POINT ptMaxTrackSize;
+        }
+
+        private static readonly HwndSourceHook _windowSizeGuardHook = WindowSizeGuardHook;
+
+        private static IntPtr WindowSizeGuardHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            try
+            {
+                if (msg == WM_WINDOWPOSCHANGING)
+                {
+                    WINDOWPOS pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
+
+                    if (pos.cx < 0
+                        || pos.cy < 0)
+                    {
+                        if (pos.cx < 0) pos.cx = 0;
+                        if (pos.cy < 0) pos.cy = 0;
+
+                        Marshal.StructureToPtr(pos, lParam, false);
+                    }
+                }
+                else if (msg == WM_GETMINMAXINFO)
+                {
+                    MINMAXINFO info = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+
+                    bool changed = false;
+
+                    if (info.ptMaxSize.X < 0) { info.ptMaxSize.X = 0; changed = true; }
+                    if (info.ptMaxSize.Y < 0) { info.ptMaxSize.Y = 0; changed = true; }
+                    if (info.ptMinTrackSize.X < 0) { info.ptMinTrackSize.X = 0; changed = true; }
+                    if (info.ptMinTrackSize.Y < 0) { info.ptMinTrackSize.Y = 0; changed = true; }
+                    if (info.ptMaxTrackSize.X < 0) { info.ptMaxTrackSize.X = 0; changed = true; }
+                    if (info.ptMaxTrackSize.Y < 0) { info.ptMaxTrackSize.Y = 0; changed = true; }
+
+                    // ptMaxPosition НЕ трогаем: отрицательные координаты допустимы на левых мониторах
+
+                    if (changed)
+                    {
+                        Marshal.StructureToPtr(info, lParam, false);
+                    }
+                }
+            }
+            catch
+            {
+                // защитный хук не должен ломать обработку сообщений
+            }
+
+            return IntPtr.Zero;
         }
 
         void WindowStateChanged(object sender, EventArgs e)
