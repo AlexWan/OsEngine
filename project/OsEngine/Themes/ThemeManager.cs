@@ -318,11 +318,10 @@ namespace OsEngine.Themes
             System.Windows.Media.Color c = GetColor(key);
 
             // WinForms не принимает прозрачные цвета (GridColor/ForeColor и т.п.):
-            // при A != 255 подставляем непрозрачный fallback из темы по умолчанию
+            // сохраняем оттенок (RGB), но выставляем непрозрачность (A = 255)
             if (c.A != 255)
             {
-                System.Windows.Media.Color fallback = GetFallbackColor(key);
-                return System.Drawing.Color.FromArgb(255, fallback.R, fallback.G, fallback.B);
+                c = ToOpaque(c);
             }
 
             return System.Drawing.Color.FromArgb(c.A, c.R, c.G, c.B);
