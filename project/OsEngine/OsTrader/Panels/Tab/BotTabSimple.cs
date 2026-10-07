@@ -582,7 +582,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (messageType == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 
@@ -646,7 +646,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             var parameterDigits = indicator.ParametersDigit;
 
             if (parametersDigitCount != parameters.Length)
-                MessageBox.Show($"Count of parameters ({parameters.Length}) must be equal to the count of indicator parameters ({parametersDigitCount})");
+                SetNewLogMessage($"Count of parameters ({parameters.Length}) must be equal to the count of indicator parameters ({parametersDigitCount})", LogMessageType.Error);
 
             for (int i = 0; i < parametersDigitCount; i++)
                 parameterDigits[i].Value = parameters[i];

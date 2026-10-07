@@ -1912,7 +1912,7 @@ namespace OsEngine.OsTrader
             }
             else if (type == LogMessageType.Error)
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

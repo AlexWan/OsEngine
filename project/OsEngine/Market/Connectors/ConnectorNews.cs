@@ -648,7 +648,7 @@ namespace OsEngine.Market.Connectors
             }
             else if (type == LogMessageType.Error)
             { // if nobody is subscribed to us and there is an error in the log / если на нас никто не подписан и в логе ошибка
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

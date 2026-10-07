@@ -2273,10 +2273,17 @@ namespace OsEngine.Market
             {
                 LogMessageEvent(message, type);
             }
-            else if (type == LogMessageType.Error)
-            { // if nobody is subscribed to us and there is a log error
-              // если на нас никто не подписан и в логе ошибка
-                MessageBox.Show(message);
+            else
+            { // if nobody is subscribed to us - write to the static log
+              // если на нас никто не подписан - пишем в статический лог
+                if (Log != null)
+                {
+                    Log.ProcessMessage(message, type);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ServerMaster log error: " + type + " " + message);
+                }
             }
         }
 

@@ -377,7 +377,7 @@ namespace OsEngine.Robots.TechSamples
             }
             catch (Exception error)
             {
-                MessageBox.Show("Error when changing the width of the view. Error: " + error);
+                Market.ServerMaster.SendNewLogMessage("Error when changing the width of the view. Error: " + error, Logging.LogMessageType.Error);
             }
         }
 

@@ -902,7 +902,7 @@ namespace OsEngine.Market
             }
             else if (type == LogMessageType.Error)
             { // if nobody is substribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

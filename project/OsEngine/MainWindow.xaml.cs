@@ -365,14 +365,12 @@ namespace OsEngine
             Thread worker = new Thread(SendMessageInCrashServer);
             worker.Start();
 
+            ServerMaster.SendNewLogMessage(message, Logging.LogMessageType.Error);
+
             if (PrimeSettingsMaster.RebootTradeUiLight == true &&
                 RobotUiLite.IsRobotUiLightStart)
             {
                 Reboot(message);
-            }
-            else
-            {
-                MessageBox.Show(message);
             }
         }
 
@@ -401,14 +399,12 @@ namespace OsEngine
             Thread worker = new Thread(SendMessageInCrashServer);
             worker.Start();
 
+            ServerMaster.SendNewLogMessage(message, Logging.LogMessageType.Error);
+
             if (PrimeSettingsMaster.RebootTradeUiLight == true &&
                 RobotUiLite.IsRobotUiLightStart)
             {
                 Reboot(message);
-            }
-            else
-            {
-                MessageBox.Show(message);
             }
         }
 
@@ -449,10 +445,6 @@ namespace OsEngine
                     RobotUiLite.IsRobotUiLightStart)
                 {
                     Reboot(message);
-                }
-                else
-                {
-                    MessageBox.Show(message);
                 }
             }
             catch
@@ -1314,7 +1306,7 @@ namespace OsEngine
                             messageError += args[i];
                         }
 
-                        MessageBox.Show(messageError);
+                        ServerMaster.SendNewLogMessage(messageError, Logging.LogMessageType.Error);
 
                     }).Start();
 
@@ -1796,7 +1788,7 @@ namespace OsEngine
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1826,7 +1818,7 @@ namespace OsEngine
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

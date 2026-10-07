@@ -394,7 +394,7 @@ namespace OsEngine.Market.Servers
             }
             else if (type == LogMessageType.Error)
             { // if nobody is subscribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

@@ -146,7 +146,7 @@ namespace OsEngine.Robots.Trend
         // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show(OsLocalization.Trader.Label55);
+            ServerMaster.SendNewLogMessage(OsLocalization.Trader.Label55, Logging.LogMessageType.Error);
         }
 
         // Logic

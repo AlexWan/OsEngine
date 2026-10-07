@@ -1695,7 +1695,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 
@@ -2946,7 +2946,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

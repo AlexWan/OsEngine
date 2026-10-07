@@ -228,7 +228,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// </summary>
         public void ShowDialog()
         {
-            MessageBox.Show("У данного индикатора нет настроек");
+            Market.ServerMaster.SendNewLogMessage("У данного индикатора нет настроек", Logging.LogMessageType.Error);
         }
 
         /// <summary>

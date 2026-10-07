@@ -2191,7 +2191,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2889,7 +2889,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

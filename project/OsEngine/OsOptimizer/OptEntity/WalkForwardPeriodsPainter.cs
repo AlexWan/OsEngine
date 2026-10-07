@@ -31,7 +31,7 @@ namespace OsEngine.OsOptimizer.OptEntity
                 }
                 catch (Exception error)
                 {
-                    System.Windows.MessageBox.Show(error.ToString());
+                    Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
                 }
             }
 
@@ -58,7 +58,7 @@ namespace OsEngine.OsOptimizer.OptEntity
                 }
                 catch (Exception error)
                 {
-                    System.Windows.MessageBox.Show(error.ToString());
+                    Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace OsEngine.OsOptimizer.OptEntity
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
 
             return _chart;
@@ -189,7 +189,7 @@ namespace OsEngine.OsOptimizer.OptEntity
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 

@@ -267,7 +267,7 @@ namespace OsEngine.Language
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                OsEngine.Market.ServerMaster.SendNewLogMessage(e.ToString(), OsEngine.Logging.LogMessageType.Error);
                 return "error";
             }
 

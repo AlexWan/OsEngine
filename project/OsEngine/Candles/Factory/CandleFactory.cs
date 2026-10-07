@@ -122,10 +122,7 @@ namespace OsEngine.Candles
 
                     if (string.IsNullOrEmpty(myPath))
                     {
-                        // It's better to throw an exception or return null consistently
-                        // MessageBox is UI dependent and might not be suitable for all contexts
-                        // For now, keeping MessageBox as in original code.
-                        MessageBox.Show("Error! Candle series script with name " + nameClass + " not found");
+                        Market.ServerMaster.SendNewLogMessage("Error! Candle series script with name " + nameClass + " not found", Logging.LogMessageType.Error);
                         return null; // Or throw new FileNotFoundException(...)
                     }
 
@@ -134,7 +131,7 @@ namespace OsEngine.Candles
             }
             catch (Exception e)
             {
-                MessageBox.Show("Error creating candle series realization: " + nameClass + "\n" + e.ToString());
+                Market.ServerMaster.SendNewLogMessage("Error creating candle series realization: " + nameClass + "\n" + e.ToString(), Logging.LogMessageType.Error);
                 // Consider logging the exception or re-throwing specific exceptions
             }
 
