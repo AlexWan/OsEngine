@@ -140,7 +140,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 1 выставляем стоп-лимит на покупку. Далеко от стакана, чтобы не исполнился
 
-            decimal midPrice = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal midPrice = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
             Order order = SendBuyStopLimitOrder(mySecurity, midPrice);
 
             if (order == null)
@@ -228,8 +228,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private Order SendBuyStopLimitOrder(Security mySec, decimal midPrice)
         {
-            decimal priceActivate = Math.Round(midPrice + midPrice * 0.02m, mySec.Decimals); // активация на 2% выше рынка
-            decimal priceOrder = Math.Round(priceActivate + priceActivate * 0.005m, mySec.Decimals); // лимитная цена ещё выше
+            decimal priceActivate = AlignPriceToStep(midPrice + midPrice * 0.02m, mySec); // активация на 2% выше рынка
+            decimal priceOrder = AlignPriceToStep(priceActivate + priceActivate * 0.005m, mySec); // лимитная цена ещё выше
 
             Order newOrder = CreateStopOrder(mySec, priceOrder, priceActivate, VolumeToTrade, Side.Buy);
             _waitSide = Side.Buy;

@@ -27,7 +27,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if(CountOrders < 20)
+            if (CountOrders < 20)
             {
                 this.SetNewError("Error 1. Iteration Count < 20.");
                 TestEnded();
@@ -107,13 +107,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal price = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
 
-            for (int i = 0;i < CountOrders; i ++)
+            for (int i = 0; i < CountOrders; i++)
             {
                 Order order = SendBuyOrder(mySecurity, price);
 
-                if(order != null)
+                if (order != null)
                 {
                     CancelOrder(order);
                 }
@@ -161,7 +161,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = AlignPriceToStep(price - price * 0.01m, mySec); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _WaitSide = Side.Buy;
@@ -202,7 +202,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = AlignPriceToStep(price + price * 0.01m, mySec); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _WaitSide = Side.Sell;

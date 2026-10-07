@@ -148,8 +148,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ПРОВЕРКА 1. Активные ордера
 
-            decimal priceToBuyOrdersNoExecution = Math.Round(md.Bids[0].Price.ToDecimal() - md.Bids[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
-            decimal priceToSellOrdersNoExecution = Math.Round(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m, mySecurity.Decimals);
+            decimal priceToBuyOrdersNoExecution = AlignPriceToStep(md.Bids[0].Price.ToDecimal() - md.Bids[0].Price.ToDecimal() * 0.01m, mySecurity);
+            decimal priceToSellOrdersNoExecution = AlignPriceToStep(md.Asks[0].Price.ToDecimal() + md.Asks[0].Price.ToDecimal() * 0.01m, mySecurity);
 
             if (CheckActiveOrders(Side.Buy, priceToBuyOrdersNoExecution, VolumeToTrade, mySecurity, _awaitOrderFirstStepBuy) == false)
             {

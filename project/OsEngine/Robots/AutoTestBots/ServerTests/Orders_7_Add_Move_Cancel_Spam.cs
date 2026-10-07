@@ -117,7 +117,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер на покупку
 
-            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal price = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
 
             Order order = SendBuyOrder(mySecurity, price);
 
@@ -172,7 +172,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.005m, mySec.Decimals);
+            price = AlignPriceToStep(price - price * 0.005m, mySec);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _waitSide = Side.Buy;
@@ -213,7 +213,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price + price * 0.005m, mySec.Decimals);
+            price = AlignPriceToStep(price + price * 0.005m, mySec);
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
             _waitSide = Side.Sell;
@@ -259,11 +259,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.Side == Side.Buy)
             {
-                newOrderPrice = Math.Round(bid - (bid * 0.01m), security.Decimals);
+                newOrderPrice = AlignPriceToStep(bid - (bid * 0.01m), security);
             }
             else if (order.Side == Side.Sell)
             {
-                newOrderPrice = Math.Round(ask + (ask * 0.01m), security.Decimals);
+                newOrderPrice = AlignPriceToStep(ask + (ask * 0.01m), security);
             }
 
             while (order.Price == newOrderPrice)
@@ -271,7 +271,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 newOrderPrice += security.PriceStep;
             }
 
-            for(int i = 0;i < CountOrders;i++)
+            for (int i = 0; i < CountOrders; i++)
             {
                 Server.ChangeOrderPrice(order, newOrderPrice);
 

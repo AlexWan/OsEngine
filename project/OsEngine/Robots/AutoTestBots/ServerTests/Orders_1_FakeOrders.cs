@@ -20,7 +20,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public override void Process()
         {
-            if(Server.ServerStatus != ServerConnectStatus.Connect)
+            if (Server.ServerStatus != ServerConnectStatus.Connect)
             {
                 this.SetNewError("Error 1. Server Status Disconnect");
                 TestEnded();
@@ -39,9 +39,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Security mySecurity = null;
 
-            for(int i = 0;i < securities.Count;i++)
+            for (int i = 0; i < securities.Count; i++)
             {
-                if (securities[i].Name == SecurityNameToTrade 
+                if (securities[i].Name == SecurityNameToTrade
                     && securities[i].NameClass == SecurityClassToTrade)
                 {
                     mySecurity = securities[i];
@@ -49,7 +49,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if(mySecurity == null)
+            if (mySecurity == null)
             {
                 SetNewError("Error 3. No securities found");
                 TestEnded();
@@ -71,9 +71,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime timeStartWait = DateTime.Now.AddMinutes(2);
 
-            while(_md == null)
+            while (_md == null)
             {
-                if(timeStartWait < DateTime.Now)
+                if (timeStartWait < DateTime.Now)
                 {
                     SetNewError("Error 5. No market depth after 2 minutes");
                     TestEnded();
@@ -83,7 +83,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             MarketDepth md = _md;
 
-            if(md.Asks.Count == 0 ||
+            if (md.Asks.Count == 0 ||
                 md.Bids.Count == 0)
             {
                 SetNewError("Error 6. No bid or ask in Market Depth");
@@ -101,11 +101,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // ордер с уменьшенным объёмом 
 
-            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) /2,mySecurity.Decimals);
+            decimal price = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
 
             SendFakeSmallVolume(mySecurity, price);
 
-            if(this._errors != null &&
+            if (this._errors != null &&
                 this._errors.Count > 0)
             {
                 TestEnded();
@@ -249,9 +249,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             // отсылаем ордер с объёмом ниже нуля
 
-            decimal volume = VolumeMin; 
+            decimal volume = VolumeMin;
 
-            Order newOrder = CreateOrder(mySec,price,volume, Side.Buy);
+            Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
             _waitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
@@ -259,15 +259,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
-            while(true)
+            while (true)
             {
-                if(timeEndWait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 10. No reject order from server FakeVolumeSmall");
                     return;
                 }
 
-                if(_ordersFail.Count != 0)
+                if (_ordersFail.Count != 0)
                 {
                     this.SetNewServiceInfo("FakeVolumeSmall Check!");
                     break;
@@ -425,18 +425,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewOrderIncomeEvent(Order order)
         {
-            if(order.State == OrderStateType.None)
+            if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 13. Order with state NONE");
                 return;
             }
 
-            if(OrderIsNormal(order) == false)
+            if (OrderIsNormal(order) == false)
             {
                 return;
             }
 
-            if(order.State == OrderStateType.Active)
+            if (order.State == OrderStateType.Active)
             {
                 _ordersActive.Add(order);
             }
@@ -479,14 +479,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
 
-            if(order.Side != _waitSide)
+            if (order.Side != _waitSide)
             {
-                this.SetNewError("Error 14. Unexpected order side. Expected: " + _waitSide 
+                this.SetNewError("Error 14. Unexpected order side. Expected: " + _waitSide
                     + " Side in order: " + order.Side);
                 return false;
             }
 
-            if(order.TimeCallBack == DateTime.MinValue)
+            if (order.TimeCallBack == DateTime.MinValue)
             {
                 this.SetNewError("Error 15. TimeCallBack is MinValue");
                 return false;
