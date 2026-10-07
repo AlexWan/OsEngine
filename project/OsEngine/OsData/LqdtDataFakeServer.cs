@@ -461,7 +461,7 @@ namespace OsEngine.OsData
             }
             else
             {
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, type);
             }
         }
 

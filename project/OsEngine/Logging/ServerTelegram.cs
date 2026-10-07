@@ -365,7 +365,7 @@ namespace OsEngine.Logging
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

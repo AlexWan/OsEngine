@@ -2705,7 +2705,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             else if (type == LogMessageType.Error)
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 
@@ -2783,7 +2783,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             else if (type == LogMessageType.Error)
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

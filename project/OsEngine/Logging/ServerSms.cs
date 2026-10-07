@@ -320,7 +320,7 @@ namespace OsEngine.Logging
         // print debug information
         // вывод отладочной информации
         private void _print_debug(string str) {
-            System.Windows.Forms.MessageBox.Show(str);
+            Market.ServerMaster.SendNewLogMessage(str, LogMessageType.Error);
         }
     }
 }

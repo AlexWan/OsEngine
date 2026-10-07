@@ -1146,7 +1146,7 @@ colum12.HeaderText = "Delete";
             }
             else
             {
-                System.Windows.MessageBox.Show(message);
+                Market.ServerMaster.SendNewLogMessage(message, type);
             }
         }
 

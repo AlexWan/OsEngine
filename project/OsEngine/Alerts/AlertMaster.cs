@@ -735,7 +735,7 @@ namespace OsEngine.Alerts
                 {
                     if (_alertChartUi != null)
                     {
-                        MessageBox.Show(OsLocalization.Alerts.Message1);
+                        ServerMaster.SendNewLogMessage(OsLocalization.Alerts.Message1, Logging.LogMessageType.Error);
                         return;
                     }
 
@@ -776,7 +776,7 @@ namespace OsEngine.Alerts
             {
                 if (_alertChartUi != null)
                 {
-                    MessageBox.Show(OsLocalization.Alerts.Message1);
+                    ServerMaster.SendNewLogMessage(OsLocalization.Alerts.Message1, Logging.LogMessageType.Error);
                     return;
                 }
 

@@ -1020,7 +1020,7 @@ namespace OsEngine.Market.Servers.MOEX
             }
             else
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, type);
             }
         }
 

@@ -30,7 +30,7 @@ namespace OsEngine.Robots.Engines
         // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show(OsLocalization.Trader.Label112);
+            Market.ServerMaster.SendNewLogMessage(OsLocalization.Trader.Label112, Logging.LogMessageType.Error);
         }
     }
 }

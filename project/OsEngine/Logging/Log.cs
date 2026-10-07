@@ -100,7 +100,7 @@ namespace OsEngine.Logging
                 }
                 catch (Exception error)
                 {
-                    System.Windows.MessageBox.Show(error.ToString());
+                    System.Diagnostics.Debug.WriteLine("Log watcher error: " + error.ToString());
                 }
             }
         }
@@ -521,7 +521,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                System.Diagnostics.Debug.WriteLine("Log Clear error: " + error.ToString());
             }
         }
 
@@ -823,7 +823,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                System.Diagnostics.Debug.WriteLine("Log paint error: " + error.ToString());
             }
         }
 
@@ -881,7 +881,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                System.Diagnostics.Debug.WriteLine("Log save to file error: " + error.ToString());
             }
         }
 

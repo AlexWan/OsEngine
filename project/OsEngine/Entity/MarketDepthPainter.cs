@@ -773,7 +773,7 @@ namespace OsEngine.Entity
             {
                 // if nobody is signed to us and there is an error in the log
                 // если на нас никто не подписан и в логе ошибка
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

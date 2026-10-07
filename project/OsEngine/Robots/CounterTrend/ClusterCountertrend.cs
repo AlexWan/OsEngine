@@ -75,7 +75,7 @@ namespace OsEngine.Robots.CounterTrend
         // show settings
         public override void ShowIndividualSettingsDialog()
         {
-            MessageBox.Show(OsLocalization.Trader.Label111);
+            ServerMaster.SendNewLogMessage(OsLocalization.Trader.Label111, Logging.LogMessageType.Error);
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)

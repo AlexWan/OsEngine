@@ -256,7 +256,7 @@ namespace OsEngine.Charts.ColorKeeper
             }
             else if (type == LogMessageType.Error)
             { // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(message);
+                Market.ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

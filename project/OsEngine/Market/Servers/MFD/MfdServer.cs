@@ -539,7 +539,7 @@ namespace OsEngine.Market.Servers.MFD
             }
             else
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, type);
             }
         }
 

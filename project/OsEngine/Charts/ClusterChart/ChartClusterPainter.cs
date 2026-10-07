@@ -461,7 +461,7 @@ namespace OsEngine.Charts.ClusterChart
             }
             else if (type == LogMessageType.Error)
             { // если никто на нас не подписан и происходит ошибка
-                System.Windows.MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

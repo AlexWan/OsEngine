@@ -100,7 +100,7 @@ namespace OsEngine.Alerts
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -152,7 +152,7 @@ namespace OsEngine.Alerts
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 

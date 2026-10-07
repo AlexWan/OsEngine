@@ -930,7 +930,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             }
             catch (Exception error)
             {
-                MessageBox.Show(error.ToString());
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }*/
 
             string[] trades = str.Split('$');

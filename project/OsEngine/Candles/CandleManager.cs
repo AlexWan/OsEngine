@@ -1123,7 +1123,7 @@ namespace OsEngine.Entity
             else if (type == LogMessageType.Error
                 && _isDisposed != true)
             {
-                MessageBox.Show(message);
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

@@ -869,7 +869,7 @@ namespace OsEngine.Journal
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                Market.ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
             }
         }
 

@@ -210,7 +210,7 @@ namespace OsEngine.Entity
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                Market.ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -223,7 +223,7 @@ namespace OsEngine.Entity
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                Market.ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -289,7 +289,7 @@ namespace OsEngine.Entity
                     }
                     catch (Exception error)
                     {
-                        MessageBox.Show(error.ToString());
+                        Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
                     }
                 };
 
@@ -300,7 +300,7 @@ namespace OsEngine.Entity
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                Market.ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

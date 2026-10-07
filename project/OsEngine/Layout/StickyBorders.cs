@@ -64,7 +64,7 @@ namespace OsEngine.Layout
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -118,7 +118,7 @@ namespace OsEngine.Layout
             }
             catch(Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -167,7 +167,7 @@ namespace OsEngine.Layout
             }
             catch (Exception error)
             {
-                System.Windows.MessageBox.Show(error.ToString());
+                Market.ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
