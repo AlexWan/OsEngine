@@ -260,7 +260,7 @@ namespace OsEngine.Themes
             }
             catch (Exception error)
             {
-                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SafeLog(error.ToString());
             }
 
             return System.Windows.Media.Color.FromArgb(255, 0, 0, 0);
@@ -592,20 +592,51 @@ namespace OsEngine.Themes
 
                 if (missingKeys.Count > 0)
                 {
-                    ServerMaster.SendNewLogMessage(
-                        "Theme " + themeId + ": missing keys filled from " + DefaultTheme + ": "
-                        + string.Join(", ", missingNames),
-                        LogMessageType.Error);
+                    SafeLog("Theme " + themeId + ": missing keys filled from " + DefaultTheme + ": "
+                        + string.Join(", ", missingNames));
 
                     for (int i = 0; i < missingKeys.Count; i++)
                     {
-                        dict[missingKeys[i]] = reference[missingKeys[i]];
+                        object value = reference[missingKeys[i]];
+
+                        // Freezable (кисти) нельзя переиспользовать в двух словарях;
+                        // клонируем и замораживаем, чтобы не было "already has a parent"
+                        System.Windows.Freezable freezable = value as System.Windows.Freezable;
+
+                        if (freezable != null)
+                        {
+                            System.Windows.Freezable clone = freezable.Clone();
+
+                            if (clone.CanFreeze)
+                            {
+                                clone.Freeze();
+                            }
+
+                            value = clone;
+                        }
+
+                        dict[missingKeys[i]] = value;
                     }
                 }
             }
             catch (Exception error)
             {
-                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SafeLog(error.ToString());
+            }
+        }
+
+        /// <summary>
+        /// логирование, не роняющее вызывающий код, если логгер недоступен
+        /// </summary>
+        private static void SafeLog(string message)
+        {
+            try
+            {
+                ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
+            }
+            catch
+            {
+                // ignore: логгер не должен приводить к вторичному крашу
             }
         }
 
