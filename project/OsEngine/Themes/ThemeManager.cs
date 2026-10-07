@@ -208,19 +208,75 @@ namespace OsEngine.Themes
         /// </summary>
         public static System.Windows.Media.Color GetColor(string key)
         {
-            object res = Application.Current.TryFindResource(key);
-
-            if (res is System.Windows.Media.SolidColorBrush brush)
+            if (Application.Current != null)
             {
-                return brush.Color;
+                object res = Application.Current.TryFindResource(key);
+
+                if (res is System.Windows.Media.SolidColorBrush brush)
+                {
+                    return brush.Color;
+                }
+
+                if (res is System.Windows.Media.Color color)
+                {
+                    return color;
+                }
             }
 
-            if (res is System.Windows.Media.Color color)
+            // ключ отсутствует: непрозрачный fallback из темы по умолчанию
+            return GetFallbackColor(key);
+        }
+
+        /// <summary>
+        /// непрозрачный цвет-заглушка по ключу из темы по умолчанию
+        /// (если ключа там тоже нет — нейтральный непрозрачный чёрный)
+        /// </summary>
+        private static System.Windows.Media.Color GetFallbackColor(string key)
+        {
+            try
             {
-                return color;
+                ResourceDictionary def = GetThemeDictionary(DefaultTheme);
+
+                if (def != null)
+                {
+                    object res = def.Contains(key) ? def[key] : null;
+
+                    if (res is System.Windows.Media.SolidColorBrush brush)
+                    {
+                        return ToOpaque(brush.Color);
+                    }
+
+                    if (res is System.Windows.Media.Color color)
+                    {
+                        return ToOpaque(color);
+                    }
+
+                    if (res is System.Windows.Media.GradientBrush gradient
+                        && gradient.GradientStops.Count > 0)
+                    {
+                        return ToOpaque(gradient.GradientStops[0].Color);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            return System.Windows.Media.Colors.Transparent;
+            return System.Windows.Media.Color.FromArgb(255, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// гарантировать непрозрачность цвета (A == 255)
+        /// </summary>
+        private static System.Windows.Media.Color ToOpaque(System.Windows.Media.Color color)
+        {
+            if (color.A != 255)
+            {
+                color.A = 255;
+            }
+
+            return color;
         }
 
         /// <summary>
@@ -228,26 +284,30 @@ namespace OsEngine.Themes
         /// </summary>
         public static System.Windows.Media.SolidColorBrush GetBrush(string key)
         {
-            object res = Application.Current.TryFindResource(key);
-
-            if (res is System.Windows.Media.SolidColorBrush brush)
+            if (Application.Current != null)
             {
-                return brush;
+                object res = Application.Current.TryFindResource(key);
+
+                if (res is System.Windows.Media.SolidColorBrush brush)
+                {
+                    return brush;
+                }
+
+                if (res is System.Windows.Media.Color color)
+                {
+                    return new System.Windows.Media.SolidColorBrush(color);
+                }
+
+                // градиентные кисти палитры — берём первый стоп как сплошной цвет
+                if (res is System.Windows.Media.GradientBrush gradient
+                    && gradient.GradientStops.Count > 0)
+                {
+                    return new System.Windows.Media.SolidColorBrush(gradient.GradientStops[0].Color);
+                }
             }
 
-            if (res is System.Windows.Media.Color color)
-            {
-                return new System.Windows.Media.SolidColorBrush(color);
-            }
-
-            // градиентные кисти палитры — берём первый стоп как сплошной цвет
-            if (res is System.Windows.Media.GradientBrush gradient
-                && gradient.GradientStops.Count > 0)
-            {
-                return new System.Windows.Media.SolidColorBrush(gradient.GradientStops[0].Color);
-            }
-
-            return null;
+            // ключ отсутствует: непрозрачная кисть-заглушка из темы по умолчанию, а не null
+            return new System.Windows.Media.SolidColorBrush(GetFallbackColor(key));
         }
 
         /// <summary>
@@ -256,6 +316,15 @@ namespace OsEngine.Themes
         public static System.Drawing.Color GetColorWinForms(string key)
         {
             System.Windows.Media.Color c = GetColor(key);
+
+            // WinForms не принимает прозрачные цвета (GridColor/ForeColor и т.п.):
+            // при A != 255 подставляем непрозрачный fallback из темы по умолчанию
+            if (c.A != 255)
+            {
+                System.Windows.Media.Color fallback = GetFallbackColor(key);
+                return System.Drawing.Color.FromArgb(255, fallback.R, fallback.G, fallback.B);
+            }
+
             return System.Drawing.Color.FromArgb(c.A, c.R, c.G, c.B);
         }
 
@@ -264,6 +333,11 @@ namespace OsEngine.Themes
         /// </summary>
         public static string GetString(string key)
         {
+            if (Application.Current == null)
+            {
+                return "";
+            }
+
             object res = Application.Current.TryFindResource(key);
 
             if (res is string str)
@@ -279,6 +353,11 @@ namespace OsEngine.Themes
         /// </summary>
         public static double GetDouble(string key)
         {
+            if (Application.Current == null)
+            {
+                return 0;
+            }
+
             object res = Application.Current.TryFindResource(key);
 
             if (res is double number)
@@ -500,21 +579,29 @@ namespace OsEngine.Themes
                     return;
                 }
 
-                List<string> missing = new List<string>();
+                List<object> missingKeys = new List<object>();
+                List<string> missingNames = new List<string>();
 
                 foreach (object key in reference.Keys)
                 {
                     if (dict.Contains(key) == false)
                     {
-                        missing.Add(key.ToString());
+                        missingKeys.Add(key);
+                        missingNames.Add(key.ToString());
                     }
                 }
 
-                if (missing.Count > 0)
+                if (missingKeys.Count > 0)
                 {
                     ServerMaster.SendNewLogMessage(
-                        "Theme " + themeId + ": missing keys: " + string.Join(", ", missing),
+                        "Theme " + themeId + ": missing keys filled from " + DefaultTheme + ": "
+                        + string.Join(", ", missingNames),
                         LogMessageType.Error);
+
+                    for (int i = 0; i < missingKeys.Count; i++)
+                    {
+                        dict[missingKeys[i]] = reference[missingKeys[i]];
+                    }
                 }
             }
             catch (Exception error)

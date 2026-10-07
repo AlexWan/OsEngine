@@ -44,7 +44,12 @@ namespace OsEngine.Entity
 
             grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             grid.BackgroundColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
-            grid.GridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
+            System.Drawing.Color gridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
+            if (gridColor.A != 255)
+            {
+                gridColor = System.Drawing.SystemColors.ControlDark;
+            }
+            grid.GridColor = gridColor;
 
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             grid.BorderStyle = BorderStyle.None;
@@ -107,7 +112,12 @@ namespace OsEngine.Entity
 
             grid.BackColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
             grid.BackgroundColor = Themes.ThemeManager.GetColorWinForms("StandardBackGroundColorLight");
-            grid.GridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
+            System.Drawing.Color gridColor = Themes.ThemeManager.GetColorWinForms("GridLinesColor");
+            if (gridColor.A != 255)
+            {
+                gridColor = System.Drawing.SystemColors.ControlDark;
+            }
+            grid.GridColor = gridColor;
 
             DataGridViewCellStyle style = CreateThemedCellStyle();
 
