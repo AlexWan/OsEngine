@@ -1243,11 +1243,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.Connector.ServerUid = ServerUid;
             }
 
-            if (tab.Connector.EventsIsOn != _eventsIsOn)
-            {
-                tab.Connector.EventsIsOn = _eventsIsOn;
-            }
-
             tab.TimeFrameBuilder.MarketDepthBuildMaxSpread = MarketDepthBuildMaxSpread;
             tab.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = MarketDepthBuildMaxSpreadIsOn;
 
@@ -1302,6 +1297,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.TimeFrameBuilder.MarketDepthBuildMaxSpread = this.MarketDepthBuildMaxSpread;
             newTab.Connector.TimeFrameBuilder.MarketDepthBuildMaxSpreadIsOn = this.MarketDepthBuildMaxSpreadIsOn;
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
+            newTab.Connector.EventsIsOn = _eventsIsOn;
             newTab.CommissionType = CommissionType;
             newTab.CommissionValue = CommissionValue;
             newTab.IsCreatedByScreener = true;
