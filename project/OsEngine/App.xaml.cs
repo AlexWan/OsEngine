@@ -96,6 +96,7 @@ namespace OsEngine
         [StructLayout(LayoutKind.Sequential)]
         private struct WINDOWPOS
         {
+            public IntPtr hwnd;
             public IntPtr hwndInsertAfter;
             public int x;
             public int y;
