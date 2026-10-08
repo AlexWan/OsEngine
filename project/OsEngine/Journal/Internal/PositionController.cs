@@ -58,6 +58,7 @@ namespace OsEngine.Journal.Internal
                         controller.SavePositions();
                         controller.TryPaintPositions();
                         controller.TrySaveStopLimits();
+                        controller.TryCleanStaleNoneOrders();
                     }
 
                     if (!MainWindow.ProccesIsWorked)
@@ -442,7 +443,7 @@ namespace OsEngine.Journal.Internal
 
         private List<Position> _deals;
 
-        private string _dealsLocker = "_dealsLocker";
+        private readonly object _dealsLocker = new object();
 
         public void SetNewPosition(Position newPosition)
         {
@@ -1393,6 +1394,145 @@ namespace OsEngine.Journal.Internal
             }
         }
         private List<Position> _closeShortPositions;
+
+        #endregion
+
+        #region Stale unconfirmed orders
+
+        // how long an order with State=None (never confirmed by the exchange) may keep the
+        // position active before it is dropped
+        private static readonly TimeSpan _noneOrderStaleTimeout = TimeSpan.FromSeconds(60);
+
+        /// <summary>
+        /// Periodic sweep (from WatcherHome): drop order records that were added to a position
+        /// but never confirmed by the exchange (State=None, empty NumberMarket) and therefore
+        /// keep the position stuck in Opening/Closing forever.
+        /// </summary>
+        private void TryCleanStaleNoneOrders()
+        {
+            List<Position> changed = new List<Position>();
+
+            try
+            {
+                lock (_dealsLocker)
+                {
+                    List<Position> positions = _deals;
+
+                    if (positions == null || positions.Count == 0)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        Position position = positions[i];
+
+                        if (position == null)
+                        {
+                            continue;
+                        }
+
+                        bool openChanged = CheckOrdersForStale(position.OpenOrders, position);
+                        bool closeChanged = CheckOrdersForStale(position.CloseOrders, position);
+
+                        if (openChanged || closeChanged)
+                        {
+                            changed.Add(position);
+                        }
+                    }
+
+                    if (changed.Count == 0)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < changed.Count; i++)
+                    {
+                        UpdateOpenPositionArray(changed[i]);
+                    }
+
+                    _openLongChanged = true;
+                    _openShortChanged = true;
+                    _closePositionChanged = true;
+                    _needToSave = true;
+
+                    for (int i = 0; i < changed.Count; i++)
+                    {
+                        ProcessPosition(changed[i]);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage("Stale order check error: " + error.ToString(), LogMessageType.Error);
+                return;
+            }
+
+            // fire events outside the lock
+            for (int i = 0; i < changed.Count; i++)
+            {
+                if (PositionStateChangeEvent != null)
+                {
+                    PositionStateChangeEvent(changed[i]);
+                }
+            }
+        }
+
+        private bool CheckOrdersForStale(List<Order> orders, Position position)
+        {
+            if (orders == null || orders.Count == 0)
+            {
+                return false;
+            }
+
+            bool changed = false;
+
+            List<Order> snapshot = new List<Order>(orders);
+
+            for (int i = 0; i < snapshot.Count; i++)
+            {
+                Order order = snapshot[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (order.State != OrderStateType.None
+                    || string.IsNullOrEmpty(order.NumberMarket) == false)
+                {
+                    continue;
+                }
+
+                if (order.PositionAddTime == DateTime.MinValue)
+                {
+                    // legacy/other adders: start aging instead of dropping immediately
+                    order.PositionAddTime = DateTime.Now;
+                    continue;
+                }
+
+                if (DateTime.Now - order.PositionAddTime <= _noneOrderStaleTimeout)
+                {
+                    continue;
+                }
+
+                // synthetic Cancel so the SetOrder tree classifies it (OpeningFail/ClosingFail/Done)
+                Order cancel = new Order();
+                cancel.NumberUser = order.NumberUser;
+                cancel.State = OrderStateType.Cancel;
+                cancel.VolumeExecute = 0;
+
+                position.SetOrder(cancel);
+                position.RemoveOrder(order);
+
+                SendNewLogMessage("Stale unconfirmed order removed (State=None, no NumberMarket). Position "
+                    + position.Number + ", NumberUser " + order.NumberUser, LogMessageType.Error);
+
+                changed = true;
+            }
+
+            return changed;
+        }
 
         #endregion
 

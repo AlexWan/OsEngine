@@ -50,6 +50,11 @@ namespace OsEngine.Entity
         /// <param name="openOrder"></param>
         public void AddNewOpenOrder(Order openOrder)
         {
+            if (openOrder.PositionAddTime == DateTime.MinValue)
+            {
+                openOrder.PositionAddTime = DateTime.Now;
+            }
+
             if (_openOrders == null)
             {
                 _openOrders = new List<Order>();
@@ -147,6 +152,11 @@ namespace OsEngine.Entity
         /// <param name="closeOrder"></param>
         public void AddNewCloseOrder(Order closeOrder)
         {
+            if (closeOrder.PositionAddTime == DateTime.MinValue)
+            {
+                closeOrder.PositionAddTime = DateTime.Now;
+            }
+
             if (CloseOrders == null)
             {
                 _closeOrders = new List<Order>();
@@ -169,6 +179,87 @@ namespace OsEngine.Entity
             }
 
             State = PositionStateType.Closing;
+        }
+
+        /// <summary>
+        /// Remove an order from the position by reference and recalculate the state.
+        /// Used to drop an unconfirmed (State=None) order that never reached the exchange.
+        /// </summary>
+        public void RemoveOrder(Order order)
+        {
+            if (order == null)
+            {
+                return;
+            }
+
+            if (_openOrders != null)
+            {
+                for (int i = 0; i < _openOrders.Count; i++)
+                {
+                    if (ReferenceEquals(_openOrders[i], order))
+                    {
+                        _openOrders.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (_closeOrders != null)
+            {
+                for (int i = 0; i < _closeOrders.Count; i++)
+                {
+                    if (ReferenceEquals(_closeOrders[i], order))
+                    {
+                        _closeOrders.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+
+            _myTrades = null;
+
+            RecheckState();
+        }
+
+        /// <summary>
+        /// Recalculate the position state from the actual orders/volumes.
+        /// Mirrors the settled branches of SetOrder: the final branch gives Done
+        /// (as in SetOrder :868-873), without the MaxVolume classification.
+        /// Does not downgrade already settled fail states.
+        /// </summary>
+        public void RecheckState()
+        {
+            if (State == PositionStateType.Done
+                || State == PositionStateType.OpeningFail
+                || State == PositionStateType.ClosingFail
+                || State == PositionStateType.ClosingSurplus)
+            {
+                return;
+            }
+
+            if (OpenVolume == 0)
+            {
+                if (CloseActive == false
+                    && OpenActive == false)
+                {
+                    State = PositionStateType.Done;
+                }
+                return;
+            }
+
+            if (CloseActive)
+            {
+                State = PositionStateType.Closing;
+                return;
+            }
+
+            if (OpenActive)
+            {
+                State = PositionStateType.Opening;
+                return;
+            }
+
+            State = PositionStateType.Open;
         }
 
         /// <summary>

@@ -451,15 +451,34 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 _ordersNeedToCreate = new List<Order>();
             }
 
-            if (_ordersInSystem != null)
+            if (_ordersInSystem == null)
             {
-                if (NewOrderNeedToCancel != null &&
-                    _ordersInSystem.State == OrderStateType.Active)
+                return;
+            }
+
+            OrderStateType state = _ordersInSystem.State;
+
+            if (state == OrderStateType.Active
+                || state == OrderStateType.Pending
+                || state == OrderStateType.Partial)
+            {
+                // cancel and keep the order in the position until the Cancel/Done echo arrives
+                if (NewOrderNeedToCancel != null)
                 {
                     NewOrderNeedToCancel(_ordersInSystem);
-                    _ordersInSystem = null;
                 }
+                return;
             }
+
+            if (state == OrderStateType.None
+                && _position != null)
+            {
+                // never confirmed by the exchange: drop it from the position so it cannot
+                // keep the position stuck in Closing/Opening
+                _position.RemoveOrder(_ordersInSystem);
+            }
+
+            _ordersInSystem = null;
         }
 
         public void Delete()

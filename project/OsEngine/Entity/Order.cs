@@ -27,7 +27,14 @@ namespace OsEngine.Entity
             NumberMarket = "";
             Side = Side.None;
             NumberPosition = 0;
+            PositionAddTime = DateTime.MinValue;
         }
+
+        /// <summary>
+        /// Local time when the order was added to a position (not saved to disk).
+        /// Used to age out unconfirmed orders (State=None) that never reached the exchange.
+        /// </summary>
+        public DateTime PositionAddTime;
 
         /// <summary>
         /// Order number in the robot

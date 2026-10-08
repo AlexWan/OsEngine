@@ -5206,41 +5206,69 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.StopOrderIsActive = false;
                 position.ProfitOrderIsActive = false;
 
+                DateTime staleTime = DateTime.Now - TimeSpan.FromSeconds(60);
 
-                if (position.OpenOrders != null &&
-                   position.OpenOrders.Count > 0)
+                if (position.OpenOrders != null
+                   && position.OpenOrders.Count > 0)
                 {
-                    for (int i = 0; i < position.OpenOrders.Count; i++)
+                    List<Order> openOrders = new List<Order>(position.OpenOrders);
+
+                    for (int i = 0; i < openOrders.Count; i++)
                     {
-                        Order order = position.OpenOrders[i];
+                        Order order = openOrders[i];
 
                         if (order == null)
                         {
                             continue;
                         }
 
-                        if (order.State == OrderStateType.Active)
+                        if (order.State == OrderStateType.Active
+                            || order.State == OrderStateType.Pending
+                            || order.State == OrderStateType.Partial)
                         {
-                            _connector.OrderCancel(position.OpenOrders[i]);
+                            _connector.OrderCancel(order);
+                        }
+                        else if (order.State == OrderStateType.None
+                            && string.IsNullOrEmpty(order.NumberMarket)
+                            && order.PositionAddTime != DateTime.MinValue
+                            && order.PositionAddTime < staleTime)
+                        {
+                            position.RemoveOrder(order);
+
+                            SetNewLogMessage("Stale unconfirmed open order removed. Position "
+                                + position.Number + ", NumberUser " + order.NumberUser, LogMessageType.Error);
                         }
                     }
                 }
 
-
                 if (position.CloseOrders != null)
                 {
-                    for (int i = 0; i < position.CloseOrders.Count; i++)
+                    List<Order> closeOrders = new List<Order>(position.CloseOrders);
+
+                    for (int i = 0; i < closeOrders.Count; i++)
                     {
-                        Order closeOrder = position.CloseOrders[i];
+                        Order closeOrder = closeOrders[i];
 
                         if (closeOrder == null)
                         {
                             continue;
                         }
 
-                        if (closeOrder.State == OrderStateType.Active)
+                        if (closeOrder.State == OrderStateType.Active
+                            || closeOrder.State == OrderStateType.Pending
+                            || closeOrder.State == OrderStateType.Partial)
                         {
                             _connector.OrderCancel(closeOrder);
+                        }
+                        else if (closeOrder.State == OrderStateType.None
+                            && string.IsNullOrEmpty(closeOrder.NumberMarket)
+                            && closeOrder.PositionAddTime != DateTime.MinValue
+                            && closeOrder.PositionAddTime < staleTime)
+                        {
+                            position.RemoveOrder(closeOrder);
+
+                            SetNewLogMessage("Stale unconfirmed close order removed. Position "
+                                + position.Number + ", NumberUser " + closeOrder.NumberUser, LogMessageType.Error);
                         }
                     }
                 }
