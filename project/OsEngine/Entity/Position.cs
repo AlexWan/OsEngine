@@ -184,26 +184,29 @@ namespace OsEngine.Entity
         /// <summary>
         /// Remove an order from the position by reference and recalculate the state.
         /// Used to drop an unconfirmed (State=None) order that never reached the exchange.
+        /// Returns true only when the order was actually removed.
         /// </summary>
-        public void RemoveOrder(Order order)
+        public bool RemoveOrder(Order order)
         {
             if (order == null)
             {
-                return;
+                return false;
             }
 
             // Never drop an order that has executed volume or trades:
             // that would lose the fills from the position.
             if (order.VolumeExecute > 0)
             {
-                return;
+                return false;
             }
 
             if (order.MyTrades != null
                 && order.MyTrades.Count > 0)
             {
-                return;
+                return false;
             }
+
+            bool removed = false;
 
             if (_openOrders != null)
             {
@@ -212,6 +215,7 @@ namespace OsEngine.Entity
                     if (ReferenceEquals(_openOrders[i], order))
                     {
                         _openOrders.RemoveAt(i);
+                        removed = true;
                         break;
                     }
                 }
@@ -224,14 +228,22 @@ namespace OsEngine.Entity
                     if (ReferenceEquals(_closeOrders[i], order))
                     {
                         _closeOrders.RemoveAt(i);
+                        removed = true;
                         break;
                     }
                 }
             }
 
+            if (removed == false)
+            {
+                return false;
+            }
+
             _myTrades = null;
 
             RecheckState();
+
+            return true;
         }
 
         /// <summary>

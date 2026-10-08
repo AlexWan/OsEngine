@@ -1410,11 +1410,6 @@ namespace OsEngine.Journal.Internal
         /// </summary>
         private void TryCleanStaleNoneOrders()
         {
-            if (_deals == null || _deals.Count == 0)
-            {
-                return;
-            }
-
             DateTime cutoff = DateTime.Now - _noneOrderStaleTimeout;
 
             List<Position> changed = new List<Position>();
@@ -1424,6 +1419,11 @@ namespace OsEngine.Journal.Internal
             {
                 lock (_dealsLocker)
                 {
+                    if (_deals == null || _deals.Count == 0)
+                    {
+                        return;
+                    }
+
                     for (int i = 0; i < _deals.Count; i++)
                     {
                         Position position = _deals[i];
@@ -1512,8 +1512,9 @@ namespace OsEngine.Journal.Internal
                 // IcebergMaker.Check() adds orders to the position without lock(_dealsLocker),
                 // so the list can change while it is being copied. Skip this position for now;
                 // it will be processed on the next WatcherHome pass (in 3 seconds).
+                // Not an error: transient, minimized by the lock above.
                 SendNewLogMessage("Stale order check skipped: position " + position.Number
-                    + " order list was modified concurrently", LogMessageType.Error);
+                    + " order list was modified concurrently", LogMessageType.System);
                 return false;
             }
 
@@ -1545,7 +1546,12 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                position.RemoveOrder(order);
+                // RemoveOrder guards VolumeExecute/MyTrades and returns true only on a real removal,
+                // so we never log or mark the position when the order was actually kept.
+                if (position.RemoveOrder(order) == false)
+                {
+                    continue;
+                }
 
                 SendNewLogMessage("Stale unconfirmed order removed (State=None, no NumberMarket). Position "
                     + position.Number + ", NumberUser " + order.NumberUser, LogMessageType.Error);
