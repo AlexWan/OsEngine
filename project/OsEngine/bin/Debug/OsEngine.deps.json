@@ -23,7 +23,7 @@
           "WinForms.DataVisualization": "1.10.0",
           "BytesRoad.Net.Ftp": "2.0.0.0",
           "BytesRoad.Net.Sockets": "2.0.0.0",
-          "cgate_net64": "5.10.0.36987",
+          "cgate_net64": "6.27.0.25154",
           "FinamApi": "1.0.0.0",
           "Jayrock.Json": "0.9.16530.0",
           "LiteDB": "5.0.19.0",
@@ -346,11 +346,11 @@
           }
         }
       },
-      "cgate_net64/5.10.0.36987": {
+      "cgate_net64/6.27.0.25154": {
         "runtime": {
           "cgate_net64.dll": {
-            "assemblyVersion": "5.10.0.36987",
-            "fileVersion": "5.10.0.608"
+            "assemblyVersion": "6.27.0.25154",
+            "fileVersion": "6.27.0.4026"
           }
         }
       },
@@ -674,7 +674,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "cgate_net64/5.10.0.36987": {
+    "cgate_net64/6.27.0.25154": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
