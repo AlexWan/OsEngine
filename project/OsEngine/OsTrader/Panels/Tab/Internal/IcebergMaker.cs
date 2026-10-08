@@ -470,12 +470,38 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (state == OrderStateType.None
-                && _position != null)
+            if (state == OrderStateType.None)
             {
-                // never confirmed by the exchange: drop it from the position so it cannot
-                // keep the position stuck in Closing/Opening
-                _position.RemoveOrder(_ordersInSystem);
+                bool numberMarketIsEmpty = string.IsNullOrEmpty(_ordersInSystem.NumberMarket);
+
+                bool isStale = _ordersInSystem.PositionAddTime != DateTime.MinValue
+                    && _ordersInSystem.PositionAddTime < DateTime.Now - TimeSpan.FromSeconds(60);
+
+                if (isStale && numberMarketIsEmpty)
+                {
+                    // provably never reached the exchange: drop it from the position so it
+                    // cannot keep the position stuck in Closing/Opening
+                    if (_position != null)
+                    {
+                        _position.RemoveOrder(_ordersInSystem);
+                    }
+
+                    _ordersInSystem = null;
+                }
+                else
+                {
+                    // Check() puts the order into the position right before NewOrderNeedToExecute, so
+                    // a fresh State=None may already be live on the exchange. Never drop a live order
+                    // from the journal: if it has a market number, ask to cancel and wait for the echo;
+                    // otherwise leave it for the echo / periodic sweep.
+                    if (numberMarketIsEmpty == false
+                        && NewOrderNeedToCancel != null)
+                    {
+                        NewOrderNeedToCancel(_ordersInSystem);
+                    }
+                }
+
+                return;
             }
 
             _ordersInSystem = null;
