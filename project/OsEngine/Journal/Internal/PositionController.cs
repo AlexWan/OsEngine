@@ -1401,7 +1401,7 @@ namespace OsEngine.Journal.Internal
 
         // How long an order with State=None (never confirmed by the exchange) may keep the
         // position active before it is dropped by the periodic sweep.
-        private static readonly TimeSpan _noneOrderStaleTimeout = TimeSpan.FromSeconds(60);
+        private static readonly TimeSpan _noneOrderStaleTimeout = TimeSpan.FromSeconds(180);
 
         /// <summary>
         /// Periodic sweep (called from WatcherHome): drop order records that were added to a
