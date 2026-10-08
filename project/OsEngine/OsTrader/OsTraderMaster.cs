@@ -242,7 +242,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Bots array
         /// </summary>
-        public List<BotPanel> PanelsArray;
+        public List<BotPanel> PanelsArray = new List<BotPanel>();
 
         /// <summary>
         /// The bot to which the interface is currently connected
