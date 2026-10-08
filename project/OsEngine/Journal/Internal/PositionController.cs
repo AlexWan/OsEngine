@@ -55,10 +55,10 @@ namespace OsEngine.Journal.Internal
                             continue;
                         }
 
+                        controller.TryCleanStaleNoneOrders();
                         controller.SavePositions();
                         controller.TryPaintPositions();
                         controller.TrySaveStopLimits();
-                        controller.TryCleanStaleNoneOrders();
                     }
 
                     if (!MainWindow.ProccesIsWorked)
@@ -443,7 +443,7 @@ namespace OsEngine.Journal.Internal
 
         private List<Position> _deals;
 
-        private readonly object _dealsLocker = new object();
+        private string _dealsLocker = "_dealsLocker";
 
         public void SetNewPosition(Position newPosition)
         {
@@ -1399,45 +1399,55 @@ namespace OsEngine.Journal.Internal
 
         #region Stale unconfirmed orders
 
-        // how long an order with State=None (never confirmed by the exchange) may keep the
-        // position active before it is dropped
+        // How long an order with State=None (never confirmed by the exchange) may keep the
+        // position active before it is dropped by the periodic sweep.
         private static readonly TimeSpan _noneOrderStaleTimeout = TimeSpan.FromSeconds(60);
 
         /// <summary>
-        /// Periodic sweep (from WatcherHome): drop order records that were added to a position
-        /// but never confirmed by the exchange (State=None, empty NumberMarket) and therefore
-        /// keep the position stuck in Opening/Closing forever.
+        /// Periodic sweep (called from WatcherHome): drop order records that were added to a
+        /// position but never confirmed by the exchange (State=None, empty NumberMarket) and
+        /// therefore keep the position stuck in Opening/Closing forever.
         /// </summary>
         private void TryCleanStaleNoneOrders()
         {
+            if (_deals == null || _deals.Count == 0)
+            {
+                return;
+            }
+
+            DateTime cutoff = DateTime.Now - _noneOrderStaleTimeout;
+
             List<Position> changed = new List<Position>();
+            List<Position> stateChanged = new List<Position>();
 
             try
             {
                 lock (_dealsLocker)
                 {
-                    List<Position> positions = _deals;
-
-                    if (positions == null || positions.Count == 0)
+                    for (int i = 0; i < _deals.Count; i++)
                     {
-                        return;
-                    }
-
-                    for (int i = 0; i < positions.Count; i++)
-                    {
-                        Position position = positions[i];
+                        Position position = _deals[i];
 
                         if (position == null)
                         {
                             continue;
                         }
 
-                        bool openChanged = CheckOrdersForStale(position.OpenOrders, position);
-                        bool closeChanged = CheckOrdersForStale(position.CloseOrders, position);
+                        PositionStateType stateBefore = position.State;
 
-                        if (openChanged || closeChanged)
+                        bool removed = CheckOrdersForStale(position.OpenOrders, position, cutoff);
+                        removed |= CheckOrdersForStale(position.CloseOrders, position, cutoff);
+
+                        if (removed == false)
                         {
-                            changed.Add(position);
+                            continue;
+                        }
+
+                        changed.Add(position);
+
+                        if (position.State != stateBefore)
+                        {
+                            stateChanged.Add(position);
                         }
                     }
 
@@ -1454,12 +1464,9 @@ namespace OsEngine.Journal.Internal
                     _openLongChanged = true;
                     _openShortChanged = true;
                     _closePositionChanged = true;
+                    _closeLongChanged = true;
+                    _closeShortChanged = true;
                     _needToSave = true;
-
-                    for (int i = 0; i < changed.Count; i++)
-                    {
-                        ProcessPosition(changed[i]);
-                    }
                 }
             }
             catch (Exception error)
@@ -1468,26 +1475,49 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            // fire events outside the lock
+            // Side effects outside the lock: UI queue and state change events.
             for (int i = 0; i < changed.Count; i++)
+            {
+                ProcessPosition(changed[i]);
+            }
+
+            for (int i = 0; i < stateChanged.Count; i++)
             {
                 if (PositionStateChangeEvent != null)
                 {
-                    PositionStateChangeEvent(changed[i]);
+                    PositionStateChangeEvent(stateChanged[i]);
                 }
             }
         }
 
-        private bool CheckOrdersForStale(List<Order> orders, Position position)
+        /// <summary>
+        /// Remove stale unconfirmed (State=None, no market number) orders from one order list.
+        /// Returns true if at least one order was removed.
+        /// </summary>
+        private bool CheckOrdersForStale(List<Order> orders, Position position, DateTime cutoff)
         {
             if (orders == null || orders.Count == 0)
             {
                 return false;
             }
 
-            bool changed = false;
+            List<Order> snapshot = null;
 
-            List<Order> snapshot = new List<Order>(orders);
+            try
+            {
+                snapshot = new List<Order>(orders);
+            }
+            catch (InvalidOperationException)
+            {
+                // IcebergMaker.Check() adds orders to the position without lock(_dealsLocker),
+                // so the list can change while it is being copied. Skip this position for now;
+                // it will be processed on the next WatcherHome pass (in 3 seconds).
+                SendNewLogMessage("Stale order check skipped: position " + position.Number
+                    + " order list was modified concurrently", LogMessageType.Error);
+                return false;
+            }
+
+            bool changed = false;
 
             for (int i = 0; i < snapshot.Count; i++)
             {
@@ -1506,23 +1536,15 @@ namespace OsEngine.Journal.Internal
 
                 if (order.PositionAddTime == DateTime.MinValue)
                 {
-                    // legacy/other adders: start aging instead of dropping immediately
-                    order.PositionAddTime = DateTime.Now;
+                    // Legacy/other adders have no timestamp, the age cannot be proven - do not remove.
                     continue;
                 }
 
-                if (DateTime.Now - order.PositionAddTime <= _noneOrderStaleTimeout)
+                if (order.PositionAddTime >= cutoff)
                 {
                     continue;
                 }
 
-                // synthetic Cancel so the SetOrder tree classifies it (OpeningFail/ClosingFail/Done)
-                Order cancel = new Order();
-                cancel.NumberUser = order.NumberUser;
-                cancel.State = OrderStateType.Cancel;
-                cancel.VolumeExecute = 0;
-
-                position.SetOrder(cancel);
                 position.RemoveOrder(order);
 
                 SendNewLogMessage("Stale unconfirmed order removed (State=None, no NumberMarket). Position "

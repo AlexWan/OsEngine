@@ -192,6 +192,19 @@ namespace OsEngine.Entity
                 return;
             }
 
+            // Never drop an order that has executed volume or trades:
+            // that would lose the fills from the position.
+            if (order.VolumeExecute > 0)
+            {
+                return;
+            }
+
+            if (order.MyTrades != null
+                && order.MyTrades.Count > 0)
+            {
+                return;
+            }
+
             if (_openOrders != null)
             {
                 for (int i = 0; i < _openOrders.Count; i++)
@@ -243,6 +256,11 @@ namespace OsEngine.Entity
                     && OpenActive == false)
                 {
                     State = PositionStateType.Done;
+
+                    if (CloseOrders != null)
+                    {
+                        CalculateProfitToPosition();
+                    }
                 }
                 return;
             }

@@ -451,60 +451,15 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 _ordersNeedToCreate = new List<Order>();
             }
 
-            if (_ordersInSystem == null)
+            if (_ordersInSystem != null)
             {
-                return;
-            }
-
-            OrderStateType state = _ordersInSystem.State;
-
-            if (state == OrderStateType.Active
-                || state == OrderStateType.Pending
-                || state == OrderStateType.Partial)
-            {
-                // cancel and keep the order in the position until the Cancel/Done echo arrives
-                if (NewOrderNeedToCancel != null)
+                if (NewOrderNeedToCancel != null &&
+                    _ordersInSystem.State == OrderStateType.Active)
                 {
                     NewOrderNeedToCancel(_ordersInSystem);
-                }
-                return;
-            }
-
-            if (state == OrderStateType.None)
-            {
-                bool numberMarketIsEmpty = string.IsNullOrEmpty(_ordersInSystem.NumberMarket);
-
-                bool isStale = _ordersInSystem.PositionAddTime != DateTime.MinValue
-                    && _ordersInSystem.PositionAddTime < DateTime.Now - TimeSpan.FromSeconds(60);
-
-                if (isStale && numberMarketIsEmpty)
-                {
-                    // provably never reached the exchange: drop it from the position so it
-                    // cannot keep the position stuck in Closing/Opening
-                    if (_position != null)
-                    {
-                        _position.RemoveOrder(_ordersInSystem);
-                    }
-
                     _ordersInSystem = null;
                 }
-                else
-                {
-                    // Check() puts the order into the position right before NewOrderNeedToExecute, so
-                    // a fresh State=None may already be live on the exchange. Never drop a live order
-                    // from the journal: if it has a market number, ask to cancel and wait for the echo;
-                    // otherwise leave it for the echo / periodic sweep.
-                    if (numberMarketIsEmpty == false
-                        && NewOrderNeedToCancel != null)
-                    {
-                        NewOrderNeedToCancel(_ordersInSystem);
-                    }
-                }
-
-                return;
             }
-
-            _ordersInSystem = null;
         }
 
         public void Delete()
