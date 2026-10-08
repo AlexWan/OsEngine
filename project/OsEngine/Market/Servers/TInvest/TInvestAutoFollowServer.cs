@@ -1079,7 +1079,8 @@ namespace OsEngine.Market.Servers.TInvest
         #region 5 Data
 
         // https://russianinvestments.github.io/investAPI/limits/
-        private RateGate _rateGateMarketData = new RateGate(600, TimeSpan.FromMinutes(1));
+        // Сервис котировок: лимит 600 запр/мин суммарно по всем методам и счетам. Держим 570 с запасом
+        private RateGate _rateGateMarketData = new RateGate(570, TimeSpan.FromMinutes(1));
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
