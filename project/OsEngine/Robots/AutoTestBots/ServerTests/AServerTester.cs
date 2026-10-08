@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Threading;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Language;
-using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
@@ -1785,5 +1784,20 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         }
 
         public event Action<AServerTester> TestEndEvent;
+
+        /// <summary>
+        /// выравнивание расчётной цены по шагу цены инструмента.
+        /// середина спреда / процентное смещение без выравнивания могут дать цену не кратную шагу (например 100.008 при шаге 0.005)
+        /// </summary>
+        public static decimal AlignPriceToStep(decimal price, Security security)
+        {
+            if (security == null || security.PriceStep <= 0)
+            {
+                return price;
+            }
+
+            price = Math.Round(price / security.PriceStep) * security.PriceStep;
+            return Math.Round(price, security.Decimals);
+        }
     }
 }

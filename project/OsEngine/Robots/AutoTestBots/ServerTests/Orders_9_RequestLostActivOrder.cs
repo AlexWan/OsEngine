@@ -119,9 +119,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2 выставляем ордер на покупку. Далеко от края стакана
 
-            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal price = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
             decimal volume = VolumeToTrade;
-            price = Math.Round(price - price * 0.01m, mySecurity.Decimals); // проскальзывание 1%
+            price = AlignPriceToStep(price - price * 0.01m, mySecurity); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySecurity, price, volume, Side.Buy);
 

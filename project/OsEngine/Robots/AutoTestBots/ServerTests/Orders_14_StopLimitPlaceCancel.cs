@@ -142,7 +142,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            decimal midPrice = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal midPrice = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
 
             // стоп-ордера на покупку. Активация выше рынка
 
@@ -232,8 +232,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private Order SendBuyStopOrder(Security mySec, decimal midPrice)
         {
-            decimal priceActivate = Math.Round(midPrice + midPrice * 0.02m, mySec.Decimals); // активация на 2% выше рынка
-            decimal priceOrder = Math.Round(priceActivate + priceActivate * 0.005m, mySec.Decimals);
+            decimal priceActivate = AlignPriceToStep(midPrice + midPrice * 0.02m, mySec); // активация на 2% выше рынка
+            decimal priceOrder = AlignPriceToStep(priceActivate + priceActivate * 0.005m, mySec);
 
             Order newOrder = CreateStopOrder(mySec, priceOrder, priceActivate, VolumeToTrade, Side.Buy);
             _WaitSide = Side.Buy;
@@ -273,8 +273,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private Order SendSellStopOrder(Security mySec, decimal midPrice)
         {
-            decimal priceActivate = Math.Round(midPrice - midPrice * 0.02m, mySec.Decimals); // активация на 2% ниже рынка
-            decimal priceOrder = Math.Round(priceActivate - priceActivate * 0.005m, mySec.Decimals);
+            decimal priceActivate = AlignPriceToStep(midPrice - midPrice * 0.02m, mySec); // активация на 2% ниже рынка
+            decimal priceOrder = AlignPriceToStep(priceActivate - priceActivate * 0.005m, mySec);
 
             Order newOrder = CreateStopOrder(mySec, priceOrder, priceActivate, VolumeToTrade, Side.Sell);
             _WaitSide = Side.Sell;
@@ -314,7 +314,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private Order SendBuyStopMarketOrder(Security mySec, decimal midPrice)
         {
-            decimal priceActivate = Math.Round(midPrice + midPrice * 0.02m, mySec.Decimals); // активация на 2% выше рынка
+            decimal priceActivate = AlignPriceToStep(midPrice + midPrice * 0.02m, mySec); // активация на 2% выше рынка
 
             Order newOrder = CreateStopOrder(mySec, priceActivate, priceActivate, VolumeToTrade, Side.Buy);
             newOrder.TypeOrder = OrderPriceType.StopMarket;
@@ -354,7 +354,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private Order SendSellStopMarketOrder(Security mySec, decimal midPrice)
         {
-            decimal priceActivate = Math.Round(midPrice - midPrice * 0.02m, mySec.Decimals); // активация на 2% ниже рынка
+            decimal priceActivate = AlignPriceToStep(midPrice - midPrice * 0.02m, mySec); // активация на 2% ниже рынка
 
             Order newOrder = CreateStopOrder(mySec, priceActivate, priceActivate, VolumeToTrade, Side.Sell);
             newOrder.TypeOrder = OrderPriceType.StopMarket;

@@ -318,19 +318,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (_awaitableSecurities[i].CandlesCount == 0)
                 {
                     SetNewError("Error 28. No candles");
-                    return;
                 }
 
                 if (_awaitableSecurities[i].MarketDepthsIncomeCount == 0)
                 {
                     SetNewError("Error 29. No marketDepths");
-                    return;
                 }
 
                 if (_awaitableSecurities[i].TradesIncomeCount == 0)
                 {
                     SetNewError("Error 30. No trades");
-                    return;
                 }
 
                 this.SetNewServiceInfo(_awaitableSecurities[i].GetReportString());

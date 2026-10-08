@@ -115,11 +115,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 1 выставляем ордер на покупку. Далеко от края стакана
 
-            decimal price = Math.Round((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity.Decimals);
+            decimal price = AlignPriceToStep((md.Asks[0].Price.ToDecimal() + md.Bids[0].Price.ToDecimal()) / 2, mySecurity);
 
             Order order = SendBuyOrder(mySecurity, price);
 
-            if(order == null)
+            if (order == null)
             {
                 TestEnded();
                 return;
@@ -136,11 +136,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             DateTime startAwait = DateTime.Now;
 
-            while(Server.ServerStatus != ServerConnectStatus.Connect)
+            while (Server.ServerStatus != ServerConnectStatus.Connect)
             {
                 Thread.Sleep(1000);
 
-                if(startAwait.AddMinutes(5) < DateTime.Now)
+                if (startAwait.AddMinutes(5) < DateTime.Now)
                 {
                     SetNewError("Error 8. Server status did not change in 5 minutes");
                     TestEnded();
@@ -153,7 +153,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Thread.Sleep(20000);
 
-            if(_ordersActive.Count == 0)
+            if (_ordersActive.Count == 0)
             {
                 SetNewError("Error 9. No active order after 20 seconds");
                 TestEnded();
@@ -162,13 +162,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 4 записываем активные ордера какие пришли после реконнекта
 
-            for(int i = 0;i < _ordersActive.Count;i++)
+            for (int i = 0; i < _ordersActive.Count; i++)
             {
-                SetNewServiceInfo("API sent Active order. NumUser: " + _ordersActive[i].NumberUser + 
-                     " NumMarket: "  + _ordersActive[i].NumberMarket + 
+                SetNewServiceInfo("API sent Active order. NumUser: " + _ordersActive[i].NumberUser +
+                     " NumMarket: " + _ordersActive[i].NumberMarket +
                      " Security: " + _ordersActive[i].SecurityNameCode);
             }
-           
+
             // 5 отзываем ордер
 
             CancelOrder(order);
@@ -191,7 +191,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             decimal volume = VolumeToTrade;
 
-            price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
+            price = AlignPriceToStep(price - price * 0.01m, mySec); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
 
