@@ -1796,7 +1796,8 @@ namespace OsEngine.Market.Servers.TInvest
         #region 5 Data
 
         // https://russianinvestments.github.io/investAPI/limits/
-        private RateGate _rateGateMarketData = new RateGate(600, TimeSpan.FromMinutes(1));
+        // Сервис котировок: лимит 600 запр/мин суммарно по всем методам и счетам. Держим 570 с запасом
+        private RateGate _rateGateMarketData = new RateGate(570, TimeSpan.FromMinutes(1));
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -4697,7 +4698,8 @@ namespace OsEngine.Market.Servers.TInvest
         private RateGate _rateGateOrders = new RateGate(98, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
         private string _rageGateOrdersLocker = "_rageGateOrdersLocker";
 
-        private RateGate _rateGatePostOrders = new RateGate(500, TimeSpan.FromMinutes(1));
+        // Метод postOrder: лимит 300 запр/мин. Держим 290 с запасом
+        private RateGate _rateGatePostOrders = new RateGate(290, TimeSpan.FromMinutes(1));
         private string _rageGatePostOrdersLocker = "_rageGatePostOrdersLocker";
 
         // Сервис стоп-ордеров: лимит 50 запр/мин суммарно по всем методам и счетам. Держим 45 с запасом
@@ -4928,6 +4930,11 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (orderStateType == OrderStateType.None)
                     {
+                        lock (_rageGatePostOrdersLocker)
+                        {
+                            _rateGatePostOrders.WaitToProceed();
+                        }
+
                         return PostOrderPrivateLoop(request, attemptNumber, order);
                     }
                     else
