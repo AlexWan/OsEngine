@@ -254,7 +254,7 @@ namespace OsEngine.Robots.Rebalancers
 
                 _lastDividendsUpdateCheckDate = serverTime;
 
-                if (!IsDividendsBaseStale(serverTime))
+                if (!IsDividendsBaseStale())
                 {
                     SendNewLogMessage("Dividends base is up to date", LogMessageType.System);
                     return;
@@ -297,27 +297,9 @@ namespace OsEngine.Robots.Rebalancers
             });
         }
 
-        private bool IsDividendsBaseStale(DateTime currentTime)
+        private bool IsDividendsBaseStale()
         {
-            try
-            {
-                string path = GetDividendsBasePath();
-
-                if (!Directory.Exists(path))
-                {
-                    return true;
-                }
-
-                DateTime lastWrite = Directory.GetLastWriteTime(path);
-                double ageDays = (currentTime - lastWrite).TotalDays;
-
-                return ageDays > _dividendsMaxAgeDays.ValueInt;
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage($"IsDividendsBaseStale error: {error}", LogMessageType.Error);
-                return false;
-            }
+            return WikiMaster.IsDividendsBaseStale(_dividendsMaxAgeDays.ValueInt);
         }
 
         private string GetDividendsBasePath()

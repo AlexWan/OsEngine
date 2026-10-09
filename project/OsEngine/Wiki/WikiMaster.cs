@@ -258,6 +258,45 @@ namespace OsEngine.Wiki
             }
         }
 
+        public static bool IsDividendsBaseStale(int maxAgeDays)
+        {
+            try
+            {
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Wiki", "Dividends");
+
+                if (!Directory.Exists(path))
+                {
+                    return true;
+                }
+
+                string[] files = Directory.GetFiles(path, "*.md");
+
+                if (files.Length == 0)
+                {
+                    return true;
+                }
+
+                DateTime lastWrite = DateTime.MinValue;
+
+                foreach (string file in files)
+                {
+                    DateTime writeTime = File.GetLastWriteTime(file);
+
+                    if (writeTime > lastWrite)
+                    {
+                        lastWrite = writeTime;
+                    }
+                }
+
+                return (DateTime.Now - lastWrite).TotalDays > maxAgeDays;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage($"WikiMaster.IsDividendsBaseStale error: {error}", LogMessageType.Error);
+                return false;
+            }
+        }
+
         private static string FindDividendsUpdater(string baseDir)
         {
             try

@@ -826,7 +826,7 @@ namespace OsEngine.Robots.SpeculantSet
 
                 _lastDividendsUpdateCheckDate = serverTime;
 
-                if (!IsDividendsBaseStale(serverTime))
+                if (!IsDividendsBaseStale())
                 {
                     return;
                 }
@@ -867,27 +867,9 @@ namespace OsEngine.Robots.SpeculantSet
             });
         }
 
-        private bool IsDividendsBaseStale(DateTime currentTime)
+        private bool IsDividendsBaseStale()
         {
-            try
-            {
-                string path = GetDividendsBasePath();
-
-                if (!Directory.Exists(path))
-                {
-                    return true;
-                }
-
-                DateTime lastWrite = Directory.GetLastWriteTime(path);
-                double ageDays = (currentTime - lastWrite).TotalDays;
-
-                return ageDays > _dividendsMaxAgeDays.ValueInt;
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
-                return false;
-            }
+            return WikiMaster.IsDividendsBaseStale(_dividendsMaxAgeDays.ValueInt);
         }
 
         private string GetDividendsBasePath()
