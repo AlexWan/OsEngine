@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Windows.Forms;
 using OsEngine.Candles;
 using OsEngine.Candles.Factory;
@@ -38,6 +39,10 @@ namespace OsEngine.MCP.Modules
         #region Fields
 
         private readonly Action<string, object> _publishEvent;
+
+        private readonly object _botLogLocker = new object();
+
+        private readonly Dictionary<string, BotLogBuffer> _botLogBuffers = new Dictionary<string, BotLogBuffer>();
 
         #endregion
 
@@ -92,6 +97,10 @@ namespace OsEngine.MCP.Modules
 
                     case "bot_click_param_button":
                         response.Result = ClickBotParamButton(request.Params);
+                        break;
+
+                    case "bot_wait_message":
+                        response.Result = WaitBotMessage(request.Params);
                         break;
 
                     case "bot_get_sources":
@@ -305,6 +314,22 @@ namespace OsEngine.MCP.Modules
                             param_name = new { type = "string", description = "Button parameter name from bot_get_params" }
                         },
                         required = new[] { "bot_id", "param_name" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "bot_wait_message",
+                    Description = "Wait for a robot log message containing the marker and return it (timeout_seconds 0 or omitted = wait indefinitely)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            bot_id = new { type = "string", description = "Robot number or unique name" },
+                            marker = new { type = "string", description = "Case-insensitive substring to wait for in the robot log" },
+                            timeout_seconds = new { type = "integer", description = "Max seconds to wait. 0 or omitted = wait indefinitely" }
+                        },
+                        required = new[] { "bot_id", "marker" }
                     }
                 },
                 new McpTool
@@ -1002,6 +1027,8 @@ namespace OsEngine.MCP.Modules
                 throw;
             }
 
+            AttachBotLog(bot);
+
             return bot;
         }
 
@@ -1085,6 +1112,8 @@ namespace OsEngine.MCP.Modules
             string deletedName = botToDelete.NameStrategyUniq;
             int deletedNumber = number.Value;
             string botIdString = botIdElement.ToString();
+
+            DetachBotLog(botToDelete);
 
             if (MainWindow.GetDispatcher.CheckAccess())
             {
@@ -4782,5 +4811,184 @@ namespace OsEngine.MCP.Modules
         {
             NewLogMessageEvent?.Invoke(message, type);
         }
+
+        #region Bot log buffer
+
+        private class BotLogEntry
+        {
+            public string Message;
+            public string Type;
+        }
+
+        private class BotLogBuffer
+        {
+            public readonly List<BotLogEntry> Messages = new List<BotLogEntry>();
+            public int Cursor;
+            public readonly AutoResetEvent Signal = new AutoResetEvent(false);
+            public Action<string, LogMessageType> Handler;
+        }
+
+        private void AttachBotLog(BotPanel bot)
+        {
+            if (bot == null)
+            {
+                return;
+            }
+
+            string botName = bot.NameStrategyUniq;
+
+            Action<string, LogMessageType> handler = (message, type) => AppendBotLog(botName, message, type);
+
+            lock (_botLogLocker)
+            {
+                if (_botLogBuffers.ContainsKey(botName))
+                {
+                    return;
+                }
+
+                BotLogBuffer buffer = new BotLogBuffer { Handler = handler };
+                _botLogBuffers[botName] = buffer;
+
+                bot.LogMessageEvent += handler;
+            }
+        }
+
+        private void DetachBotLog(BotPanel bot)
+        {
+            if (bot == null)
+            {
+                return;
+            }
+
+            lock (_botLogLocker)
+            {
+                if (_botLogBuffers.TryGetValue(bot.NameStrategyUniq, out BotLogBuffer buffer))
+                {
+                    bot.LogMessageEvent -= buffer.Handler;
+                    _botLogBuffers.Remove(bot.NameStrategyUniq);
+                }
+            }
+        }
+
+        private void AppendBotLog(string botName, string message, LogMessageType type)
+        {
+            lock (_botLogLocker)
+            {
+                if (_botLogBuffers.TryGetValue(botName, out BotLogBuffer buffer))
+                {
+                    buffer.Messages.Add(new BotLogEntry { Message = message, Type = type.ToString() });
+                    buffer.Signal.Set();
+                }
+            }
+        }
+
+        private BotLogBuffer GetOrCreateBuffer(BotPanel bot)
+        {
+            string botName = bot.NameStrategyUniq;
+
+            lock (_botLogLocker)
+            {
+                if (_botLogBuffers.TryGetValue(botName, out BotLogBuffer buffer))
+                {
+                    return buffer;
+                }
+            }
+
+            AttachBotLog(bot);
+
+            lock (_botLogLocker)
+            {
+                return _botLogBuffers[botName];
+            }
+        }
+
+        private object WaitBotMessage(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+
+            if (!parameters.TryGetProperty("marker", out JsonElement markerElement)
+                || markerElement.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(markerElement.GetString()))
+            {
+                throw new ArgumentException("marker is required and must be a non-empty string");
+            }
+
+            string marker = markerElement.GetString();
+
+            int timeoutSeconds = 0;
+
+            if (parameters.TryGetProperty("timeout_seconds", out JsonElement timeoutElement)
+                && timeoutElement.ValueKind == JsonValueKind.Number
+                && timeoutElement.TryGetInt32(out int timeout))
+            {
+                timeoutSeconds = Math.Max(0, timeout);
+            }
+
+            BotPanel bot = FindBot(master, botIdElement);
+            BotLogBuffer buffer = GetOrCreateBuffer(bot);
+
+            DateTime startedAt = DateTime.Now;
+
+            while (true)
+            {
+                BotLogEntry found = null;
+                int elapsed = (int)(DateTime.Now - startedAt).TotalSeconds;
+
+                lock (_botLogLocker)
+                {
+                    for (int i = buffer.Cursor; i < buffer.Messages.Count; i++)
+                    {
+                        if (buffer.Messages[i].Message.IndexOf(marker, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            found = buffer.Messages[i];
+                            buffer.Cursor = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (found != null)
+                {
+                    return new
+                    {
+                        found = true,
+                        message = found.Message,
+                        type = found.Type,
+                        elapsed_seconds = elapsed
+                    };
+                }
+
+                if (timeoutSeconds > 0 && elapsed >= timeoutSeconds)
+                {
+                    return new
+                    {
+                        found = false,
+                        timed_out = true,
+                        elapsed_seconds = elapsed
+                    };
+                }
+
+                if (timeoutSeconds > 0)
+                {
+                    buffer.Signal.WaitOne(TimeSpan.FromSeconds(timeoutSeconds - elapsed));
+                }
+                else
+                {
+                    buffer.Signal.WaitOne();
+                }
+            }
+        }
+
+        #endregion
     }
 }
