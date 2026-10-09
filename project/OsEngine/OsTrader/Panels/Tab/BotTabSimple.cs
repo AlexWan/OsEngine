@@ -1411,6 +1411,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return 0;
                 }
+
+                if (_connector.BestAsk <= 0
+                    || _connector.BestBid <= 0)
+                { // стакан пуст или одна из сторон пуста - цены нет
+                    return 0;
+                }
+
                 return (decimal)(_connector.BestAsk + _connector.BestBid) / 2;
             }
         }
