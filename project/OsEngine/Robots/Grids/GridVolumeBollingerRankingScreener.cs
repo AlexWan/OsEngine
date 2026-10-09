@@ -81,22 +81,10 @@ namespace OsEngine.Robots.Grids
 
             _tradePeriodsSettings = new NonTradePeriods(name);
 
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1Start = new TimeOfDay() { Hour = 0, Minute = 0 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1End = new TimeOfDay() { Hour = 10, Minute = 05 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2Start = new TimeOfDay() { Hour = 13, Minute = 54 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2End = new TimeOfDay() { Hour = 14, Minute = 6 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod2OnOff = false;
-
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3Start = new TimeOfDay() { Hour = 18, Minute = 1 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3End = new TimeOfDay() { Hour = 23, Minute = 58 };
-            _tradePeriodsSettings.NonTradePeriodGeneral.NonTradePeriod3OnOff = true;
-
-            _tradePeriodsSettings.TradeInSunday = false;
-            _tradePeriodsSettings.TradeInSaturday = false;
-
-            _tradePeriodsSettings.Load();
+            if (_tradePeriodsSettings.HaveSettingsInFile == false)
+            {
+                _tradePeriodsSettings.SetMoexSpotNonTradePeriods();
+            }
 
             _tradePeriodsShowDialogButton = CreateParameterButton("Non trade periods");
             _tradePeriodsShowDialogButton.UserClickOnButtonEvent += _tradePeriodsShowDialogButton_UserClickOnButtonEvent;

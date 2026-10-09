@@ -57,12 +57,17 @@ namespace OsEngine.Entity
             }
         }
 
+        public bool HaveSettingsInFile;
+
         public void Load()
         {
             if (!File.Exists(@"Engine\" + NameUnique + ".txt"))
             {
                 return;
             }
+
+            HaveSettingsInFile = true;
+
             try
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameUnique + ".txt"))
