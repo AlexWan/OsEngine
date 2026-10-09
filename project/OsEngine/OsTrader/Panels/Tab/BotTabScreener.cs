@@ -1038,6 +1038,19 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void TryReLoadTabs()
         {
+            // called from the screener worker thread and from MCP; without the lock both
+            // run "create missing tabs" at once and TryCreateTab adds the same security twice.
+            // NeedToReloadTabs is re-checked inside, so the second caller exits after the first finishes
+            lock (_reloadTabsLocker)
+            {
+                TryReLoadTabsLocked();
+            }
+        }
+
+        private object _reloadTabsLocker = new object();
+
+        private void TryReLoadTabsLocked()
+        {
             try
             {
                 if (NeedToReloadTabs == false)
