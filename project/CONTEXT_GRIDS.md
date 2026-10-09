@@ -89,7 +89,7 @@ namespace OsEngine.Robots.Grids
                 if (candles.Count < 5) return;
 
                 // Проверяем, есть ли уже сетка
-                if (_tab.GridsMaster.Grid != null)
+                if (_tab.GridsMaster.TradeGrids.Count != 0)
                 {
                     return; // сетка уже работает
                 }
@@ -177,7 +177,7 @@ namespace OsEngine.Robots.Grids
                 if (_regime.ValueString == "Off") return;
                 if (candles.Count < 5) return;
 
-                if (_tab.GridsMaster.Grid != null)
+                if (_tab.GridsMaster.TradeGrids.Count != 0)
                     return;
 
                 decimal lastPrice = candles[candles.Count - 1].Close;
@@ -203,11 +203,11 @@ namespace OsEngine.Robots.Grids
                 grid.TrailingUp.TrailingUpCanMoveExitOrder = false; // тейки остаются на месте
 
                 // TrailingDown — сдвиг сетки вниз при падении цены
-                grid.TrailingDown.TrailingDownIsOn = true;
-                grid.TrailingDown.TrailingDownStep = _tab.RoundPrice(
+                grid.TrailingUp.TrailingDownIsOn = true;
+                grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(
                     lastPrice * _trailingStep.ValueDecimal / 100, _tab.Security, Side.Sell);
-                grid.TrailingDown.TrailingDownLimit = lastPrice - lastPrice * _trailingLimit.ValueDecimal / 100;
-                grid.TrailingDown.TrailingDownCanMoveExitOrder = false;
+                grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * _trailingLimit.ValueDecimal / 100;
+                grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
                 // StopBy — авто-остановка сетки
                 grid.StopBy.StopGridByLifeTimeIsOn = true;
@@ -226,10 +226,13 @@ namespace OsEngine.Robots.Grids
         private void _tab_PositionClosingSuccesEvent(Position pos)
         {
             // Удаляем сетку после закрытия всех позиций
-            if (_tab.GridsMaster.Grid == null) return;
-            if (!_tab.GridsMaster.Grid.HaveOpenPositionsByGrid)
+            if (_tab.GridsMaster.TradeGrids.Count == 0) return;
+
+            TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+            if (grid.HaveOpenPositionsByGrid == false)
             {
-                _tab.GridsMaster.Grid.DeleteGrid();
+                _tab.GridsMaster.DeleteAtNum(grid.Number);
             }
         }
     }
@@ -247,28 +250,31 @@ namespace OsEngine.Robots.Grids
 TradeGrid grid = _tab.GridsMaster.CreateNewTradeGrid();
 
 // Проверка существования сетки
-if (_tab.GridsMaster.Grid != null) { /* сетка уже есть */ }
+if (_tab.GridsMaster.TradeGrids.Count != 0) { /* сетка уже есть */ }
 
 // Форсированное закрытие (закрыть все позиции, потом удалить сетку)
-if (_tab.GridsMaster.Grid != null)
+if (_tab.GridsMaster.TradeGrids.Count != 0)
 {
-    _tab.GridsMaster.Grid.Regime = TradeGridRegime.CloseForced;
+    _tab.GridsMaster.TradeGrids[0].Regime = TradeGridRegime.CloseForced;
 }
 
 // Удаление сетки после закрытия всех позиций (в обработчике события)
 private void _tab_PositionClosingSuccesEvent(Position pos)
 {
-    if (_tab.GridsMaster.Grid == null) return;
-    if (!_tab.GridsMaster.Grid.HaveOpenPositionsByGrid)
+    if (_tab.GridsMaster.TradeGrids.Count == 0) return;
+
+    TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+    if (grid.HaveOpenPositionsByGrid == false)
     {
-        _tab.GridsMaster.Grid.DeleteGrid();
+        _tab.GridsMaster.DeleteAtNum(grid.Number);
     }
 }
 
 // Немедленное удаление (ордера отменятся, но открытые позиции останутся без ордеров на выход!)
-_tab.GridsMaster.Grid.DeleteGrid(); // удалить сетку
+_tab.GridsMaster.DeleteAtNum(_tab.GridsMaster.TradeGrids[0].Number); // через мастер
 // или
-_tab.GridsMaster.DeleteGrid();       // через мастер
+_tab.GridsMaster.TradeGrids[0].DeleteGrid(); // через саму сетку
 ```
 
 ### 3.2 GridCreator — параметры линий
@@ -333,6 +339,8 @@ grid.StopAndProfit.TrailStopValue = 1.5m;
 
 Механизм автоматически сдвигает сетку лимитных ордеров, когда цена выходит за её границы. Не требует ручного пересоздания сетки.
 
+**Важно:** отдельного объекта `TrailingDown` у сетки нет. Поля обоих направлений (`TrailingUp*` и `TrailingDown*`) лежат внутри одного объекта `grid.TrailingUp`.
+
 **Как это работает:**
 - `TrailingUpStep` — **порог срабатывания**. На сколько цена должна выйти за верхнюю границу сетки, чтобы сетка сдвинулась вверх. Это не шаг сдвига! Сетка сдвигается на величину превышения.
 - `TrailingUpLimit` — **абсолютная цена**, выше которой сетка не сдвинется. Не процент! Считается как `lastPrice + lastPrice * limitPercent / 100`.
@@ -349,11 +357,11 @@ grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m; // абсолю�
 grid.TrailingUp.TrailingUpCanMoveExitOrder = false; // тейки не двигаем
 
 // Сдвиг сетки вниз (при падении цены)
-grid.TrailingDown.TrailingDownIsOn = true;
-grid.TrailingDown.TrailingDownStep = _tab.RoundPrice(
+grid.TrailingUp.TrailingDownIsOn = true;
+grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(
     lastPrice * 0.005m, _tab.Security, Side.Sell);
-grid.TrailingDown.TrailingDownLimit = lastPrice - lastPrice * 0.1m; // абсолютный предел: цена - 10%
-grid.TrailingDown.TrailingDownCanMoveExitOrder = false;
+grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m; // абсолютный предел: цена - 10%
+grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 ```
 
 **Обязательно округляйте `TrailingUpStep` и `TrailingDownStep` через `_tab.RoundPrice(...)`**. Иначе сетка будет работать с дробными шагами цены и некорректно рассчитает уровни.
@@ -382,16 +390,44 @@ grid.StopBy.StopGridByTimeOfDayMinute = 0;
 grid.StopBy.StopGridByTimeOfDaySecond = 0;
 ```
 
-### 3.6 NonTradePeriods — не торговые периоды
+### 3.6 NonTradePeriods — неторговые периоды
+
+У сетки два независимых набора неторговых периодов (`SettingsPeriod1`, `SettingsPeriod2`), каждый — полноценный `NonTradePeriods` из `OsEngine/Entity/NonTradePeriods.cs` (общий период на день + периоды по дням недели + флаги TradeInMonday..Sunday).
 
 ```csharp
-// Создание периода
-grid.NonTradePeriods.CreateNewPeriod();
-grid.NonTradePeriods.Periods[0].HourStart = 23;
-grid.NonTradePeriods.Periods[0].MinuteStart = 50;
-grid.NonTradePeriods.Periods[0].HourEnd = 0;
-grid.NonTradePeriods.Periods[0].MinuteEnd = 10;
-grid.NonTradePeriods.RegimeInNonTradePeriod = TradeGridRegime.CloseForced;
+// Настройка периода 1: не торговать с 23:48 до 00:00
+grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1OnOff = true;
+grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1Start =
+    new TimeOfDay() { Hour = 23, Minute = 48 };
+grid.NonTradePeriods.SettingsPeriod1.NonTradePeriodGeneral.NonTradePeriod1End =
+    new TimeOfDay() { Hour = 24, Minute = 0 };
+
+// Режим сетки в этот период (по умолчанию OffAndCancelOrders)
+grid.NonTradePeriods.NonTradePeriod1Regime = TradeGridRegime.OffAndCancelOrders;
+```
+
+Штатные пресеты под расписание MOEX (в т.ч. клиринги 8:48–9:02 и сессии выходного дня):
+
+```csharp
+grid.NonTradePeriods.SettingsPeriod1.SetMoexSpotNonTradePeriods();    // спот
+grid.NonTradePeriods.SettingsPeriod1.SetMoexFuturesNonTradePeriods(); // фьючерсы
+```
+
+**Паттерн в роботах:** робот хранит свои `_tradePeriodsSettings` и копирует их в сетку при создании/изменении параметров (`CopyNonTradePeriodsSettingsInGrid`):
+
+```csharp
+grid.NonTradePeriods.SettingsPeriod1.CopySettings(_tradePeriodsSettings);
+```
+
+**Важно:** пресет применяйте только при первом создании робота, иначе затрёте настройки пользователя при перезапуске:
+
+```csharp
+_tradePeriodsSettings = new NonTradePeriods(name);
+
+if (_tradePeriodsSettings.HaveSettingsInFile == false)
+{
+    _tradePeriodsSettings.SetMoexSpotNonTradePeriods();
+}
 ```
 
 ### 3.7 Дополнительные настройки
@@ -442,7 +478,7 @@ decimal minPrice = grid.MinGridPrice;              // мин. цена лини�
 **Что почерпнуть:**
 - Создание/удаление сетки по сигналу индикатора
 - Настройка `MarketMaking` с `TrailStop` на всю сетку
-- Ограничение на количество сеток (`if (_tab.GridsMaster.Grid != null) return`)
+- Ограничение на количество сеток (`if (_tab.GridsMaster.TradeGrids.Count != 0) return`)
 - Удаление сетки после форсированного закрытия через `PositionClosingSuccesEvent` + проверка `!grid.HaveOpenPositionsByGrid`
 
 ### 4.2 `GridTwoSides` — двусторонний маркет-мейкинг по ATR
@@ -468,7 +504,7 @@ decimal minPrice = grid.MinGridPrice;              // мин. цена лини�
 - `TrailingUp` и `TrailingDown` с лимитом (`TrailingUpLimit = 10%`)
 - `StopBy.LifeTime` — авто-закрытие по времени жизни
 - `StopBy.PositionsCount` — авто-закрытие по количеству сделок
-- Переключение между сетками через `if (_tab.GridsMaster.GridArray.Count == 0)` и `Count == 1`
+- Переключение между сетками через `if (_tab.GridsMaster.TradeGrids.Count == 0)` и `Count == 1`
 
 ### 4.4 `GridLinearRegression` — трендовое накопление позиции
 
@@ -505,7 +541,7 @@ decimal minPrice = grid.MinGridPrice;              // мин. цена лини�
 - Две сетки на разных инструментах (лонг на одном, шорт на другом)
 - `TrailingUp/Down` с малым шагом (`0.25%`)
 - Выход при возврате коинтеграции → `CloseForced` обеим сеткам
-- Управление сетками через `tab.GridsMaster.Grid.Regime`
+- Управление сетками через `tab.GridsMaster.TradeGrids[0].Regime`
 
 ### 4.7 `GridScreenerAdaptiveSoldiers` — адаптивный скринер
 
@@ -561,7 +597,7 @@ grid.Regime = TradeGridRegime.On;
 
 ```csharp
 // Проверяем, что сеток нет
-if (_tab.GridsMaster.GridArray.Count != 0) return;
+if (_tab.GridsMaster.TradeGrids.Count != 0) return;
 
 // Первая сетка — Buy
 TradeGrid gridBuy = _tab.GridsMaster.CreateNewTradeGrid();
@@ -584,18 +620,21 @@ gridSell.Regime = TradeGridRegime.On;
 
 ```csharp
 // Форсированное закрытие
-if (_tab.GridsMaster.Grid != null)
+if (_tab.GridsMaster.TradeGrids.Count != 0)
 {
-    _tab.GridsMaster.Grid.Regime = TradeGridRegime.CloseForced;
+    _tab.GridsMaster.TradeGrids[0].Regime = TradeGridRegime.CloseForced;
 }
 
 // Удаление после закрытия всех позиций (в обработчике события)
 private void _tab_PositionClosingSuccesEvent(Position pos)
 {
-    if (_tab.GridsMaster.Grid == null) return;
-    if (!_tab.GridsMaster.Grid.HaveOpenPositionsByGrid)
+    if (_tab.GridsMaster.TradeGrids.Count == 0) return;
+
+    TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+    if (grid.HaveOpenPositionsByGrid == false)
     {
-        _tab.GridsMaster.Grid.DeleteGrid();
+        _tab.GridsMaster.DeleteAtNum(grid.Number);
     }
 }
 ```
@@ -609,13 +648,13 @@ private void _screener_CandleFinishedEvent(List<Candle> candles, BotTabSimple ta
     int activeGrids = 0;
     for (int i = 0; i < _screener.Tabs.Count; i++)
     {
-        if (_screener.Tabs[i].GridsMaster.Grid != null)
+        if (_screener.Tabs[i].GridsMaster.TradeGrids.Count != 0)
             activeGrids++;
     }
     if (activeGrids >= _maxGridsCount.ValueInt) return;
 
     // Проверка сетки на конкретном табе
-    if (tab.GridsMaster.Grid != null) return;
+    if (tab.GridsMaster.TradeGrids.Count != 0) return;
 
     // Создание сетки на этом табе
     TradeGrid grid = tab.GridsMaster.CreateNewTradeGrid();
@@ -650,10 +689,10 @@ grid.TrailingUp.TrailingUpIsOn = true;
 grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
 // TrailingDown — сдвиг вниз при падении цены
-grid.TrailingDown.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
-grid.TrailingDown.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
-grid.TrailingDown.TrailingDownIsOn = true;
-grid.TrailingDown.TrailingDownCanMoveExitOrder = false;
+grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
+grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
+grid.TrailingUp.TrailingDownIsOn = true;
+grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
 // Защита от размазывания
 grid.StopBy.StopGridByLifeTimeIsOn = true;
@@ -685,9 +724,9 @@ grid1.TrailingUp.TrailingUpLimit = lastPrice1 + lastPrice1 * 0.25m;
 grid1.TrailingUp.TrailingUpIsOn = true;
 grid1.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
-grid1.TrailingDown.TrailingDownStep = tab1.RoundPrice(lastPrice1 * 0.002m, tab1.Security, Side.Sell);
-grid1.TrailingDown.TrailingDownLimit = lastPrice1 - lastPrice1 * 0.25m;
-grid1.TrailingDown.TrailingDownIsOn = true;
+grid1.TrailingUp.TrailingDownStep = tab1.RoundPrice(lastPrice1 * 0.002m, tab1.Security, Side.Sell);
+grid1.TrailingUp.TrailingDownLimit = lastPrice1 - lastPrice1 * 0.25m;
+grid1.TrailingUp.TrailingDownIsOn = true;
 
 grid1.Regime = TradeGridRegime.On;
 
@@ -708,7 +747,7 @@ grid2.Regime = TradeGridRegime.On;
 | Ошибка | Почему плохо | Как правильно |
 |--------|-------------|---------------|
 | **Забыть `grid.Regime = TradeGridRegime.On`** | Сетка создана, но не торгует | Всегда явно активировать после настройки |
-| **Создать вторую сетку, не проверив `GridsMaster.Grid`** | Две сетки конфликтуют, ордера перемешиваются | `if (_tab.GridsMaster.Grid != null) return;` |
+| **Создать вторую сетку, не проверив `GridsMaster.TradeGrids`** | Две сетки конфликтуют, ордера перемешиваются | `if (_tab.GridsMaster.TradeGrids.Count != 0) return;` |
 | **Перепутать `OpenPosition` и `MarketMaking`** | `OpenPosition` не закрывает линии по отдельности; `MarketMaking` не имеет общего стопа | `OpenPosition` — для тренда/усреднения; `MarketMaking` — для откатов |
 | **Не задать `ProfitStep`** | `MarketMaking` не знает, где закрывать прибыль | Всегда указывать `ProfitStep` и `TypeProfit` |
 | **Не удалять сетку после `CloseForced`** | Сетка остаётся в памяти, мешает созданию новой | В `PositionClosingSuccesEvent` проверять `HaveOpenPositionsByGrid` и вызывать `DeleteGrid()` |
@@ -800,14 +839,16 @@ public class GridOnIndicator : BotPanel
             decimal emaValue = _ema.DataSeries[0].Values[_ema.DataSeries[0].Values.Count - 1];
 
             // Есть активная сетка — проверяем условие закрытия (смена тренда)
-            if (_tab.GridsMaster.Grid != null)
+            if (_tab.GridsMaster.TradeGrids.Count != 0)
             {
-                bool trendChanged = (lastPrice < emaValue && _tab.GridsMaster.Grid.GridCreator.GridSide == Side.Buy)
-                                 || (lastPrice > emaValue && _tab.GridsMaster.Grid.GridCreator.GridSide == Side.Sell);
+                TradeGrid activeGrid = _tab.GridsMaster.TradeGrids[0];
+
+                bool trendChanged = (lastPrice < emaValue && activeGrid.GridCreator.GridSide == Side.Buy)
+                                 || (lastPrice > emaValue && activeGrid.GridCreator.GridSide == Side.Sell);
 
                 if (trendChanged)
                 {
-                    _tab.GridsMaster.Grid.Regime = TradeGridRegime.CloseForced;
+                    activeGrid.Regime = TradeGridRegime.CloseForced;
                 }
                 return;
             }
@@ -838,11 +879,11 @@ public class GridOnIndicator : BotPanel
             grid.TrailingUp.TrailingUpCanMoveExitOrder = false;
 
             // TrailingDown
-            grid.TrailingDown.TrailingDownIsOn = true;
-            grid.TrailingDown.TrailingDownStep = _tab.RoundPrice(
+            grid.TrailingUp.TrailingDownIsOn = true;
+            grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(
                 lastPrice * _trailingStep.ValueDecimal / 100, _tab.Security, Side.Sell);
-            grid.TrailingDown.TrailingDownLimit = lastPrice - lastPrice * _trailingLimit.ValueDecimal / 100;
-            grid.TrailingDown.TrailingDownCanMoveExitOrder = false;
+            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * _trailingLimit.ValueDecimal / 100;
+            grid.TrailingUp.TrailingDownCanMoveExitOrder = false;
 
             // StopBy
             grid.StopBy.StopGridByLifeTimeIsOn = true;
@@ -860,10 +901,13 @@ public class GridOnIndicator : BotPanel
 
     private void _tab_PositionClosingSuccesEvent(Position pos)
     {
-        if (_tab.GridsMaster.Grid == null) return;
-        if (!_tab.GridsMaster.Grid.HaveOpenPositionsByGrid)
+        if (_tab.GridsMaster.TradeGrids.Count == 0) return;
+
+        TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+        if (grid.HaveOpenPositionsByGrid == false)
         {
-            _tab.GridsMaster.Grid.DeleteGrid();
+            _tab.GridsMaster.DeleteAtNum(grid.Number);
         }
     }
 }
