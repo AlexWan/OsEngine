@@ -1089,6 +1089,12 @@ namespace OsEngine.Robots.Sectors
             else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
+
+                if (contractPrice == 0)
+                {
+                    return 0;
+                }
+
                 volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
@@ -1154,6 +1160,11 @@ namespace OsEngine.Robots.Sectors
                 }
 
                 decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                if (tab.PriceBestAsk == 0 || tab.Security.Lot <= 0)
+                {
+                    return 0;
+                }
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
