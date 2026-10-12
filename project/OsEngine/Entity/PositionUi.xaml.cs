@@ -424,7 +424,8 @@ namespace OsEngine.Entity
                 _position.AddNewCloseOrder(newOrder);
 
                 SyncPositionWithOrdersAndMyTrades();
-                PaintOrderTable();
+                _position.RecheckState();
+                RePaint();
                 PositionChanged = true;
             }
             catch (Exception ex)
@@ -467,6 +468,7 @@ namespace OsEngine.Entity
                 }
 
                 _position.CloseOrders.RemoveAt(number);
+                _position.RecheckState();
                 RePaint();
                 PositionChanged = true;
             }
@@ -580,7 +582,8 @@ namespace OsEngine.Entity
                 _position.AddNewOpenOrder(newOrder);
 
                 SyncPositionWithOrdersAndMyTrades();
-                PaintOrderTable();
+                _position.RecheckState();
+                RePaint();
                 PositionChanged = true;
             }
             catch (Exception ex)
@@ -618,6 +621,7 @@ namespace OsEngine.Entity
                 }
 
                 _position.OpenOrders.RemoveAt(number);
+                _position.RecheckState();
                 RePaint();
                 PositionChanged = true;
             }
@@ -890,6 +894,7 @@ namespace OsEngine.Entity
                 myOrd.SetTrade(trade);
 
                 SyncPositionWithOrdersAndMyTrades();
+                _position.RecheckState();
                 RePaint();
                 PositionChanged = true;
             }
@@ -928,6 +933,7 @@ namespace OsEngine.Entity
                 myOrd.SetTrade(trade);
 
                 SyncPositionWithOrdersAndMyTrades();
+                _position.RecheckState();
                 RePaint();
                 PositionChanged = true;
             }
@@ -1023,6 +1029,7 @@ namespace OsEngine.Entity
                     curOrd.ReCalculateVolume();
                 }
 
+                _position.RecheckState();
                 PositionChanged = true;
                 RePaint();
             }
@@ -1143,12 +1150,27 @@ namespace OsEngine.Entity
                 }
 
 
+                bool stateChangedByUser = false;
+
+                object stateCellValue = _mainPosGrid.Rows[0].Cells[6].Value;
+
+                if (stateCellValue != null
+                    && stateCellValue.ToString() != _position.State.ToString())
+                {
+                    stateChangedByUser = true;
+                }
+
                 SyncPositionWithOrdersAndMyTrades();
                 SavePosition();
                 SaveMyTrades();
                 SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
                 SaveOrders(_position.CloseOrders, _closeOrdersGrid.Rows);
-              
+
+                if (stateChangedByUser == false)
+                {
+                    _position.RecheckState();
+                }
+
                 PositionChanged = true;
 
                 Close();
