@@ -32,12 +32,18 @@ namespace OsEngine.Logging
 
         private static object _reportedException;
 
+        // 1 = подписаны, 0 = сняты. Ленточная гарантия: обработчик молчит сразу после Detach
+        // (стенд detachprobe показал, что полагаться только на remove-аксессоры нельзя)
+        private static volatile int _active;
+
         /// <summary> Подписать три обработчика. Идемпотентно: повторный Attach переподписывает </summary>
         public static void Attach()
         {
             try
             {
                 Detach();
+
+                Interlocked.Exchange(ref _active, 1);
 
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
                 TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
@@ -58,6 +64,8 @@ namespace OsEngine.Logging
         {
             try
             {
+                Interlocked.Exchange(ref _active, 0);
+
                 AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
                 TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
 
@@ -73,7 +81,7 @@ namespace OsEngine.Logging
 
         /// <summary>
         /// Отчёт+лог для catch-мест вне обработчиков (например, тема в OnStartup).
-        /// Дедуп по экземпляру: то же исключжение повторно не уходит.
+        /// Дедуп по экземпляру: то же исключение повторно не уходит.
         /// </summary>
         public static void SendStartupReport(string phrase, string label, Exception error)
         {
@@ -139,6 +147,11 @@ namespace OsEngine.Logging
         {
             try
             {
+                if (_active == 0)
+                {
+                    return; // Detach (handover): страховка молчит, не дожидаясь фактического снятия подписки
+                }
+
                 Exception error = e.ExceptionObject as Exception
                     ?? new Exception("Unhandled exception object: " + e.ExceptionObject);
 
@@ -161,6 +174,11 @@ namespace OsEngine.Logging
         {
             try
             {
+                if (_active == 0)
+                {
+                    return; // Detach (handover)
+                }
+
                 Exception error = e.Exception;
 
                 if (error is OutOfMemoryException
@@ -190,10 +208,16 @@ namespace OsEngine.Logging
         {
             try
             {
+                if (_active == 0)
+                {
+                    e.Handled = false; // Detach (handover): решают зрелые обработчики
+                    return;
+                }
+
                 Exception error = e.Exception;
 
                 if (error is OutOfMemoryException)
-                { // без отчёта и без Handled (OOM-политика PR 1904): процесс умирает, AppDomain-страховка не отчитывает OOM
+                { // без отчёта и без Handled (OOM-политика PR 1904): процесс умирает
                     LogStartup("IsMainWindow  " + PhaseToken + " STARTUP OOM dispatcher (not reported)." + " UI ");
                     return;
                 }
@@ -247,10 +271,13 @@ namespace OsEngine.Logging
 
                     client.EndConnect(ar);
                     client.SendTimeout = ReportTimeoutMs;
+                    // не дать ядру выбросить незакрытый буфер при смерти процесса (C1): linger блокирует close до отправки
+                    client.Client.LingerState = new LingerOption(true, 3);
 
                     byte[] sendBytes = Encoding.UTF8.GetBytes("Crash% " + text);
                     NetworkStream tcpStream = client.GetStream();
                     tcpStream.Write(sendBytes, 0, sendBytes.Length);
+                    tcpStream.Flush();
                     client.Close();
                 }
             }
