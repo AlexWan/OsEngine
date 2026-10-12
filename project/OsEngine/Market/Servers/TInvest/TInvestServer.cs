@@ -1298,7 +1298,18 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (portfolioResponse != null)
                         {
-                            GetPortfolios(portfolioResponse);
+                            GetMarginAttributesResponse marginAttributes = null;
+
+                            try
+                            {
+                                marginAttributes = _usersClient.GetMarginAttributes(new GetMarginAttributesRequest() { AccountId = account.Id }, _gRpcMetadata);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
+                            GetPortfolios(portfolioResponse, marginAttributes);
                             UpdatePositionsInPortfolio(portfolioResponse, 0);
                         }
                     }
@@ -1345,7 +1356,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void GetPortfolios(PortfolioResponse portfolioResponse)
+        private void GetPortfolios(PortfolioResponse portfolioResponse, GetMarginAttributesResponse marginAttributes)
         {
             if (portfolioResponse == null)
             {
@@ -1372,6 +1383,13 @@ namespace OsEngine.Market.Servers.TInvest
 
             // вариационная маржа портфеля: общая маржа, начисляемая/списываемая в клиринг (релиз 1.51)
             myPortfolio.UnrealizedPnl = GetTotalVariationMargin(portfolioResponse);
+
+            // ликвидная стоимость портфеля по ставкам риска биржи (UsersService.GetMarginAttributes)
+            if (marginAttributes != null
+                && marginAttributes.LiquidPortfolio != null)
+            {
+                myPortfolio.ValueLiquidCash = GetValue(marginAttributes.LiquidPortfolio);
+            }
         }
 
         private decimal GetVariationMargin(Dictionary<string, PortfolioPosition> portfolioPositionsByUid, string instrumentUid)

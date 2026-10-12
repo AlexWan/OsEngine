@@ -39,6 +39,11 @@ namespace OsEngine.Entity
         public decimal UnrealizedPnl;
 
         /// <summary>
+        /// Liquid portfolio value calculated by the exchange using risk rates. Zero if the connector does not support it
+        /// </summary>
+        public decimal ValueLiquidCash;
+
+        /// <summary>
         /// Connector to which the portfolio belongs
         /// </summary>
         public ServerType ServerType;
