@@ -570,15 +570,21 @@ namespace OsEngine.Robots
                 decimal bestAsk = _tab.PriceBestAsk;
                 decimal bestBid = _tab.PriceBestBid;
 
-                decimal absoluteSpread = bestAsk - bestBid;
-                decimal midPrice = (bestAsk + bestBid) / 2;
-
-                if (midPrice == 0)
+                // пустая сторона стакана (0) даёт фантомный спред: при пустом bid +200%,
+                // при пустом ask -200% (проходит при любом _allowedSpreadSize). Перевёрнутый тоже невалиден.
+                // Отрицательные котировки валидны (спреды/комби FORTS), поэтому сравнение с нулём строгое.
+                if (bestBid == 0
+                    || bestAsk == 0
+                    || bestBid >= bestAsk)
                 {
                     return false;
                 }
 
-                decimal spreadPercent = Math.Round(absoluteSpread / midPrice * 100, 4);
+                decimal absoluteSpread = bestAsk - bestBid;
+                decimal midPrice = (bestAsk + bestBid) / 2;
+
+                // на отрицательном миде знак процента переворачивается, ширина спреда берётся по модулю
+                decimal spreadPercent = Math.Round(Math.Abs(absoluteSpread / midPrice) * 100, 4);
 
                 if (spreadPercent > _allowedSpreadSize.ValueDecimal && _allowedSpreadSize != 0)
                 {

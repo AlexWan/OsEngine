@@ -307,6 +307,15 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal stopPrice = tab.PriceCenterMarketDepth;
 
+            // на невалидном стакане PriceCenterMarketDepth = 0 (сентинель «цены нет»). Пара (0,0) для Sell
+            // перезаписывает активный стоп в TryReloadStop (StopOrderPrice/RedLine обнуляются),
+            // для Buy спасает лишь ratchet-guard по redLine в CloseAtTrailingStop. Пропускаем тик.
+            // Отрицательные котировки (спреды/комби FORTS) валидны — сравниваем строго с нулём.
+            if (stopPrice == 0)
+            {
+                return;
+            }
+
             if(pos.Direction == Side.Buy)
             {
                 stopPrice = stopPrice - (stopPrice/100) * (curVolaInPercent * _stopMult.ValueDecimal);
