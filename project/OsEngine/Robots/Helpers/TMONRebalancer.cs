@@ -583,6 +583,11 @@ namespace OsEngine.Robots
                 decimal absoluteSpread = bestAsk - bestBid;
                 decimal midPrice = (bestAsk + bestBid) / 2;
 
+                if (midPrice == 0)
+                {
+                    return false;
+                }
+
                 // на отрицательном миде знак процента переворачивается, ширина спреда берётся по модулю
                 decimal spreadPercent = Math.Round(Math.Abs(absoluteSpread / midPrice) * 100, 4);
 
