@@ -267,11 +267,19 @@ namespace OsEngine.Entity
                 if (CloseActive == false
                     && OpenActive == false)
                 {
-                    State = PositionStateType.Done;
-
-                    if (CloseOrders != null)
+                    if (MaxVolume == 0
+                        && OpenOrdersNeverExecuted())
                     {
-                        CalculateProfitToPosition();
+                        State = PositionStateType.OpeningFail;
+                    }
+                    else
+                    {
+                        State = PositionStateType.Done;
+
+                        if (CloseOrders != null)
+                        {
+                            CalculateProfitToPosition();
+                        }
                     }
                 }
                 return;
@@ -290,6 +298,43 @@ namespace OsEngine.Entity
             }
 
             State = PositionStateType.Open;
+        }
+
+        /// <summary>
+        /// True when opening orders are absent or all ended without execution
+        /// (Cancel / Fail, zero executed volume, no trades)
+        /// </summary>
+        private bool OpenOrdersNeverExecuted()
+        {
+            if (_openOrders == null
+                || _openOrders.Count == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < _openOrders.Count; i++)
+            {
+                Order order = _openOrders[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (order.VolumeExecute != 0
+                    || (order.MyTrades != null && order.MyTrades.Count != 0))
+                {
+                    return false;
+                }
+
+                if (order.State != OrderStateType.Cancel
+                    && order.State != OrderStateType.Fail)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
