@@ -1412,9 +1412,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return 0;
                 }
 
-                if (_connector.BestAsk <= 0
-                    || _connector.BestBid <= 0)
-                { // стакан пуст или одна из сторон пуста - цены нет
+                if (_connector.BestAsk == 0
+                    || _connector.BestBid == 0)
+                { // нет одной из сторон - цены нет. Отрицательные котировки валидны (спреды/комби FORTS)
+                    return 0;
+                }
+
+                if (_connector.BestBid >= _connector.BestAsk)
+                { // перевёрнутый стакан - середина невалидна (как в MarketDepth.CentrePrice)
                     return 0;
                 }
 
