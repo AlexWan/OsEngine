@@ -60,6 +60,11 @@ namespace OsEngine.Market.Servers
 
         bool _fullLogIsOn = false;
 
+        // Invariant: SaveOrdersInFile is called only from the hub thread (ThreadWorkerArea). If a second caller appears, guard these two fields with a lock.
+        DateTime _lastSaveErrorMessageTime;
+
+        int _saveFailuresCount;
+
         #endregion
 
         #region Set orders
@@ -617,10 +622,25 @@ namespace OsEngine.Market.Servers
 
                     db.Commit();
                 }
+
+                if (_saveFailuresCount > 0)
+                {
+                    SendLogMessage("SaveOrdersInFile restored. Saved after " + _saveFailuresCount + " failures", LogMessageType.System);
+                    _saveFailuresCount = 0;
+                    _lastSaveErrorMessageTime = DateTime.MinValue;
+                }
             }
-            catch //(Exception e)
+            catch (Exception e)
             {
-                //SendLogMessage(e.ToString(), LogMessageType.Error);
+                _saveFailuresCount++;
+
+                // throttled: the method is called from the hub thread on every tick
+                if (_lastSaveErrorMessageTime == DateTime.MinValue
+                    || (DateTime.Now - _lastSaveErrorMessageTime).TotalSeconds >= 60)
+                {
+                    _lastSaveErrorMessageTime = DateTime.Now;
+                    SendLogMessage("SaveOrdersInFile error. Active orders are not saved. " + e, LogMessageType.Error);
+                }
             }
         }
 
