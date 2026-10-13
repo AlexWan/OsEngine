@@ -59,9 +59,14 @@ namespace OsEngine.Market.ServerEncryption
                     {
                         // шифрователь уже разблокирован - вкладка разблокировки не нужна
                         TabItemUnlock.Visibility = Visibility.Collapsed;
-                    }
 
-                    TabItemChange.IsSelected = true;
+                        TabItemChange.IsSelected = true;
+                    }
+                    else
+                    {
+                        // режим подтверждения пароля (например, просмотр ключа в настройках коннектора)
+                        TabItemUnlock.IsSelected = true;
+                    }
                 }
                 else
                 {
@@ -85,6 +90,12 @@ namespace OsEngine.Market.ServerEncryption
         }
 
         private readonly bool _unlockMode;
+
+        /// <summary>
+        /// the master password was entered correctly in this dialog
+        /// мастер-пароль введён верно в этом диалоге
+        /// </summary>
+        public bool UnlockSuccess { get; private set; }
 
         private void ServerEncryptionUi_Closed(object sender, EventArgs e)
         {
@@ -143,6 +154,8 @@ namespace OsEngine.Market.ServerEncryption
             {
                 if (ServerEncryptionMaster.TryUnlock(TextBoxCurrentPasswordUnlock.Text))
                 {
+                    UnlockSuccess = true;
+
                     if (_unlockMode)
                     {
                         Close();

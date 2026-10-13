@@ -1080,6 +1080,18 @@ namespace OsEngine.Market.Servers
                 else if (param[clickRow].Type == ServerParameterType.Password &&
                 clickColumn == 2)
                 {
+                    if (ServerEncryptionMaster.GetStatus() == ServerEncryptionStatus.Encrypted)
+                    {
+                        // шифрование включено - ключ показываем только после подтверждения мастер-пароля
+                        ServerEncryptionUi encryptionUi = new ServerEncryptionUi(true);
+                        encryptionUi.ShowDialog();
+
+                        if (encryptionUi.UnlockSuccess == false)
+                        {
+                            return;
+                        }
+                    }
+
                     _gridServerParameters.CellValueChanged -= _gridServerParameters_CellValueChanged;
                     _gridServerParameters.Rows[clickRow].Cells[1].Value = ((ServerParameterPassword)param[clickRow]).Value;
                     _gridServerParameters.Rows[clickRow].Cells[1].ReadOnly = false;
