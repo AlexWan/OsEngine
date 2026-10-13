@@ -431,6 +431,14 @@ namespace OsEngine
                     return;
                 }
 
+                if (IsDispatcherSuspendedInterop(e.Exception))
+                { // транзиент WPF/WinForms interop: сообщение пришло в оконный колбэк при приостановленной
+                  // обработке Dispatcher; сообщение теряется, WPF работает дальше. Поглощаем без Crash%-отчёта и Reboot
+                    e.Handled = true;
+                    ServerMaster.SendNewLogMessage(_startProgram + " Dispatcher suspended transient suppressed (BUG-0050): " + e.Exception.Message, Logging.LogMessageType.System);
+                    return;
+                }
+
                 // исключение не фатальное: помечаем обработанным сразу, до отчёта и диалога,
                 // чтобы ошибка внутри отчёта/Reboot/MessageBox не привела к повторному крашу
                 e.Handled = true;
@@ -457,6 +465,27 @@ namespace OsEngine
             {
                 // ошибка в самом обработчике: не зацикливаемся, пусть процесс завершится штатно
             }
+        }
+
+        // Подавляем ровно benign-транзиент DispatcherProcessingDisabledButStillPumping из WindowsBase:
+        // EN «Dispatcher processing has been suspended, but messages are still being processed» (RU-локализация — текст репорта).
+        // Конъюнкция трёх групп ключей; третья («still being processed»/«по-прежнему») намеренно не пускает сюда
+        // соседний ресурс DispatcherProcessingDisabled («Cannot perform this operation while dispatcher processing
+        // is suspended» — запрещённая операция поверх DisableProcessing, возможен реальный дефект кода):
+        // он остаётся на обычном пути отчёта. Локализацию текста учитываем парами ключей, полным текстом не зависим.
+        private static bool IsDispatcherSuspendedInterop(Exception ex)
+        {
+            if (!(ex is InvalidOperationException) || string.IsNullOrEmpty(ex.Message))
+            {
+                return false;
+            }
+
+            return (ex.Message.IndexOf("suspended", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("приостановлена", StringComparison.OrdinalIgnoreCase) >= 0)
+                && (ex.Message.IndexOf("Dispatcher", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("диспетчер", StringComparison.OrdinalIgnoreCase) >= 0)
+                && (ex.Message.IndexOf("still being processed", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("по-прежнему", StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         #region MCP Host
