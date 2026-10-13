@@ -95,6 +95,11 @@ namespace OsEngine.Market.Servers.BCS
             worker6.Name = "BcsCheckDepthSubscriptions";
             worker6.IsBackground = true;
             worker6.Start();
+
+            Thread worker7 = new Thread(MarketDataWatchdog);
+            worker7.Name = "BcsMarketDataWatchdog";
+            worker7.IsBackground = true;
+            worker7.Start();
         }
 
         private WebProxy _myProxy;
@@ -123,6 +128,8 @@ namespace OsEngine.Market.Servers.BCS
                         LogMessageType.Error);
                     return;
                 }
+
+                _lastReconnectTime = DateTime.Now;
 
                 ConfigureHandler();
 
@@ -166,27 +173,131 @@ namespace OsEngine.Market.Servers.BCS
             _handler.CheckCertificateRevocationList = false;
         }
 
+        private DateTime _lastReconnectTime = DateTime.MinValue;
+
         private void CheckLifetimeToken()
         {
             while (true)
             {
-                Thread.Sleep(60000);
-
-                if (ServerStatus != ServerConnectStatus.Connect || _accessTokenExpireTime == DateTime.MinValue)
+                try
                 {
-                    continue;
-                }
+                    Thread.Sleep(60000);
 
-                if (DateTime.Now > _accessTokenExpireTime.AddMinutes(-30)) // истекает срок токена
-                {
-                    if (GetAccess24HToken() == false) // перевыпускаем токен
+                    if (ServerStatus != ServerConnectStatus.Connect || _accessTokenExpireTime == DateTime.MinValue)
                     {
-                        if (ServerStatus == ServerConnectStatus.Connect)
+                        continue;
+                    }
+
+                    // плановое утреннее переподключение до начала утренней сессии:
+                    // чистые сокеты + свежий токен на весь день, прибивает цикл токена к 06:30
+                    if (DateTime.Now.TimeOfDay >= TimeSpan.FromHours(6.5)
+                        && DateTime.Now - _lastReconnectTime > TimeSpan.FromHours(12))
+                    {
+                        SendLogMessage("BCS: плановое утреннее переподключение", LogMessageType.System);
+                        _lastReconnectTime = DateTime.Now;
+                        ForceDisconnect();
+                        continue;
+                    }
+
+                    if (DateTime.Now > _accessTokenExpireTime.AddMinutes(-30)) // истекает срок токена
+                    {
+                        DateTime oldExpiry = _accessTokenExpireTime;
+
+                        if (GetAccess24HToken() == false) // перевыпускаем токен
                         {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            if (ServerStatus == ServerConnectStatus.Connect)
+                            {
+                                ServerStatus = ServerConnectStatus.Disconnect;
+                                DisconnectEvent();
+                            }
+                        }
+                        else
+                        {
+                            // сокеты авторизованы старым токеном при рукопожатии, переавторизовать живой сокет нельзя.
+                            // Немедленный реконнект - только если токен уже истёк или не доживёт до планового окна,
+                            // иначе переподключение сделает плановый блок в 06:30
+                            DateTime nextMorning = DateTime.Today.AddHours(6.5);
+
+                            if (nextMorning <= DateTime.Now)
+                            {
+                                nextMorning = nextMorning.AddDays(1);
+                            }
+
+                            if (oldExpiry <= DateTime.Now || nextMorning > oldExpiry.AddMinutes(30))
+                            {
+                                SendLogMessage("BCS: access token refreshed, reconnecting sockets with new token", LogMessageType.System);
+                                ForceDisconnect();
+                            }
+                            else
+                            {
+                                SendLogMessage("BCS: access token refreshed, переподключение отложено до планового (06:30)", LogMessageType.System);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ForceDisconnect()
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+        }
+
+        private DateTime _lastMarketDataMessageTime = DateTime.MinValue;
+
+        private void MarketDataWatchdog()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(30000);
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
+
+                    if (_subscribedSecurities.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (_lastMarketDataMessageTime == DateTime.MinValue)
+                    {
+                        continue;
+                    }
+
+                    // ночью отсутствие данных легально, смотрим только торговые часы 06:50-23:50
+                    // (на Мосбирже есть и выходные торги, поэтому без проверки дня недели)
+                    TimeSpan time = DateTime.Now.TimeOfDay;
+
+                    if (time < TimeSpan.FromMinutes(410) || time > TimeSpan.FromMinutes(1430))
+                    {
+                        continue;
+                    }
+
+                    if (DateTime.Now - _lastMarketDataMessageTime > TimeSpan.FromMinutes(10))
+                    {
+                        SendLogMessage("BCS: нет данных рыночного сокета более 10 минут в торговое время. Переподключение.", LogMessageType.Error);
+                        ForceDisconnect();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
                 }
             }
         }
@@ -284,6 +395,7 @@ namespace OsEngine.Market.Servers.BCS
             MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
 
             _lastMdTime = DateTime.MinValue;
+            _lastMarketDataMessageTime = DateTime.MinValue;
 
             _httpClient?.Dispose();
             _httpClient = null;
@@ -1293,6 +1405,8 @@ namespace OsEngine.Market.Servers.BCS
                 WebSocket webSocketMarketData = new WebSocket(_wsHostMarketData);
                 webSocketMarketData.SetHeader("Authorization", "Bearer " + _apiAccessToken);
                 webSocketMarketData.EmitOnPing = true;
+                webSocketMarketData.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                webSocketMarketData.KeepAliveTimeout = TimeSpan.FromMinutes(2);
                 webSocketMarketData.OnOpen += WebSocketData_Opened;
                 webSocketMarketData.OnClose += WebSocketData_Closed;
                 webSocketMarketData.OnMessage += WebSocketData_MessageReceived;
@@ -1329,6 +1443,8 @@ namespace OsEngine.Market.Servers.BCS
                     _webSocketPortfolio = new WebSocket(_wsHostPortfolio);
                     _webSocketPortfolio.SetHeader("Authorization", "Bearer " + _apiAccessToken);
                     _webSocketPortfolio.EmitOnPing = true;
+                    _webSocketPortfolio.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                    _webSocketPortfolio.KeepAliveTimeout = TimeSpan.FromMinutes(2);
                     _webSocketPortfolio.OnOpen += WebSocketPortfolio_Opened;
                     _webSocketPortfolio.OnClose += WebSocketPortfolio_Closed;
                     _webSocketPortfolio.OnMessage += WebSocketPortfolio_MessageReceived;
@@ -1344,6 +1460,8 @@ namespace OsEngine.Market.Servers.BCS
                     _webSocketOrders = new WebSocket(_wsHostOrders);
                     _webSocketOrders.SetHeader("Authorization", "Bearer " + _apiAccessToken);
                     _webSocketOrders.EmitOnPing = true;
+                    _webSocketOrders.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                    _webSocketOrders.KeepAliveTimeout = TimeSpan.FromMinutes(2);
                     _webSocketOrders.OnOpen += WebSocketOrders_Opened;
                     _webSocketOrders.OnClose += WebSocketOrders_Closed;
                     _webSocketOrders.OnMessage += WebSocketOrders_MessageReceived;
@@ -1564,6 +1682,8 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     return;
                 }
+
+                _lastMarketDataMessageTime = DateTime.Now;
 
                 if (WebSocketDataMessage == null)
                 {
