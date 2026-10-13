@@ -3,6 +3,13 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
+using OsEngine.Logging;
+using OsEngine.Market.ServerEncryption;
+using OsEngine.MCP.Json;
+using OsEngine.MCP.Modules;
+using OsEngine.OsData;
+using OsEngine.OsOptimizer;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,15 +22,6 @@ using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
-using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market;
-using OsEngine.Market.ServerEncryption;
-using OsEngine.MCP.Json;
-using OsEngine.MCP.Modules;
-using OsEngine.OsData;
-using OsEngine.OsOptimizer;
-using OsEngine.PrimeSettings;
 
 namespace OsEngine.MCP
 {
