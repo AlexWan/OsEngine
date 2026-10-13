@@ -431,6 +431,14 @@ namespace OsEngine
                     return;
                 }
 
+                if (IsDispatcherSuspendedInterop(e.Exception))
+                { // транзиент WPF/WinForms interop: сообщение пришло в оконный колбэк при приостановленной
+                  // обработке Dispatcher; сообщение теряется, WPF работает дальше. Поглощаем без Crash%-отчёта и Reboot
+                    e.Handled = true;
+                    ServerMaster.SendNewLogMessage(_startProgram + " Dispatcher suspended transient suppressed (BUG-0050): " + e.Exception.Message, Logging.LogMessageType.System);
+                    return;
+                }
+
                 // исключение не фатальное: помечаем обработанным сразу, до отчёта и диалога,
                 // чтобы ошибка внутри отчёта/Reboot/MessageBox не привела к повторному крашу
                 e.Handled = true;
@@ -457,6 +465,22 @@ namespace OsEngine
             {
                 // ошибка в самом обработчике: не зацикливаемся, пусть процесс завершится штатно
             }
+        }
+
+        // benign-транзиент WPF/WinForms interop (BUG-0050): оконный колбэк HwndSubclass при
+        // приостановленной обработке Dispatcher. Узкий предикат: тип + конъюнкция двух групп ключей,
+        // независимо от локализации полного текста сообщения
+        private static bool IsDispatcherSuspendedInterop(Exception ex)
+        {
+            if (!(ex is InvalidOperationException) || string.IsNullOrEmpty(ex.Message))
+            {
+                return false;
+            }
+
+            return (ex.Message.IndexOf("suspended", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("приостановлена", StringComparison.OrdinalIgnoreCase) >= 0)
+                && (ex.Message.IndexOf("Dispatcher", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("диспетчер", StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         #region MCP Host
