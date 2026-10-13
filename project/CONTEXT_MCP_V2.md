@@ -186,11 +186,12 @@
 | `optimizer_data_get_status` | Статус хранилища данных оптимизатора |
 | `optimizer_dividends_get_config` / `optimizer_dividends_set_config` | Дивиденды/маржа/налоги оптимизатора |
 | `optimizer_bot_get` / `optimizer_bot_set` | Текущий робот оптимизации / выбор робота |
-| `optimizer_trade_settings_get` / `optimizer_trade_settings_set` | Комиссия, тип исполнения, проскальзывания, депозит |
+| `optimizer_trade_settings_get` / `optimizer_trade_settings_set` | Комиссия, тип исполнения, проскальзывания, депозит, отзыв ордеров внутри дня (`clearing`), неторговые периоды (`non_trade_periods`) |
+| `optimizer_cache_get` / `optimizer_cache_set` | Кеширование индикаторов оптимизатора (`cache_indicators_is_on`) |
 | `optimizer_position_support_get` / `optimizer_position_support_set` | Сопровождение позиций для прогонов |
 | `optimizer_phases_get` / `optimizer_phases_set` | Фазы walk-forward |
 | `optimizer_filters_get` / `optimizer_filters_set` | Фильтры отсева между фазами |
-| `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров. Для числовых параметров `value` эквивалентно колонке «По умолчанию» грида оптимизатора |
+| `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров. Для числовых параметров `value` эквивалентно колонке «По умолчанию» грида оптимизатора. `step_type` (`Absolute`/`Percent`) применим к `Int` и `Decimal` |
 | `optimizer_get_pass_count` | Предполагаемое число прогонов |
 | `optimizer_get_threads` / `optimizer_set_threads` | Число потоков оптимизации (1..50) |
 | `optimizer_bot_tab_get_config` / `optimizer_bot_tab_set_config` | Вкладки робота оптимизации (Simple: бумага+ТФ; Screener: `securities`+ТФ) |
@@ -204,6 +205,8 @@
 | `encryption_disable` | Выключить шифрование и расшифровать ключи (деструктивно) |
 
 **Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов **с расширением**: `SBER.txt`, а не `SBER`. Во вкладки робота через `optimizer_bot_tab_set_config` передавать имя с `.txt`.
+
+**Важно про отзыв ордеров и неторговые периоды в оптимизаторе.** Поля `clearing` и `non_trade_periods` в `optimizer_trade_settings_set` **заменяют список целиком** (не merge) — как `non_trade_periods` в `tester_execution_set_config`. Чтобы изменить один элемент, нужно прочитать весь список (`optimizer_trade_settings_get`), изменить массив и отправить его целиком. `clearing` — массив `{ time: "HH:mm", is_on }`; `non_trade_periods` — массив `{ date_start, date_end, is_on }` (ISO). `is_on` опционален, по умолчанию `false` (выключено).
 
 **Важно про историю стакана (`MarketDepthHistory`).** В движке «история стакана» — это не отдельный timeframe, а режим `MarketDepth`. Через MCP он задаётся значением `"MarketDepthHistory"` в списке `timeframes` (в `data_create_set` / `data_set_settings_set`, и принимается в `data_get_security_status`). Поддерживает только коннектор `QscalpMarketDepth` (у него `DataFeedTfMarketDepthHistoryCanLoad = true`, а живой `MarketDepth` — `false`). Значения `"MarketDepth"` (живой) и `"MarketDepthHistory"` взаимоисключающие: на сервере без поддержки нужного режима MCP вернёт ошибку.
 

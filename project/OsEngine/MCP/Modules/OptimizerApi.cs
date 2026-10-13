@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -117,6 +118,14 @@ namespace OsEngine.MCP.Modules
 
                     case "optimizer_trade_settings_set":
                         response.Result = SetTradeSettings(request.Params);
+                        break;
+
+                    case "optimizer_cache_get":
+                        response.Result = GetCache();
+                        break;
+
+                    case "optimizer_cache_set":
+                        response.Result = SetCache(request.Params);
                         break;
 
                     case "optimizer_position_support_get":
@@ -325,13 +334,13 @@ namespace OsEngine.MCP.Modules
                 new McpTool
                 {
                     Name = "optimizer_trade_settings_get",
-                    Description = "Get optimizer trade settings: commission, execution type, slippage, start deposit",
+                    Description = "Get optimizer trade settings: commission, execution type, slippage, start deposit, order clearing times and non-trade periods",
                     InputSchema = new { type = "object", properties = new { }, required = new string[0] }
                 },
                 new McpTool
                 {
                     Name = "optimizer_trade_settings_set",
-                    Description = "Set optimizer trade settings. All fields are optional",
+                    Description = "Set optimizer trade settings. All fields are optional. clearing and non_trade_periods replace the whole list",
                     InputSchema = new
                     {
                         type = "object",
@@ -342,7 +351,29 @@ namespace OsEngine.MCP.Modules
                             order_execution_type = new { type = "string", description = "Touch, Intersection, FiftyFifty" },
                             slippage_to_simple_order = new { type = "integer" },
                             slippage_to_stop_order = new { type = "integer" },
-                            start_deposit = new { type = "number" }
+                            start_deposit = new { type = "number" },
+                            clearing = new { type = "array", description = "Intraday order revocation times. Replaces the whole list. Items: { time: 'HH:mm', is_on: bool (default false) }" },
+                            non_trade_periods = new { type = "array", description = "Non-trading periods. Replaces the whole list. Items: { date_start: ISO, date_end: ISO, is_on: bool (default false) }" }
+                        },
+                        required = new string[0]
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_cache_get",
+                    Description = "Get the indicator caching setting of the optimizer",
+                    InputSchema = new { type = "object", properties = new { }, required = new string[0] }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_cache_set",
+                    Description = "Set the indicator caching setting of the optimizer. All fields are optional",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            cache_indicators_is_on = new { type = "boolean" }
                         },
                         required = new string[0]
                     }
@@ -375,6 +406,7 @@ namespace OsEngine.MCP.Modules
                                         start = new { type = "number" },
                                         stop = new { type = "number" },
                                         step = new { type = "number" },
+                                        step_type = new { type = "string", description = "Absolute, Percent (Int and Decimal parameters)" },
                                         on = new { type = "boolean" }
                                     }
                                 }
@@ -1193,6 +1225,39 @@ namespace OsEngine.MCP.Modules
         {
             OptimizerMaster master = GetMasterRequired();
 
+            List<object> clearing = new List<object>();
+
+            if (master.ClearingTimes != null)
+            {
+                for (int i = 0; i < master.ClearingTimes.Count; i++)
+                {
+                    OrderClearing item = master.ClearingTimes[i];
+
+                    clearing.Add(new
+                    {
+                        time = item.Time.ToString("HH:mm", CultureInfo.InvariantCulture),
+                        is_on = item.IsOn
+                    });
+                }
+            }
+
+            List<object> nonTradePeriods = new List<object>();
+
+            if (master.NonTradePeriods != null)
+            {
+                for (int i = 0; i < master.NonTradePeriods.Count; i++)
+                {
+                    NonTradePeriod period = master.NonTradePeriods[i];
+
+                    nonTradePeriods.Add(new
+                    {
+                        date_start = period.DateStart.ToString("O", CultureInfo.InvariantCulture),
+                        date_end = period.DateEnd.ToString("O", CultureInfo.InvariantCulture),
+                        is_on = period.IsOn
+                    });
+                }
+            }
+
             return new
             {
                 commission_type = master.CommissionType.ToString(),
@@ -1200,7 +1265,9 @@ namespace OsEngine.MCP.Modules
                 order_execution_type = master.OrderExecutionType.ToString(),
                 slippage_to_simple_order = master.SlippageToSimpleOrder,
                 slippage_to_stop_order = master.SlippageToStopOrder,
-                start_deposit = master.StartDeposit
+                start_deposit = master.StartDeposit,
+                clearing = clearing,
+                non_trade_periods = nonTradePeriods
             };
         }
 
@@ -1255,7 +1322,101 @@ namespace OsEngine.MCP.Modules
                 master.StartDeposit = startDeposit;
             }
 
+            if (parameters.TryGetProperty("clearing", out JsonElement clearingElement)
+                && clearingElement.ValueKind == JsonValueKind.Array)
+            {
+                List<OrderClearing> clearing = new List<OrderClearing>();
+
+                foreach (JsonElement itemElement in clearingElement.EnumerateArray())
+                {
+                    if (itemElement.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    OrderClearing item = new OrderClearing();
+
+                    if (!itemElement.TryGetProperty("time", out JsonElement timeElement)
+                        || timeElement.ValueKind != JsonValueKind.String
+                        || string.IsNullOrWhiteSpace(timeElement.GetString()))
+                    {
+                        throw new ArgumentException("Each clearing item must have a time in 'HH:mm' format");
+                    }
+
+                    item.Time = ParseClearingTime(timeElement.GetString());
+
+                    if (itemElement.TryGetProperty("is_on", out JsonElement isOnElement)
+                        && (isOnElement.ValueKind == JsonValueKind.True || isOnElement.ValueKind == JsonValueKind.False))
+                    {
+                        item.IsOn = isOnElement.GetBoolean();
+                    }
+
+                    clearing.Add(item);
+                }
+
+                master.ClearingTimes = clearing;
+                master.SaveClearingInfo();
+            }
+
+            if (parameters.TryGetProperty("non_trade_periods", out JsonElement periodsElement)
+                && periodsElement.ValueKind == JsonValueKind.Array)
+            {
+                List<NonTradePeriod> periods = new List<NonTradePeriod>();
+
+                foreach (JsonElement periodElement in periodsElement.EnumerateArray())
+                {
+                    if (periodElement.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    NonTradePeriod period = new NonTradePeriod();
+
+                    if (periodElement.TryGetProperty("date_start", out JsonElement dateStartElement)
+                        && dateStartElement.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(dateStartElement.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime dateStart))
+                    {
+                        period.DateStart = dateStart;
+                    }
+
+                    if (periodElement.TryGetProperty("date_end", out JsonElement dateEndElement)
+                        && dateEndElement.ValueKind == JsonValueKind.String
+                        && DateTime.TryParse(dateEndElement.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime dateEnd))
+                    {
+                        period.DateEnd = dateEnd;
+                    }
+
+                    if (periodElement.TryGetProperty("is_on", out JsonElement isOnElement)
+                        && (isOnElement.ValueKind == JsonValueKind.True || isOnElement.ValueKind == JsonValueKind.False))
+                    {
+                        period.IsOn = isOnElement.GetBoolean();
+                    }
+
+                    periods.Add(period);
+                }
+
+                master.NonTradePeriods = periods;
+                master.SaveNonTradePeriods();
+            }
+
             return GetTradeSettings();
+        }
+
+        private DateTime ParseClearingTime(string value)
+        {
+            if (value.Length != 5 || value[2] != ':')
+            {
+                throw new ArgumentException($"Invalid clearing time '{value}'. Expected format 'HH:mm'");
+            }
+
+            if (!int.TryParse(value.Substring(0, 2), NumberStyles.None, CultureInfo.InvariantCulture, out int hour)
+                || !int.TryParse(value.Substring(3, 2), NumberStyles.None, CultureInfo.InvariantCulture, out int minute)
+                || hour < 0 || hour > 23 || minute < 0 || minute > 59)
+            {
+                throw new ArgumentException($"Invalid clearing time '{value}'. Expected format 'HH:mm'");
+            }
+
+            return new DateTime(2000, 1, 1, hour, minute, 0);
         }
 
         private object GetPositionSupport()
@@ -1363,6 +1524,38 @@ namespace OsEngine.MCP.Modules
             {
                 apply(value);
             }
+        }
+
+        #endregion
+
+        #region Indicator caching
+
+        private object GetCache()
+        {
+            OptimizerMaster master = GetMasterRequired();
+
+            return new
+            {
+                cache_indicators_is_on = master.CacheIndicatorsIsOn
+            };
+        }
+
+        private object SetCache(JsonElement parameters)
+        {
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+
+            OptimizerMaster master = GetMasterRequired();
+
+            if (parameters.TryGetProperty("cache_indicators_is_on", out JsonElement cacheElement)
+                && (cacheElement.ValueKind == JsonValueKind.True || cacheElement.ValueKind == JsonValueKind.False))
+            {
+                master.CacheIndicatorsIsOn = cacheElement.GetBoolean();
+            }
+
+            return GetCache();
         }
 
         #endregion
@@ -1727,6 +1920,17 @@ namespace OsEngine.MCP.Modules
                     save[5] = newStep.ToString();
                 }
 
+                if (item.TryGetProperty("step_type", out JsonElement stepTypeElement)
+                    && stepTypeElement.ValueKind == JsonValueKind.String)
+                {
+                    if (!Enum.TryParse<StrategyParameterStepType>(stepTypeElement.GetString(), true, out StrategyParameterStepType stepType))
+                    {
+                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeElement.GetString()}'. Expected: Absolute, Percent");
+                    }
+
+                    save[6] = stepType.ToString();
+                }
+
                 if (Convert.ToInt32(save[3]) > Convert.ToInt32(save[4]))
                 {
                     throw new ArgumentException($"Parameter '{parameter.Name}': start {save[3]} is greater than stop {save[4]}");
@@ -1777,6 +1981,17 @@ namespace OsEngine.MCP.Modules
                     && stepElement.TryGetDecimal(out decimal newStep))
                 {
                     save[5] = newStep.ToString();
+                }
+
+                if (item.TryGetProperty("step_type", out JsonElement stepTypeElement)
+                    && stepTypeElement.ValueKind == JsonValueKind.String)
+                {
+                    if (!Enum.TryParse<StrategyParameterStepType>(stepTypeElement.GetString(), true, out StrategyParameterStepType stepType))
+                    {
+                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeElement.GetString()}'. Expected: Absolute, Percent");
+                    }
+
+                    save[6] = stepType.ToString();
                 }
 
                 if (save[3].ToDecimal() > save[4].ToDecimal())

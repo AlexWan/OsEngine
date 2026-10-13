@@ -1564,6 +1564,8 @@ namespace OsEngine.MCP
                     case "optimizer_bot_tab_set_config":
                     case "optimizer_trade_settings_get":
                     case "optimizer_trade_settings_set":
+                    case "optimizer_cache_get":
+                    case "optimizer_cache_set":
                     case "optimizer_position_support_get":
                     case "optimizer_position_support_set":
                     case "optimizer_phases_get":
