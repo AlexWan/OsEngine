@@ -436,3 +436,10 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 2. Включить: `osengine_encryption_enable` `{"password":"..."}` (мин. 8 символов). Работает только когда выключено; смена пароля через API недоступна.
 3. После включения хост в locked-режиме: `initialize` создаёт сессию, внутри неё — `osengine_encryption_unlock` `{"password":"..."}`; прочие инструменты до разблокировки → `401`.
 4. Выключить (деструктивно): `osengine_encryption_disable` `{"password":"..."}` — расшифрует все пароли серверов в открытый вид.
+
+## Сценарий 24. Автообновление терминала
+
+1. `osengine_update_check` → `status` (`Available`/`NoNeed`/`Disconnected`), `missedCommitsCount`, счётчики файлов, `updaterUpdateRequired`, список коммитов (до 20).
+2. Если `Available`: `osengine_update_apply` (опц. `{"restart": false}`). Модуль делает бэкап в `Engine\Updater\Builds`, качает изменённые файлы в `Engine\Updater\Temp`, запускает `Updater.exe` и по умолчанию останавливает терминал. Ответ MCP приходит до остановки; дальше `Updater.exe` подменяет файлы после завершения процесса.
+3. После перезапуска терминала при включённом шифровании — `osengine_encryption_unlock` (см. сценарий 23), затем авто-развёртывание коннекторов продолжится само.
+4. Ход обновления виден в `Engine\Log\UpdaterLog_dd-MM-yyyy.txt`; бэкап для отката — в `Engine\Updater\Builds\Build_*`.
