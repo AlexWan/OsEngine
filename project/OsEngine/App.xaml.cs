@@ -17,13 +17,34 @@ namespace OsEngine
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // bug-20261012-005: страховка фазы старта. Первой строкой тела (C4): ниже может бросить,
+            // ServerMaster-лог ещё не активирован, оконного состояния и Reboot нет — рутин самостоятельный
+            Logging.StartupCrashGuard.Attach();
+
             app = this;
 
             // завершением управляем сами (Kill/Shutdown); авто-завершение по последнему окну
             // ломало закрытие MainWindow (Application.DoShutdown по закрывающемуся окну)
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            Themes.ThemeManager.Apply(Themes.ThemeManager.Load());
+            try
+            {
+                Themes.ThemeManager.Apply(Themes.ThemeManager.Load());
+            }
+            catch (Exception error)
+            { // битая тема — не молчаливая смерть: отчёт+лог и однократный fallback на тему по умолчанию.
+              // Load() повторно не дёргаем (R5); у Apply уже есть внутренний fallback на DefaultTheme
+                Logging.StartupCrashGuard.SendStartupReport("Theme apply failed, fallback to default.", " UI ", error);
+
+                try
+                {
+                    Themes.ThemeManager.Apply(Themes.ThemeManager.DefaultTheme);
+                }
+                catch (Exception error2)
+                { // второй провал: только лог, старт без темы
+                    Logging.StartupCrashGuard.LogStartup("Theme fallback failed. " + error2);
+                }
+            }
 
             base.OnActivated(e);
         }

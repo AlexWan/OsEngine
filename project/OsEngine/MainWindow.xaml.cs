@@ -62,6 +62,12 @@ namespace OsEngine
             ps.PriorityClass = ProcessPriorityClass.RealTime;
 
             InitializeComponent();
+
+            // handover защиты (bug-20261012-005): снимаем стартап-страховку, с этих трёх подписок
+            // работают зрелые обработчики. Наносекундный зазор Detach->+= — документированный residual
+            // (обратный порядок дал бы окно двух подписчиков и двойной отчёт)
+            Logging.StartupCrashGuard.Detach();
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
             Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -1356,6 +1362,11 @@ namespace OsEngine
 
         #region Crash server
 
+        /// <summary> Crash-server: единые endpoint-константы для зрелого рутина и StartupCrashGuard (C2) </summary>
+        internal const string CrashServerHost = "45.137.152.144";
+
+        internal const int CrashServerPort = 11000;
+
         string _messageToCrashServer;
 
         private void SendMessageInCrashServer()
@@ -1368,7 +1379,7 @@ namespace OsEngine
                 }
 
                 TcpClient newClient = new TcpClient();
-                newClient.Connect("45.137.152.144", 11000);
+                newClient.Connect(CrashServerHost, CrashServerPort);
                 NetworkStream tcpStream = newClient.GetStream();
                 byte[] sendBytes = Encoding.UTF8.GetBytes(_messageToCrashServer);
                 tcpStream.Write(sendBytes, 0, sendBytes.Length);
