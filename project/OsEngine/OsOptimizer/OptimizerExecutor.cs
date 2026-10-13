@@ -277,11 +277,11 @@ namespace OsEngine.OsOptimizer
                         {
                             // the current index can increment the value
                             // по текущему индексу можно приращивать значение
-                            if(parameter.StepType == StrategyParameterStepType.Absolute)
+                            if (parameter.StepType == StrategyParameterStepType.Absolute)
                             {
                                 parameter.ValueInt = parameter.ValueInt + parameter.ValueIntStep;
                             }
-                            else if(parameter.StepType == StrategyParameterStepType.Percent)
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
                             {
                                 int newValue = parameter.ValueInt + Math.Abs(Convert.ToInt32(parameter.ValueInt * Convert.ToDecimal(parameter.ValueIntStep) / 100));
 
@@ -290,7 +290,7 @@ namespace OsEngine.OsOptimizer
                                     newValue = parameter.ValueInt + 1;
                                 }
 
-                                if(newValue > parameter.ValueIntStop)
+                                if (newValue > parameter.ValueIntStop)
                                 {
                                     newValue = parameter.ValueIntStop;
                                 }
@@ -324,7 +324,7 @@ namespace OsEngine.OsOptimizer
                             {
                                 parameter.ValueDecimal = parameter.ValueDecimal + parameter.ValueDecimalStep;
                             }
-                            else if(parameter.StepType == StrategyParameterStepType.Percent)
+                            else if (parameter.StepType == StrategyParameterStepType.Percent)
                             {
                                 decimal newValue = parameter.ValueDecimal + Math.Abs(parameter.ValueDecimal * (parameter.ValueDecimalStep / 100));
 
@@ -592,7 +592,6 @@ namespace OsEngine.OsOptimizer
                         }
                     }
 
-                    TestReadyEvent?.Invoke(ReportsToFazes);
                     _primeThreadWorker = null;
                     return;
                 }
@@ -641,10 +640,6 @@ namespace OsEngine.OsOptimizer
                         }
                     }
 
-                    if (TestReadyEvent != null)
-                    {
-                        TestReadyEvent(ReportsToFazes);
-                    }
                     _primeThreadWorker = null;
                     return;
                 }

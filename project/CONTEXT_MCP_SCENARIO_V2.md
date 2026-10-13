@@ -329,14 +329,15 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
    - Screener: `{"tab_name":"<tab>","time_frame":"Min30","securities":[{"name":"SBER.txt"},{"name":"VTBR.txt"},{"name":"GAZP.txt"}]}` → проверить `securities_count` и `tabs_count` = числу бумаг.
 7. `osengine_optimizer_params_get`. Включить перебор хотя бы одного параметра (`on: true`), иначе `optimizer_start` откажет. Заодно включить робота:
    `osengine_optimizer_params_set` `{"parameters":[{"name":"PC length","value":20,"start":20,"stop":22,"step":1,"on":true},{"name":"Regime","value":"On"}]}`. Остальные параметры лучше `"on":false` — иначе число проходов перемножится.
-   `value` принимает число (`PC length`), строку (`Regime`, `Volume type`, `Asset in portfolio`) и булево (Bool-параметры) — по типу параметра.
+   `value` принимает число (`PC length`), строку (`Regime`, `Volume type`, `Asset in portfolio`) и булево (Bool-параметры) — по типу параметра. Для числовых `Int`/`Decimal` можно задать `step_type` (`"Absolute"`/`"Percent"` — тип приращения шага).
 8. `osengine_optimizer_phases_set` `{"time_start":"2024-01-01T00:00:00","time_end":"2024-03-31T00:00:00","iteration_count":1,"percent_on_filtration":25,"last_in_sample":false}` (`last_in_sample: false` — после каждой InSample идёт OutOfSample).
 9. `osengine_optimizer_filters_get` (лишнее выключить), `osengine_optimizer_get_pass_count` (оценить время).
-10. `osengine_optimizer_start` → `started: true`; если `started: false` — в `errors` список проблем готовности.
-11. Ждать `osengine_optimizer_get_status` (раз в 30–60 c) / SSE `optimizer.test.progress`, `.finished`. Досрочно — `osengine_optimizer_stop` (`is_partial: true`).
-12. `osengine_optimizer_get_report` → `fazes[].reports[]`: `parameters`, `total_profit`, `total_profit_percent`, `max_draw_down`, `profit_factor`, `sharp_ratio`, `positions_count`. Сохранить: `osengine_optimizer_save_report` `{"path":"..."}`.
-13. Сообщить итоги: лучший бот, параметры и метрики на InSample/OutOfSample.
-14. Вернуть изменённые настройки (сет, даты, робот, фильтры), закрыть терминал.
+10. (Опц.) Торговые/исполнительные настройки через `osengine_optimizer_trade_settings_get` / `_set`: комиссия, тип исполнения, проскальзывания, депозит, а также `clearing` (отзыв ордеров внутри дня, массив `{ time: "HH:mm", is_on }`) и `non_trade_periods` (неторговые периоды, массив `{ date_start, date_end, is_on }`). Оба списка **заменяются целиком** при `set`; `is_on` опционален, по умолчанию `false`. Кеширование индикаторов — отдельной парой `osengine_optimizer_cache_get` / `_set` (`cache_indicators_is_on`).
+11. `osengine_optimizer_start` → `started: true`; если `started: false` — в `errors` список проблем готовности.
+12. Ждать `osengine_optimizer_get_status` (раз в 30–60 c) / SSE `optimizer.test.progress`, `.finished`. Досрочно — `osengine_optimizer_stop` (`is_partial: true`).
+13. `osengine_optimizer_get_report` → `fazes[].reports[]`: `parameters`, `total_profit`, `total_profit_percent`, `max_draw_down`, `profit_factor`, `sharp_ratio`, `positions_count`. Сохранить: `osengine_optimizer_save_report` `{"path":"..."}`.
+14. Сообщить итоги: лучший бот, параметры и метрики на InSample/OutOfSample.
+15. Вернуть изменённые настройки (сет, даты, робот, фильтры), закрыть терминал.
 
 ## Сценарий 17. Запуск робота в торговлю (BotStation)
 
