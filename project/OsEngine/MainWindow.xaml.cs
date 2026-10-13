@@ -467,9 +467,12 @@ namespace OsEngine
             }
         }
 
-        // benign-транзиент WPF/WinForms interop (BUG-0050): оконный колбэк HwndSubclass при
-        // приостановленной обработке Dispatcher. Узкий предикат: тип + конъюнкция двух групп ключей,
-        // независимо от локализации полного текста сообщения
+        // Подавляем ровно benign-транзиент DispatcherProcessingDisabledButStillPumping из WindowsBase:
+        // EN «Dispatcher processing has been suspended, but messages are still being processed» (RU-локализация — текст репорта).
+        // Конъюнкция трёх групп ключей; третья («still being processed»/«по-прежнему») намеренно не пускает сюда
+        // соседний ресурс DispatcherProcessingDisabled («Cannot perform this operation while dispatcher processing
+        // is suspended» — запрещённая операция поверх DisableProcessing, возможен реальный дефект кода):
+        // он остаётся на обычном пути отчёта. Локализацию текста учитываем парами ключей, полным текстом не зависим.
         private static bool IsDispatcherSuspendedInterop(Exception ex)
         {
             if (!(ex is InvalidOperationException) || string.IsNullOrEmpty(ex.Message))
@@ -480,7 +483,9 @@ namespace OsEngine
             return (ex.Message.IndexOf("suspended", StringComparison.OrdinalIgnoreCase) >= 0
                     || ex.Message.IndexOf("приостановлена", StringComparison.OrdinalIgnoreCase) >= 0)
                 && (ex.Message.IndexOf("Dispatcher", StringComparison.OrdinalIgnoreCase) >= 0
-                    || ex.Message.IndexOf("диспетчер", StringComparison.OrdinalIgnoreCase) >= 0);
+                    || ex.Message.IndexOf("диспетчер", StringComparison.OrdinalIgnoreCase) >= 0)
+                && (ex.Message.IndexOf("still being processed", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message.IndexOf("по-прежнему", StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         #region MCP Host
