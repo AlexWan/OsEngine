@@ -1597,6 +1597,12 @@ namespace OsEngine.MCP
                     case "optimizer_get_report":
                     case "optimizer_save_report":
                     case "optimizer_load_report":
+                    case "optimizer_save_report_db":
+                    case "optimizer_list_report_db":
+                    case "optimizer_load_report_db":
+                    case "optimizer_delete_report_db":
+                    case "optimizer_query_report_db":
+                    case "optimizer_db_cleanup":
                         response = _optimizerApi.Handle(request);
                         break;
 

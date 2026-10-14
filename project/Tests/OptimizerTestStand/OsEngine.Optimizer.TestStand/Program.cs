@@ -173,6 +173,9 @@ namespace OsEngine.Optimizer.TestStand
             // 11. SSE-события прогона.
             RunModule(context, 11, "Sse", () => new SseTests(context).RunAll());
 
+            // 12. БД результатов (SQLite).
+            RunModule(context, 12, "Db", () => new DbTests(context).RunAll());
+
             if (_moduleFilter.Length > 0 && _matchedModules == 0)
             {
                 Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");
