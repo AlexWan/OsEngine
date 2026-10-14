@@ -336,7 +336,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (trades != null)
             {
-                SetNewError("Error 14. Null in array. " + timeFrame.ToString());
+                SetNewError("Error 14. The array of forbidden data is not equal to null. " + timeFrame.ToString());
                 return;
             }
         }
