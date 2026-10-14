@@ -183,6 +183,10 @@ namespace OsEngine.Market.Servers.QuikLua
                     _clientCodes = new List<string>();
                     _futuresCodes = new List<string>();
 
+                    // сброс троттлинга null-логов на новом подключении
+                    _lastNullPortfolioInfoExLogTime = DateTime.MinValue;
+                    _lastNullMoneyLimitsLogTime = DateTime.MinValue;
+
                     if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
                     {
                         List<string> spotClientCodes = QuikLua.Class.GetClientCodes().Result;
@@ -690,6 +694,11 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Portfolio> _portfolios;
 
+        // Троттлинг Error-лога при null-ответах лимитных функций QUIK.
+        // Гонка между потоками (GetPortfoliosArea и внешний GetPortfolios) влияет только на частоту лога.
+        private DateTime _lastNullPortfolioInfoExLogTime;
+        private DateTime _lastNullMoneyLimitsLogTime;
+
         public void GetPortfolios()
         {
             try
@@ -839,14 +848,23 @@ namespace OsEngine.Market.Servers.QuikLua
                     else
                         portfolioInfoEx = QuikLua.Trading.GetPortfolioInfoEx(futuresLimits[i].FirmId, futuresLimits[i].TrdAccId, _tradeMode).Result;
 
-                    PositionOnBoard positionRub = new PositionOnBoard();
-                    positionRub.SecurityNameCode = "rub";
-                    positionRub.PortfolioName = portfolio.Number;
-                    positionRub.ValueBlocked = 0;
-                    positionRub.ValueCurrent = portfolioInfoEx.LimitOpenPos.ToDecimal();
-                    positionRub.ValueBegin = portfolioInfoEx.StartLimitOpenPos.ToDecimal();
+                    // при null-ответе rub-позиция пропускается, портфель добавляется (как в спот-ветке при null qPortfolio)
+                    if (portfolioInfoEx != null)
+                    {
+                        PositionOnBoard positionRub = new PositionOnBoard();
+                        positionRub.SecurityNameCode = "rub";
+                        positionRub.PortfolioName = portfolio.Number;
+                        positionRub.ValueBlocked = 0;
+                        positionRub.ValueCurrent = portfolioInfoEx.LimitOpenPos.ToDecimal();
+                        positionRub.ValueBegin = portfolioInfoEx.StartLimitOpenPos.ToDecimal();
 
-                    portfolio.SetNewPosition(positionRub);
+                        portfolio.SetNewPosition(positionRub);
+                    }
+                    else
+                    {
+                        SendNullDataLog(ref _lastNullPortfolioInfoExLogTime,
+                            "GetPortfolioInfoEx вернул null (клиент " + futuresLimits[i].FirmId + ", счёт " + futuresLimits[i].TrdAccId + "). Рублёвая позиция не обновлена");
+                    }
 
                     if (portfolioAlreadyExists == false)
                     {
@@ -870,12 +888,18 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 List<MoneyLimitEx> money = QuikLua.Trading.GetMoneyLimits().Result;
 
+                if (money == null)
+                {
+                    SendNullDataLog(ref _lastNullMoneyLimitsLogTime,
+                        "GetMoneyLimits вернул null. Спотовые портфели в этом цикле не обновляются");
+                }
+
                 List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
 
                 List<string> spotFirmId = new List<string>();
                 for (int i = 0; accaunts != null && i < accaunts.Count; i++)
                 {
-                    for (int i2 = 0; i2 < money.Count; i2++)
+                    for (int i2 = 0; money != null && i2 < money.Count; i2++)
                     {
                         if (accaunts[i].Firmid == money[i2].FirmId)
                         {
@@ -1020,7 +1044,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                             Security sec = null;
                             if (_isOnlyBotsPortfolio == false)
-                                sec = _securities.Find(sec => sec.Name.Split('+')[0] == depoLimitEx.SecCode);
+                                sec = _securities?.Find(sec => sec.Name.Split('+')[0] == depoLimitEx.SecCode);
                             else
                             {
                                 sec = subscribedSecurities.Find(sec => sec.Name.Split('+')[0] == depoLimitEx.SecCode);
@@ -1319,6 +1343,16 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 Thread.Sleep(5000);
+            }
+        }
+
+        // Троттлинг Error-лога при null-ответах QUIK: не чаще одной строки в минуту на сайт.
+        private void SendNullDataLog(ref DateTime lastLogTime, string what)
+        {
+            if (lastLogTime == DateTime.MinValue || (DateTime.Now - lastLogTime).TotalSeconds >= 60)
+            {
+                lastLogTime = DateTime.Now;
+                SendLogMessage("QuikLua: " + what + ". Возможна потеря связи с сервером брокера или лимитные данные ещё не получены", LogMessageType.Error);
             }
         }
 
