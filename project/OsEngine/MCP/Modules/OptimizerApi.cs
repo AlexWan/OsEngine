@@ -200,6 +200,30 @@ namespace OsEngine.MCP.Modules
                         response.Result = LoadReport(request.Params);
                         break;
 
+                    case "optimizer_save_report_db":
+                        response.Result = SaveReportDb();
+                        break;
+
+                    case "optimizer_list_report_db":
+                        response.Result = ListReportDb(request.Params);
+                        break;
+
+                    case "optimizer_db_cleanup":
+                        response.Result = CleanupReportDb(request.Params);
+                        break;
+
+                    case "optimizer_load_report_db":
+                        response.Result = LoadReportDb(request.Params);
+                        break;
+
+                    case "optimizer_delete_report_db":
+                        response.Result = DeleteReportDb(request.Params);
+                        break;
+
+                    case "optimizer_query_report_db":
+                        response.Result = QueryReportDb(request.Params);
+                        break;
+
                     default:
                         response.Error = new McpJsonRpcError
                         {
@@ -506,6 +530,88 @@ namespace OsEngine.MCP.Modules
                             path = new { type = "string" }
                         },
                         required = new[] { "path" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_save_report_db",
+                    Description = "Save optimization results to the SQLite database (Engine\\OptimizerResults.db)",
+                    InputSchema = new { type = "object", properties = new { }, required = new string[0] }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_list_report_db",
+                    Description = "List saved optimization runs from the SQLite database (metadata only, newest first). Optional filters: robot (exact), date_from/date_to (saved_at range)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            robot = new { type = "string", description = "Exact robot name filter (optional)" },
+                            date_from = new { type = "string", description = "Saved after this date, yyyy-MM-dd (optional)" },
+                            date_to = new { type = "string", description = "Saved before this date, yyyy-MM-dd (optional)" }
+                        },
+                        required = new string[0]
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_db_cleanup",
+                    Description = "Delete optimization runs saved before the given date (manual cleanup)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            before_date = new { type = "string", description = "Delete runs saved before this date, yyyy-MM-dd" }
+                        },
+                        required = new[] { "before_date" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_load_report_db",
+                    Description = "Load a saved optimization run from the SQLite database by run_id (replaces current results)",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            run_id = new { type = "integer" }
+                        },
+                        required = new[] { "run_id" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_delete_report_db",
+                    Description = "Delete a saved optimization run from the SQLite database by run_id",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            run_id = new { type = "integer" }
+                        },
+                        required = new[] { "run_id" }
+                    }
+                },
+                new McpTool
+                {
+                    Name = "optimizer_query_report_db",
+                    Description = "Query optimization reports from the SQLite database: sort by a metric column, filter by faze, limit rows",
+                    InputSchema = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            run_id = new { type = "integer" },
+                            sort_by = new { type = "string", description = "Column: total_profit, profit_factor, max_draw_down, positions_count, recovery, sharp_ratio, pay_off_ratio, profit_position_percent, total_profit_percent, average_profit, average_profit_percent_one_contract, bot_name, faze_type, faze_index" },
+                            order = new { type = "string", description = "asc or desc (default desc)" },
+                            faze_type = new { type = "string", description = "InSample or OutOfSample (optional)" },
+                            limit = new { type = "integer", description = "Max rows to return (optional)" }
+                        },
+                        required = new[] { "run_id" }
                     }
                 },
                 new McpTool
@@ -2482,6 +2588,253 @@ namespace OsEngine.MCP.Modules
             master._optimizerExecutor.ReportsToFazes = reports;
 
             return GetReport(parameters);
+        }
+
+        private object SaveReportDb()
+        {
+            OptimizerMaster master = GetMasterRequired();
+            List<OptimizerFazeReport> reports = master._optimizerExecutor.ReportsToFazes;
+
+            if (reports == null || reports.Count == 0)
+            {
+                throw new InvalidOperationException("No optimization results to save");
+            }
+
+            OptimizerDataStorage storage = master.Storage;
+
+            string dataSet = string.Empty;
+
+            if (storage.ActiveSet != null && storage.ActiveSet.StartsWith(@"Data\Set_"))
+            {
+                dataSet = storage.ActiveSet.Substring(@"Data\Set_".Length);
+            }
+
+            string timeframe = string.Empty;
+
+            if (storage.SecuritiesTester != null && storage.SecuritiesTester.Count > 0)
+            {
+                timeframe = storage.SecuritiesTester[0].TimeFrame.ToString();
+            }
+
+            OptimizerReportDb db = new OptimizerReportDb();
+
+            long runId = db.Save(
+                reports,
+                master.StrategyName,
+                dataSet,
+                timeframe,
+                master.TimeStart.ToString("O", CultureInfo.InvariantCulture),
+                master.TimeEnd.ToString("O", CultureInfo.InvariantCulture),
+                master.IterationCount,
+                master.ThreadsCount,
+                _lastFinishedPartial);
+
+            int reportsCount = 0;
+
+            for (int i = 0; i < reports.Count; i++)
+            {
+                reportsCount += reports[i].Reports.Count;
+            }
+
+            return new
+            {
+                saved = true,
+                run_id = runId,
+                fazes_count = reports.Count,
+                reports_count = reportsCount
+            };
+        }
+
+        private object ListReportDb(JsonElement parameters)
+        {
+            GetMasterRequired();
+
+            string robot = null;
+            string dateFrom = null;
+            string dateTo = null;
+
+            if (parameters.ValueKind == JsonValueKind.Object)
+            {
+                if (parameters.TryGetProperty("robot", out JsonElement robotElement)
+                    && robotElement.ValueKind == JsonValueKind.String)
+                {
+                    robot = robotElement.GetString();
+                }
+
+                if (parameters.TryGetProperty("date_from", out JsonElement dateFromElement)
+                    && dateFromElement.ValueKind == JsonValueKind.String)
+                {
+                    dateFrom = dateFromElement.GetString();
+                }
+
+                if (parameters.TryGetProperty("date_to", out JsonElement dateToElement)
+                    && dateToElement.ValueKind == JsonValueKind.String)
+                {
+                    dateTo = dateToElement.GetString();
+                }
+            }
+
+            OptimizerReportDb db = new OptimizerReportDb();
+            List<OptimizerRunMeta> runs = db.List(robot, dateFrom, dateTo);
+
+            List<object> items = new List<object>();
+
+            for (int i = 0; i < runs.Count; i++)
+            {
+                OptimizerRunMeta meta = runs[i];
+
+                items.Add(new
+                {
+                    run_id = meta.RunId,
+                    saved_at = meta.SavedAt,
+                    robot = meta.Robot,
+                    data_set = meta.DataSet,
+                    timeframe = meta.Timeframe,
+                    date_from = meta.DateFrom,
+                    date_to = meta.DateTo,
+                    iteration_count = meta.IterationCount,
+                    threads = meta.Threads,
+                    is_partial = meta.IsPartial,
+                    fazes_count = meta.FazesCount,
+                    reports_count = meta.ReportsCount
+                });
+            }
+
+            return new { runs = items, count = items.Count };
+        }
+
+        private object LoadReportDb(JsonElement parameters)
+        {
+            long runId = GetRunId(parameters);
+
+            OptimizerReportDb db = new OptimizerReportDb();
+            List<OptimizerFazeReport> reports = db.Load(runId);
+
+            if (reports == null || reports.Count == 0)
+            {
+                throw new InvalidOperationException($"Optimization run {runId} not found in database");
+            }
+
+            OptimizerMaster master = GetMasterRequired();
+            master._optimizerExecutor.ReportsToFazes = reports;
+
+            return GetReport(parameters);
+        }
+
+        private object DeleteReportDb(JsonElement parameters)
+        {
+            long runId = GetRunId(parameters);
+
+            OptimizerReportDb db = new OptimizerReportDb();
+            db.Delete(runId);
+
+            return new { deleted = true, run_id = runId };
+        }
+
+        private object QueryReportDb(JsonElement parameters)
+        {
+            long runId = GetRunId(parameters);
+
+            string sortBy = null;
+            string order = "desc";
+            string fazeType = null;
+            int limit = 0;
+
+            if (parameters.ValueKind == JsonValueKind.Object)
+            {
+                if (parameters.TryGetProperty("sort_by", out JsonElement sortByElement)
+                    && sortByElement.ValueKind == JsonValueKind.String)
+                {
+                    sortBy = sortByElement.GetString();
+                }
+
+                if (parameters.TryGetProperty("order", out JsonElement orderElement)
+                    && orderElement.ValueKind == JsonValueKind.String)
+                {
+                    order = orderElement.GetString();
+                }
+
+                if (parameters.TryGetProperty("faze_type", out JsonElement fazeTypeElement)
+                    && fazeTypeElement.ValueKind == JsonValueKind.String)
+                {
+                    fazeType = fazeTypeElement.GetString();
+                }
+
+                if (parameters.TryGetProperty("limit", out JsonElement limitElement)
+                    && limitElement.ValueKind == JsonValueKind.Number)
+                {
+                    limit = limitElement.GetInt32();
+                }
+            }
+
+            OptimizerReportDb db = new OptimizerReportDb();
+            List<OptimizerReportRow> rows = db.Query(runId, sortBy, order, fazeType, limit);
+            OptimizerRunMeta meta = db.GetRunMeta(runId);
+
+            List<object> items = new List<object>();
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                OptimizerReportRow row = rows[i];
+
+                items.Add(new
+                {
+                    bot_name = row.BotName,
+                    faze_type = row.FazeType,
+                    faze_index = row.FazeIndex,
+                    positions_count = row.PositionsCount,
+                    profit_position_percent = row.ProfitPositionPercent,
+                    total_profit = row.TotalProfit,
+                    total_profit_percent = row.TotalProfitPercent,
+                    max_draw_down = row.MaxDrawDown,
+                    average_profit = row.AverageProfit,
+                    average_profit_percent_one_contract = row.AverageProfitPercentOneContract,
+                    profit_factor = row.ProfitFactor,
+                    pay_off_ratio = row.PayOffRatio,
+                    recovery = row.Recovery,
+                    sharp_ratio = row.SharpRatio,
+                    average_time_in_position = row.AverageTimeInPosition
+                });
+            }
+
+            return new
+            {
+                run_id = runId,
+                fazes_count = meta == null ? 0 : meta.FazesCount,
+                reports_count = meta == null ? 0 : meta.ReportsCount,
+                returned = rows.Count,
+                reports = items
+            };
+        }
+
+        private object CleanupReportDb(JsonElement parameters)
+        {
+            if (parameters.ValueKind != JsonValueKind.Object
+                || !parameters.TryGetProperty("before_date", out JsonElement beforeElement)
+                || beforeElement.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(beforeElement.GetString()))
+            {
+                throw new ArgumentException("before_date is required and must be a non-empty string");
+            }
+
+            string beforeDate = beforeElement.GetString();
+
+            OptimizerReportDb db = new OptimizerReportDb();
+            int deleted = db.Cleanup(beforeDate);
+
+            return new { cleaned = deleted };
+        }
+
+        private long GetRunId(JsonElement parameters)
+        {
+            if (parameters.ValueKind != JsonValueKind.Object
+                || !parameters.TryGetProperty("run_id", out JsonElement runIdElement)
+                || runIdElement.ValueKind != JsonValueKind.Number)
+            {
+                throw new ArgumentException("run_id is required and must be an integer");
+            }
+
+            return runIdElement.GetInt64();
         }
 
         #endregion

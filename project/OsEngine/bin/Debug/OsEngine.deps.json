@@ -27,6 +27,7 @@
           "FinamApi": "1.0.0.0",
           "Jayrock.Json": "0.9.16530.0",
           "LiteDB": "5.0.19.0",
+          "Microsoft.Data.Sqlite": "10.0.10.0",
           "Microsoft.Web.WebView2.Core": "1.0.3240.44",
           "Microsoft.Web.WebView2.WinForms": "1.0.3240.44",
           "Microsoft.Web.WebView2.Wpf": "1.0.3240.44",
@@ -36,6 +37,9 @@
           "OpenFAST": "1.1.3.0",
           "QuikSharp": "2.0.0.0",
           "RestSharp": "105.2.3.0",
+          "SQLitePCLRaw.batteries_v2": "3.0.5.3129",
+          "SQLitePCLRaw.core": "3.0.5.3129",
+          "SQLitePCLRaw.provider.e_sqlite3": "3.0.5.3129",
           "SuperSocket.ClientEngine": "0.10.0.0",
           "TInvestApi": "1.0.0.0",
           "WebSocket4Net": "0.15.2.11"
@@ -374,7 +378,15 @@
         "runtime": {
           "LiteDB.dll": {
             "assemblyVersion": "5.0.19.0",
-            "fileVersion": "5.0.19.0"
+            "fileVersion": "5.0.19.1"
+          }
+        }
+      },
+      "Microsoft.Data.Sqlite/10.0.10.0": {
+        "runtime": {
+          "Microsoft.Data.Sqlite.dll": {
+            "assemblyVersion": "10.0.10.0",
+            "fileVersion": "10.0.1026.32716"
           }
         }
       },
@@ -447,6 +459,30 @@
           "RestSharp.dll": {
             "assemblyVersion": "105.2.3.0",
             "fileVersion": "105.2.3.0"
+          }
+        }
+      },
+      "SQLitePCLRaw.batteries_v2/3.0.5.3129": {
+        "runtime": {
+          "SQLitePCLRaw.batteries_v2.dll": {
+            "assemblyVersion": "3.0.5.3129",
+            "fileVersion": "3.0.5.3129"
+          }
+        }
+      },
+      "SQLitePCLRaw.core/3.0.5.3129": {
+        "runtime": {
+          "SQLitePCLRaw.core.dll": {
+            "assemblyVersion": "3.0.5.3129",
+            "fileVersion": "3.0.5.3129"
+          }
+        }
+      },
+      "SQLitePCLRaw.provider.e_sqlite3/3.0.5.3129": {
+        "runtime": {
+          "SQLitePCLRaw.provider.e_sqlite3.dll": {
+            "assemblyVersion": "3.0.5.3129",
+            "fileVersion": "3.0.5.3129"
           }
         }
       },
@@ -694,6 +730,11 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Microsoft.Data.Sqlite/10.0.10.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Microsoft.Web.WebView2.Core/1.0.3240.44": {
       "type": "reference",
       "serviceable": false,
@@ -735,6 +776,21 @@
       "sha512": ""
     },
     "RestSharp/105.2.3.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SQLitePCLRaw.batteries_v2/3.0.5.3129": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SQLitePCLRaw.core/3.0.5.3129": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SQLitePCLRaw.provider.e_sqlite3/3.0.5.3129": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

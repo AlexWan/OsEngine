@@ -132,6 +132,18 @@
     <Reference Include="WebSocket4Net">
       <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Data.Sqlite">
+      <HintPath>bin\Debug\Microsoft.Data.Sqlite.dll</HintPath>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.core">
+      <HintPath>bin\Debug\SQLitePCLRaw.core.dll</HintPath>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.provider.e_sqlite3">
+      <HintPath>bin\Debug\SQLitePCLRaw.provider.e_sqlite3.dll</HintPath>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.batteries_v2">
+      <HintPath>bin\Debug\SQLitePCLRaw.batteries_v2.dll</HintPath>
+    </Reference>
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>

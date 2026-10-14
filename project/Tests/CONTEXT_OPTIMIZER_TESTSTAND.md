@@ -120,13 +120,21 @@
 
 - **4.11.1.** Во время прогона приходят события `optimizer.test.progress` / `optimizer.test.finished` (SSE-стрим `GET /api/v2/mcp`).
 
+### 4.12. БД результатов (Db)
+
+- **4.12.1.** RoundTrip (2 фазы) — перебор 2 параметров (Sma length × Envelop length = 10 комбинаций). `optimizer_save_report_db` → `run_id`; `optimizer_list_report_db` — прогон виден; `optimizer_load_report_db` — целостность: бот, прибыль, фазы InSample+OutOfSample, параметры Sma/Envelop восстановлены; `optimizer_delete_report_db` — прогон удалён.
+- **4.12.2.** FourFazes — `iteration_count=2` → 4 фазы, round-trip save/load/delete, `fazes_count == 4`.
+- **4.12.3.** SingleFaze — `last_in_sample=true` → 1 фаза InSample (без OutOfSample), round-trip, `fazes_count == 1`.
+- **4.12.4.** QuerySort — `optimizer_query_report_db`: сортировка по метрике (`sort_by` + `order`), `limit`, фильтр по `faze_type`; в ответе `returned`, `reports_count`, `fazes_count`.
+- **4.12.5.** ListFiltersCleanup — `optimizer_list_report_db { robot, date_from, date_to }`: `robot` (точное совпадение) и `date_from`/`date_to` (по `saved_at`, `yyyy-MM-dd`) фильтруют список; `optimizer_db_cleanup { before_date }` удаляет прогоны раньше даты (возвращает `cleaned`).
+
 ## 5. Как запускать
 
 ```bash
 dotnet run --project project\Tests\OptimizerTestStand\OsEngine.Optimizer.TestStand -- [--module/-m NAME] [--set TesterSBER] [--port 6500] [--api-key KEY] [--timeout 60] [--no-wait] [--transport v1|v2]
 ```
 
-- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 11 модулей разом.
+- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 12 модулей разом.
 - `--set` — имя сета данных (по умолчанию `TesterSBER`).
 - `--port` / `--api-key` — MCP OsEngine (по умолчанию `6500` / `osengine-mcp-default-key`).
 - `--timeout` — таймаут ожидания MCP после запуска OsEngine (сек).
