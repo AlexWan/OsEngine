@@ -203,6 +203,8 @@
 | `encryption_unlock` | Разблокировать шифрователь мастер-паролем |
 | `encryption_enable` | Включить шифрование с новым паролем (мин. 8 символов) |
 | `encryption_disable` | Выключить шифрование и расшифровать ключи (деструктивно) |
+| `update_check` | Проверка сервера обновлений: статус (`Available`/`NoNeed`/`Disconnected`), `missed_commits` через `missedCommitsCount`, счётчики файлов (`newFiles`/`obsoleteFiles`/`removedFiles`), `updaterUpdateRequired`, до 20 коммитов |
+| `update_apply` | Скачать и применить обновление: бэкап в `Engine\Updater\Builds`, скачивание в `Engine\Updater\Temp`, запуск `Updater.exe` и остановка терминала (опц. `restart`, по умолчанию `true`). Терминал завершается — ответ приходит до остановки |
 
 **Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов **с расширением**: `SBER.txt`, а не `SBER`. Во вкладки робота через `optimizer_bot_tab_set_config` передавать имя с `.txt`.
 

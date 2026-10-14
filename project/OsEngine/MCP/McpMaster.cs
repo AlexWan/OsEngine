@@ -81,6 +81,7 @@ namespace OsEngine.MCP
         private readonly ProxyApi _proxyApi;
         private readonly OptimizerApi _optimizerApi;
         private readonly EncryptionApi _encryptionApi;
+        private readonly UpdateApi _updateApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -182,6 +183,9 @@ namespace OsEngine.MCP
             _encryptionApi = new EncryptionApi();
             _encryptionApi.NewLogMessageEvent += EncryptionApi_NewLogMessageEvent;
 
+            _updateApi = new UpdateApi(publishEvent, _stopTerminal);
+            _updateApi.NewLogMessageEvent += UpdateApi_NewLogMessageEvent;
+
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
 
@@ -203,6 +207,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_proxyApi);
             _protocolApi.RegisterToolProvider(_optimizerApi);
             _protocolApi.RegisterToolProvider(_encryptionApi);
+            _protocolApi.RegisterToolProvider(_updateApi);
         }
 
         #endregion
@@ -400,6 +405,11 @@ namespace OsEngine.MCP
         }
 
         private void EncryptionApi_NewLogMessageEvent(string message, LogMessageType type)
+        {
+            Log.ProcessMessage(message, type);
+        }
+
+        private void UpdateApi_NewLogMessageEvent(string message, LogMessageType type)
         {
             Log.ProcessMessage(message, type);
         }
@@ -1549,6 +1559,11 @@ namespace OsEngine.MCP
                     case "encryption_enable":
                     case "encryption_disable":
                         response = _encryptionApi.Handle(request);
+                        break;
+
+                    case "update_check":
+                    case "update_apply":
+                        response = _updateApi.Handle(request);
                         break;
 
                     case "optimizer_data_get_config":
