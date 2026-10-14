@@ -19,6 +19,10 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public DateTime LastReconnectTime { get; set; } = DateTime.MinValue;
 
         public int ReconnectAttempts { get; set; }
+
+        // ticks of the last app-level "pong" received on this socket; a FIELD (not an auto-property)
+        // so both the receive thread and the check-alive thread can touch it via Interlocked (BUG-0053)
+        public long LastPongTicks;
     }
 
     /// <summary>
