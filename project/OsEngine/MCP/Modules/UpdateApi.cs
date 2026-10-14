@@ -39,6 +39,8 @@ namespace OsEngine.MCP.Modules
 
         private static bool _applyInProgress;
 
+        private const int UpdaterLivenessWindowMs = 1500;
+
         private readonly HttpClient _httpClient =
             new HttpClient(UpdateServerTls.CreatePinnedHandler()) { Timeout = TimeSpan.FromMinutes(2) };
 
@@ -512,17 +514,71 @@ namespace OsEngine.MCP.Modules
 
                 string tempDirFullPath = Path.GetFullPath(tempDir);
 
+                // targetDir без завершающего разделителя: в cmdline "...\OsEngine\" даёт экранированную
+                // кавычку \" и Updater.exe не разбирает аргументы (Usage). Корень диска "C:\" обрезать
+                // нельзя — "C:" drive-relative форма
+
+                string updaterTargetDir = baseDir.TrimEnd('\\', '/');
+
+                if (updaterTargetDir.Length == 2 && updaterTargetDir[1] == ':')
+                {
+                    updaterTargetDir = baseDir;
+                }
+
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
                     FileName = updaterExePath,
-                    Arguments = $"\"update\" \"{baseDir}\" \"{tempDirFullPath}\" {Environment.ProcessId} \"{currentExeName}\"",
+                    Arguments = $"\"update\" \"{updaterTargetDir}\" \"{tempDirFullPath}\" {Environment.ProcessId} \"{currentExeName}\"",
                     UseShellExecute = true,
                     CreateNoWindow = true
                 };
 
-                Process.Start(startInfo);
+                using (Process updaterProcess = Process.Start(startInfo))
+                {
+                    started = true;
 
-                started = true;
+                    // апдейтер по контракту ждёт выхода процесса терминала, а терминал сейчас жив:
+                    // выход процесса в окне = сбой (на ошибке апдейтер может выйти и с кодом 0).
+                    // null Process и исключения хэндла = «сбой не обнаружен»: стоп как раньше
+
+                    bool updaterDied = false;
+                    string updaterExit = "";
+
+                    try
+                    {
+                        if (updaterProcess != null && updaterProcess.WaitForExit(UpdaterLivenessWindowMs))
+                        {
+                            updaterDied = true;
+
+                            try
+                            {
+                                updaterExit = " (exit code " + updaterProcess.ExitCode + ")";
+                            }
+                            catch
+                            {
+                                // код недоступен — в текст ошибки не попадает
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // мёртвый/недоступный хэндл: сбой не подтверждён, деградация к штатной остановке
+
+                        updaterDied = false;
+                    }
+
+                    if (updaterDied)
+                    {
+                        started = false;
+
+                        string failure = "Updater exited immediately" + updaterExit
+                            + ". The terminal was not stopped. Backup kept: " + Path.GetFullPath(buildReservePath);
+
+                        SendLog("update_apply: " + failure, LogMessageType.Error);
+
+                        throw new InvalidOperationException(failure);
+                    }
+                }
 
                 SendLog("Update apply: updater started, terminal is shutting down", LogMessageType.System);
 
