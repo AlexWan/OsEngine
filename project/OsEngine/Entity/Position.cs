@@ -1584,7 +1584,15 @@ namespace OsEngine.Entity
 
                 Order newOrder = new Order();
                 newOrder.SetOrderFromString(saveOrd);
-                AddNewCloseOrder(newOrder);
+                // BUG-0054: add directly, not through AddNewCloseOrder: this is restore from file,
+                // PositionAddTime must stay MinValue (age unknown -> stale-order sweep must never drop it).
+                // SecurityName guard of the adder is intentionally not replicated: it is dead here,
+                // SecurityName is assigned after this loop. State is taken from the journal below.
+                if (_closeOrders == null)
+                {
+                    _closeOrders = new List<Order>();
+                }
+                _closeOrders.Add(newOrder);
             }
 
             if(arraySave[arraySave.Length - 3] == "True" 
