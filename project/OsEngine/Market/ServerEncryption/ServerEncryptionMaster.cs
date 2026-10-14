@@ -556,6 +556,10 @@ namespace OsEngine.Market.ServerEncryption
         private static void ShowUnlockDialog()
         {
             ServerEncryptionUi ui = new ServerEncryptionUi(true);
+
+            // это окно показано как запрос разблокировки - закрываем его, если разблокировали извне (MCP)
+            ui.AutoCloseOnExternalUnlock = true;
+
             ui.ShowDialog();
         }
 

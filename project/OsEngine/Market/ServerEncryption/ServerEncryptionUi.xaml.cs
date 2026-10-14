@@ -97,16 +97,54 @@ namespace OsEngine.Market.ServerEncryption
         /// </summary>
         public bool UnlockSuccess { get; private set; }
 
+        /// <summary>
+        /// close the dialog when the encryptor was unlocked from outside (MCP API). Off by default
+        /// закрывать окно при разблокировке шифрователя извне (MCP API). По умолчанию выключено
+        /// </summary>
+        public bool AutoCloseOnExternalUnlock
+        {
+            get { return _autoCloseOnExternalUnlock; }
+            set
+            {
+                if (_autoCloseOnExternalUnlock == value)
+                {
+                    return;
+                }
+
+                _autoCloseOnExternalUnlock = value;
+
+                if (value)
+                {
+                    SubscribeUnlocked();
+                }
+                else
+                {
+                    UnsubscribeUnlocked();
+                }
+            }
+        }
+
+        private bool _autoCloseOnExternalUnlock;
+
+        private bool _unlockedSubscribed;
+
+        private bool _closed;
+
         private void ServerEncryptionUi_Closed(object sender, EventArgs e)
         {
             try
             {
+                _closed = true;
+
                 if (_unlockMode
                     && ServerEncryptionMaster.IsUnlocked == false)
                 {
                     // окно закрыли без разблокировки (крестик, Esc, кнопка) - больше не спрашиваем в этой сессии
                     ServerEncryptionMaster.SetUnlockDeclined();
                 }
+
+                // UnlockedEvent статический - отписка в Closed обязательна, иначе закрытое окно останется в делегате
+                UnsubscribeUnlocked();
 
                 ButtonSetup.Click -= ButtonSetup_Click;
                 ButtonUnlock.Click -= ButtonUnlock_Click;
@@ -246,6 +284,80 @@ namespace OsEngine.Market.ServerEncryption
                 if (_unlockMode)
                 {
                     ServerEncryptionMaster.SetUnlockDeclined();
+                }
+
+                Close();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// UnlockedEvent is static, so unsubscribing in Closed is mandatory - the closed window would stay in the delegate
+        /// UnlockedEvent статический, поэтому отписка в Closed обязательна - иначе закрытое окно останется в делегате
+        /// </summary>
+        private void SubscribeUnlocked()
+        {
+            if (_unlockedSubscribed)
+            {
+                return;
+            }
+
+            ServerEncryptionMaster.UnlockedEvent += ServerEncryptionMaster_UnlockedEvent;
+            _unlockedSubscribed = true;
+
+            // разблокировка могла прийти между показом окна и подпиской. тот же маршалированный Close
+            if (ServerEncryptionMaster.IsUnlocked)
+            {
+                Dispatcher.BeginInvoke(new Action(CloseAfterExternalUnlock));
+            }
+        }
+
+        private void UnsubscribeUnlocked()
+        {
+            if (_unlockedSubscribed == false)
+            {
+                return;
+            }
+
+            ServerEncryptionMaster.UnlockedEvent -= ServerEncryptionMaster_UnlockedEvent;
+            _unlockedSubscribed = false;
+        }
+
+        /// <summary>
+        /// raises on the thread of whoever unlocked (MCP request thread) - here only marshalling, no Invoke
+        /// поднимается на потоке инициатора разблокировки (поток запроса MCP) - здесь только маршалинг, без Invoke
+        /// </summary>
+        private void ServerEncryptionMaster_UnlockedEvent()
+        {
+            try
+            {
+                if (_closed || Dispatcher == null || Dispatcher.HasShutdownStarted)
+                {
+                    return;
+                }
+
+                Dispatcher.BeginInvoke(new Action(CloseAfterExternalUnlock));
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// UnlockSuccess is not set here: it means the password was confirmed locally in this window
+        /// UnlockSuccess здесь не выставляется: он означает подтверждение пароля локально, в этом окне
+        /// </summary>
+        private void CloseAfterExternalUnlock()
+        {
+            try
+            {
+                if (_closed)
+                {
+                    return;
                 }
 
                 Close();
