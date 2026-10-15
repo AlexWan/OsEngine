@@ -207,16 +207,26 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                // create the replacement before destroying the working one.
+                // on unknown type the factory logs an error and returns null: keep old realization and old name (bug-0077)
+                ACandlesSeriesRealization next = CandleFactory.CreateCandleSeriesRealization(newType);
+
+                if (next == null)
+                {
+                    return;
+                }
+
                 if (CandleSeriesRealization != null)
                 {
                     CandleSeriesRealization.ParametersChangeByUser -= CandleSeriesRealization_ParametersChangeByUser;
                     CandleSeriesRealization.CandleUpdateEvent -= CandleSeriesRealization_CandleUpdateEvent;
                     CandleSeriesRealization.CandleFinishedEvent -= CandleSeriesRealization_CandleFinishedEvent;
                     CandleSeriesRealization.Delete();
-                    CandleSeriesRealization = null;
                 }
+
+                CandleSeriesRealization = next;
                 _candleCreateMethodType = newType;
-                CandleSeriesRealization = CandleFactory.CreateCandleSeriesRealization(newType);
+
                 CandleSeriesRealization.Init(_startProgram);
                 CandleSeriesRealization.ParametersChangeByUser += CandleSeriesRealization_ParametersChangeByUser;
                 CandleSeriesRealization.CandleUpdateEvent += CandleSeriesRealization_CandleUpdateEvent;

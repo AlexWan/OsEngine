@@ -212,6 +212,14 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the series was stopped (unsubscribed). A stopped series is not started by the manager anymore
+        /// </summary>
+        public bool IsStopped
+        {
+            get { return _isStoped; }
+        }
+
+        /// <summary>
         /// clear data
         /// </summary>
         public void Clear()
@@ -245,11 +253,20 @@ namespace OsEngine.Entity
                 }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
-                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
+                // snapshot. If the realization was destroyed mid-load, CandlesAll is null.
+                // abort without _isStarted. The manager logs the abort and does not activate the series (bug-0077)
+                List<Candle> candles = CandlesAll;
+
+                if (candles == null || candles.Count == 0)
+                {
+                    return;
+                }
+
+                List<Trade> tradesInCandle = candles[candles.Count - 1].Trades;
 
                 tradesInCandle.Add(trades[i]);
 
-                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
+                candles[candles.Count - 1].Trades = tradesInCandle;
             }
             UpdateChangeCandle();
 
@@ -504,6 +521,11 @@ namespace OsEngine.Entity
 
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
+            if (TimeFrameBuilder == null || TimeFrameBuilder.CandleSeriesRealization == null)
+            {
+                return;
+            }
+
             TimeFrameBuilder.CandleSeriesRealization.UpDateCandle(time, price, volume, canPushUp, side);
         }
 
