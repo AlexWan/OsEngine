@@ -30,7 +30,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void Button_UserClickOnButtonEvent()
         {
-            SendNewLogMessage("Hello world", Logging.LogMessageType.Error);
+            SendNewLogMessage("Hello world", Logging.LogMessageType.System);
         }
 
         public override string GetNameStrategyType()

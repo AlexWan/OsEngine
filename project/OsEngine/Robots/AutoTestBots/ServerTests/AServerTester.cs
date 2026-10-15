@@ -1078,7 +1078,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Var_2_MarketDepth)
@@ -1092,7 +1092,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Var_3_Trades)
@@ -1106,7 +1106,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Data_1)
@@ -1119,7 +1119,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Data_2)
@@ -1131,7 +1131,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Data_3)
@@ -1143,7 +1143,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Data_4)
@@ -1157,7 +1157,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Data_5)
@@ -1170,7 +1170,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Conn_1)
@@ -1180,7 +1180,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Conn_2)
@@ -1191,7 +1191,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Conn_3)
@@ -1202,7 +1202,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Conn_4)
@@ -1215,7 +1215,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Conn_5)
@@ -1230,7 +1230,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_1)
@@ -1245,7 +1245,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_2)
@@ -1259,7 +1259,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_3)
@@ -1273,7 +1273,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_4)
@@ -1288,7 +1288,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_5)
@@ -1303,7 +1303,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_6)
@@ -1320,7 +1320,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_7)
@@ -1335,7 +1335,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_8)
@@ -1349,7 +1349,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_9)
@@ -1363,7 +1363,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_10)
@@ -1377,7 +1377,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_11)
@@ -1391,7 +1391,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_12)
@@ -1406,7 +1406,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_13)
@@ -1420,7 +1420,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_14)
@@ -1435,7 +1435,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_15)
@@ -1449,7 +1449,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Order_16)
@@ -1463,7 +1463,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.Portfolio_1)
@@ -1478,7 +1478,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_1)
@@ -1495,7 +1495,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_2)
@@ -1512,7 +1512,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_3)
@@ -1529,7 +1529,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_4)
@@ -1546,7 +1546,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_5)
@@ -1563,7 +1563,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                     else if (CurTestType == ServerTestType.BotTabSimple_6)
@@ -1580,7 +1580,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         tester.TestEndEvent += Tester_TestEndEvent;
                         _testers.Add(tester);
                         tester.Server = (AServer)servers[i];
-                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.Error);
+                        SendNewLogMessage("Tests started " + tester.GetType().Name + " " + servers[i].ServerType.ToString(), LogMessageType.System);
                         tester.Start();
                     }
                 }
@@ -1590,7 +1590,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     Thread.Sleep(1000);
                 }
 
-                SendNewLogMessage("Tests ended", LogMessageType.Error);
+                SendNewLogMessage("Tests ended", LogMessageType.System);
                 _threadIsWork = false;
             }
             catch (Exception ex)

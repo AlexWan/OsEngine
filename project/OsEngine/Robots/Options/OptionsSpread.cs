@@ -101,7 +101,7 @@ namespace OsEngine.Robots.Options
                 }
             }
 
-            SendNewLogMessage("The construct has been assembled.", Logging.LogMessageType.Error);
+            SendNewLogMessage("The construct has been assembled.", Logging.LogMessageType.System);
         }
 
         private bool CheckSettings()
@@ -211,7 +211,7 @@ namespace OsEngine.Robots.Options
                 }                
             }
 
-            SendNewLogMessage("The construct has been disassembled.", Logging.LogMessageType.Error);
+            SendNewLogMessage("The construct has been disassembled.", Logging.LogMessageType.System);
         }
     }
 }
