@@ -2347,5 +2347,9 @@ namespace OsEngine.Language
         public string Label375 => OsLocalization.ConvertToLocString(
         "Eng:Number of order book levels. 5 - 5 levels updated every 100 ms (low load). 400 - up to 400 levels with incremental updates on every change (high CPU load)_" +
         "Ru:Количество уровней стакана. 5 - 5 уровней с обновлением раз в 100 мс (низкая нагрузка). 400 - до 400 уровней с инкрементальными обновлениями на каждое изменение (высокая нагрузка на ЦП)_");
+
+        public string Label376 => OsLocalization.ConvertToLocString(
+        "Eng:Test period is not set. Set the start and end dates of the test period in Tester settings._" +
+        "Ru:Период тестирования не задан. Укажите даты начала и окончания периода тестирования в настройках Тестера._");
     }
 }

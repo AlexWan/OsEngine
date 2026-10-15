@@ -826,12 +826,20 @@ namespace OsEngine.Market.Servers.Tester
 
         private void ButtonGoTo_Click(object sender, RoutedEventArgs e)
         {
+            DateTime timeStart = _server.TimeStart;
+            DateTime timeEnd = _server.TimeEnd;
+
+            if ((timeEnd - timeStart).TotalDays <= 0)
+            {
+                ServerMaster.SendNewLogMessage(OsLocalization.Market.Label376, LogMessageType.Error);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Market.Label376);
+                ui.ShowDialog();
+                return;
+            }
 
             if (_goToUi == null)
             {
-                _goToUi = new GoToUi(_server.TimeStart, _server.TimeEnd, _server.TimeNow);
-                _goToUi.Show();
-                _goToUi.SetLocation(this.Left + this.Width, this.Top);
+                _goToUi = new GoToUi(timeStart, timeEnd, _server.TimeNow);
 
                 _goToUi.Closing += (a, b) =>
                 {
@@ -842,6 +850,9 @@ namespace OsEngine.Market.Servers.Tester
 
                     _goToUi = null;
                 };
+
+                _goToUi.Show();
+                _goToUi.SetLocation(this.Left + this.Width, this.Top);
             }
             else
             {
