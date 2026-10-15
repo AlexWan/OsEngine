@@ -287,6 +287,14 @@ namespace OsEngine.Entity
                 List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
 
                 series.PreLoad(allTrades);
+
+                // the realization could be destroyed during the preload: the series must not be started or activated (bug-0077)
+                if (series.TimeFrameBuilder.CandleSeriesRealization == null)
+                {
+                    SendLogMessage(AbortedSeriesMessage(series), LogMessageType.Error);
+                    return;
+                }
+
                 // if there is a preloading of candles on the server and something is downloaded
                 // если на сервере есть предзагрузка свечек и что-то скачалось 
                 series.UpdateAllCandles();
@@ -316,8 +324,22 @@ namespace OsEngine.Entity
                         series.CandlesAll = candles;
                     }
                 }
+
+                if (series.TimeFrameBuilder.CandleSeriesRealization == null)
+                {
+                    SendLogMessage(AbortedSeriesMessage(series), LogMessageType.Error);
+                    return;
+                }
+
                 series.UpdateAllCandles();
                 series.IsStarted = true;
+            }
+
+            if (series.TimeFrameBuilder.CandleSeriesRealization == null)
+            {
+                // belt and braces: never activate a series whose builder died while starting (bug-0077)
+                SendLogMessage(AbortedSeriesMessage(series), LogMessageType.Error);
+                return;
             }
 
             if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
@@ -330,6 +352,23 @@ namespace OsEngine.Entity
                 if (_activeSeriesBasedOnTrades != null)
                     _activeSeriesBasedOnTrades.Add(series);
             }
+        }
+
+        private static string AbortedSeriesMessage(CandleSeries series)
+        {
+            string secName = "?";
+            string tfName = "?";
+
+            if (series.Security != null)
+            {
+                secName = series.Security.Name;
+            }
+
+            try { tfName = series.TimeFrame.ToString(); }
+            catch { }
+
+            return "Candle series start aborted. Candle builder realization was destroyed during preload. Security: "
+                + secName + ", TimeFrame: " + tfName;
         }
 
         private void StandardStarter(CandleSeries series)
@@ -415,6 +454,13 @@ namespace OsEngine.Entity
                             series.CandlesAll = candles;
                         }
                     }
+                }
+
+                // same abort check: builder may have been destroyed during preload (bug-0077)
+                if (series.TimeFrameBuilder.CandleSeriesRealization == null)
+                {
+                    SendLogMessage(AbortedSeriesMessage(series), LogMessageType.Error);
+                    return;
                 }
 
                 series.UpdateAllCandles();

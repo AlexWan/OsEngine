@@ -251,17 +251,22 @@ namespace OsEngine.Entity
                 {
                     continue;
                 }
-                if (TimeFrameBuilder.CandleSeriesRealization == null)
+                UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
+
+                // snapshot. If the realization was destroyed mid-load, CandlesAll is null.
+                // abort without _isStarted. The manager logs the abort and does not activate the series (bug-0077)
+                List<Candle> candles = CandlesAll;
+
+                if (candles == null || candles.Count == 0)
                 {
                     return;
                 }
-                UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
-                List<Trade> tradesInCandle = CandlesAll[CandlesAll.Count - 1].Trades;
+                List<Trade> tradesInCandle = candles[candles.Count - 1].Trades;
 
                 tradesInCandle.Add(trades[i]);
 
-                CandlesAll[CandlesAll.Count - 1].Trades = tradesInCandle;
+                candles[candles.Count - 1].Trades = tradesInCandle;
             }
             UpdateChangeCandle();
 
