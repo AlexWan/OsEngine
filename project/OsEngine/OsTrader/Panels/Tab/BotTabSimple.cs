@@ -393,11 +393,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.FundingChangedEvent -= _connector_FundingChangedEvent;
                     _connector.NewVolume24hChangedEvent -= _connector_NewVolume24hChangedEvent;
 
-                    if (_connector.TimeFrameBuilder != null)
-                        _connector.TimeFrameBuilder.Delete();
+                    // StopSeries lives inside connector.Delete(). The TFB must die only after it:
+                    // otherwise the async candle starter sitting in PreLoad dereferences a deleted realization (NRE)
+                    TimeFrameBuilder tfb = _connector.TimeFrameBuilder;
 
                     _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
+
+                    if (tfb != null)
+                        tfb.Delete();
 
                     _connector = null;
                 }

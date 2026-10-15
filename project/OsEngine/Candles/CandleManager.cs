@@ -168,117 +168,48 @@ namespace OsEngine.Entity
                         return;
                     }
 
-                    if (_candleSeriesNeedToStart.Count == 0)
+                    CandleSeries series = null;
+                    bool hasSeriesInQueue = false;
+
+                    // one lock over the Count+Dequeue pair. Queue<T> is not thread safe (bug-0077)
+                    lock (_seriesListLock)
+                    {
+                        if (_candleSeriesNeedToStart.Count > 0)
+                        {
+                            series = _candleSeriesNeedToStart.Dequeue();
+                            hasSeriesInQueue = true;
+                        }
+                    }
+
+                    if (hasSeriesInQueue == false)
                     {
                         await Task.Delay(20);
                     }
                     else
                     {
-                        CandleSeries series = _candleSeriesNeedToStart.Dequeue();
-
-                        if (series == null 
-                            || series.IsStarted
-                            || series.IsSendInStandardStarter)
+                        // per-series isolation. One broken series must not kill the starter for the whole server (bug-0077).
+                        // Same pattern as StandardStarter
+                        try
                         {
-                            continue;
+                            StartOneSeries(series);
                         }
-
-                        if (series.IsStarted)
+                        catch (Exception error)
                         {
-                            if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                            string secName = "?";
+                            string tfName = "?";
+
+                            if (series != null)
                             {
-                                if (_activeSeriesBasedOnMd != null)
+                                if (series.Security != null)
                                 {
-                                    _activeSeriesBasedOnMd.Add(series);
+                                    secName = series.Security.Name;
                                 }
-                            }
-                            else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
-                            {
-                                if (_activeSeriesBasedOnTrades != null)
-                                {
-                                    _activeSeriesBasedOnTrades.Add(series);
-                                }
+
+                                try { tfName = series.TimeFrame.ToString(); }
+                                catch { }
                             }
 
-                            continue;
-                        }
-
-                        ServerType serverType = _server.ServerType;
-
-                        if (serverType == ServerType.Tester)
-                        {
-                            series.IsStarted = true;
-                        }
-
-                        IServerPermission permission = ServerMaster.GetServerPermission(serverType);
-
-                        if (permission != null &&
-                           permission.UseStandardCandlesStarter == true)
-                        {
-                            series.IsSendInStandardStarter = true;
-
-                            if(_asyncStarter != null)
-                            {
-                                _asyncStarter.StartAsync(series);
-                            }
-                            else
-                            {
-                                StandardStarter(series);
-                            }
-                        }
-                        else if (serverType == ServerType.Plaza ||
-                                 serverType == ServerType.AstsBridge ||
-                                 serverType == ServerType.NinjaTrader ||
-                                 serverType == ServerType.MoexFixFastSpot)
-                        {
-                            series.CandlesAll = null;
-                            // further, we try to load candles with ticks
-                            // далее, пытаемся пробуем прогрузить свечи при помощи тиков
-                            List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-
-                            series.PreLoad(allTrades);
-                            // if there is a preloading of candles on the server and something is downloaded
-                            // если на сервере есть предзагрузка свечек и что-то скачалось 
-                            series.UpdateAllCandles();
-
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.Tester ||
-                                 serverType == ServerType.Optimizer)
-                        {
-                            series.IsStarted = true;
-                        }
-                        else if (serverType == ServerType.InteractiveBrokers)
-                        {
-                            InteractiveBrokersServer server = (InteractiveBrokersServer)_server;
-                            if (series.CandleCreateMethodType != "Simple" ||
-                                series.TimeFrameSpan.TotalMinutes < 1)
-                            {
-                                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
-                                series.PreLoad(allTrades);
-                            }
-                            else
-                            {
-                                List<Candle> candles = server.GetCandleHistory(series.Security.Name,
-                                    series.TimeFrame);
-                                if (candles != null)
-                                {
-                                    series.CandlesAll = candles;
-                                }
-                            }
-                            series.UpdateAllCandles();
-                            series.IsStarted = true;
-                        }
-
-                        if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
-                        {
-                            if (_activeSeriesBasedOnMd != null)
-                                _activeSeriesBasedOnMd.Add(series);
-                        }
-                        else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
-                        {
-                            if (_activeSeriesBasedOnTrades != null)
-                                _activeSeriesBasedOnTrades.Add(series);
+                            SendLogMessage("Candle series start failed. Security: " + secName + ", TimeFrame: " + tfName + ". " + error, LogMessageType.Error);
                         }
                     }
                 }
@@ -286,6 +217,118 @@ namespace OsEngine.Entity
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// starting one candle series taken from the queue. Called from CandleSeriesStarterThread inside a per-series try/catch
+        /// </summary>
+        private void StartOneSeries(CandleSeries series)
+        {
+            if (series == null
+                || series.IsStarted
+                || series.IsSendInStandardStarter
+                || series.IsStopped)
+            {
+                return;
+            }
+
+            if (series.IsStarted)
+            {
+                if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+                {
+                    if (_activeSeriesBasedOnMd != null)
+                    {
+                        _activeSeriesBasedOnMd.Add(series);
+                    }
+                }
+                else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
+                {
+                    if (_activeSeriesBasedOnTrades != null)
+                    {
+                        _activeSeriesBasedOnTrades.Add(series);
+                    }
+                }
+
+                return;
+            }
+
+            ServerType serverType = _server.ServerType;
+
+            if (serverType == ServerType.Tester)
+            {
+                series.IsStarted = true;
+            }
+
+            IServerPermission permission = ServerMaster.GetServerPermission(serverType);
+
+            if (permission != null &&
+               permission.UseStandardCandlesStarter == true)
+            {
+                series.IsSendInStandardStarter = true;
+
+                if (_asyncStarter != null)
+                {
+                    _asyncStarter.StartAsync(series);
+                }
+                else
+                {
+                    StandardStarter(series);
+                }
+            }
+            else if (serverType == ServerType.Plaza ||
+                     serverType == ServerType.AstsBridge ||
+                     serverType == ServerType.NinjaTrader ||
+                     serverType == ServerType.MoexFixFastSpot)
+            {
+                series.CandlesAll = null;
+                // further, we try to load candles with ticks
+                // далее, пытаемся пробуем прогрузить свечи при помощи тиков
+                List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+
+                series.PreLoad(allTrades);
+                // if there is a preloading of candles on the server and something is downloaded
+                // если на сервере есть предзагрузка свечек и что-то скачалось 
+                series.UpdateAllCandles();
+
+                series.IsStarted = true;
+            }
+            else if (serverType == ServerType.Tester ||
+                     serverType == ServerType.Optimizer)
+            {
+                series.IsStarted = true;
+            }
+            else if (serverType == ServerType.InteractiveBrokers)
+            {
+                InteractiveBrokersServer server = (InteractiveBrokersServer)_server;
+                if (series.CandleCreateMethodType != "Simple" ||
+                    series.TimeFrameSpan.TotalMinutes < 1)
+                {
+                    List<Trade> allTrades = _server.GetAllTradesToSecurity(series.Security);
+                    series.PreLoad(allTrades);
+                }
+                else
+                {
+                    List<Candle> candles = server.GetCandleHistory(series.Security.Name,
+                        series.TimeFrame);
+                    if (candles != null)
+                    {
+                        series.CandlesAll = candles;
+                    }
+                }
+                series.UpdateAllCandles();
+                series.IsStarted = true;
+            }
+
+            if (series.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            {
+                if (_activeSeriesBasedOnMd != null)
+                    _activeSeriesBasedOnMd.Add(series);
+            }
+            else if (series.CandleMarketDataType == CandleMarketDataType.Tick)
+            {
+                if (_activeSeriesBasedOnTrades != null)
+                    _activeSeriesBasedOnTrades.Add(series);
             }
         }
 
@@ -595,6 +638,9 @@ namespace OsEngine.Entity
                 {
                     return;
                 }
+
+                // a stopped series must not be started anymore, even if it still sits in the start queue (bug-0077)
+                series.Stop();
 
                 series.CandleUpdateEvent -= series_CandleUpdateEvent;
                 series.CandleFinishedEvent -= series_CandleFinishedEvent;

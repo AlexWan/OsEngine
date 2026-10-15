@@ -212,6 +212,14 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// the series was stopped (unsubscribed). A stopped series is not started by the manager anymore
+        /// </summary>
+        public bool IsStopped
+        {
+            get { return _isStoped; }
+        }
+
+        /// <summary>
         /// clear data
         /// </summary>
         public void Clear()
@@ -242,6 +250,10 @@ namespace OsEngine.Entity
                 if (trades[i] == null)
                 {
                     continue;
+                }
+                if (TimeFrameBuilder.CandleSeriesRealization == null)
+                {
+                    return;
                 }
                 UpDateCandle(trades[i].Time, trades[i].Price, trades[i].Volume, false, trades[i].Side);
 
@@ -504,6 +516,11 @@ namespace OsEngine.Entity
 
         private void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
+            if (TimeFrameBuilder == null || TimeFrameBuilder.CandleSeriesRealization == null)
+            {
+                return;
+            }
+
             TimeFrameBuilder.CandleSeriesRealization.UpDateCandle(time, price, volume, canPushUp, side);
         }
 
