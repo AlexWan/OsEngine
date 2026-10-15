@@ -239,7 +239,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     if (_messageOnRebuild.ValueBool == true)
                     {
-                        this.SendNewLogMessage("No trading. Current volatility stage on index: " + currentStage, Logging.LogMessageType.Error);
+                        this.SendNewLogMessage("No trading. Current volatility stage on index: " + currentStage, Logging.LogMessageType.System);
                     }
 
                     return;
@@ -314,7 +314,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if(_messageOnRebuild.ValueBool == true)
             {
-                this.SendNewLogMessage("New securities in trade: \n" + securitiesInTrade, Logging.LogMessageType.Error);
+                this.SendNewLogMessage("New securities in trade: \n" + securitiesInTrade, Logging.LogMessageType.System);
             }
         }
 
