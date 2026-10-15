@@ -2738,7 +2738,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 message += OsLocalization.Trader.Label397 + _index.UserFormula;
 
-                SendNewLogMessage(message, LogMessageType.Error);
+                SendNewLogMessage(message, LogMessageType.System);
             }
 
             return true;
