@@ -335,6 +335,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<PositionOnBoard> myPositions = myPorftolio.GetPositionOnBoard();
 
+            if (myPositions == null)
+            {
+                return 0;
+            }
+
             PositionOnBoard myPositionOnBoard = null;
 
             for (int i = 0; i < myPositions.Count; i++)
@@ -589,6 +594,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             List<PositionOnBoard> positions = portfolio.GetPositionOnBoard();
+
+            if (positions == null)
+            {
+                SetNewServiceInfo("No positions in portfolio " + portfolio.Number + ". Positions validation skipped");
+                return;
+            }
 
             for (int i = 0; i < positions.Count; i++)
             {
