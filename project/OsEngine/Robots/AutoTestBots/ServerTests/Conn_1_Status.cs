@@ -34,18 +34,30 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     _lastStatus = ServerConnectStatus.Disconnect;
                     myServer.StartServer();
-                    Thread.Sleep(10000);
+                    WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
                 }
 
                 if (myServer.ServerStatus == ServerConnectStatus.Connect)
                 {
                     _lastStatus = ServerConnectStatus.Connect;
                     myServer.StopServer();
-                    Thread.Sleep(10000);
+                    WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
                 }
             }
 
             TestEnded();
+        }
+
+        private const int StatusChangeTimeoutMs = 30000;
+
+        private static void WaitStatusChange(AServer myServer, ServerConnectStatus previousStatus, int timeoutMs)
+        {
+            int waited = 0;
+            while (myServer.ServerStatus == previousStatus && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
         }
 
         private void ServerRealization_LogMessageEvent(string message, Logging.LogMessageType logType)
