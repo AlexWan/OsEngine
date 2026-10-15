@@ -314,6 +314,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 SetNewError("Error 14. No Portfolio found");
                 TestEnded();
+                return 0;
             }
 
             Portfolio myPorftolio = null;
