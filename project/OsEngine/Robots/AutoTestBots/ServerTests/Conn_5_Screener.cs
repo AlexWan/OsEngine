@@ -74,6 +74,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             TestEnded();
         }
 
+        private const int DataTimeoutMs = 30000;
+
+        private static void WaitPortfolioAndSecurities(AServer myServer, int timeoutMs)
+        {
+            int waited = 0;
+            while (waited < timeoutMs &&
+                (myServer.Portfolios == null ||
+                 myServer.Portfolios.Count == 0 ||
+                 myServer.Securities.Count == 0))
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
+        }
+
         private BotPanel _botToShowDialog;
 
         public void ShowDialog()
@@ -97,7 +112,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Test()
         {
-            Thread.Sleep(10000);
+            WaitPortfolioAndSecurities(_myServer, DataTimeoutMs);
 
             // 1 проверяем тайм-фрейм на доступность 
 

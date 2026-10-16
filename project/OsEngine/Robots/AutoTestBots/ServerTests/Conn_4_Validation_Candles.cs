@@ -32,6 +32,42 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             TestEnded();
         }
 
+        private const int StatusChangeTimeoutMs = 30000;
+
+        private const int DataTimeoutMs = 30000;
+
+        private static void WaitStatusChange(AServer myServer, ServerConnectStatus previousStatus, int timeoutMs)
+        {
+            int waited = 0;
+            while (myServer.ServerStatus == previousStatus && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
+        }
+
+        private static void WaitConnectWithSecurities(AServer myServer, int timeoutMs)
+        {
+            int waited = 0;
+            while (waited < timeoutMs &&
+                (myServer.ServerStatus != ServerConnectStatus.Connect ||
+                 myServer.Securities.Count == 0))
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
+        }
+
+        private static void WaitSecurities(AServer myServer, int timeoutMs)
+        {
+            int waited = 0;
+            while (waited < timeoutMs && myServer.Securities.Count == 0)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
+        }
+
         private void MyServer_LogMessageEvent(string arg1, Logging.LogMessageType arg2)
         {
             if (arg2 != Logging.LogMessageType.Error)
@@ -44,7 +80,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Test()
         {
-            Thread.Sleep(10000);
+            WaitSecurities(Server, DataTimeoutMs);
 
             ServerConnectStatus _lastStatus = ServerConnectStatus.Disconnect;
 
@@ -65,7 +101,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     _lastStatus = ServerConnectStatus.Disconnect;
                     myServer.StartServer();
-                    Thread.Sleep(10000);
+                    WaitConnectWithSecurities(myServer, StatusChangeTimeoutMs);
                     List<CandleSeries> series = Subscribe();
 
                     if (series == null ||
@@ -82,7 +118,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     _lastStatus = ServerConnectStatus.Connect;
                     myServer.StopServer();
-                    Thread.Sleep(10000);
+                    WaitStatusChange(myServer, ServerConnectStatus.Connect, StatusChangeTimeoutMs);
                 }
             }
         }

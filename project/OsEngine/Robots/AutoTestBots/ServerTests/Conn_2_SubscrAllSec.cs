@@ -25,7 +25,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             else if (myServer.ServerStatus == ServerConnectStatus.Connect)
             {
                 myServer.StopServer();
-                Thread.Sleep(10000);
+                WaitStatusChange(myServer, ServerConnectStatus.Connect, StatusChangeTimeoutMs);
                 myServer.StartServer();
             }
 
@@ -51,6 +51,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             TestSubscribe();
             TestEnded();
+        }
+
+        private const int StatusChangeTimeoutMs = 30000;
+
+        private static void WaitStatusChange(AServer myServer, ServerConnectStatus previousStatus, int timeoutMs)
+        {
+            int waited = 0;
+            while (myServer.ServerStatus == previousStatus && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
         }
 
         private void MyServer_LogMessageEvent(string arg1, Logging.LogMessageType arg2)
