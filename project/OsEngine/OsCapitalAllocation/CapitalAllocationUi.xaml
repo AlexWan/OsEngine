@@ -1,0 +1,98 @@
+<Window x:Class="OsEngine.OsCapitalAllocation.CapitalAllocationUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Capital allocation" Height="640" Width="960"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource WindowStyleCanResize}"
+        MinWidth="940" MinHeight="480"
+        Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Name="TabControlPrime" BorderThickness="0" Background="{DynamicResource StandardBackgroundBrush}">
+            <TabItem Header="Incoming data">
+                <TabControl Name="TabControlData" BorderThickness="0" Background="{DynamicResource StandardBackgroundBrush}">
+                    <TabItem Header="Data downloading">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                                <Button Name="ButtonAddFile" Content="Add file" Width="110" Height="28" Margin="0,0,10,0"/>
+                                <Button Name="ButtonAddFolder" Content="Add folder" Width="110" Height="28" Margin="0,0,10,0"/>
+                                <Button Name="ButtonDelete" Content="Delete" Width="90" Height="28" Margin="0,0,10,0"/>
+                                <Button Name="ButtonClearAll" Content="Clear" Width="90" Height="28"/>
+                            </StackPanel>
+                            <Button Name="ButtonHelpDataDownloading" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                            <WindowsFormsHost Name="HostBots" Grid.Row="1"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Base equity">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                                <Label Name="LabelPrecision" Content="Precision" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxPeriod" Width="90" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Label Name="LabelChartType" Content="Chart type" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxChartType" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Label Name="LabelFrom" Content="From" VerticalAlignment="Center"/>
+                                <DatePicker Name="DatePickerStart" Width="120" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Label Name="LabelTo" Content="To" VerticalAlignment="Center"/>
+                                <DatePicker Name="DatePickerEnd" Width="120" VerticalAlignment="Center"/>
+                                <Button Name="ButtonRecalculate" Content="Recalculate" Width="120" Height="28" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <Button Name="ButtonHelpBaseEquity" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                            <WindowsFormsHost Name="HostEquity" Grid.Row="1"/>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+            <TabItem Header="Calculations">
+                <TabControl Name="TabControlCalculations" BorderThickness="0" Background="{DynamicResource StandardBackgroundBrush}">
+                    <TabItem Header="Correlation clustering">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                                <Label Name="LabelMinCorrelation" Content="Min correlation" VerticalAlignment="Center"/>
+                                <TextBox Name="TextBoxMinCorrelation" Width="60" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Button Name="ButtonCalculateCorrelationClustering" Content="Calculate" Width="120" Height="28" VerticalAlignment="Center"/>
+                                <Button Name="ButtonSaveCorrelationClustering" Content="Save result" Width="120" Height="28" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <Button Name="ButtonHelpCorrelationClustering" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                            <Canvas Name="CanvasGraph" Grid.Row="1" Background="{DynamicResource StandardBackgroundBrush}"/>
+                            <WindowsFormsHost Name="HostResultCorrelationClustering" Grid.Row="2"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Hierarchical Risk Parity">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                                <Label Name="LabelLinkage" Content="Linkage" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxLinkage" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Label Name="LabelCovariance" Content="Covariance" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxCovariance" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Label Name="LabelCorrelation" Content="Correlation" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxCorrelation" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <Button Name="ButtonCalculateHierarchicalRiskParity" Content="Calculate" Width="120" Height="28" VerticalAlignment="Center"/>
+                                <Button Name="ButtonSaveHierarchicalRiskParity" Content="Save result" Width="120" Height="28" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <Button Name="ButtonHelpHierarchicalRiskParity" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                            <Canvas Name="CanvasDendrogram" Grid.Row="1" Background="{DynamicResource StandardBackgroundBrush}"/>
+                            <WindowsFormsHost Name="HostResultHierarchicalRiskParity" Grid.Row="2"/>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

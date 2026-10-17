@@ -338,18 +338,19 @@ namespace OsEngine
 
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLiteName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLiteName;
+            ButtonCapitalAllocation.Content = OsLocalization.MainWindow.OsCapitalAllocationName;
 
             ChangeButtonCommits();
 
             if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
             {
                 VideoGrid.Visibility = Visibility.Visible;
-                this.Height = 430;
+                this.Height = 460;
                 GifT.Play();
             }
             else
             {
-                this.Height = 315;
+                this.Height = 345;
                 VideoGrid.Visibility = Visibility.Collapsed;
             }
         }
@@ -626,6 +627,8 @@ namespace OsEngine
                     return "-optimizer";
                 case "converter":
                     return "-converter";
+                case "allocation":
+                    return "-allocation";
                 default:
                     return string.Empty;
             }
@@ -720,6 +723,9 @@ namespace OsEngine
                         break;
                     case "converter":
                         ButtonConverter_Click(null, null);
+                        break;
+                    case "allocation":
+                        ButtonCapitalAllocation_Click(null, null);
                         break;
                     default:
                         ServerMaster.SendNewLogMessage($"Unknown mode for terminal_open_mode: {mode}", Logging.LogMessageType.Error);
@@ -872,6 +878,7 @@ namespace OsEngine
             ButtonOptimizer.IsEnabled = false;
             ButtonTesterLight.IsEnabled = false;
             ButtonRobotLight.IsEnabled = false;
+            ButtonCapitalAllocation.IsEnabled = false;
             ButtonLocal_Ru.IsEnabled = false;
             ButtonLocal_Eng.IsEnabled = false;
             ButtonNewCommits.IsEnabled = false;
@@ -927,6 +934,7 @@ namespace OsEngine
             ButtonOptimizer.IsEnabled = true;
             ButtonTesterLight.IsEnabled = true;
             ButtonRobotLight.IsEnabled = true;
+            ButtonCapitalAllocation.IsEnabled = true;
             ButtonLocal_Ru.IsEnabled = true;
             ButtonLocal_Eng.IsEnabled = true;
             ButtonNewCommits.IsEnabled = true;
@@ -1287,6 +1295,27 @@ namespace OsEngine
             }
         }
 
+        private void ButtonCapitalAllocation_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _startProgram = StartProgram.IsOsCapitalAllocation;
+                Hide();
+                _mcpMaster?.SendTerminalModeChanged(_startProgram);
+                OsCapitalAllocation.CapitalAllocationUi ui = new OsCapitalAllocation.CapitalAllocationUi();
+                _activeModeWindow = ui;
+                _mcpMaster?.SetCapitalAllocationMaster(ui.Master);
+                ui.ShowDialog();
+                _activeModeWindow = null;
+                _mcpMaster?.SetCapitalAllocationMaster(null);
+                BeginGracefulShutdown(false);
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CommandLineInterfaceProcess()
         {
             try
@@ -1325,6 +1354,10 @@ namespace OsEngine
                 else if (Array.Exists(args, a => a.Equals("-converter")))
                 {
                     ButtonConverter_Click(this, default);
+                }
+                else if (Array.Exists(args, a => a.Equals("-allocation")))
+                {
+                    ButtonCapitalAllocation_Click(this, default);
                 }
                 else if (Array.Exists(args, a => a.Equals("-error")) && PrimeSettingsMaster.RebootTradeUiLight)
                 {

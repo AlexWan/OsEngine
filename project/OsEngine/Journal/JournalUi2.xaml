@@ -80,6 +80,7 @@
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
             <Rectangle RadiusX="0" Margin="0,0,0,28" Stroke="Black"/>
             <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="1,0,0,2" Width="92" Height="25" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
+            <Button Name="ButtonClusterize" Content="Capital allocation" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="95,0,0,2" Width="150" Height="25" Click="ButtonClusterize_Click"/>
             <Label Name="LabelFrom" Content="From" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTo" Content="To" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
             <TextBox Name="TextBoxFrom" HorizontalAlignment="Left" Margin="43,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>

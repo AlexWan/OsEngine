@@ -38,12 +38,13 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 # (1 Protocol, 2 Logs, 3 Settings, 4 Config, 5 ServerManagement,
 #  6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators,
 #  11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal,
-#  16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption)
+#  16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption,
+#  21 StreamableHttp, 22 CapitalAllocation, 23 CapitalAllocationCycle)
 ./OsEngine.McpApi.TestStand.exe --module Tester
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **200/200 passed** (`--transport v2`) и **191/191 passed** (`--transport v1`).
+Цель стенда: **234/234 passed** (`--transport v2`) и **225/225 passed** (`--transport v1`).
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 

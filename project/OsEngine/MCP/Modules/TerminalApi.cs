@@ -156,10 +156,10 @@ namespace OsEngine.MCP.Modules
             return new List<McpTool>
             {
                 new McpTool { Name = "terminal_get_status", Description = "Get current terminal status", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
-                new McpTool { Name = "terminal_launch", Description = "Launch terminal in specified mode", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter" } }, required = new[] { "mode" } } },
+                new McpTool { Name = "terminal_launch", Description = "Launch terminal in specified mode", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter, allocation" } }, required = new[] { "mode" } } },
                 new McpTool { Name = "terminal_stop", Description = "Stop terminal gracefully", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
                 new McpTool { Name = "terminal_kill", Description = "Kill terminal process", InputSchema = new { type = "object", properties = new { }, required = new string[0] } },
-                new McpTool { Name = "terminal_open_mode", Description = "Open a mode window from the running MainWindow without restarting the process", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter" } }, required = new[] { "mode" } } }
+                new McpTool { Name = "terminal_open_mode", Description = "Open a mode window from the running MainWindow without restarting the process", InputSchema = new { type = "object", properties = new { mode = new { type = "string", description = "Mode: tester, testerlight, robots, robotslight, data, optimizer, converter, allocation" } }, required = new[] { "mode" } } }
             };
         }
 
@@ -291,6 +291,7 @@ namespace OsEngine.MCP.Modules
                         case "data":
                         case "optimizer":
                         case "converter":
+                        case "allocation":
                             return mode;
                     }
                 }

@@ -205,6 +205,12 @@
 | `encryption_disable` | Выключить шифрование и расшифровать ключи (деструктивно) |
 | `update_check` | Проверка сервера обновлений: статус (`Available`/`NoNeed`/`Disconnected`), `missed_commits` через `missedCommitsCount`, счётчики файлов (`newFiles`/`obsoleteFiles`/`removedFiles`), `updaterUpdateRequired`, до 20 коммитов |
 | `update_apply` | Скачать и применить обновление: бэкап в `Engine\Updater\Builds`, скачивание в `Engine\Updater\Temp`, запуск `Updater.exe` и остановка терминала (опц. `restart`, по умолчанию `true`). Терминал завершается — ответ приходит до остановки |
+| `risk_parity_calculate` → заменён на набор `allocation_*` | Аллокация капитала: открыть режим через `terminal_open_mode { mode: "allocation" }` |
+| `allocation_get_status` | Статус режима аллокации капитала: открыт ли, алгоритм, период, число ботов |
+| `allocation_bots_set` / `allocation_bots_add` / `allocation_bots_get` / `allocation_bots_clear` | Файлы позиций ботов (заменить список/добавить/прочитать/очистить) |
+| `allocation_settings_get` / `allocation_settings_set` | Общие настройки: `period` (week/month), `date_from`, `date_to` |
+| `allocation_clustering_settings_get` / `allocation_clustering_settings_set` / `allocation_clustering_calculate` / `allocation_clustering_result_get` | Кластеризация по корреляции: `min_correlation`, расчёт, кластеры + веса |
+| `allocation_hrp_settings_get` / `allocation_hrp_settings_set` / `allocation_hrp_calculate` / `allocation_hrp_result_get` | Иерархический риск-паритет (HRP): `linkage` (single/complete/average/ward), `covariance` (sample/shrinkage), `correlation` (pearson/spearman); расчёт, веса + дендрограмма |
 
 **Важно про имена бумаг в тестере и оптимизаторе.** Хранилище хранит бумаги как имена файлов **с расширением**: `SBER.txt`, а не `SBER`. Во вкладки робота через `optimizer_bot_tab_set_config` передавать имя с `.txt`.
 

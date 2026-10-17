@@ -2,3 +2,5 @@ OsEngine/bin/Debug/OsEngine.exe.WebView2/
 TempContext/
 test-stand-config.json
 test-stand-config.example.json
+Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0/TestData/
+Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0/allocation_cycle_test.txt

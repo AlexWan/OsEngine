@@ -529,6 +529,29 @@ namespace OsEngine.McpApi.TestStand
                     RunModule(context, 21, "StreamableHttp", string.Empty, () => new StreamableHttpTests(context).RunAll());
                 }
 
+                // Модуль: CapitalAllocation
+                // MCP API: allocation_get_status, allocation_bots_set/add/get/clear, allocation_settings_get/set,
+                //          allocation_clustering_settings_get/set/calculate/result_get,
+                //          allocation_hrp_settings_get/set/calculate/result_get.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Открывает режим аллокации капитала через terminal_open_mode { mode: "allocation" }.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 22, "CapitalAllocation", string.Empty, () =>
+                {
+                    new CapitalAllocationCommonTests(context).RunAll();
+                    new CapitalAllocationClusteringTests(context).RunAll();
+                    new CapitalAllocationHrpTests(context).RunAll();
+                });
+
+                // Модуль: CapitalAllocationCycle
+                // MCP API: allocation_result_save, allocation_load_apply, bot_create, bot_get_params.
+                // Полный цикл: аллокация -> сохранение в файл -> перезапуск в тестер ->
+                // создание робота -> загрузка аллокации -> проверка установленных объёмов.
+                // Запускает OsEngine перед собой: да, без аргументов.
+                // Перезапускает OsEngine в режиме тестера внутри себя.
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 23, "CapitalAllocationCycle", string.Empty, () => new CapitalAllocationCycleTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

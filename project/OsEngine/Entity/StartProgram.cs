@@ -36,6 +36,11 @@ namespace OsEngine.Entity
         IsOsConverter,
 
         /// <summary>
+        /// capital allocation
+        /// </summary>
+        IsOsCapitalAllocation,
+
+        /// <summary>
         /// main menu window is open, no mode selected yet
         /// </summary>
         IsMainWindow,

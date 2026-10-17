@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Entity"
         mc:Ignorable="d"
-         Title="Message box" Height="206" Width="482" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+         Title="Message box" Width="482" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" MinHeight="206" MaxHeight="600" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,40"/>
         <Button Name="ButtonAccept" Content="Accept" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,0,5,10" VerticalAlignment="Bottom" Width="235" Click="ButtonAccept_Click" />

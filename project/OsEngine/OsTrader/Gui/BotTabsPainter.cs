@@ -19,6 +19,7 @@ using OsEngine.Market;
 using System.Drawing;
 using System.IO;
 using OsEngine.Instructions;
+using OsEngine.OsCapitalAllocation;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -346,6 +347,12 @@ namespace OsEngine.OsTrader.Gui
                         }
                     }
 
+                    if (coluIndex == 2)
+                    {
+                        ShowLoadAllocationDialog();
+                        return;
+                    }
+
                     if ((_master._startProgram == StartProgram.IsOsTrader
                         || _master._startProgram == StartProgram.IsTester)
                        && coluIndex == 4)
@@ -411,6 +418,34 @@ namespace OsEngine.OsTrader.Gui
         {
             _migrationUi.Closed -= _migrationUi_Closed;
             _migrationUi = null;
+        }
+
+        private void ShowLoadAllocationDialog()
+        {
+            try
+            {
+                if (_loadAllocationUi != null)
+                {
+                    _loadAllocationUi.Activate();
+                    return;
+                }
+
+                _loadAllocationUi = new CapitalAllocationLoadUi();
+                _loadAllocationUi.Closed += _loadAllocationUi_Closed;
+                _loadAllocationUi.Show();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private CapitalAllocationLoadUi _loadAllocationUi;
+
+        private void _loadAllocationUi_Closed(object sender, EventArgs e)
+        {
+            _loadAllocationUi.Closed -= _loadAllocationUi_Closed;
+            _loadAllocationUi = null;
         }
 
         #region Pop-up menu
@@ -1276,7 +1311,8 @@ colum9.HeaderText = "Journal";
                 }
             }
 
-            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewButtonCell());
+            row.Cells[2].Value = OsLocalization.CapitalAllocation.ButtonLoadAllocation;
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
 

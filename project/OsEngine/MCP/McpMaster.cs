@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -8,6 +8,7 @@ using OsEngine.Logging;
 using OsEngine.Market.ServerEncryption;
 using OsEngine.MCP.Json;
 using OsEngine.MCP.Modules;
+using OsEngine.OsCapitalAllocation;
 using OsEngine.OsData;
 using OsEngine.OsOptimizer;
 using System;
@@ -82,6 +83,7 @@ namespace OsEngine.MCP
         private readonly OptimizerApi _optimizerApi;
         private readonly EncryptionApi _encryptionApi;
         private readonly UpdateApi _updateApi;
+        private readonly CapitalAllocationApi _capitalAllocationApi;
         private readonly McpProtocolApi _protocolApi;
 
         private readonly Func<McpTerminalStatus> _getTerminalStatus;
@@ -185,6 +187,7 @@ namespace OsEngine.MCP
 
             _updateApi = new UpdateApi(publishEvent, _stopTerminal);
             _updateApi.NewLogMessageEvent += UpdateApi_NewLogMessageEvent;
+            _capitalAllocationApi = new CapitalAllocationApi();
 
             _protocolApi = new McpProtocolApi(request => ExecuteTool(request));
             _protocolApi.NewLogMessageEvent += ProtocolApi_NewLogMessageEvent;
@@ -208,6 +211,7 @@ namespace OsEngine.MCP
             _protocolApi.RegisterToolProvider(_optimizerApi);
             _protocolApi.RegisterToolProvider(_encryptionApi);
             _protocolApi.RegisterToolProvider(_updateApi);
+            _protocolApi.RegisterToolProvider(_capitalAllocationApi);
         }
 
         #endregion
@@ -636,6 +640,11 @@ namespace OsEngine.MCP
         }
 
         private OptimizerMaster _optimizerMaster;
+
+        public void SetCapitalAllocationMaster(CapitalAllocationMaster master)
+        {
+            _capitalAllocationApi?.AttachToMaster(master);
+        }
 
         #endregion
 
@@ -1610,6 +1619,10 @@ namespace OsEngine.MCP
                         if (request.Method != null && request.Method.StartsWith("bot_"))
                         {
                             response = _robotsApi.Handle(request);
+                        }
+                        else if (request.Method != null && request.Method.StartsWith("allocation_"))
+                        {
+                            response = _capitalAllocationApi.Handle(request);
                         }
                         else
                         {

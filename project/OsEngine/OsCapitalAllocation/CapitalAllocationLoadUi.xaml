@@ -1,0 +1,60 @@
+<Window x:Class="OsEngine.OsCapitalAllocation.CapitalAllocationLoadUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Load allocation" Height="560" Width="760"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource WindowStyleCanResize}"
+        MinWidth="640" MinHeight="420"
+        Icon="/Images/OsLogo.ico">
+    <Grid>
+        <TabControl Name="TabControlPrime" BorderThickness="0" Background="{DynamicResource StandardBackgroundBrush}">
+            <TabItem Name="TabLoadData" Header="Load data">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                        <Label Name="LabelFile" Content="File" VerticalAlignment="Center"/>
+                        <TextBox Name="TextBoxFile" Width="400" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Button Name="ButtonBrowse" Content="Browse" Width="80" Height="26" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Name="ButtonHelpLoadData" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                    <WindowsFormsHost Name="HostLoaded" Grid.Row="1"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabSetData" Header="Set data">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
+                        <Label Name="LabelShoulder" Content="Shoulder" VerticalAlignment="Center"/>
+                        <ComboBox Name="ComboBoxShoulder" Width="60" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Name="ButtonHelpSetData" Content="?" Grid.Row="0" HorizontalAlignment="Right" Width="28" Height="28" Margin="0,10,10,0" VerticalAlignment="Top"/>
+                    <Grid Grid.Row="1" Margin="10,4,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <DockPanel Grid.Column="0" Margin="0,0,5,0">
+                            <Label Name="LabelWillBeSet" DockPanel.Dock="Top" Content="Will be set" FontWeight="Bold" Margin="0,0,0,2"/>
+                            <WindowsFormsHost Name="HostApplied"/>
+                        </DockPanel>
+                        <DockPanel Grid.Column="1" Margin="5,0,0,0">
+                            <Label Name="LabelSkipped" DockPanel.Dock="Top" Content="Skipped" FontWeight="Bold" Margin="0,0,0,2"/>
+                            <WindowsFormsHost Name="HostSkipped"/>
+                        </DockPanel>
+                    </Grid>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,6,10,10">
+                        <Button Name="ButtonCancel" Content="Cancel" Width="100" Height="28" Margin="0,0,10,0"/>
+                        <Button Name="ButtonApply" Content="Apply" Width="120" Height="28"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

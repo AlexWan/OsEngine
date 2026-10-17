@@ -11,6 +11,7 @@ using OsEngine.Layout;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsData;
+using OsEngine.OsCapitalAllocation;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -78,6 +79,7 @@ namespace OsEngine.Journal
             task.Start();
 
             Title = OsLocalization.Journal.TitleJournalUi;
+            ButtonClusterize.Content = OsLocalization.MainWindow.OsCapitalAllocationName;
             Label1.Content = OsLocalization.Journal.Label1;
             Label2.Content = OsLocalization.Journal.Label2;
             Label3.Content = OsLocalization.Journal.Label3;
@@ -6873,6 +6875,44 @@ namespace OsEngine.Journal
                 SelectCLosePosesPages();
                 RePaint();
                 _volumeControlUpdated = false;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonClusterize_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                List<BotFile> bots = new List<BotFile>();
+
+                for (int i = 0; i < _botsJournals.Count; i++)
+                {
+                    BotPanelJournal panel = _botsJournals[i];
+
+                    if (panel == null)
+                    {
+                        continue;
+                    }
+
+                    List<Position> positions = panel.AllPositions;
+
+                    if (positions == null || positions.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    BotFile botFile = new BotFile();
+                    botFile.BotName = panel.BotName;
+                    botFile.Positions = positions;
+                    bots.Add(botFile);
+                }
+
+                CapitalAllocationUi ui = new CapitalAllocationUi(true);
+                ui.AddBots(bots);
+                ui.Show();
             }
             catch (Exception error)
             {
