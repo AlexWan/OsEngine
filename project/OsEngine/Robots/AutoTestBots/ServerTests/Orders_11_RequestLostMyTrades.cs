@@ -179,7 +179,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             ClearOrders();
 
-            Thread.Sleep(10000);
+            WaitForMyTrades(OrderDataTimeoutMs);
 
             // 6 проверяем пришёл ли MyTrade
 
@@ -197,6 +197,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             TestEnded();
+        }
+
+        private const int OrderDataTimeoutMs = 20000;
+
+        private void WaitForMyTrades(int timeoutMs)
+        {
+            int waited = 0;
+            while (_myTradesToOrder.Count == 0 && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
         }
 
         MarketDepth _md;

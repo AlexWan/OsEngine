@@ -128,7 +128,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 2 делаем реконнект
 
             Server.StopServer();
-            Thread.Sleep(10000);
+            WaitStatusChange(Server, ServerConnectStatus.Connect, StatusChangeTimeoutMs);
 
             ClearOrders(); // очищаем все массивы с входящими статусами ордеров. Пусто
 
@@ -151,7 +151,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // 3 дожидаемся прихода активного ордера от сервера
             // ждём 20 секунд. Больше смысла нет
 
-            Thread.Sleep(20000);
+            WaitForActiveOrders(OrderDataTimeoutMs);
 
             if (_ordersActive.Count == 0)
             {
@@ -174,6 +174,30 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             CancelOrder(order);
 
             TestEnded();
+        }
+
+        private const int StatusChangeTimeoutMs = 30000;
+
+        private const int OrderDataTimeoutMs = 20000;
+
+        private static void WaitStatusChange(AServer myServer, ServerConnectStatus previousStatus, int timeoutMs)
+        {
+            int waited = 0;
+            while (myServer.ServerStatus == previousStatus && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
+        }
+
+        private void WaitForActiveOrders(int timeoutMs)
+        {
+            int waited = 0;
+            while (_ordersActive.Count == 0 && waited < timeoutMs)
+            {
+                Thread.Sleep(250);
+                waited += 250;
+            }
         }
 
         MarketDepth _md;
