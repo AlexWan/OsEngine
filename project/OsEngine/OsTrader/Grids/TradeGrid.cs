@@ -1034,6 +1034,23 @@ namespace OsEngine.OsTrader.Grids
             {
                 DateTime serverTime = Tab.TimeServerCurrent;
 
+                if (serverTime == DateTime.MinValue)
+                {
+                    if (_serverTimeMissingLogged == false)
+                    {
+                        _serverTimeMissingLogged = true;
+
+                        string message = "Server time is not received yet. \n";
+                        message += "Grid trading is suspended until first data from the server.";
+
+                        SendNewLogMessage(message, LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    _serverTimeMissingLogged = false;
+                }
+
                 TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
 
                 if (nonTradePeriodsRegime != TradeGridRegime.On)
@@ -1275,6 +1292,8 @@ namespace OsEngine.OsTrader.Grids
         private DateTime _firstStopActivateTime;
 
         private bool _firstPositionIsOpen = false;
+
+        private bool _serverTimeMissingLogged = false;
 
         private void Tab_PositionStopActivateEvent(Position obj)
         {

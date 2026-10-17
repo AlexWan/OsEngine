@@ -1982,7 +1982,14 @@ namespace OsEngine.OsTrader.Grids
                 TextBoxFailOpenOrdersCountFact.Text = TradeGrid.ErrorsReaction.FailOpenOrdersCountFact.ToString();
                 TextBoxFailCancelOrdersCountFact.Text = TradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
 
-                TextBoxCurrentServerTime.Text = TradeGrid.Tab.TimeServerCurrent.ToShortTimeString();
+                if (TradeGrid.Tab.TimeServerCurrent == DateTime.MinValue)
+                {
+                    TextBoxCurrentServerTime.Text = OsLocalization.Trader.Label781;
+                }
+                else
+                {
+                    TextBoxCurrentServerTime.Text = TradeGrid.Tab.TimeServerCurrent.ToString();
+                }
 
                 if (TradeGrid.GridType == TradeGridPrimeType.OpenPosition)
                 {
