@@ -2228,7 +2228,8 @@ namespace OsEngine.Market.Servers.Transaq
         private string _sendOrdersLocker = "sendOrdersLocker";
 
         // bug-0058: сервер назначает transactionid, наружу отдаём локальный NumberUser (контракт Entity/Order.cs).
-        // Пары tid<->NumberUser живут здесь; эхо brokerref в сообщениях статуса чинит пару после реконнекта.
+        // Пары tid<->NumberUser живут здесь; в статусах локальный номер берём из эхо brokerref,
+        // команды после реконнекта резолвятся через _activeOrders (перестроится из потока статусов).
         private readonly Dictionary<int, (int NumberUser, OrderPriceType Type)> _tidToKey =
             new Dictionary<int, (int NumberUser, OrderPriceType Type)>();
 
@@ -2325,14 +2326,6 @@ namespace OsEngine.Market.Servers.Transaq
                 && int.TryParse(order.Brokerref, out int brokerref)
                 && brokerref != 0)
             {
-                if (int.TryParse(order.Transactionid, out int tid) && tid != 0)
-                {
-                    lock (_orderKeysLocker)
-                    {
-                        _keyToTid[brokerref] = tid;
-                    }
-                }
-
                 return brokerref;
             }
 
