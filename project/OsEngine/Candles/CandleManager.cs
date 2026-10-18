@@ -131,10 +131,14 @@ namespace OsEngine.Entity
 
             try
             {
-                if (_candleSeriesNeedToStart != null
-                    && _candleSeriesNeedToStart.Count != 0)
+                // one lock with the starter's Count+Dequeue and StartSeries Enqueue. Queue<T> is not thread safe (bug-0082)
+                lock (_seriesListLock)
                 {
-                    _candleSeriesNeedToStart.Clear();
+                    if (_candleSeriesNeedToStart != null
+                        && _candleSeriesNeedToStart.Count != 0)
+                    {
+                        _candleSeriesNeedToStart.Clear();
+                    }
                 }
             }
             catch
@@ -1139,10 +1143,14 @@ namespace OsEngine.Entity
 
             try
             {
-                if (_candleSeriesNeedToStart != null
-               && _candleSeriesNeedToStart.Count != 0)
+                // one lock with the starter's Count+Dequeue and StartSeries Enqueue. Queue<T> is not thread safe (bug-0082)
+                lock (_seriesListLock)
                 {
-                    _candleSeriesNeedToStart.Clear();
+                    if (_candleSeriesNeedToStart != null
+                        && _candleSeriesNeedToStart.Count != 0)
+                    {
+                        _candleSeriesNeedToStart.Clear();
+                    }
                 }
             }
             catch
