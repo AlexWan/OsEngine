@@ -510,6 +510,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             int countBefore = candlesBefore.Count;
             DateTime dateBefore = DateTime.Now.Date;
+            DateTime today = dateBefore;
+
+            bool hadToday = false;
+
+            for (int i = 0; i < candlesBefore.Count; i++)
+            {
+                if (candlesBefore[i].TimeStart.Date == today)
+                {
+                    hadToday = true;
+                    break;
+                }
+            }
 
             this.SetNewServiceInfo("Day series restart. Security: " + daySeries.Security.Name + " Candles before: " + countBefore.ToString());
 
@@ -554,6 +566,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (candlesAfter.Count > countBefore)
             {
+                // G1: до рестарта сегодняшней свечи в истории не было — первая приехавшая
+                // сегодня легитимна (открытие сессии, UTC-граница дня у крипты). Класс 0031
+                // требует today в истории до рестарта — Error 21 стреляет только при hadToday.
+
+                if (!hadToday)
+                {
+                    this.SetNewServiceInfo("Day series restart check skipped. Today absent before restart, growth is legit. Security: "
+                        + daySeries.Security.Name + " Before: " + countBefore.ToString() + " After: " + candlesAfter.Count.ToString());
+                    return;
+                }
+
                 SetNewError("Error 21. Day series grew after restart. Security: " + daySeries.Security.Name
                     + " Before: " + countBefore.ToString() + " After: " + candlesAfter.Count.ToString());
             }
