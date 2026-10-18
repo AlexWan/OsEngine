@@ -529,6 +529,13 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        // Placeholders of the test period. SaveSecurityTestSettings writes DateTime.MinValue/MaxValue.ToString(),
+        // LoadSecurityTestSettings reads it back without fractional seconds, so after the round-trip the value is not
+        // equal to the sentinel. Trading dates can not have year 0001 or 9999, so we detect the placeholder by the year
+        static bool IsStartPlaceholder(DateTime time) => time.Year <= 1;
+
+        static bool IsEndPlaceholder(DateTime time) => time.Year >= 9999;
+
         /// <summary>
         /// To bring the test period to a working state: placeholders of dates - bounds of data, the reversed pair - interchange,
         /// the period without intersection with the data - the whole data range. If the bounds of data are unknown,
@@ -540,13 +547,13 @@ namespace OsEngine.Market.Servers.Tester
             bool bounds_are_known = HasTestPeriodBounds;
             bool changed = false;
 
-            if (TimeStart == DateTime.MinValue && bounds_are_known)
+            if (IsStartPlaceholder(TimeStart) && bounds_are_known)
             {
                 TimeStart = TimeMin;
                 changed = true;
             }
 
-            if ((TimeEnd == DateTime.MinValue || TimeEnd == DateTime.MaxValue) && bounds_are_known)
+            if ((TimeEnd == DateTime.MinValue || IsEndPlaceholder(TimeEnd)) && bounds_are_known)
             {
                 TimeEnd = TimeMax;
                 changed = true;
@@ -555,7 +562,7 @@ namespace OsEngine.Market.Servers.Tester
             // dates from the file are swapped only when both are real dates. Placeholder is not the reverse order
             if (TimeStart != DateTime.MinValue &&
                 TimeEnd != DateTime.MinValue &&
-                TimeEnd != DateTime.MaxValue &&
+                !IsEndPlaceholder(TimeEnd) &&
                 TimeEnd < TimeStart)
             {
                 DateTime hold = TimeStart;
@@ -592,9 +599,9 @@ namespace OsEngine.Market.Servers.Tester
         public void SaveSecurityTestSettings()
         {
             // the period is written as it is. Placeholders and the reversed pair are garbage, the file is not touched
-            if (TimeStart == DateTime.MinValue ||
+            if (IsStartPlaceholder(TimeStart) ||
                 TimeEnd == DateTime.MinValue ||
-                TimeEnd == DateTime.MaxValue ||
+                IsEndPlaceholder(TimeEnd) ||
                 TimeEnd < TimeStart)
             {
                 LogTestPeriodOnce(ref _testPeriodErrorLogged, OsLocalization.Market.Label376, LogMessageType.Error);
