@@ -526,8 +526,8 @@ namespace OsEngine.Market.Servers.Tester
 
         /// <summary>
         /// To bring the test period to a working state: placeholders of dates - bounds of data, the reversed pair - interchange,
-        /// outside the data - trimming. If the bounds of data are unknown, the period is not touched and is not invented:
-        /// TestingStart will not let the test run without the start date
+        /// the period without intersection with the data - the whole data range. If the bounds of data are unknown,
+        /// the period is not touched and is not invented: TestingStart will not let the test run without the start date
         /// </summary>
         /// <returns>true if the period is usable: the start is set and the end is not earlier than the start</returns>
         public bool NormalizeTestPeriod()
@@ -561,20 +561,9 @@ namespace OsEngine.Market.Servers.Tester
 
             if (bounds_are_known)
             {
-                if (TimeStart < TimeMin)
-                {
-                    TimeStart = TimeMin;
-                    changed = true;
-                }
-
-                if (TimeEnd > TimeMax)
-                {
-                    TimeEnd = TimeMax;
-                    changed = true;
-                }
-
-                // the period is completely outside the data - we set the whole range, not inventing dates
-                if (TimeEnd < TimeStart)
+                // period without intersection with the data is nothing to test on it. Period sticking out of the data is normal:
+                // the test starts from the first candle and stops when the data is over
+                if (TimeEnd < TimeMin || TimeStart > TimeMax)
                 {
                     TimeStart = TimeMin;
                     TimeEnd = TimeMax;
