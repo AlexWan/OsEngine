@@ -376,6 +376,13 @@ namespace OsEngine.Market.Servers.Transaq
 
                 _activeOrders = new List<InfoActiveOrder>();
 
+                lock (_orderKeysLocker)
+                {
+                    _tidToKey.Clear();
+                    _keyToTid.Clear();
+                    _tidInsertionOrder.Clear();
+                }
+
                 _securitiesUpdateExpiration = new List<Security>();
 
                 _lastUpdateSecurityArrayTime = DateTime.MinValue;
@@ -2158,11 +2165,6 @@ namespace OsEngine.Market.Servers.Transaq
                     cmd += "<usecredit/>";
                 }
 
-                if (needSec.NameClass == "FUT")
-                {
-                    cmd += "<brokerref>" + order.NumberUser + "</brokerref>";
-                }
-
                 cmd += "</command>";
 
                 lock (_sendOrdersLocker)
@@ -2197,7 +2199,8 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 else
                 {
-                    order.NumberUser = result.TransactionId;
+                    // NumberUser вызывающей заявки не мутируем (bug-0058): transactionid живёт только в маппинге
+                    RegisterOrderKey(result.TransactionId, order);
                 }
 
                 order.TimeCallBack = ServerTime;
@@ -2224,23 +2227,145 @@ namespace OsEngine.Market.Servers.Transaq
 
         private string _sendOrdersLocker = "sendOrdersLocker";
 
+        // bug-0058: сервер назначает transactionid, наружу отдаём локальный NumberUser (контракт Entity/Order.cs).
+        // Пары tid<->NumberUser живут здесь; эхо brokerref в сообщениях статуса чинит пару после реконнекта.
+        private readonly Dictionary<int, (int NumberUser, OrderPriceType Type)> _tidToKey =
+            new Dictionary<int, (int NumberUser, OrderPriceType Type)>();
+
+        private readonly Dictionary<int, int> _keyToTid = new Dictionary<int, int>();
+
+        // FIFO-трекер вставки: Dictionary порядка не хранит, evict по нему. Лимит как у _sendOrders
+        private readonly Queue<int> _tidInsertionOrder = new Queue<int>();
+
+        private readonly object _orderKeysLocker = new object();
+
+        private const int OrderKeysCap = 500;
+
+        private void RegisterOrderKey(int transactionId, Order order)
+        {
+            lock (_orderKeysLocker)
+            {
+                if (_tidToKey.ContainsKey(transactionId) == false)
+                {
+                    _tidInsertionOrder.Enqueue(transactionId);
+                }
+
+                _tidToKey[transactionId] = (order.NumberUser, order.TypeOrder);
+                _keyToTid[order.NumberUser] = transactionId;
+
+                while (_tidToKey.Count > OrderKeysCap && _tidInsertionOrder.Count > 0)
+                {
+                    int oldTid = _tidInsertionOrder.Dequeue();
+
+                    if (_tidToKey.TryGetValue(oldTid, out var oldKey))
+                    {
+                        _tidToKey.Remove(oldTid);
+                        _keyToTid.Remove(oldKey.NumberUser);
+                    }
+                }
+            }
+        }
+
+        private void RemoveOrderKey(int transactionId)
+        {
+            lock (_orderKeysLocker)
+            {
+                if (_tidToKey.TryGetValue(transactionId, out var key))
+                {
+                    _tidToKey.Remove(transactionId);
+                    _keyToTid.Remove(key.NumberUser);
+                }
+            }
+        }
+
+        private void RelocateOrderKey(int oldTransactionId, int newTransactionId)
+        {
+            lock (_orderKeysLocker)
+            {
+                if (_tidToKey.TryGetValue(oldTransactionId, out var key) == false)
+                {
+                    return;
+                }
+
+                _tidToKey.Remove(oldTransactionId);
+                _keyToTid.Remove(key.NumberUser);
+                _tidToKey[newTransactionId] = key;
+                _keyToTid[key.NumberUser] = newTransactionId;
+                _tidInsertionOrder.Enqueue(newTransactionId);
+            }
+        }
+
+        private bool TryGetTransactionId(Order order, out int transactionId)
+        {
+            for (int i = _activeOrders.Count - 1; i > -1; i--)
+            {
+                if (_activeOrders[i].NumberMarket == order.NumberMarket
+                    && _activeOrders[i].Transactionid != 0)
+                {
+                    transactionId = _activeOrders[i].Transactionid;
+                    return true;
+                }
+            }
+
+            lock (_orderKeysLocker)
+            {
+                if (_keyToTid.TryGetValue(order.NumberUser, out transactionId))
+                {
+                    return true;
+                }
+            }
+
+            transactionId = 0;
+            return false;
+        }
+
+        private int ResolveLocalNumberUser(TransaqEntity.Order order)
+        {
+            if (string.IsNullOrEmpty(order.Brokerref) == false
+                && int.TryParse(order.Brokerref, out int brokerref)
+                && brokerref != 0)
+            {
+                if (int.TryParse(order.Transactionid, out int tid) && tid != 0)
+                {
+                    lock (_orderKeysLocker)
+                    {
+                        _keyToTid[brokerref] = tid;
+                    }
+                }
+
+                return brokerref;
+            }
+
+            if (int.TryParse(order.Transactionid, out int msgTid))
+            {
+                lock (_orderKeysLocker)
+                {
+                    if (_tidToKey.TryGetValue(msgTid, out var key))
+                    {
+                        return key.NumberUser;
+                    }
+                }
+
+                SendLogMessage($"Локальный номер ордера не восстановлен. Status {order.Status}, Transactionid {order.Transactionid}, Orderno {order.Orderno}", LogMessageType.Error);
+
+                return msgTid;
+            }
+
+            return 0;
+        }
+
         public bool CancelOrder(Order order)
         {
             try
             {
-                if (_activeOrders.Count > 0)
+                if (TryGetTransactionId(order, out int transactionId) == false)
                 {
-                    for (int i = 0; i < _activeOrders.Count; i++)
-                    {
-                        if (_activeOrders[i].NumberMarket == order.NumberMarket)
-                        {
-                            order.NumberUser = _activeOrders[i].Transactionid;
-                        }
-                    }
+                    SendLogMessage("CancelOrder. Transactionid not found. NumberUser: " + order.NumberUser + ", NumberMarket: " + order.NumberMarket, LogMessageType.Error);
+                    return false;
                 }
 
                 string cmd = "<command id=\"cancelorder\">";
-                cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
+                cmd += "<transactionid>" + transactionId + "</transactionid>";
                 cmd += "</command>";
 
                 // отправка команды
@@ -2271,8 +2396,14 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 _rateGateChangePriceOrder.WaitToProceed();
 
+                if (TryGetTransactionId(order, out int transactionId) == false)
+                {
+                    SendLogMessage("ChangeOrderPrice. Transactionid not found. NumberUser: " + order.NumberUser + ", NumberMarket: " + order.NumberMarket, LogMessageType.Error);
+                    return;
+                }
+
                 string cmd = "<command id=\"moveorder\">";
-                cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
+                cmd += "<transactionid>" + transactionId + "</transactionid>";
                 cmd += "<price>" + newPrice.ToString().Replace(',', '.') + "</price>";
                 cmd += "<moveflag>" + 0 + "</moveflag>";
                 cmd += "</command>";
@@ -2300,7 +2431,23 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 else
                 {
-                    order.NumberUser = result.TransactionId;
+                    // moveorder выдаёт новый transactionid — перекладываем пару и чиним запись _activeOrders по старому tid
+                    if (result.TransactionId != 0)
+                    {
+                        if (result.TransactionId != transactionId)
+                        {
+                            RelocateOrderKey(transactionId, result.TransactionId);
+                        }
+
+                        for (int i = 0; i < _activeOrders.Count; i++)
+                        {
+                            if (_activeOrders[i].NumberMarket == order.NumberMarket)
+                            {
+                                _activeOrders[i].Transactionid = result.TransactionId;
+                            }
+                        }
+                    }
+
                     order.NumberMarket = null;
                     order.Price = newPrice;
                 }
@@ -2966,24 +3113,29 @@ namespace OsEngine.Market.Servers.Transaq
                             SendLogMessage(order.Result, LogMessageType.Error);
                         }
 
-                        if (_activeOrders.Count > 0)
+                        int goneTid = Convert.ToInt32(order.Transactionid);
+
+                        for (int j = _activeOrders.Count - 1; j > -1; j--)
                         {
-                            for (int j = 0; j < _activeOrders.Count; j++)
+                            if (_activeOrders[j].Transactionid == goneTid)
                             {
-                                if (_activeOrders[j].NumberMarket == failOrder.NumberMarket)
-                                {
-                                    _activeOrders.Remove(_activeOrders[j]);
-                                    break;
-                                }
+                                _activeOrders.Remove(_activeOrders[j]);
                             }
                         }
 
-                        failOrder.NumberUser = Convert.ToInt32(order.Transactionid);
+                        RemoveOrderKey(goneTid);
+
+                        failOrder.NumberUser = ResolveLocalNumberUser(order);
                         failOrder.NumberMarket = order.Orderno;
                         failOrder.TimeCallBack = order.Time != null ? DateTime.Parse(order.Time) : ServerTime;
                         failOrder.State = OrderStateType.Cancel;
 
                         MyOrderEvent?.Invoke(failOrder);
+                    }
+                    else
+                    {
+                        // bug-0058: раньше этот статус глотался молча
+                        SendLogMessage($"Ордер отброшен без биржевого номера. Status {order.Status}, Transactionid {order.Transactionid}, Brokerref {order.Brokerref}, Sec {order.Seccode}", LogMessageType.System);
                     }
 
                     continue;
@@ -2991,7 +3143,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.Seccode;
-                newOrder.NumberUser = Convert.ToInt32(order.Transactionid);
+                newOrder.NumberUser = ResolveLocalNumberUser(order);
                 newOrder.SecurityClassCode = order.Board;
                 newOrder.NumberMarket = order.Orderno;
 
@@ -3016,12 +3168,28 @@ namespace OsEngine.Market.Servers.Transaq
                         && newOrder.NumberUser != 0
                         && newOrder.NumberMarket != "0")
                     {
+                        bool typeFound = false;
+
                         for (int i2 = _sendOrders.Count - 1; i2 > -1; i2--)
                         {
                             if (_sendOrders[i2].NumberUser == newOrder.NumberUser)
                             {
                                 newOrder.TypeOrder = _sendOrders[i2].TypeOrder;
+                                typeFound = true;
                                 break;
+                            }
+                        }
+
+                        // запись _sendOrders могла быть вытеснена капой — тип берём из маппинга
+                        if (typeFound == false
+                            && int.TryParse(order.Transactionid, out int mapTid))
+                        {
+                            lock (_orderKeysLocker)
+                            {
+                                if (_tidToKey.TryGetValue(mapTid, out var mapKey))
+                                {
+                                    newOrder.TypeOrder = mapKey.Type;
+                                }
                             }
                         }
                     }
@@ -3035,7 +3203,8 @@ namespace OsEngine.Market.Servers.Transaq
                     }
 
                     InfoActiveOrder lostActiveOrder = new InfoActiveOrder();
-                    lostActiveOrder.Transactionid = newOrder.NumberUser;
+                    // H1 bug-0058: tid берём из сообщения сервера, не из newOrder.NumberUser (там локальный номер)
+                    lostActiveOrder.Transactionid = Convert.ToInt32(order.Transactionid);
                     lostActiveOrder.NumberMarket = newOrder.NumberMarket;
 
                     if (order.Balance.ToDecimal() > 0 && newOrder.Volume != order.Balance.ToDecimal())
@@ -3064,6 +3233,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                     newOrder.State = OrderStateType.Cancel;
 
+                    RemoveOrderKey(Convert.ToInt32(order.Transactionid));
+
                     if (_activeOrders.Count > 0)
                     {
                         for (int j = 0; j < _activeOrders.Count; j++)
@@ -3079,6 +3250,8 @@ namespace OsEngine.Market.Servers.Transaq
                 else if (order.Status == "matched")
                 {
                     newOrder.State = OrderStateType.Done;
+
+                    RemoveOrderKey(Convert.ToInt32(order.Transactionid));
 
                     if (_activeOrders.Count > 0)
                     {
@@ -3102,6 +3275,8 @@ namespace OsEngine.Market.Servers.Transaq
                         SendLogMessage(order.Result, LogMessageType.Error);
                     }
                     newOrder.State = OrderStateType.Fail;
+
+                    RemoveOrderKey(Convert.ToInt32(order.Transactionid));
                 }
                 else if (order.Status == "forwarding" ||
                          order.Status == "wait" ||
@@ -3121,7 +3296,7 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 else
                 {
-                    SendLogMessage($"Пришел необработанный статус ордера: Security {newOrder.SecurityNameCode}, NumberMarket {newOrder.NumberMarket}, NumberUser {newOrder.NumberUser}, Side {newOrder.Side}, Price {newOrder.Price} " +
+                    SendLogMessage($"Пришел необработанный статус ордера: Security {newOrder.SecurityNameCode}, NumberMarket {newOrder.NumberMarket}, NumberUser {newOrder.NumberUser}, Transactionid {order.Transactionid}, Side {newOrder.Side}, Price {newOrder.Price} " +
                         $"Volume {newOrder.Volume}, VolumeExecute {newOrder.VolumeExecute}, Time {newOrder.TimeCallBack}, Status {newOrder.State}", LogMessageType.System);
                     newOrder.State = OrderStateType.None;
 
@@ -3133,7 +3308,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (_fullLog)
                 {
-                    SendLogMessage($"Пришел ордер: Security {newOrder.SecurityNameCode}, NumberMarket {newOrder.NumberMarket}, NumberUser {newOrder.NumberUser}, Side {newOrder.Side}, Price {newOrder.Price} " +
+                    SendLogMessage($"Пришел ордер: Security {newOrder.SecurityNameCode}, NumberMarket {newOrder.NumberMarket}, NumberUser {newOrder.NumberUser}, Transactionid {order.Transactionid}, Side {newOrder.Side}, Price {newOrder.Price} " +
                         $"Volume {newOrder.Volume}, VolumeExecute {newOrder.VolumeExecute}, Time {newOrder.TimeCallBack}, Status {newOrder.State}", LogMessageType.System);
                 }
 
