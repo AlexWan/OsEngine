@@ -1445,6 +1445,13 @@ namespace OsEngine.Market.Servers.Transaq
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
+            // stopped or disconnected — don't send command and don't raise Error (server stop is a routine, not a failure)
+            if (ServerStatus != ServerConnectStatus.Connect)
+            {
+                SendLogMessage($"Candle history request for {security.Name} skipped: not connected.", LogMessageType.System);
+                return null;
+            }
+
             _rateGateCandle.WaitToProceed();
 
             try
@@ -1481,6 +1488,13 @@ namespace OsEngine.Market.Servers.Transaq
 
                 if (res != "<result success=\"true\"/>")
                 {
+                    // connection was closed after the entry check (Stop/rate-gate race): DLL rejects the command — routine, not Error, and no reason to wait
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message95 + "  " + res, LogMessageType.System);
+                        return null;
+                    }
+
                     SendLogMessage(OsLocalization.Market.Message95 + "  " + res, LogMessageType.Error);
                 }
 
@@ -1524,6 +1538,22 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (isComplete == false)
                     {
+                        // connection closed while waiting for history — abort quietly, without Error and without the full timeout
+                        if (ServerStatus != ServerConnectStatus.Connect)
+                        {
+                            SendLogMessage($"Waiting for candle history for {security.Name} aborted: connection closed.", LogMessageType.System);
+
+                            lock (_allCandleSeriesLocker)
+                            {
+                                if (candles != null)
+                                {
+                                    _allCandleSeries.Remove(candles);
+                                }
+                            }
+
+                            return null;
+                        }
+
                         if (startLoadingTime.AddSeconds(20) > DateTime.Now)
                         {
                             Thread.Sleep(200);
