@@ -2942,5 +2942,9 @@ namespace OsEngine.Language
         public string Label780 => OsLocalization.ConvertToLocString(
            "Eng:You want to delete the group \"{0}\". All robots from this group will be moved to the Base group. Are you sure?_" +
            "Ru:Вы собираетесь удалить группу \"{0}\". Все роботы из этой группы будут перемещены в группу \"Базовая группа\". Вы уверены?_");
+
+        public string Label781 => OsLocalization.ConvertToLocString(
+           "Eng:Server time is not received yet_" +
+           "Ru:Время сервера не получено_");
     }
 }

@@ -80,6 +80,12 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridRegime GetNonTradePeriodsRegime(DateTime curTime)
         {
+            // Серверное время ещё не получено. Безмолвно считаем время неторговым.
+            if(curTime == DateTime.MinValue)
+            {
+                return TradeGridRegime.Off;
+            }
+
             if(SettingsPeriod1.CanTradeThisTime(curTime) == false)
             {
                 return NonTradePeriod1Regime;
