@@ -110,7 +110,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         return;
                     }
 
+                    CandleSeries daySeries = series.Find(s => s.TimeFrame == TimeFrame.Day);
+
                     CheckTfInSeries(series);
+
+                    RestartDaySeries(daySeries);
                     return;
                 }
 
@@ -283,6 +287,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     seriesReady.Add(series);
                 }
             }
+            if (permission.TradeTimeFramePermission.TimeFrameDayIsOn)
+            {
+                CandleSeries series = Subscribe(sec, TimeFrame.Day);
+                if (series != null)
+                {
+                    seriesReady.Add(series);
+                }
+            }
 
             return seriesReady;
         }
@@ -392,6 +404,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     SetNewError("Error 10. Candle time is equal! " + timeFrame.ToString() + "Security: " + sec);
                     return false;
                 }
+
+                // Двух свечей одного календарного дня на Day не бывает, bug-0064
+
+                if (timeFrame == TimeFrame.Day
+                    && candleLast.TimeStart.Date == candleNow.TimeStart.Date)
+                {
+                    SetNewError("Error 20. Candle date is duplicated! " + timeFrame.ToString() + "Security: " + sec);
+                    return false;
+                }
             }
 
             // 4 ошибка если open ниже лоя или выше хая
@@ -463,6 +484,79 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
 
             return true;
+        }
+
+        // bug-0064: рестарт дневной серии в течение дня (воспроизведение класса 0031).
+        // Снимок условия над проверкой. Скипы без Error: нет Day-серии, нет данных за 60с,
+        // пересечение полуночи за время фазы.
+
+        private void RestartDaySeries(CandleSeries daySeries)
+        {
+            if (daySeries == null)
+            {
+                this.SetNewServiceInfo("Day series restart phase skipped. No Day series subscribed");
+                return;
+            }
+
+            AServer myServer = Server;
+
+            List<Candle> candlesBefore = daySeries.CandlesAll;
+
+            if (candlesBefore == null || candlesBefore.Count == 0)
+            {
+                this.SetNewServiceInfo("Day series restart phase skipped. No candles before restart");
+                return;
+            }
+
+            int countBefore = candlesBefore.Count;
+            DateTime dateBefore = DateTime.Now.Date;
+
+            this.SetNewServiceInfo("Day series restart. Security: " + daySeries.Security.Name + " Candles before: " + countBefore.ToString());
+
+            myServer.StopThisSecurity(daySeries);
+
+            TimeFrameBuilder tfb = new TimeFrameBuilder(StartProgram.IsOsTrader);
+            tfb.TimeFrame = TimeFrame.Day;
+
+            int waited = 0;
+            CandleSeries series = myServer.StartThisSecurity(daySeries.Security.Name, tfb, daySeries.Security.NameClass);
+
+            while (waited < 60000 &&
+                (series == null || series.CandlesAll == null || series.CandlesAll.Count == 0))
+            {
+                Thread.Sleep(250);
+                waited += 250;
+
+                if (series == null)
+                {
+                    series = myServer.StartThisSecurity(daySeries.Security.Name, tfb, daySeries.Security.NameClass);
+                }
+            }
+
+            if (series == null || series.CandlesAll == null || series.CandlesAll.Count == 0)
+            {
+                this.SetNewServiceInfo("Day series restart phase skipped. No data after restart within 60 sec");
+                return;
+            }
+
+            if (DateTime.Now.Date != dateBefore)
+            {
+                this.SetNewServiceInfo("Day series restart phase skipped. Midnight crossed during phase");
+                return;
+            }
+
+            List<Candle> candlesAfter = series.CandlesAll;
+
+            if (!CandlesIsOk(candlesAfter, TimeFrame.Day, daySeries.Security.Name))
+            {
+                return;
+            }
+
+            if (candlesAfter.Count > countBefore)
+            {
+                SetNewError("Error 21. Day series grew after restart. Security: " + daySeries.Security.Name
+                    + " Before: " + countBefore.ToString() + " After: " + candlesAfter.Count.ToString());
+            }
         }
     }
 }
