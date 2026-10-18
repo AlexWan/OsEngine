@@ -547,7 +547,11 @@ namespace OsEngine.Market.Servers.Tester
                 changed = true;
             }
 
-            if (TimeEnd < TimeStart)
+            // dates from the file are swapped only when both are real dates. Placeholder is not the reverse order
+            if (TimeStart != DateTime.MinValue &&
+                TimeEnd != DateTime.MinValue &&
+                TimeEnd != DateTime.MaxValue &&
+                TimeEnd < TimeStart)
             {
                 DateTime hold = TimeStart;
                 TimeStart = TimeEnd;
@@ -856,6 +860,13 @@ namespace OsEngine.Market.Servers.Tester
                 if (TimeStart == DateTime.MinValue)
                 {
                     SendLogMessage(OsLocalization.Market.Message47, LogMessageType.System);
+                    return;
+                }
+
+                // the end earlier than the start is not a period: it would stop the test on the first tick by the timer message
+                if (TimeEnd <= TimeStart)
+                {
+                    SendLogMessage(OsLocalization.Market.Label376, LogMessageType.System);
                     return;
                 }
 
