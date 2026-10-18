@@ -745,6 +745,31 @@ namespace OsEngine.OsData
             }
         }
 
+        // shortcut: кэш иконки пина на век процесса: грузится один раз, никогда не диспозится.
+        // Явный диспоуз (Rows.Clear/Dispose) дал бы ObjectDisposedException на следующем репейнте.
+        // new Bitmap, а не Image.FromFile: FromFile блокирует файл до диспоуза.
+        // Ленивая инициализация без локов безопасна: репей маршалится на UI-поток (:756/BeginInvoke),
+        // OsDataUi — единственная модалка.
+        private static Bitmap _pinBar;
+        private static bool _pinBarLoadFailed;
+
+        private static Bitmap GetPinBarImage()
+        {
+            if (_pinBar == null && _pinBarLoadFailed == false)
+            {
+                try
+                {
+                    _pinBar = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
+                }
+                catch (Exception)
+                {
+                    _pinBarLoadFailed = true; // неудача кэшируется, повторного file I/O нет
+                }
+            }
+
+            return _pinBar;
+        }
+
         private void RePaintSourceGrid()
         {
             try
@@ -833,9 +858,15 @@ namespace OsEngine.OsData
                     if (isAttached == true)
                     {
                         DataGridViewImageCell imageCell = new DataGridViewImageCell();
-                        Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\pinBar.png");
+                        // Иконка общая из статического кэша (загружается здесь, на UI-потоке).
+                        // Битый/отсутствующий файл = строка без иконки; раньше исключение отсюда
+                        // обрывало репейнт и сетка оставалась очищенной-недорисованной.
+                        Bitmap pinBar = GetPinBarImage();
                         imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                        imageCell.Value = bmp;
+                        if (pinBar != null)
+                        {
+                            imageCell.Value = pinBar;
+                        }
                         row1.Cells.Add(imageCell);
 
                         _gridSources.Rows.Insert(0, row1);
@@ -892,7 +923,46 @@ namespace OsEngine.OsData
 
         private void ServerStatusChangeEvent(string newState)
         {
-            RePaintSourceGrid();
+            // статус-ивенты пачками при reconnect-флейпинге схлопываются в один репейнт;
+            // newState игнорируется — репейнт идемпотентен, читает живые состояния.
+            RequestSourceRepaint();
+        }
+
+        private int _sourceRepaintScheduled;
+
+        private void RequestSourceRepaint()
+        {
+            if (Interlocked.CompareExchange(ref _sourceRepaintScheduled, 1, 0) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _gridSources.BeginInvoke(new Action(SourceRepaintIfScheduled));
+            }
+            catch (Exception ex)
+            {
+                // хэндл грида ещё не создан / шейдаун: сбросить флаг, иначе коалесинг залипнет
+                Interlocked.Exchange(ref _sourceRepaintScheduled, 0);
+                ServerMaster.Log?.ProcessMessage("OsDataMasterPainter source repaint enqueue failed: " + ex, Logging.LogMessageType.System);
+            }
+        }
+
+        private void SourceRepaintIfScheduled()
+        {
+            try
+            {
+                // сброс до репейнта: ивенты, пришедшие во время долгого репейнта,
+                // поставят флаг заново и получат финальное состояние
+                Interlocked.Exchange(ref _sourceRepaintScheduled, 0);
+                RePaintSourceGrid();
+            }
+            catch (ObjectDisposedException)
+            {
+                // окно закрывается. no-op. Прочие исключения не достигают сюда:
+                // тело RePaintSourceGrid целиком в своём try/catch
+            }
         }
 
         #endregion
