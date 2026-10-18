@@ -2353,7 +2353,7 @@ namespace OsEngine.Language
          "Ru:Период тестирования не задан. Укажите даты начала и окончания периода тестирования в настройках Тестера._");
 
         public string Label377 => OsLocalization.ConvertToLocString(
-         "Eng:Test period was corrected to the data available. Available period: {0} - {1}_" +
-         "Ru:Период тестирования скорректирован по имеющимся данным. Доступный период: {0} - {1}_");
+         "Eng:Test period was corrected to the data available. Available period from {0} to {1}_" +
+         "Ru:Период тестирования скорректирован по имеющимся данным. Доступный период с {0} по {1}_");
     }
 }
