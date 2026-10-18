@@ -496,19 +496,24 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
-        private bool _testPeriodIssueLogged;
+        /// <summary> Period was normalised. Notice and Error are deduplicated separately: the notice must not hide the Error </summary>
+        private bool _testPeriodNormalizedLogged;
+
+        /// <summary> The period is rejected (Save, write, parse). Separate one-shot flag, see _testPeriodNormalizedLogged </summary>
+        private bool _testPeriodErrorLogged;
 
         /// <summary>
-        /// The problem with the test period is reported once per session. The reason: the period is loaded from the file by each data folder
+        /// The problem with the test period is reported once per session. The reason: the period is loaded from the file by each data folder.
+        /// Flags are separate for the normalisation notice and for the error: one message must not mute the other
         /// </summary>
-        private void LogTestPeriodOnce(string message, LogMessageType type)
+        private void LogTestPeriodOnce(ref bool flag, string message, LogMessageType type)
         {
-            if (_testPeriodIssueLogged)
+            if (flag)
             {
                 return;
             }
 
-            _testPeriodIssueLogged = true;
+            flag = true;
 
             SendLogMessage(message, type);
         }
@@ -573,7 +578,8 @@ namespace OsEngine.Market.Servers.Tester
 
             if (changed)
             {
-                LogTestPeriodOnce(bounds_are_known
+                LogTestPeriodOnce(ref _testPeriodNormalizedLogged,
+                    bounds_are_known
                     ? string.Format(OsLocalization.Market.Label377,
                         TimeMin.ToString(CultureInfo), TimeMax.ToString(CultureInfo))
                     : OsLocalization.Market.Label376,
@@ -591,7 +597,7 @@ namespace OsEngine.Market.Servers.Tester
                 TimeEnd == DateTime.MaxValue ||
                 TimeEnd < TimeStart)
             {
-                LogTestPeriodOnce(OsLocalization.Market.Label376, LogMessageType.Error);
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, OsLocalization.Market.Label376, LogMessageType.Error);
                 return;
             }
 
@@ -605,7 +611,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception error)
             {
-                LogTestPeriodOnce(OsLocalization.Market.Label376 + " " + error.Message, LogMessageType.Error);
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, OsLocalization.Market.Label376 + " " + error.Message, LogMessageType.Error);
             }
         }
 
@@ -643,7 +649,7 @@ namespace OsEngine.Market.Servers.Tester
             }
             catch (Exception error)
             {
-                LogTestPeriodOnce(error.ToString(), LogMessageType.Error);
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, error.ToString(), LogMessageType.Error);
             }
         }
 
