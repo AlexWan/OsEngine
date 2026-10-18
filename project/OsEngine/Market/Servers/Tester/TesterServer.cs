@@ -496,8 +496,112 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
+        private bool _testPeriodIssueLogged;
+
+        /// <summary>
+        /// The problem with the test period is reported once per session. The reason: the period is loaded from the file by each data folder
+        /// </summary>
+        private void LogTestPeriodOnce(string message, LogMessageType type)
+        {
+            if (_testPeriodIssueLogged)
+            {
+                return;
+            }
+
+            _testPeriodIssueLogged = true;
+
+            SendLogMessage(message, type);
+        }
+
+        /// <summary>
+        /// Bounds of loaded data are known. Inverted pair from LoadSecurities is not a bounds
+        /// </summary>
+        public bool HasTestPeriodBounds
+        {
+            get
+            {
+                return TimeMin != DateTime.MinValue && TimeMax != DateTime.MinValue && TimeMin <= TimeMax;
+            }
+        }
+
+        /// <summary>
+        /// To bring the test period to a working state: placeholders of dates - bounds of data, the reversed pair - interchange,
+        /// outside the data - trimming. If the bounds of data are unknown, the period is not touched and is not invented:
+        /// TestingStart will not let the test run without the start date
+        /// </summary>
+        /// <returns>true if the period is usable: the start is set and the end is not earlier than the start</returns>
+        public bool NormalizeTestPeriod()
+        {
+            bool bounds_are_known = HasTestPeriodBounds;
+            bool changed = false;
+
+            if (TimeStart == DateTime.MinValue && bounds_are_known)
+            {
+                TimeStart = TimeMin;
+                changed = true;
+            }
+
+            if ((TimeEnd == DateTime.MinValue || TimeEnd == DateTime.MaxValue) && bounds_are_known)
+            {
+                TimeEnd = TimeMax;
+                changed = true;
+            }
+
+            if (TimeEnd < TimeStart)
+            {
+                DateTime hold = TimeStart;
+                TimeStart = TimeEnd;
+                TimeEnd = hold;
+                changed = true;
+            }
+
+            if (bounds_are_known)
+            {
+                if (TimeStart < TimeMin)
+                {
+                    TimeStart = TimeMin;
+                    changed = true;
+                }
+
+                if (TimeEnd > TimeMax)
+                {
+                    TimeEnd = TimeMax;
+                    changed = true;
+                }
+
+                // the period is completely outside the data - we set the whole range, not inventing dates
+                if (TimeEnd < TimeStart)
+                {
+                    TimeStart = TimeMin;
+                    TimeEnd = TimeMax;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                LogTestPeriodOnce(bounds_are_known
+                    ? string.Format(OsLocalization.Market.Label377,
+                        TimeMin.ToString(CultureInfo), TimeMax.ToString(CultureInfo))
+                    : OsLocalization.Market.Label376,
+                    LogMessageType.System);
+            }
+
+            return TimeStart != DateTime.MinValue && TimeEnd > TimeStart;
+        }
+
         public void SaveSecurityTestSettings()
         {
+            // the period is written as it is. Placeholders and the reversed pair are garbage, the file is not touched
+            if (TimeStart == DateTime.MinValue ||
+                TimeEnd == DateTime.MinValue ||
+                TimeEnd == DateTime.MaxValue ||
+                TimeEnd < TimeStart)
+            {
+                LogTestPeriodOnce(OsLocalization.Market.Label376, LogMessageType.Error);
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(GetSecurityTestSettingsPath(), false))
@@ -506,9 +610,9 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(TimeEnd.ToString(CultureInfo));
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignored
+                LogTestPeriodOnce(OsLocalization.Market.Label376 + " " + error.Message, LogMessageType.Error);
             }
         }
 
@@ -522,23 +626,31 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
+                DateTime start = TimeStart;
+                DateTime end = TimeEnd;
+
                 using (StreamReader reader = new StreamReader(pathToSettings))
                 {
                     string timeStart = reader.ReadLine();
                     if (timeStart != null)
                     {
-                        TimeStart = Convert.ToDateTime(timeStart, CultureInfo);
+                        start = Convert.ToDateTime(timeStart, CultureInfo);
                     }
                     string timeEnd = reader.ReadLine();
                     if (timeEnd != null)
                     {
-                        TimeEnd = Convert.ToDateTime(timeEnd, CultureInfo);
+                        end = Convert.ToDateTime(timeEnd, CultureInfo);
                     }
                 }
+
+                TimeStart = start;
+                TimeEnd = end;
+
+                NormalizeTestPeriod();
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignored
+                LogTestPeriodOnce(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -737,6 +849,9 @@ namespace OsEngine.Market.Servers.Tester
                 }
 
                 _allTrades = null;
+
+                // the period from the file can be stale against the data, we bring it in line before the start
+                NormalizeTestPeriod();
 
                 if (TimeStart == DateTime.MinValue)
                 {
@@ -4266,6 +4381,15 @@ namespace OsEngine.Market.Servers.Tester
                 LoadMarketDepthFromFolder(_pathToFolder);
                 _dataIsReady = true;
             }
+
+            // data was not loaded: the inverted pair of bounds is not a range, for the UI the bounds are simply unknown
+            if (TimeMin > TimeMax)
+            {
+                TimeMin = DateTime.MinValue;
+                TimeMax = DateTime.MinValue;
+            }
+
+            NormalizeTestPeriod();
 
             LoadSetSecuritiesTimeFrameSettings();
         }

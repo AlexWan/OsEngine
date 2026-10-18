@@ -2349,7 +2349,11 @@ namespace OsEngine.Language
         "Ru:Количество уровней стакана. 5 - 5 уровней с обновлением раз в 100 мс (низкая нагрузка). 400 - до 400 уровней с инкрементальными обновлениями на каждое изменение (высокая нагрузка на ЦП)_");
 
         public string Label376 => OsLocalization.ConvertToLocString(
-        "Eng:Test period is not set. Set the start and end dates of the test period in Tester settings._" +
-        "Ru:Период тестирования не задан. Укажите даты начала и окончания периода тестирования в настройках Тестера._");
+         "Eng:Test period is not set. Set the start and end dates of the test period in Tester settings._" +
+         "Ru:Период тестирования не задан. Укажите даты начала и окончания периода тестирования в настройках Тестера._");
+
+        public string Label377 => OsLocalization.ConvertToLocString(
+         "Eng:Test period was corrected to the data available. Available period: {0} - {1}_" +
+         "Ru:Период тестирования скорректирован по имеющимся данным. Доступный период: {0} - {1}_");
     }
 }
