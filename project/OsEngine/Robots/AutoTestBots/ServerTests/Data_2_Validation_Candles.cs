@@ -252,10 +252,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "FutureDate");
             }
-            if (permission.DataFeedTfDayCanLoad)
-            {
-                CheckCandleFakeData(TimeFrame.Day, security, startTime, endTime, startTime, "FutureDate");
-            }
+            // Day в Future не дёрнут, см. комментарий в CheckOldData
         }
 
         private void CheckOldData(IServerPermission permission, Security security, DateTime lastMidnightTime)
@@ -302,10 +299,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "oldDate");
             }
-            if (permission.DataFeedTfDayCanLoad)
-            {
-                CheckCandleFakeData(TimeFrame.Day, security, startTime, endTime, startTime, "oldDate");
-            }
+            // shortcut: Day здесь и в Future не дёрнуты — окна ±20 лет на по-дневной
+            // загрузке истории (TInvest и т.п.) = тысячи запросов бирже.
         }
 
         private void CheckCandleFakeData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime, DateTime actualTime, string typeRequest)
