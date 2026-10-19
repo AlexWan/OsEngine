@@ -34,6 +34,8 @@ namespace OsEngine.Market.AutoFollow
 
         private List<Tuple<Security, Side, decimal>> _notIgnoredSec = [];
 
+        private bool _timeNotReceivedLogged;
+
         public PortfolioStateCopyBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
             // non trade periods
@@ -414,7 +416,26 @@ namespace OsEngine.Market.AutoFollow
                         continue;
                     }
 
-                    if (_tradePeriodsSettings.CanTradeThisTime(_mainTab.TimeServerCurrent) == false)
+                    DateTime serverTime = _mainTab.TimeServerCurrent;
+
+                    if (serverTime == DateTime.MinValue)
+                    {
+                        // Серверное время ещё не получено. Без него неторговые периоды не работают, логику не запускаем.
+                        if (_timeNotReceivedLogged == false)
+                        {
+                            _timeNotReceivedLogged = true;
+                            SendNewLogMessage("Server time is not received yet. Copy trading is suspended until first data from the server.", Logging.LogMessageType.System);
+                        }
+                        continue;
+                    }
+
+                    if (_timeNotReceivedLogged == true)
+                    {
+                        _timeNotReceivedLogged = false;
+                        SendNewLogMessage("Server time is received. Copy trading is resumed.", Logging.LogMessageType.System);
+                    }
+
+                    if (_tradePeriodsSettings.CanTradeThisTime(serverTime) == false)
                     {
                         continue;
                     }
