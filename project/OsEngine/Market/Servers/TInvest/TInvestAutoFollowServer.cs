@@ -1934,7 +1934,7 @@ namespace OsEngine.Market.Servers.TInvest
                                     // тайм-аут-семантика: стрим в труп, цикл продолжается —
                                     // гарантированно доходим до RemoveAt
                                     stream.IsConnected = false;
-                                    SendLogMessage("Autofollow. Unsubscribe write failed " + stream.Name + " " + ex.Message, LogMessageType.Error);
+                                    SendLogMessage("Autofollow. Unsubscribe write failed " + stream.Name + " " + ex.ToString(), LogMessageType.Error);
                                 }
                             }
 
