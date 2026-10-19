@@ -674,12 +674,24 @@ namespace OsEngine.Connectors.TestStand.Tests
         private void RunServerTest(ServerTestInfo test)
         {
             string method = "run_" + test.Id;
+            _lastStartIgnored = false;
 
             try
             {
                 if (!SetTesterParams(test))
                 {
                     return;
+                }
+
+                // Baseline of "start ignored" lines must be taken BEFORE the click:
+                // the robot writes its log asynchronously, a post-click baseline
+                // could catch the flush of this click's own ignore line and miss busy.
+                string logDir = Path.Combine(Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty, "Engine", "Log");
+                int busyBaseline = CountStartIgnored(logDir, DateTime.Now);
+                if (busyBaseline < 0)
+                {
+                    // baseline unreadable: busy detection off for this test, keep the honest timeout reason
+                    busyBaseline = int.MaxValue;
                 }
 
                 DateTime testStart = DateTime.Now;
@@ -698,11 +710,12 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return;
                 }
 
-                if (!WaitTestStartMarker(test, testStart))
+                if (!WaitTestStartMarker(test, testStart, busyBaseline))
                 {
-                    _context.RecordFail(ModuleName, method,
-                        $"{test.Id}: test did not start - no 'Tests started {test.ReportMarker.Replace("REPORT ", string.Empty)}' marker " +
-                        $"in the robot log within {TestStartTimeout.TotalMinutes} min");
+                    _context.RecordFail(ModuleName, method, _lastStartIgnored
+                        ? $"{test.Id}: test start ignored - robot is busy with a previous test"
+                        : $"{test.Id}: test did not start - no 'Tests started {test.ReportMarker.Replace("REPORT ", string.Empty)}' marker " +
+                          $"in the robot log within {TestStartTimeout.TotalMinutes} min");
                     return;
                 }
 
@@ -908,13 +921,64 @@ namespace OsEngine.Connectors.TestStand.Tests
             return errors;
         }
 
+        // Written by AServerTester.StartIgnoredIfBusy() when a start-button click
+        // is ignored because the robot is still running a previous test.
+        private const string StartIgnoredMarker = "Test start ignored: previous test is running";
+
+        private bool _lastStartIgnored;
+
+        /// <summary>
+        /// Occurrences of the start-ignored line in the robot log files, same file
+        /// sample as the marker loop. An increase over the pre-click baseline means
+        /// this click was ignored (busy). Returns -1 if any read failed, so callers
+        /// never compare a partial count against a full one (that could false-busy).
+        /// </summary>
+        private int CountStartIgnored(string logDir, DateTime from)
+        {
+            int count = 0;
+            bool failed = false;
+            try
+            {
+                if (Directory.Exists(logDir))
+                {
+                    string[] files = Directory.GetFiles(logDir, "*" + TesterBotName + "*Log_*.txt");
+
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        if (File.GetLastWriteTime(files[i]) < from.AddMinutes(-1))
+                        {
+                            continue;
+                        }
+
+                        string content = ReadFileShared(files[i]);
+
+                        int idx = content.IndexOf(StartIgnoredMarker, StringComparison.Ordinal);
+                        while (idx >= 0)
+                        {
+                            count++;
+                            idx = content.IndexOf(StartIgnoredMarker, idx + StartIgnoredMarker.Length, StringComparison.Ordinal);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // log file is being written. Count unknown, retry on next poll
+                failed = true;
+            }
+
+            return failed ? -1 : count;
+        }
+
         /// <summary>
         /// Wait for the "Tests started &lt;TestClass&gt;" marker in the robot log.
         /// The robot writes this marker when a test thread actually starts
         /// (AServerTester). No marker after the button click = the test did not
         /// start (wrong parameters, precondition errors like "No Servers Found").
+        /// A fresh start-ignored line over busyBaseline = the robot was busy with a
+        /// previous test, fail fast instead of waiting out the full timeout.
         /// </summary>
-        private bool WaitTestStartMarker(ServerTestInfo test, DateTime testStart)
+        private bool WaitTestStartMarker(ServerTestInfo test, DateTime testStart, int busyBaseline)
         {
             string engineDir = Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty;
             string logDir = Path.Combine(engineDir, "Engine", "Log");
@@ -943,6 +1007,14 @@ namespace OsEngine.Connectors.TestStand.Tests
                             {
                                 return true;
                             }
+                        }
+
+                        // Marker is checked first every iteration: a fresh marker always
+                        // beats a stale/busy line. Only then fail fast on a fresh ignore.
+                        if (CountStartIgnored(logDir, testStart) > busyBaseline)
+                        {
+                            _lastStartIgnored = true;
+                            return false;
                         }
                     }
                 }
