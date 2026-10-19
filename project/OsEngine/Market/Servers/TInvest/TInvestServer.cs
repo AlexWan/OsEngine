@@ -381,6 +381,7 @@ namespace OsEngine.Market.Servers.TInvest
                         if (obProbes.Count > 0)
                         {
                             DateTime obNowUtc = DateTime.UtcNow;
+                            int obBudget = _obResubBudgetPerTick;
 
                             foreach (string obUid in obProbes)
                             {
@@ -389,18 +390,31 @@ namespace OsEngine.Market.Servers.TInvest
                                 _obResubAttempts.TryGetValue(obUid, out int obAtt);
                                 _obResubPending.TryGetValue(obUid, out bool obPnd);
 
+                                // R1: schedule fetch only for instruments where something can actually happen, not every book every tick.
+                                // raw gap below is a cheap superset of the session-silence decision (silence <= raw)
+                                if (obAtt < _obResubCap)
+                                {
+                                    bool obRawAged = obLast != DateTime.MinValue && obNowUtc - obLast >= _obStalenessThreshold;
+                                    if (obPnd == false && obRawAged == false)
+                                        continue;
+                                }
+                                else if (obAtt != 2)
+                                {
+                                    continue;
+                                }
+
                                 TradingDay obDay = GetTradingDayForOrderBookProbe(obUid);
 
                                 bool obNeedTimer = NeedResubscribeOrderBook(obDay, obNowUtc, obLast, obTry, obAtt);
-                                bool obNeedOnFailure = NeedResubscribeOrderBookAfterFailure(obNowUtc, obTry, obAtt, obPnd);
+                                bool obNeedOnFailure = NeedResubscribeOrderBookAfterFailure(obDay, obNowUtc, obTry, obAtt, obPnd);
 
                                 if (obNeedTimer == false && obNeedOnFailure == false)
                                 {
-                                    // single Error when both attempts are spent and the book still silent in session (attempts marked 3 to log once)
+                                    // single Error when both attempts are spent and the book still silent in session (attempts marked 3 to log once);
+                                    // R4: no lastOb != MinValue condition — the canonical failure case is "subscription refused, no books ever"
                                     if (obAtt == 2
-                                        && obLast != DateTime.MinValue
-                                        && obNowUtc - obLast >= TimeSpan.FromMinutes(15)
-                                        && InTradingSessionUtc(obDay, obNowUtc))
+                                        && InTradingSessionUtc(obDay, obNowUtc)
+                                        && OrderBookSessionSilence(obDay, obNowUtc, obLast) >= _obStalenessThreshold)
                                     {
                                         _obResubAttempts[obUid] = 3;
                                         Security obSec = GetSecurityByIdFast(obUid);
@@ -410,8 +424,15 @@ namespace OsEngine.Market.Servers.TInvest
                                     continue;
                                 }
 
+                                if (obBudget == 0)
+                                    continue;   // R3: the rest wait for the next tick — md-lock never held for minutes by a resub volley
+
+                                obBudget--;
+
                                 _obResubAttempts[obUid] = obAtt + 1;
                                 _obResubLastTryUtc[obUid] = obNowUtc;
+                                if (obNeedOnFailure)
+                                    _obResubPending.TryRemove(obUid, out _);   // R2: pending consumed on execution, not left armed
 
                                 Security obSecName = GetSecurityByIdFast(obUid);
                                 SendLogMessage("Order book resubscribe for " + (obSecName == null ? obUid : obSecName.Name)
@@ -552,11 +573,13 @@ namespace OsEngine.Market.Servers.TInvest
                 _lastPortfolioDataTime = DateTime.UtcNow;
                 _lastPositionsDataTime = DateTime.UtcNow;
 
-                // bug-0023 F2: dispose reinitializes order book staleness state (R3)
+                // bug-0023 F2: dispose reinitializes order book staleness state (R3), R1: including the schedule cache
                 _lastOrderBookTimeUtc.Clear();
                 _obResubLastTryUtc.Clear();
                 _obResubAttempts.Clear();
                 _obResubPending.Clear();
+                _obSchedules.Clear();
+                _obScheduleNextFetchUtc = DateTime.MinValue;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -2482,11 +2505,13 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                // bug-0023 F2: full (re)connect reinitializes order book staleness state (R3)
+                // bug-0023 F2: full (re)connect reinitializes order book staleness state (R3), R1: including the schedule cache
                 _lastOrderBookTimeUtc.Clear();
                 _obResubLastTryUtc.Clear();
                 _obResubAttempts.Clear();
                 _obResubPending.Clear();
+                _obSchedules.Clear();
+                _obScheduleNextFetchUtc = DateTime.MinValue;
 
                 _gRpcMetadata = new Metadata();
 
@@ -3018,6 +3043,7 @@ namespace OsEngine.Market.Servers.TInvest
         private readonly ConcurrentDictionary<string, DateTime> _obResubLastTryUtc = new ConcurrentDictionary<string, DateTime>();
         private readonly ConcurrentDictionary<string, int> _obResubAttempts = new ConcurrentDictionary<string, int>();
         private readonly ConcurrentDictionary<string, bool> _obResubPending = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<DateTime, TradingSchedulesResponse> _obSchedules = new ConcurrentDictionary<DateTime, TradingSchedulesResponse>();
         private DateTime _obScheduleNextFetchUtc = DateTime.MinValue;
 
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
@@ -3049,6 +3075,7 @@ namespace OsEngine.Market.Servers.TInvest
         private static readonly TimeSpan _obStalenessThreshold = TimeSpan.FromMinutes(15);
         private static readonly TimeSpan _obResubDebounce = TimeSpan.FromMinutes(5);
         private const int _obResubCap = 2;
+        private const int _obResubBudgetPerTick = 2;
 
         // decision is pure (unit-testable): timer path, staleness of OrderBook by instrument
         private bool NeedResubscribeOrderBook(TradingDay day, DateTime nowUtc, DateTime lastObUtc, DateTime lastTryUtc, int attempts)
@@ -3059,13 +3086,14 @@ namespace OsEngine.Market.Servers.TInvest
                 return false;
             if (lastTryUtc != DateTime.MinValue && nowUtc - lastTryUtc < _obResubDebounce)
                 return false;
-            if (nowUtc - lastObUtc < _obStalenessThreshold)
-                return false;
+            if (OrderBookSessionSilence(day, nowUtc, lastObUtc) < _obStalenessThreshold)
+                return false;   // R3: raw gap over-counts clearing and pre-open silence — false trigger right after clearing end
             return InTradingSessionUtc(day, nowUtc);
         }
 
         // decision is pure (unit-testable): failure path armed by the reader hook (C1/C3: shares cap and debounce)
-        private bool NeedResubscribeOrderBookAfterFailure(DateTime nowUtc, DateTime lastTryUtc, int attempts, bool pending)
+        // R2: session-gated like the timer path — a Sunday replay must not burn an attempt on a closed market
+        private bool NeedResubscribeOrderBookAfterFailure(TradingDay day, DateTime nowUtc, DateTime lastTryUtc, int attempts, bool pending)
         {
             if (pending == false)
                 return false;
@@ -3073,7 +3101,7 @@ namespace OsEngine.Market.Servers.TInvest
                 return false;
             if (lastTryUtc != DateTime.MinValue && nowUtc - lastTryUtc < _obResubDebounce)
                 return false;
-            return true;
+            return InTradingSessionUtc(day, nowUtc);
         }
 
         // C4 fail-closed: no schedule / unknown exchange / outside session or clearing break -> never trigger
@@ -3102,54 +3130,77 @@ namespace OsEngine.Market.Servers.TInvest
             return false;
         }
 
-        // schedules of the day via existing _tradingSchedules cache (C4: under lock, fetch not often than 1/min, fail-closed)
-        private TradingDay GetTradingDayForOrderBookProbe(string instrumentUid)
+        // R3: the silence that matters — anchored at the later of last book / current interval start, clearing time subtracted.
+        // MinValue lastOb anchors at the current interval start: "no book since session start" ages too (R4 canonical case)
+        private static TimeSpan OrderBookSessionSilence(TradingDay day, DateTime nowUtc, DateTime lastObUtc)
         {
-            var mskDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone).Date;
+            if (day == null || day.Intervals.Count == 0)
+                return TimeSpan.Zero;
 
-            TradingSchedulesResponse response;
+            DateTime anchor = lastObUtc;
 
-            lock (_tradingSchedules)
+            for (int i = 0; i < day.Intervals.Count; i++)
             {
-                if (!_tradingSchedules.TryGetValue(mskDate, out response) || response == null)
-                {
-                    response = null;
+                var interval = day.Intervals[i].Interval;
+                if (interval == null || interval.StartTs == null || interval.EndTs == null)
+                    continue;
 
-                    if (DateTime.UtcNow >= _obScheduleNextFetchUtc)
-                    {
-                        try
-                        {
-                            TradingSchedulesRequest request = new TradingSchedulesRequest
-                            {
-                                From = Timestamp.FromDateTime(DateTime.UtcNow.Date),
-                                To = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate.AddDays(1).AddTicks(-1), _mskTimeZone))
-                            };
-
-                            _rateGateInstruments.WaitToProceed();
-                            response = _instrumentsClient.TradingSchedules(request, _gRpcMetadata);
-                        }
-                        catch
-                        {
-                            response = null;
-                        }
-
-                        if (response == null)
-                        {
-                            _obScheduleNextFetchUtc = DateTime.UtcNow.AddMinutes(1);
-                            return null;
-                        }
-
-                        _tradingSchedules[mskDate] = response;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
+                DateTime start = interval.StartTs.ToDateTime();
+                DateTime end = interval.EndTs.ToDateTime();
+                if (nowUtc >= start && nowUtc < end && start > anchor)
+                    anchor = start;
             }
 
-            if (response == null)
-                return null;
+            double silenceMs = (nowUtc - anchor).TotalMilliseconds;
+
+            if (day.ClearingStartTime != null && day.ClearingEndTime != null)
+            {
+                DateTime clearingStart = day.ClearingStartTime.ToDateTime();
+                DateTime clearingEnd = day.ClearingEndTime.ToDateTime();
+                double overlapMs = (nowUtc < clearingEnd ? nowUtc : clearingEnd)
+                    .Subtract(anchor > clearingStart ? anchor : clearingStart).TotalMilliseconds;
+                if (overlapMs > 0)
+                    silenceMs -= overlapMs;
+            }
+
+            return TimeSpan.FromMilliseconds(silenceMs < 0 ? 0 : silenceMs);
+        }
+
+        // R1: feature-private schedule cache _obSchedules — shared _tradingSchedules untouched (legacy unlocked race = separate ticket);
+        // C4: fetch not often than 1/min, fail-closed
+        private TradingDay GetTradingDayForOrderBookProbe(string instrumentUid)
+        {
+            DateTime mskDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone).Date;
+
+            if (!_obSchedules.TryGetValue(mskDate, out TradingSchedulesResponse response) || response == null)
+            {
+                if (DateTime.UtcNow < _obScheduleNextFetchUtc)
+                    return null;
+
+                try
+                {
+                    TradingSchedulesRequest request = new TradingSchedulesRequest
+                    {
+                        From = Timestamp.FromDateTime(DateTime.UtcNow.Date),
+                        To = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate.AddDays(1).AddTicks(-1), _mskTimeZone))
+                    };
+
+                    _rateGateInstruments.WaitToProceed();
+                    response = _instrumentsClient.TradingSchedules(request, _gRpcMetadata);
+                }
+                catch
+                {
+                    response = null;
+                }
+
+                if (response == null)
+                {
+                    _obScheduleNextFetchUtc = DateTime.UtcNow.AddMinutes(1);
+                    return null;
+                }
+
+                _obSchedules[mskDate] = response;
+            }
 
             Security sec = GetSecurityByIdFast(instrumentUid);
             if (sec == null || string.IsNullOrEmpty(sec.Exchange))
@@ -3159,8 +3210,21 @@ namespace OsEngine.Market.Servers.TInvest
 
             for (int i = 0; i < response.Exchanges.Count; i++)
             {
-                if (response.Exchanges[i].Exchange == exchange && response.Exchanges[i].Days.Count > 0)
-                    return response.Exchanges[i].Days[0];
+                if (response.Exchanges[i].Exchange != exchange)
+                    continue;
+
+                // R1: today is picked by its date, not Days[0] — the window spans two days and at night Days[0] is yesterday
+                for (int d = 0; d < response.Exchanges[i].Days.Count; d++)
+                {
+                    TradingDay day = response.Exchanges[i].Days[d];
+                    if (day.Date == null)
+                        continue;
+
+                    DateTime dayUtc = day.Date.ToDateTime();
+                    // shortcut: both midnight conventions (UTC / MSK) tolerated until a live probe pins one
+                    if (dayUtc.Date == mskDate || dayUtc.Add(_mskTimeZone.BaseUtcOffset).Date == mskDate)
+                        return day;
+                }
             }
 
             return null;
