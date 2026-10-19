@@ -109,10 +109,12 @@ namespace OsEngine.Connectors.TestStand
             return result.ToArray();
         }
 
-        private static TestParam[] WithCountOrders(string group)
+        private static TestParam[] WithCountOrders(int number)
         {
-            List<TestParam> result = new List<TestParam>(OrderParams(group));
-            result.Add(new TestParam("Count orders " + group, ParamValueSource.CountOrders));
+            // Robot declares base params as "Portfolio. orders test N" but the counter as "Count orders test N" —
+            // one group string cannot cover both, so the names are built from the test number.
+            List<TestParam> result = new List<TestParam>(OrderParams("orders test " + number));
+            result.Add(new TestParam("Count orders test " + number, ParamValueSource.CountOrders));
             return result.ToArray();
         }
 
@@ -220,11 +222,11 @@ namespace OsEngine.Connectors.TestStand
 
             // O4. Limit cancel spam
             new ServerTestInfo("O4", "Start test orders 4", "REPORT Orders_4_LimitCancel",
-                ModuleOrders, true, WithCountOrders("test 4")),
+                ModuleOrders, true, WithCountOrders(4)),
 
             // O5. Change price
             new ServerTestInfo("O5", "Start test orders 5", "REPORT Orders_5_ChangePrice",
-                ModuleOrders, true, WithCountOrders("test 5")),
+                ModuleOrders, true, WithCountOrders(5)),
 
             // O6. Change price to fake values (fake prices stay at robot defaults)
             new ServerTestInfo("O6", "Start test orders 6", "REPORT Orders_6_ChangePriceError",
@@ -232,7 +234,7 @@ namespace OsEngine.Connectors.TestStand
 
             // O7. Add / move / cancel spam
             new ServerTestInfo("O7", "Start test orders 7", "REPORT Orders_7_Add_Move_Cancel_Spam",
-                ModuleOrders, true, WithCountOrders("test 7")),
+                ModuleOrders, true, WithCountOrders(7)),
 
             // O8. Orders request on reconnect
             new ServerTestInfo("O8", "Start test orders 8", "REPORT Orders_8_RequestOnReconnect",
@@ -252,7 +254,7 @@ namespace OsEngine.Connectors.TestStand
 
             // O12. Orders list request
             new ServerTestInfo("O12", "Start test orders 12", "REPORT Orders_12_RequestOrdersList",
-                ModuleOrders, true, WithCountOrders("test 12")),
+                ModuleOrders, true, WithCountOrders(12)),
 
             // O13. Server stop orders
             new ServerTestInfo("O13", "Start test orders 13", "REPORT Orders_13_StopOrders",
@@ -260,7 +262,7 @@ namespace OsEngine.Connectors.TestStand
 
             // O14. Stop-limit place / cancel
             new ServerTestInfo("O14", "Start test orders 14", "REPORT Orders_14_StopLimitPlaceCancel",
-                ModuleOrders, true, WithCountOrders("test 14")),
+                ModuleOrders, true, WithCountOrders(14)),
 
             // O15. Stop-limit request on reconnect
             new ServerTestInfo("O15", "Start test orders 15", "REPORT Orders_15_StopLimitRequestOnReconnect",
