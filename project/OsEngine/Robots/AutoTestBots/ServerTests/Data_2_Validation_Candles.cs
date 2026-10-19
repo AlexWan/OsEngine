@@ -252,7 +252,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "FutureDate");
             }
-            // Day в Future не дёрнут, см. комментарий в CheckOldData
+            // Day в Future не дёрнут намеренно, см. shortcut в CheckOldData. Day с
+            // аномальными параметрами ловят FakeStartTime/FakeActualDate выше.
         }
 
         private void CheckOldData(IServerPermission permission, Security security, DateTime lastMidnightTime)
@@ -299,8 +300,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "oldDate");
             }
-            // shortcut: Day здесь и в Future не дёрнуты — окна ±20 лет на по-дневной
-            // загрузке истории (TInvest и т.п.) = тысячи запросов бирже.
+            // shortcut: Day здесь и в Future не дёрнут намеренно: на по-дневной загрузке
+            // истории 20-летнее окно = тысячи запросов бирже (TInvest GetCandleHistoryFromDays).
         }
 
         private void CheckCandleFakeData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime, DateTime actualTime, string typeRequest)
@@ -415,6 +416,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Candle> candles = GetCandles(TimeFrame.Day, security, startTime, endTime);
 
+            ValidateCurrentDayCandles(candles);
+        }
+
+        // GAP-1 seam: проверка списка отдельно от запроса, чтобы срабатывания
+        // Error 21 было чем доказать юнит-стендом без живого сервера.
+
+        private void ValidateCurrentDayCandles(List<Candle> candles)
+        {
             if (candles == null || candles.Count == 0)
             {
                 return;

@@ -110,6 +110,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                         return;
                     }
 
+                    // shortcut: GAP-4 — фаза рестарта проверяет только первую Day-серию батареи, по решению рецензента
+
                     CandleSeries daySeries = series.Find(s => s.TimeFrame == TimeFrame.Day);
 
                     CheckTfInSeries(series);
@@ -487,8 +489,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         }
 
         // bug-0064: рестарт дневной серии в течение дня (воспроизведение класса 0031).
-        // Снимок условия над проверкой. Скипы без Error: нет Day-серии, нет данных за 60с,
-        // пересечение полуночи за время фазы.
+        // Снимок условия над проверкой. Скипы без Error: нет Day-серии, история не докачалась
+        // до прежнего объёма за 60с, пересечение полуночи за время фазы.
 
         private void RestartDaySeries(CandleSeries daySeries)
         {
@@ -533,8 +535,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             int waited = 0;
             CandleSeries series = myServer.StartThisSecurity(daySeries.Security.Name, tfb, daySeries.Security.NameClass);
 
+            // GAP-2: ждём возврат прежнего объёма истории, частичная докачка не маскирует фазу
+
             while (waited < 60000 &&
-                (series == null || series.CandlesAll == null || series.CandlesAll.Count == 0))
+                (series == null || series.CandlesAll == null || series.CandlesAll.Count < countBefore))
             {
                 Thread.Sleep(250);
                 waited += 250;
@@ -545,9 +549,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            if (series == null || series.CandlesAll == null || series.CandlesAll.Count == 0)
+            if (series == null || series.CandlesAll == null || series.CandlesAll.Count < countBefore)
             {
-                this.SetNewServiceInfo("Day series restart phase skipped. No data after restart within 60 sec");
+                this.SetNewServiceInfo("Day series restart phase skipped. History not refilled to " + countBefore.ToString() + " candles within 60 sec");
                 return;
             }
 
@@ -564,22 +568,38 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (candlesAfter.Count > countBefore)
+            // GAP-3: ассерт по числу сегодняшних свечей (как в D2), а не по сырому Count.
+            // G1 гейт сохранён: без today в снимке до рестарта Error 21 не стреляет.
+
+            int todayAfter = CountCandlesOfDayHere(candlesAfter, today);
+
+            if (hadToday && todayAfter > 1)
             {
-                // G1: до рестарта сегодняшней свечи в истории не было — первая приехавшая
-                // сегодня легитимна (открытие сессии, UTC-граница дня у крипты). Класс 0031
-                // требует today в истории до рестарта — Error 21 стреляет только при hadToday.
-
-                if (!hadToday)
-                {
-                    this.SetNewServiceInfo("Day series restart check skipped. Today absent before restart, growth is legit. Security: "
-                        + daySeries.Security.Name + " Before: " + countBefore.ToString() + " After: " + candlesAfter.Count.ToString());
-                    return;
-                }
-
-                SetNewError("Error 21. Day series grew after restart. Security: " + daySeries.Security.Name
-                    + " Before: " + countBefore.ToString() + " After: " + candlesAfter.Count.ToString());
+                SetNewError("Error 21. Day candles of today duplicated after restart. Security: " + daySeries.Security.Name
+                    + " Today after: " + todayAfter.ToString() + " Count: " + countBefore.ToString() + "->" + candlesAfter.Count.ToString());
+                return;
             }
+
+            if (candlesAfter.Count != countBefore || (!hadToday && todayAfter > 0))
+            {
+                this.SetNewServiceInfo("Day series restart. History shifted legit. Security: " + daySeries.Security.Name
+                    + " Count: " + countBefore.ToString() + "->" + candlesAfter.Count.ToString() + " Today after: " + todayAfter.ToString());
+            }
+        }
+
+        private static int CountCandlesOfDayHere(List<Candle> candles, DateTime day)
+        {
+            int count = 0;
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                if (candles[i].TimeStart.Date == day)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }
