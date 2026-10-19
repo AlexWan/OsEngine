@@ -1838,8 +1838,16 @@ namespace OsEngine.Market.Servers.Tester
                 SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
                 SliderTo.ValueChanged -= SliderTo_ValueChanged;
 
-                ProgressBar.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-                ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                if (HasDataRange)
+                {
+                    ProgressBar.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                    ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                }
+                else
+                {
+                    ProgressBar.Minimum = ProgressBar.Maximum = 0;
+                }
+
                 ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
 
                 int displayedRow = _securitiesGrid.FirstDisplayedScrollingRowIndex;
@@ -1903,22 +1911,31 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
 
-                TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
-                TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
-
-                SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-                SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-                SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
-
-                SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-                SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
-                SliderTo.Value = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
-
-                if (_server.TimeEnd != DateTime.MinValue &&
-                    SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes > 0)
+                if (!HasDataRange)
                 {
-                    SliderTo.Value =
-                    SliderFrom.Minimum + SliderTo.Maximum - (_server.TimeEnd - DateTime.MinValue).TotalMinutes;
+                    // no data - sliders have nothing to show. Date boxes are not touched, to not erase what user is typing
+                    SliderFrom.Minimum = SliderFrom.Maximum = SliderFrom.Value = 0;
+                    SliderTo.Minimum = SliderTo.Maximum = SliderTo.Value = 0;
+                }
+                else
+                {
+                    if (!TextBoxFrom.IsKeyboardFocusWithin)
+                    {
+                        TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
+                    }
+
+                    if (!TextBoxTo.IsKeyboardFocusWithin)
+                    {
+                        TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
+                    }
+
+                    SliderFrom.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                    SliderFrom.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                    SliderFrom.Value = (_server.TimeStart - DateTime.MinValue).TotalMinutes;
+
+                    SliderTo.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
+                    SliderTo.Maximum = (_server.TimeMax - DateTime.MinValue).TotalMinutes;
+                    SliderTo.Value = SliderValueFromDate(_server.TimeEnd);
                 }
 
                 SliderFrom.ValueChanged += SliderFrom_ValueChanged;
@@ -1999,24 +2016,72 @@ namespace OsEngine.Market.Servers.Tester
 
         #region Sliders. Setting the start and end time of testing. Slippage
 
+        /// <summary>
+        /// Bounds of loaded data are known. Without them sliders have nothing to show and dates are not trimmed
+        /// </summary>
+        private bool HasDataRange
+        {
+            get { return _server.HasTestPeriodBounds; }
+        }
+
+        /// <summary>
+        /// Date from the "To" slider position. The slider is inverted: its value counts minutes from the end of the period
+        /// </summary>
+        private DateTime DateFromSliderTo(double slider_value)
+        {
+            return _server.TimeMin.AddMinutes((_server.TimeMax - DateTime.MinValue).TotalMinutes - slider_value);
+        }
+
+        /// <summary>
+        /// Position of the inverted "To" slider for the date
+        /// </summary>
+        private double SliderValueFromDate(DateTime date)
+        {
+            return (_server.TimeMax - DateTime.MinValue).TotalMinutes - (date - _server.TimeMin).TotalMinutes;
+        }
+
+        /// <summary>
+        /// Date typed outside the loaded data. Same way as GoTo: log and window, not a silent reset of the box
+        /// </summary>
+        private void RejectDateOutsideData()
+        {
+            string message = string.Format(OsLocalization.Market.Label377,
+                _server.TimeMin.ToString(_currentCulture), _server.TimeMax.ToString(_currentCulture));
+
+            ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
+
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(message);
+            ui.ShowDialog();
+        }
+
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (!HasDataRange)
+            {
+                return;
+            }
+
             TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
 
-            DateTime to = DateTime.MinValue.AddMinutes(SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value);
+            DateTime to = DateFromSliderTo(SliderTo.Value);
             _server.TimeEnd = to;
             _server.SaveSecurityTestSettings();
             TextBoxTo.Text = to.ToString(_currentCulture);
 
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+            if (to < _server.TimeStart)
             {
-                SliderFrom.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value;
+                SliderFrom.Value = (to - DateTime.MinValue).TotalMinutes;
             }
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
         }
 
         private void SliderFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (!HasDataRange)
+            {
+                return;
+            }
+
             TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
 
             DateTime from = DateTime.MinValue.AddMinutes(SliderFrom.Value);
@@ -2024,9 +2089,9 @@ namespace OsEngine.Market.Servers.Tester
             _server.SaveSecurityTestSettings();
             TextBoxFrom.Text = from.ToString(_currentCulture);
 
-            if (SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value < SliderFrom.Value)
+            if (DateFromSliderTo(SliderTo.Value) < from)
             {
-                SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - SliderFrom.Value;
+                SliderTo.Value = SliderValueFromDate(from);
             }
 
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
@@ -2053,12 +2118,6 @@ namespace OsEngine.Market.Servers.Tester
                 _timerTextBoxTo.Stop();
 
                 to = Convert.ToDateTime(TextBoxTo.Text, _currentCulture);
-
-                if (to < _server.TimeMin ||
-                    to > _server.TimeMax)
-                {
-                    throw new Exception();
-                }
             }
             catch (Exception)
             {
@@ -2066,10 +2125,16 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
+            // without the data we do not trim dates, the server will decide it on the data load
+            if (HasDataRange && (to < _server.TimeMin || to > _server.TimeMax))
+            {
+                RejectDateOutsideData();
+                TextBoxTo.Text = _server.TimeEnd.ToString(_currentCulture);
+                return;
+            }
+
             _server.TimeEnd = to;
-            // SliderTo.Value = SliderFrom.Minimum + SliderFrom.Maximum - to.Minute;
-            // SliderFrom.Minimum + SliderFrom.Maximum - SliderTo.Value
-            SliderTo.Value = SliderFrom.Minimum + SliderTo.Maximum - (to - DateTime.MinValue).TotalMinutes;
+            SliderTo.Value = SliderValueFromDate(to);
         }
 
         private void TextBoxFrom_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -2093,15 +2158,17 @@ namespace OsEngine.Market.Servers.Tester
                 _timerTextBoxFrom.Stop();
 
                 from = Convert.ToDateTime(TextBoxFrom.Text, _currentCulture);
-
-                if (from < _server.TimeMin ||
-                    from > _server.TimeMax)
-                {
-                    throw new Exception();
-                }
             }
             catch (Exception)
             {
+                TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
+                return;
+            }
+
+            // without the data we do not trim dates, the server will decide it on the data load
+            if (HasDataRange && (from < _server.TimeMin || from > _server.TimeMax))
+            {
+                RejectDateOutsideData();
                 TextBoxFrom.Text = _server.TimeStart.ToString(_currentCulture);
                 return;
             }

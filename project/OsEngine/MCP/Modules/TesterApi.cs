@@ -482,6 +482,8 @@ namespace OsEngine.MCP.Modules
 
             if (datesChanged)
             {
+                // the period from the API is checked against the data, so that file, memory and UI show the same period
+                server.NormalizeTestPeriod();
                 server.SaveSecurityTestSettings();
                 server.NotifyTestPeriodChanged();
             }

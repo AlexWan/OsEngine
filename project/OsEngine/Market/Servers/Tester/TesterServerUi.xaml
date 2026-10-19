@@ -31,16 +31,7 @@
                     <ComboBox Name="ComboBoxDataSourceType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="9,5,0,0" VerticalAlignment="Top"  />
                     <Slider Name="SliderFrom" Margin="268,65,10,0" VerticalAlignment="Top" Height="22"/>
-                    <Slider Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
-                        <Slider.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform/>
-                                <SkewTransform/>
-                                <RotateTransform Angle="-179.79"/>
-                                <TranslateTransform/>
-                            </TransformGroup>
-                        </Slider.RenderTransform>
-                    </Slider>
+                    <Slider Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" IsDirectionReversed="True"/>
 
                     <TextBox Name="TextBoxFrom" HorizontalAlignment="Left"  Margin="96,65,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>
                     <TextBox Name="TextBoxTo" HorizontalAlignment="Left" Margin="96,95,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="167"/>

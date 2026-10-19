@@ -496,8 +496,118 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
+        /// <summary> Period was normalised. Notice and Error are deduplicated separately: the notice must not hide the Error </summary>
+        private bool _testPeriodNormalizedLogged;
+
+        /// <summary> The period is rejected (Save, write, parse). Separate one-shot flag, see _testPeriodNormalizedLogged </summary>
+        private bool _testPeriodErrorLogged;
+
+        /// <summary>
+        /// The problem with the test period is reported once per session. The reason: the period is loaded from the file by each data folder.
+        /// Flags are separate for the normalisation notice and for the error: one message must not mute the other
+        /// </summary>
+        private void LogTestPeriodOnce(ref bool flag, string message, LogMessageType type)
+        {
+            if (flag)
+            {
+                return;
+            }
+
+            flag = true;
+
+            SendLogMessage(message, type);
+        }
+
+        /// <summary>
+        /// Bounds of loaded data are known. Inverted pair from LoadSecurities is not a bounds
+        /// </summary>
+        public bool HasTestPeriodBounds
+        {
+            get
+            {
+                return TimeMin != DateTime.MinValue && TimeMax != DateTime.MinValue && TimeMin <= TimeMax;
+            }
+        }
+
+        // Placeholders of the test period. SaveSecurityTestSettings writes DateTime.MinValue/MaxValue.ToString(),
+        // LoadSecurityTestSettings reads it back without fractional seconds, so after the round-trip the value is not
+        // equal to the sentinel. Trading dates can not have year 0001 or 9999, so we detect the placeholder by the year
+        static bool IsStartPlaceholder(DateTime time) => time.Year <= 1;
+
+        static bool IsEndPlaceholder(DateTime time) => time.Year >= 9999;
+
+        /// <summary>
+        /// To bring the test period to a working state: placeholders of dates - bounds of data, the reversed pair - interchange,
+        /// the period without intersection with the data - the whole data range. If the bounds of data are unknown,
+        /// the period is not touched and is not invented: TestingStart will not let the test run without the start date
+        /// </summary>
+        /// <returns>true if the period is usable: the start is set and the end is not earlier than the start</returns>
+        public bool NormalizeTestPeriod()
+        {
+            bool bounds_are_known = HasTestPeriodBounds;
+            bool changed = false;
+
+            if (IsStartPlaceholder(TimeStart) && bounds_are_known)
+            {
+                TimeStart = TimeMin;
+                changed = true;
+            }
+
+            if ((TimeEnd == DateTime.MinValue || IsEndPlaceholder(TimeEnd)) && bounds_are_known)
+            {
+                TimeEnd = TimeMax;
+                changed = true;
+            }
+
+            // dates from the file are swapped only when both are real dates. Placeholder is not the reverse order
+            if (TimeStart != DateTime.MinValue &&
+                TimeEnd != DateTime.MinValue &&
+                !IsEndPlaceholder(TimeEnd) &&
+                TimeEnd < TimeStart)
+            {
+                DateTime hold = TimeStart;
+                TimeStart = TimeEnd;
+                TimeEnd = hold;
+                changed = true;
+            }
+
+            if (bounds_are_known)
+            {
+                // period without intersection with the data is nothing to test on it. Period sticking out of the data is normal:
+                // the test starts from the first candle and stops when the data is over
+                if (TimeEnd < TimeMin || TimeStart > TimeMax)
+                {
+                    TimeStart = TimeMin;
+                    TimeEnd = TimeMax;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                LogTestPeriodOnce(ref _testPeriodNormalizedLogged,
+                    bounds_are_known
+                    ? string.Format(OsLocalization.Market.Label377,
+                        TimeMin.ToString(CultureInfo), TimeMax.ToString(CultureInfo))
+                    : OsLocalization.Market.Label376,
+                    LogMessageType.System);
+            }
+
+            return TimeStart != DateTime.MinValue && TimeEnd > TimeStart;
+        }
+
         public void SaveSecurityTestSettings()
         {
+            // the period is written as it is. Placeholders and the reversed pair are garbage, the file is not touched
+            if (IsStartPlaceholder(TimeStart) ||
+                TimeEnd == DateTime.MinValue ||
+                IsEndPlaceholder(TimeEnd) ||
+                TimeEnd < TimeStart)
+            {
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, OsLocalization.Market.Label376, LogMessageType.Error);
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(GetSecurityTestSettingsPath(), false))
@@ -506,9 +616,9 @@ namespace OsEngine.Market.Servers.Tester
                     writer.WriteLine(TimeEnd.ToString(CultureInfo));
                 }
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignored
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, OsLocalization.Market.Label376 + " " + error.Message, LogMessageType.Error);
             }
         }
 
@@ -522,23 +632,31 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
+                DateTime start = TimeStart;
+                DateTime end = TimeEnd;
+
                 using (StreamReader reader = new StreamReader(pathToSettings))
                 {
                     string timeStart = reader.ReadLine();
                     if (timeStart != null)
                     {
-                        TimeStart = Convert.ToDateTime(timeStart, CultureInfo);
+                        start = Convert.ToDateTime(timeStart, CultureInfo);
                     }
                     string timeEnd = reader.ReadLine();
                     if (timeEnd != null)
                     {
-                        TimeEnd = Convert.ToDateTime(timeEnd, CultureInfo);
+                        end = Convert.ToDateTime(timeEnd, CultureInfo);
                     }
                 }
+
+                TimeStart = start;
+                TimeEnd = end;
+
+                NormalizeTestPeriod();
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignored
+                LogTestPeriodOnce(ref _testPeriodErrorLogged, error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -738,9 +856,19 @@ namespace OsEngine.Market.Servers.Tester
 
                 _allTrades = null;
 
+                // the period from the file can be stale against the data, we bring it in line before the start
+                NormalizeTestPeriod();
+
                 if (TimeStart == DateTime.MinValue)
                 {
                     SendLogMessage(OsLocalization.Market.Message47, LogMessageType.System);
+                    return;
+                }
+
+                // the end earlier than the start is not a period: it would stop the test on the first tick by the timer message
+                if (TimeEnd <= TimeStart)
+                {
+                    SendLogMessage(OsLocalization.Market.Label376, LogMessageType.System);
                     return;
                 }
 
@@ -4266,6 +4394,15 @@ namespace OsEngine.Market.Servers.Tester
                 LoadMarketDepthFromFolder(_pathToFolder);
                 _dataIsReady = true;
             }
+
+            // data was not loaded: the inverted pair of bounds is not a range, for the UI the bounds are simply unknown
+            if (TimeMin > TimeMax)
+            {
+                TimeMin = DateTime.MinValue;
+                TimeMax = DateTime.MinValue;
+            }
+
+            NormalizeTestPeriod();
 
             LoadSetSecuritiesTimeFrameSettings();
         }
