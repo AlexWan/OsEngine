@@ -91,8 +91,8 @@ namespace OsEngine.Market.Servers.BCS
             worker5.IsBackground = true;
             worker5.Start();
 
-            Thread worker6 = new Thread(CheckDepthSubscriptions);
-            worker6.Name = "BcsCheckDepthSubscriptions";
+            Thread worker6 = new Thread(CheckSubscriptionsConfirmations);
+            worker6.Name = "BcsCheckSubscriptionsConfirmations";
             worker6.IsBackground = true;
             worker6.Start();
 
@@ -100,6 +100,11 @@ namespace OsEngine.Market.Servers.BCS
             worker7.Name = "BcsMarketDataWatchdog";
             worker7.IsBackground = true;
             worker7.Start();
+
+            Thread worker8 = new Thread(CheckAlivePrivateSockets);
+            worker8.Name = "BcsCheckAlivePrivateSockets";
+            worker8.IsBackground = true;
+            worker8.Start();
         }
 
         private WebProxy _myProxy;
@@ -130,6 +135,9 @@ namespace OsEngine.Market.Servers.BCS
                 }
 
                 _lastReconnectTime = DateTime.Now;
+
+                _privateSocketReconnectAllowed = true;
+                _marketDataReconnectAllowed = true;
 
                 ConfigureHandler();
 
@@ -175,6 +183,9 @@ namespace OsEngine.Market.Servers.BCS
 
         private DateTime _lastReconnectTime = DateTime.MinValue;
 
+        // перевыпуск токена из 401-обработчика и фонового потока одновременно не допускаем
+        private string _tokenRefreshLocker = "tokenRefreshLockerBcs";
+
         private void CheckLifetimeToken()
         {
             while (true)
@@ -188,10 +199,15 @@ namespace OsEngine.Market.Servers.BCS
                         continue;
                     }
 
-                    // плановое утреннее переподключение до начала утренней сессии:
-                    // чистые сокеты + свежий токен на весь день, прибивает цикл токена к 06:30
-                    if (DateTime.Now.TimeOfDay >= TimeSpan.FromHours(6.5)
-                        && DateTime.Now - _lastReconnectTime > TimeSpan.FromHours(12))
+                    // плановое утреннее переподключение до начала дневной сессии:
+                    // чистые сокеты + свежий токен на весь день. Строго в окне 06:30-09:30
+                    // и не чаще раза в сутки: кулдаун 12ч в старой логике дрейфовал
+                    // и переподключал коннектор посреди дневной/вечерней сессии
+                    TimeSpan timeOfDay = DateTime.Now.TimeOfDay;
+
+                    if (timeOfDay >= TimeSpan.FromHours(6.5)
+                        && timeOfDay < TimeSpan.FromHours(9.5)
+                        && _lastReconnectTime.Date < DateTime.Today)
                     {
                         SendLogMessage("BCS: плановое утреннее переподключение", LogMessageType.System);
                         _lastReconnectTime = DateTime.Now;
@@ -252,9 +268,13 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private DateTime _lastMarketDataMessageTime = DateTime.MinValue;
+        #region Private sockets seamless reconnect
 
-        private void MarketDataWatchdog()
+        // Единственный поток, пересоздающий приватные сокеты (single writer, паттерн TInvest/OKX).
+        // Портфельный сокет мёртв, если закрыт ИЛИ молчит более 30 секунд
+        // (БКС шлёт полный снапшот портфеля каждые ~5 секунд, проверено зондом).
+        // Ордерный сокет мёртв только по ReadyState - прикладного heartbeat у него нет.
+        private void CheckAlivePrivateSockets()
         {
             Thread.Sleep(10000);
 
@@ -262,36 +282,37 @@ namespace OsEngine.Market.Servers.BCS
             {
                 try
                 {
-                    Thread.Sleep(30000);
+                    Thread.Sleep(10000);
 
-                    if (ServerStatus != ServerConnectStatus.Connect)
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect
+                        || _privateSocketReconnectAllowed == false)
                     {
                         continue;
                     }
 
-                    if (_subscribedSecurities.Count == 0)
+                    WebSocket portfolio = _webSocketPortfolio;
+
+                    bool portfolioDead = portfolio == null
+                        || portfolio.ReadyState != WebSocketState.Open
+                        || (_lastPortfolioMessageTime != DateTime.MinValue
+                            && _lastPortfolioMessageTime.AddSeconds(30) < DateTime.Now);
+
+                    if (portfolioDead)
                     {
-                        continue;
+                        ReconnectPortfolioSocket();
                     }
 
-                    if (_lastMarketDataMessageTime == DateTime.MinValue)
-                    {
-                        continue;
-                    }
+                    WebSocket orders = _webSocketOrders;
 
-                    // ночью отсутствие данных легально, смотрим только торговые часы 06:50-23:50
-                    // (на Мосбирже есть и выходные торги, поэтому без проверки дня недели)
-                    TimeSpan time = DateTime.Now.TimeOfDay;
-
-                    if (time < TimeSpan.FromMinutes(410) || time > TimeSpan.FromMinutes(1430))
+                    if (orders == null
+                        || orders.ReadyState != WebSocketState.Open)
                     {
-                        continue;
-                    }
-
-                    if (DateTime.Now - _lastMarketDataMessageTime > TimeSpan.FromMinutes(10))
-                    {
-                        SendLogMessage("BCS: нет данных рыночного сокета более 10 минут в торговое время. Переподключение.", LogMessageType.Error);
-                        ForceDisconnect();
+                        ReconnectOrdersSocket();
                     }
                 }
                 catch (Exception ex)
@@ -301,6 +322,631 @@ namespace OsEngine.Market.Servers.BCS
                 }
             }
         }
+
+        private void ReconnectPortfolioSocket()
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Connect
+                    || _privateSocketReconnectAllowed == false)
+                {
+                    return;
+                }
+
+                if (_lastPortfolioReconnectTime != DateTime.MinValue
+                    && _lastPortfolioReconnectTime.AddSeconds(30) > DateTime.Now)
+                {
+                    // throttled: не чаще одного реконнекта в 30 секунд
+                    return;
+                }
+
+                _lastPortfolioReconnectTime = DateTime.Now;
+                _portfolioReconnectAttempts++;
+
+                SendLogMessage($"BCS WebSocket Portfolio reconnect attempt {_portfolioReconnectAttempts}/3.", LogMessageType.System);
+
+                WebSocket oldSocket = _webSocketPortfolio;
+                _webSocketPortfolio = null;
+
+                if (oldSocket != null)
+                {
+                    // порядок важен: сначала закрываем старый, потом открываем новый -
+                    // у портфельного сокета лимит 2 одновременных соединения
+                    DetachPortfolioSocketEvents(oldSocket);
+
+                    // закрываем безусловно: недооткрывшийся сокет тоже занимает слот сервера
+                    oldSocket.CloseAsync();
+                }
+
+                WebSocket newSocket = CreatePortfolioSocket();
+
+                if (newSocket == null)
+                {
+                    HandlePortfolioReconnectFailure();
+                    return;
+                }
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    DetachPortfolioSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+
+                    HandlePortfolioReconnectFailure();
+                    return;
+                }
+
+                // Dispose мог пройти, пока ждали открытия: сокет не нужен, закрываем
+                if (_privateSocketReconnectAllowed == false
+                    || ServerStatus != ServerConnectStatus.Connect)
+                {
+                    DetachPortfolioSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+                    return;
+                }
+
+                _webSocketPortfolio = newSocket;
+                // grace-окно: если за 30 секунд снапшот не придёт,
+                // watchdog сочтёт сокет мёртвым и пересоздаст ещё раз
+                _lastPortfolioMessageTime = DateTime.Now;
+                _portfolioReconnectAttempts = 0;
+
+                SendLogMessage("BCS WebSocket Portfolio reconnected. Snapshot will arrive from the socket.", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void HandlePortfolioReconnectFailure()
+        {
+            if (_portfolioReconnectAttempts >= 3)
+            {
+                SendLogMessage("BCS WebSocket Portfolio reconnect failed after maximum attempts. Restarting the connector.", LogMessageType.Error);
+                ForceDisconnect();
+            }
+        }
+
+        private void ReconnectOrdersSocket()
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Connect
+                    || _privateSocketReconnectAllowed == false)
+                {
+                    return;
+                }
+
+                if (_webSocketOrders != null
+                    && _webSocketOrders.ReadyState == WebSocketState.Open)
+                {
+                    return;
+                }
+
+                if (_lastOrdersReconnectTime != DateTime.MinValue
+                    && _lastOrdersReconnectTime.AddSeconds(30) > DateTime.Now)
+                {
+                    // throttled: не чаще одного реконнекта в 30 секунд
+                    return;
+                }
+
+                _lastOrdersReconnectTime = DateTime.Now;
+                _ordersReconnectAttempts++;
+
+                SendLogMessage($"BCS WebSocket Orders reconnect attempt {_ordersReconnectAttempts}/3.", LogMessageType.System);
+
+                WebSocket oldSocket = _webSocketOrders;
+                _webSocketOrders = null;
+
+                if (oldSocket != null)
+                {
+                    DetachOrdersSocketEvents(oldSocket);
+
+                    // закрываем безусловно: недооткрывшийся сокет тоже занимает слот сервера
+                    oldSocket.CloseAsync();
+                }
+
+                WebSocket newSocket = CreateOrdersSocket();
+
+                if (newSocket == null)
+                {
+                    HandleOrdersReconnectFailure();
+                    return;
+                }
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    DetachOrdersSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+
+                    HandleOrdersReconnectFailure();
+                    return;
+                }
+
+                // Dispose мог пройти, пока ждали открытия: сокет не нужен, закрываем
+                if (_privateSocketReconnectAllowed == false
+                    || ServerStatus != ServerConnectStatus.Connect)
+                {
+                    DetachOrdersSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+                    return;
+                }
+
+                _webSocketOrders = newSocket;
+                _ordersReconnectAttempts = 0;
+
+                SendLogMessage("BCS WebSocket Orders reconnected. Aligning orders from REST.", LogMessageType.System);
+
+                AlignOrdersAfterReconnect();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void HandleOrdersReconnectFailure()
+        {
+            if (_ordersReconnectAttempts >= 3)
+            {
+                SendLogMessage("BCS WebSocket Orders reconnect failed after maximum attempts. Restarting the connector.", LogMessageType.Error);
+                ForceDisconnect();
+            }
+        }
+
+        // У ордерного сокета БКС нет снапшота и реюза событий (проверено зондом):
+        // за окно обрыва события теряются, поэтому выравниваемся по REST.
+        // Активные ордера - полным списком, финальные (исполненные/отменённые) - только те,
+        // что изменились после потери соединения. Сделки добираются через trades/search
+        // с дедупликацией по tradeNum.
+        private void AlignOrdersAfterReconnect()
+        {
+            try
+            {
+                DateTime lostTime = _ordersConnectionLostTime;
+                _ordersConnectionLostTime = DateTime.MinValue;
+
+                List<Order> activeOrders = GetAllActiveOrdersFromExchange();
+
+                for (int i = 0; i < activeOrders.Count; i++)
+                {
+                    if (IsMyOrderEventDuplicate(activeOrders[i]) == false)
+                    {
+                        MyOrderEvent?.Invoke(activeOrders[i]);
+                    }
+
+                    if (activeOrders[i].VolumeExecute > 0)
+                    {
+                        EnqueueMyTradeFetch(activeOrders[i]);
+                    }
+                }
+
+                List<Order> recentFinalOrders = GetRecentFinalOrders();
+
+                if (recentFinalOrders != null)
+                {
+                    for (int i = 0; i < recentFinalOrders.Count; i++)
+                    {
+                        Order order = recentFinalOrders[i];
+
+                        if (lostTime != DateTime.MinValue
+                            && order.TimeCallBack < lostTime.AddMinutes(-1))
+                        {
+                            continue;
+                        }
+
+                        if (IsMyOrderEventDuplicate(order) == false)
+                        {
+                            MyOrderEvent?.Invoke(order);
+                        }
+
+                        EnqueueMyTradeFetch(order);
+                    }
+                }
+
+                if (ForceCheckOrdersAfterReconnectEvent != null)
+                {
+                    ForceCheckOrdersAfterReconnectEvent();
+                }
+
+                SendLogMessage($"BCS orders aligned after reconnect: {activeOrders.Count} active, recent final checked.", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Align orders after reconnect error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Market data sockets seamless reconnect
+
+        // Единственный поток, пересоздающий сокеты маркет-даты (single writer, паттерн OKX/TInvest).
+        // Сокет мёртв, если закрыт (ReadyState != Open). Тишина по конкретному сокету легальна
+        // (зонд: у неликвида бывают паузы по 7,5 минут), поэтому отдельно проверяется только
+        // глобальная тишина по всему пулу в торговые часы.
+        private void MarketDataWatchdog()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(10000);
+
+                    if (IsCompletelyDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect
+                        || _marketDataReconnectAllowed == false)
+                    {
+                        continue;
+                    }
+
+                    List<BcsSocketWrapper> wrappers;
+
+                    lock (_webSocketPublicLocker)
+                    {
+                        wrappers = new List<BcsSocketWrapper>(_webSocketPublicList);
+                    }
+
+                    for (int i = 0; i < wrappers.Count; i++)
+                    {
+                        BcsSocketWrapper wrapper = wrappers[i];
+
+                        if (wrapper.Socket != null
+                            && wrapper.Socket.ReadyState == WebSocketState.Open)
+                        {
+                            CheckCanarySilence(wrapper);
+                            continue;
+                        }
+
+                        if (wrapper.Socket != null
+                            && wrapper.CreatedTime != DateTime.MinValue
+                            && wrapper.CreatedTime.AddSeconds(30) > DateTime.Now)
+                        {
+                            // сокет ещё открывается: обёртка держит ReadyState = Closed
+                            // до хендшейка, поэтому мёртвым считаем только после grace 30 сек.
+                            // У ConnectAsync свой таймаут 30 сек - не открылся,
+                            // на следующих циклах пересоздадим уже как мёртвый
+                            continue;
+                        }
+
+                        int subscriptionsCount;
+
+                        lock (wrapper.Subscriptions)
+                        {
+                            subscriptionsCount = wrapper.Subscriptions.Count;
+                        }
+
+                        if (subscriptionsCount == 0)
+                        {
+                            // пустой мёртвый сокет не пересоздаём: бюджет 20 соединений
+                            // не тратится на сокеты без подписок
+                            RemovePublicSocketWrapper(wrapper);
+                            continue;
+                        }
+
+                        ReconnectMarketDataSocket(wrapper);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        // Детектор молча мёртвого сокета: канарейка (ликвидный эталон) на живом рынке
+        // молчать не может. Но тишина сама по себе не доказывает смерть фида - в выходные,
+        // на пре-опене и у неликвида рынок легально молчит (логи 17-18.10.2026: старый
+        // вотчдог из-за этого перезапускал здоровый коннектор каждые 10 минут).
+        // Поэтому решение принимает REST-арбитр: свежая минутная свеча эталона = рынок жив,
+        // а сокет молчит = фид мёртв, реконнектим. Старая свеча = рынок молчит, не трогаем.
+        private void CheckCanarySilence(BcsSocketWrapper wrapper)
+        {
+            if (wrapper.LastMessageTime == DateTime.MinValue)
+            {
+                return;
+            }
+
+            // дешёвый предфильтр по часам: ночью не проверяем вовсе
+            TimeSpan time = DateTime.Now.TimeOfDay;
+
+            if (time < TimeSpan.FromMinutes(410) || time > TimeSpan.FromMinutes(1430))
+            {
+                return;
+            }
+
+            if (DateTime.Now - wrapper.LastMessageTime <= TimeSpan.FromMinutes(5))
+            {
+                return;
+            }
+
+            if (wrapper.LastArbiterTime != DateTime.MinValue
+                && wrapper.LastArbiterTime.AddMinutes(10) > DateTime.Now)
+            {
+                // throttled: арбитраж не чаще раза в 10 минут на сокет
+                return;
+            }
+
+            wrapper.LastArbiterTime = DateTime.Now;
+
+            if (IsMarketAliveViaRest())
+            {
+                SendLogMessage($"BCS: канарейка {_canaryTicker} молчит более 5 минут, но рынок торгуется (REST). Сокет мёртв - реконнект.", LogMessageType.Error);
+                ReconnectMarketDataSocket(wrapper);
+            }
+            else
+            {
+                SendLogMessage($"BCS: канарейка {_canaryTicker} молчит более 5 минут, по REST рынок тоже молчит (выходной/пре-опен/нет сделок). Сокет не трогаем.", LogMessageType.System);
+            }
+        }
+
+        private bool IsMarketAliveViaRest()
+        {
+            try
+            {
+                Security canarySecurity = null;
+
+                lock (_securitiesLocker)
+                {
+                    for (int i = 0; i < _securities.Count; i++)
+                    {
+                        if (_securities[i].Name == _canaryTicker
+                            && GetClassCode(_securities[i]) == _canaryClassCode)
+                        {
+                            canarySecurity = _securities[i];
+                            break;
+                        }
+                    }
+                }
+
+                if (canarySecurity == null)
+                {
+                    // бумага не загружена (её класс выключен в параметрах) -
+                    // для REST-ответа хватит синтетической
+                    canarySecurity = new Security();
+                    canarySecurity.Name = _canaryTicker;
+                    canarySecurity.NameClass = "STOCK-" + _canaryClassCode;
+                    canarySecurity.Decimals = 2;
+                    canarySecurity.DecimalsVolume = 0;
+                }
+
+                DateTime endTime = DateTime.Now;
+                DateTime startTime = endTime.AddMinutes(-15);
+
+                List<Candle> candles = RequestHistoryCandles(canarySecurity, _canaryClassCode, "M1", startTime, endTime);
+
+                if (candles == null)
+                {
+                    // REST не ответил: неизвестность - не повод ронять сокет
+                    SendLogMessage("BCS canary arbiter: REST candles request failed, socket left as is", LogMessageType.System);
+                    return false;
+                }
+
+                DateTime lastCandleTime = DateTime.MinValue;
+
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    if (candles[i].TimeStart > lastCandleTime)
+                    {
+                        lastCandleTime = candles[i].TimeStart;
+                    }
+                }
+
+                // свежая минутная свеча = рынок торгуется прямо сейчас
+                return lastCandleTime != DateTime.MinValue
+                    && lastCandleTime >= DateTime.Now.AddMinutes(-5);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                return false;
+            }
+        }
+
+        private void ReconnectMarketDataSocket(BcsSocketWrapper wrapper)
+        {
+            try
+            {
+                if (wrapper == null
+                    || ServerStatus != ServerConnectStatus.Connect
+                    || _marketDataReconnectAllowed == false)
+                {
+                    return;
+                }
+
+                if (wrapper.LastReconnectTime != DateTime.MinValue
+                    && wrapper.LastReconnectTime.AddSeconds(30) > DateTime.Now)
+                {
+                    // throttled: не чаще одного реконнекта в 30 секунд на сокет
+                    return;
+                }
+
+                wrapper.LastReconnectTime = DateTime.Now;
+                wrapper.ReconnectAttempts++;
+
+                SendLogMessage($"BCS WebSocket MarketData reconnect attempt {wrapper.ReconnectAttempts}/3.", LogMessageType.System);
+
+                // порядок важен: сначала закрываем старый, потом открываем новый -
+                // у маркет-даты жёсткий бюджет 20 одновременных соединений,
+                // временное удвоение сокетов при массовом падении пула упрётся в лимит
+                WebSocket oldSocket = wrapper.Socket;
+                wrapper.Socket = null;
+                wrapper.CanaryActive = false;
+
+                if (oldSocket != null)
+                {
+                    DetachMarketDataSocketEvents(oldSocket);
+
+                    // закрываем безусловно, не только Open: у недооткрывшегося сокета
+                    // хендшейк иначе завершится на сервере и ~минуту жрёт слот
+                    // из бюджета 20 соединений (бой 19.10: призрак от гонки дал 403 на #17)
+                    oldSocket.CloseAsync();
+                }
+
+                // пауза между пересозданиями: при массовом падении пула
+                // сокеты восстанавливаются по одному, без одновременного штурма
+                Thread.Sleep(500);
+
+                WebSocket newSocket = CreateNewSocketMarketData();
+
+                if (newSocket == null)
+                {
+                    HandleMarketDataReconnectFailure(wrapper);
+                    return;
+                }
+
+                // назначаем до ожидания открытия: Opened-хук найдёт wrapper по sender
+                // и восстановит его подписки одним пакетом
+                wrapper.Socket = newSocket;
+                wrapper.CreatedTime = DateTime.Now;
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    // полуоткрытый сокет бросаем сразу: он всё равно занимает слот в бюджете соединений
+                    DetachMarketDataSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+
+                    wrapper.Socket = null;
+
+                    HandleMarketDataReconnectFailure(wrapper);
+                    return;
+                }
+
+                // Dispose мог пройти, пока ждали открытия: сокет не нужен, закрываем
+                if (_marketDataReconnectAllowed == false
+                    || ServerStatus != ServerConnectStatus.Connect)
+                {
+                    DetachMarketDataSocketEvents(newSocket);
+                    newSocket.CloseAsync();
+                    wrapper.Socket = null;
+                    return;
+                }
+
+                wrapper.ReconnectAttempts = 0;
+
+                SendLogMessage("BCS WebSocket MarketData reconnected. Subscriptions restored from the Opened hook.", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void HandleMarketDataReconnectFailure(BcsSocketWrapper wrapper)
+        {
+            if (wrapper.ReconnectAttempts >= 3)
+            {
+                SendLogMessage("BCS WebSocket MarketData reconnect failed after maximum attempts. Restarting the connector.", LogMessageType.Error);
+                ForceDisconnect();
+            }
+        }
+
+        private BcsSocketWrapper FindPublicSocketWrapper(WebSocket socket)
+        {
+            if (socket == null)
+            {
+                return null;
+            }
+
+            lock (_webSocketPublicLocker)
+            {
+                for (int i = 0; i < _webSocketPublicList.Count; i++)
+                {
+                    if (ReferenceEquals(_webSocketPublicList[i].Socket, socket))
+                    {
+                        return _webSocketPublicList[i];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private void RemovePublicSocketWrapper(BcsSocketWrapper wrapper)
+        {
+            lock (_webSocketPublicLocker)
+            {
+                _webSocketPublicList.Remove(wrapper);
+
+                // чистим маппинги бумаг, указывающие на удалённый wrapper
+                List<string> keysToRemove = null;
+
+                foreach (KeyValuePair<string, BcsSocketWrapper> pair in _wrapperBySecurityName)
+                {
+                    if (ReferenceEquals(pair.Value, wrapper))
+                    {
+                        if (keysToRemove == null)
+                        {
+                            keysToRemove = new List<string>();
+                        }
+
+                        keysToRemove.Add(pair.Key);
+                    }
+                }
+
+                if (keysToRemove != null)
+                {
+                    for (int i = 0; i < keysToRemove.Count; i++)
+                    {
+                        _wrapperBySecurityName.Remove(keysToRemove[i]);
+                    }
+                }
+            }
+
+            WebSocket socket = wrapper.Socket;
+            wrapper.Socket = null;
+
+            if (socket != null)
+            {
+                DetachMarketDataSocketEvents(socket);
+                socket.CloseAsync();
+            }
+        }
+
+        #endregion
 
         private bool GetAccess24HToken()
         {
@@ -361,6 +1007,20 @@ namespace OsEngine.Market.Servers.BCS
 
         public void Dispose()
         {
+            // сначала запрещаем бесшовный реконнект: Closed-события закрываемых ниже сокетов
+            // не должны запускать пересоздание
+            _privateSocketReconnectAllowed = false;
+            _marketDataReconnectAllowed = false;
+
+            _portfolioReconnectAttempts = 0;
+            _ordersReconnectAttempts = 0;
+            _lastPortfolioReconnectTime = DateTime.MinValue;
+            _lastOrdersReconnectTime = DateTime.MinValue;
+            _lastPortfolioMessageTime = DateTime.MinValue;
+            _ordersConnectionLostTime = DateTime.MinValue;
+
+            _canaryIsUserSubscribed = false;
+
             _myPortfolios.Clear();
             _securitiesLots.Clear();
             _accessTokenExpireTime = DateTime.MinValue;
@@ -368,9 +1028,12 @@ namespace OsEngine.Market.Servers.BCS
 
             lock (_depthSubscribeLocker)
             {
+                _tradesSubscribeTimes.Clear();
+                _tradesSubscribeAttempts.Clear();
                 _depthSubscribeTimes.Clear();
                 _depthSubscribeAttempts.Clear();
                 _loggedEmptyDepth.Clear();
+                _lastDepthConfirmTime = DateTime.MinValue;
             }
 
             lock (_pendingMyTradeFetchLocker)
@@ -385,6 +1048,11 @@ namespace OsEngine.Market.Servers.BCS
                 _sentMyTradesNumbers.Clear();
             }
 
+            lock (_sentMyOrderEventsLocker)
+            {
+                _sentMyOrderEvents.Clear();
+            }
+
             UnsubscribeAllSecurities();
             _subscribedSecurities.Clear();
             DeleteWebSocketConnection();
@@ -395,7 +1063,6 @@ namespace OsEngine.Market.Servers.BCS
             MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
 
             _lastMdTime = DateTime.MinValue;
-            _lastMarketDataMessageTime = DateTime.MinValue;
 
             _httpClient?.Dispose();
             _httpClient = null;
@@ -425,7 +1092,7 @@ namespace OsEngine.Market.Servers.BCS
 
         public event Action DisconnectEvent;
 
-        public event Action ForceCheckOrdersAfterReconnectEvent { add { } remove { } }
+        public event Action ForceCheckOrdersAfterReconnectEvent;
 
         public bool IsCompletelyDeleted { get; set; }
 
@@ -456,13 +1123,46 @@ namespace OsEngine.Market.Servers.BCS
         private DateTime _refreshTokenExpireTime = DateTime.MinValue;
         TimeZoneInfo _moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
 
-        private List<WebSocket> _webSocketPublicList = new List<WebSocket>();
+        // market data socket pool: each wrapper remembers its subscriptions,
+        // a dead socket is reconnected and resubscribed on its own (OKX/TInvest pattern).
+        // BCS limits: 20 simultaneous market data connections, 100 instruments per connection
+        private List<BcsSocketWrapper> _webSocketPublicList = new List<BcsSocketWrapper>();
+
+        // all accesses to the public sockets pool go through this locker:
+        // the watchdog thread iterates it, Subscribe adds sockets, Dispose clears it
+        private string _webSocketPublicLocker = "_webSocketPublicLockerBcs";
+
+        // security name -> wrapper holding its subscription: ReSubscribeTrades
+        // must send to the socket the security actually lives on, not to the last one
+        private Dictionary<string, BcsSocketWrapper> _wrapperBySecurityName = new Dictionary<string, BcsSocketWrapper>();
+
+        // canary heartbeat: every market data socket carries a trades subscription on a liquid
+        // benchmark, so a silently dead socket is visible per-socket.
+        // Canary events are not passed to the engine unless the user subscribed the instrument
+        private readonly string _canaryTicker = "SBER";
+        private readonly string _canaryClassCode = "TQBR";
+        private bool _canaryIsUserSubscribed;
+
         private WebSocket _webSocketPortfolio;
         private WebSocket _webSocketOrders;
-        private bool _socketDataIsActive;
         private bool _socketPortfolioIsActive;
         private bool _socketOrdersIsActive;
         private string _activationLocker = "activationLocker";
+
+        // seamless reconnect of private sockets (portfolio + orders):
+        // a dead socket is recreated by the CheckAlivePrivateSockets thread,
+        // the connector stays connected (OKX/TInvest pattern)
+        private bool _privateSocketReconnectAllowed = true;
+        private DateTime _lastPortfolioMessageTime = DateTime.MinValue;
+        private DateTime _lastPortfolioReconnectTime = DateTime.MinValue;
+        private int _portfolioReconnectAttempts;
+        private DateTime _lastOrdersReconnectTime = DateTime.MinValue;
+        private int _ordersReconnectAttempts;
+        private DateTime _ordersConnectionLostTime = DateTime.MinValue;
+
+        // seamless reconnect of market data sockets: a dead socket is recreated
+        // by the MarketDataWatchdog thread, the connector stays connected
+        private bool _marketDataReconnectAllowed = true;
 
         #endregion
 
@@ -581,7 +1281,10 @@ namespace OsEngine.Market.Servers.BCS
             List<BcsSecurity> securitiesResp = [];
             List<BcsSecurity> bcsSec = [];
 
-            int tryCount = 1;
+            // счётчик идёт по последовательным ошибкам и сбрасывается после успеха:
+            // в старой логике после первой ошибки пагинация шла до пустой страницы,
+            // а 5 ошибок обнуляли ВЕСЬ скачанный класс бумаг
+            int failCount = 0;
 
             do
             {
@@ -595,6 +1298,8 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
+                    failCount = 0;
+
                     try
                     {
                         string responseMsg = response.Content.ReadAsStringAsync().Result;
@@ -617,25 +1322,25 @@ namespace OsEngine.Market.Servers.BCS
                 }
                 else
                 {
+                    failCount++;
+
                     string errorMsg = response.Content.ReadAsStringAsync().Result;
 
                     SendLogMessage($"Securities request error. Status: {response.StatusCode}-{response.ReasonPhrase}\n" +
                         $"Msg: {errorMsg}\n" +
-                        $"Try: {tryCount} downloading securities {type}", LogMessageType.Error);
+                        $"Try: {failCount} downloading securities {type}", LogMessageType.Error);
 
                     page--;
-
-                    tryCount++;
 
                     continue;
                 }
 
-            } while ((bcsSec.Count == 100 || tryCount > 1) && tryCount < 5);
+            } while ((bcsSec.Count == 100 || failCount > 0) && failCount < 5);
 
-            if (tryCount == 5)
+            if (failCount >= 5)
             {
-                SendLogMessage($"There are too many attempts to download securities {type} type. ", LogMessageType.Error);
-                return null;
+                // класс не теряем: возвращаем всё, что успели скачать
+                SendLogMessage($"There are too many attempts to download securities {type} type. Возвращаю частичный список: {securitiesResp.Count} бумаг.", LogMessageType.Error);
             }
 
             return securitiesResp;
@@ -677,8 +1382,18 @@ namespace OsEngine.Market.Servers.BCS
                     newSecurity.NameFull = item.displayName;
                     newSecurity.Lot = instrumentType == SecurityType.Futures || instrumentType == SecurityType.Option ? 1.0m : item.lotSize.ToDecimal();
                     newSecurity.NameId = string.IsNullOrEmpty(item.isin) ? i + "-" + item.ticker + "-" + item.boards[0].exchange : item.isin;
-                    newSecurity.Decimals = GetDecimals(item.minimumStep.ToDecimal());
-                    newSecurity.PriceStep = item.minimumStep.ToDecimal();
+
+                    decimal minStep = item.minimumStep.ToDecimal();
+
+                    if (minStep <= 0)
+                    {
+                        // шаг цены не пришёл: без дефолта свечи молча округлятся до целых
+                        SendLogMessage($"Security {item.ticker}: minimumStep не задан API, принят шаг цены 1.", LogMessageType.System);
+                        minStep = 1;
+                    }
+
+                    newSecurity.Decimals = GetDecimals(minStep);
+                    newSecurity.PriceStep = minStep;
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
 
                     if (instrumentType == SecurityType.Futures || instrumentType == SecurityType.Option)
@@ -971,6 +1686,21 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (portfT365term.Count > 0)
                 {
+                    // закрытые позиции убираем по составу всегда, независимо от количества:
+                    // guard по Count пропускал случай "одна закрылась, другая открылась"
+                    if (portfolio.PositionOnBoard != null && portfolio.PositionOnBoard.Count > 0)
+                    {
+                        for (int k = 0; k < portfolio.PositionOnBoard.Count; k++)
+                        {
+                            if (portfT365term.Find(p => p.ticker == portfolio.PositionOnBoard[k].SecurityNameCode) == null)
+                            {
+                                _securitiesLots.Remove(portfolio.PositionOnBoard[k].SecurityNameCode);
+                                portfolio.PositionOnBoard.Remove(portfolio.PositionOnBoard[k]);
+                                k--;
+                            }
+                        }
+                    }
+
                     decimal totalBalance = 0;
                     decimal totalBlocked = 0;
                     decimal totalUnrealizedPl = 0;
@@ -992,26 +1722,20 @@ namespace OsEngine.Market.Servers.BCS
                         }
 
                         totalBalance += posCurrBalance;
-                        totalBlocked += currBlocked;
+
+                        // блокировка портфеля - в рублях (как ValueCurrent), не в штуках:
+                        // пропорциональная доля рублёвой оценки позиции
+                        if (quantity > 0 && currBlocked > 0)
+                        {
+                            totalBlocked += posCurrBalance * (currBlocked / quantity);
+                        }
+
                         totalUnrealizedPl += currUnrealizedPl;
 
                         PositionOnBoard posPortf = null;
 
                         if (portfolio.PositionOnBoard != null)
                         {
-                            if (portfolio.PositionOnBoard.Count > portfT365term.Count)
-                            {
-                                for (int k = 0; k < portfolio.PositionOnBoard.Count; k++)
-                                {
-                                    if (portfT365term.Find(p => p.ticker == portfolio.PositionOnBoard[k].SecurityNameCode) == null)
-                                    {
-                                        _securitiesLots.Remove(portfolio.PositionOnBoard[k].SecurityNameCode);
-                                        portfolio.PositionOnBoard.Remove(portfolio.PositionOnBoard[k]);
-                                        k--;
-                                    }
-                                }
-                            }
-
                             posPortf = portfolio.PositionOnBoard.Find(p => p.SecurityNameCode == portfT365term[j].ticker);
                         }
 
@@ -1070,6 +1794,25 @@ namespace OsEngine.Market.Servers.BCS
                     portfolio.ValueBlocked = totalBlocked;
                     portfolio.UnrealizedPnl = totalUnrealizedPl;
 
+                }
+                else
+                {
+                    // счёт полностью закрыт: снапшот не содержит T365-позиций -
+                    // чистим доску и обнуляем итоги, иначе последние позиции
+                    // и старые значения останутся на доске навсегда
+                    if (portfolio.PositionOnBoard != null && portfolio.PositionOnBoard.Count > 0)
+                    {
+                        for (int k = 0; k < portfolio.PositionOnBoard.Count; k++)
+                        {
+                            _securitiesLots.Remove(portfolio.PositionOnBoard[k].SecurityNameCode);
+                        }
+
+                        portfolio.PositionOnBoard.Clear();
+                    }
+
+                    portfolio.ValueCurrent = 0;
+                    portfolio.ValueBlocked = 0;
+                    portfolio.UnrealizedPnl = 0;
                 }
 
                 if (_myPortfolios.Count != 0)
@@ -1266,7 +2009,9 @@ namespace OsEngine.Market.Servers.BCS
                     return new List<Candle>();
                 }
 
-                return ConvertToOsEngineCandles(candleResponse.bars, security);
+                List<Candle> converted = ConvertToOsEngineCandles(candleResponse.bars, security);
+
+                return converted;
             }
             catch (Exception ex)
             {
@@ -1292,7 +2037,14 @@ namespace OsEngine.Market.Servers.BCS
                 candle.High = Math.Round(bar.high.ToDecimal(), security.Decimals);
                 candle.Low = Math.Round(bar.low.ToDecimal(), security.Decimals);
                 candle.Close = Math.Round(bar.close.ToDecimal(), security.Decimals);
-                candle.Volume = Math.Round(bar.volume.ToDecimal(), security.DecimalsVolume);
+
+                // у БКС volume в свечах в рублях (проверено зондом 19.10.2026),
+                // в конвенции OsEngine объём - в штуках: пересчёт по цене закрытия
+                decimal closePrice = bar.close.ToDecimal();
+                candle.Volume = closePrice > 0
+                    ? Math.Round(bar.volume.ToDecimal() / closePrice, security.DecimalsVolume)
+                    : 0;
+
                 candle.State = CandleState.Finished;
                 candles.Add(candle);
             }
@@ -1311,6 +2063,20 @@ namespace OsEngine.Market.Servers.BCS
             }
 
             return true;
+        }
+
+        // classCode из NameClass формата "TYPE-classCode": последний сегмент,
+        // единая точка парсинга (раньше в части мест был Split[1] - расходилось при дефисе в classCode)
+        private string GetClassCodeByNameClass(string nameClass)
+        {
+            if (string.IsNullOrEmpty(nameClass))
+            {
+                return nameClass;
+            }
+
+            string[] splitNameClass = nameClass.Split('-');
+
+            return splitNameClass[splitNameClass.Length - 1];
         }
 
         private string GetClassCode(Security security)
@@ -1388,9 +2154,8 @@ namespace OsEngine.Market.Servers.BCS
                     WebSocketDataMessage = new ConcurrentQueue<string>();
                 }
 
-                _socketDataIsActive = false;
-
-                _webSocketPublicList.Add(CreateNewSocketMarketData());
+                // сокет маркет-даты не создаётся до первой подписки (ленивое создание):
+                // бюджет 20 соединений не тратится на пустой сокет
             }
             catch (Exception ex)
             {
@@ -1404,7 +2169,9 @@ namespace OsEngine.Market.Servers.BCS
             {
                 WebSocket webSocketMarketData = new WebSocket(_wsHostMarketData);
                 webSocketMarketData.SetHeader("Authorization", "Bearer " + _apiAccessToken);
-                webSocketMarketData.EmitOnPing = true;
+
+                // EmitOnPing не включаем: heartbeat у БКС на протокольном уровне (WS ping-фреймы),
+                // ClientWebSocket отвечает на них сам, текстового ping/pong в API нет (проверено зондом)
                 webSocketMarketData.KeepAliveInterval = TimeSpan.FromSeconds(30);
                 webSocketMarketData.KeepAliveTimeout = TimeSpan.FromMinutes(2);
                 webSocketMarketData.OnOpen += WebSocketData_Opened;
@@ -1428,11 +2195,20 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
+        private void DetachMarketDataSocketEvents(WebSocket webSocketMarketData)
+        {
+            webSocketMarketData.OnOpen -= WebSocketData_Opened;
+            webSocketMarketData.OnClose -= WebSocketData_Closed;
+            webSocketMarketData.OnMessage -= WebSocketData_MessageReceived;
+            webSocketMarketData.OnError -= WebSocketData_Error;
+        }
+
         private void CreatePrivateWebSocketConnect()
         {
             try
             {
                 _socketPortfolioIsActive = false;
+                _socketOrdersIsActive = false;
 
                 lock (_socketLocker)
                 {
@@ -1440,45 +2216,90 @@ namespace OsEngine.Market.Servers.BCS
                     WebSocketMyOrdersAndTradesMessage = new ConcurrentQueue<string>();
                     MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
 
-                    _webSocketPortfolio = new WebSocket(_wsHostPortfolio);
-                    _webSocketPortfolio.SetHeader("Authorization", "Bearer " + _apiAccessToken);
-                    _webSocketPortfolio.EmitOnPing = true;
-                    _webSocketPortfolio.KeepAliveInterval = TimeSpan.FromSeconds(30);
-                    _webSocketPortfolio.KeepAliveTimeout = TimeSpan.FromMinutes(2);
-                    _webSocketPortfolio.OnOpen += WebSocketPortfolio_Opened;
-                    _webSocketPortfolio.OnClose += WebSocketPortfolio_Closed;
-                    _webSocketPortfolio.OnMessage += WebSocketPortfolio_MessageReceived;
-                    _webSocketPortfolio.OnError += WebSocketPortfolio_Error;
-
-                    if (_myProxy != null)
-                    {
-                        _webSocketPortfolio.SetProxy(_myProxy);
-                    }
-
-                    _webSocketPortfolio.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
-
-                    _webSocketOrders = new WebSocket(_wsHostOrders);
-                    _webSocketOrders.SetHeader("Authorization", "Bearer " + _apiAccessToken);
-                    _webSocketOrders.EmitOnPing = true;
-                    _webSocketOrders.KeepAliveInterval = TimeSpan.FromSeconds(30);
-                    _webSocketOrders.KeepAliveTimeout = TimeSpan.FromMinutes(2);
-                    _webSocketOrders.OnOpen += WebSocketOrders_Opened;
-                    _webSocketOrders.OnClose += WebSocketOrders_Closed;
-                    _webSocketOrders.OnMessage += WebSocketOrders_MessageReceived;
-                    _webSocketOrders.OnError += WebSocketOrders_Error;
-
-                    if (_myProxy != null)
-                    {
-                        _webSocketOrders.SetProxy(_myProxy);
-                    }
-
-                    _webSocketOrders.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
+                    _webSocketPortfolio = CreatePortfolioSocket();
+                    _webSocketOrders = CreateOrdersSocket();
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage("Create private sockets error" + ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private WebSocket CreatePortfolioSocket()
+        {
+            try
+            {
+                WebSocket webSocketPortfolio = new WebSocket(_wsHostPortfolio);
+                webSocketPortfolio.SetHeader("Authorization", "Bearer " + _apiAccessToken);
+                webSocketPortfolio.EmitOnPing = true;
+                webSocketPortfolio.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                webSocketPortfolio.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+                webSocketPortfolio.OnOpen += WebSocketPortfolio_Opened;
+                webSocketPortfolio.OnClose += WebSocketPortfolio_Closed;
+                webSocketPortfolio.OnMessage += WebSocketPortfolio_MessageReceived;
+                webSocketPortfolio.OnError += WebSocketPortfolio_Error;
+
+                if (_myProxy != null)
+                {
+                    webSocketPortfolio.SetProxy(_myProxy);
+                }
+
+                webSocketPortfolio.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
+
+                return webSocketPortfolio;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Create portfolio socket error: " + ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private WebSocket CreateOrdersSocket()
+        {
+            try
+            {
+                WebSocket webSocketOrders = new WebSocket(_wsHostOrders);
+                webSocketOrders.SetHeader("Authorization", "Bearer " + _apiAccessToken);
+                webSocketOrders.EmitOnPing = true;
+                webSocketOrders.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                webSocketOrders.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+                webSocketOrders.OnOpen += WebSocketOrders_Opened;
+                webSocketOrders.OnClose += WebSocketOrders_Closed;
+                webSocketOrders.OnMessage += WebSocketOrders_MessageReceived;
+                webSocketOrders.OnError += WebSocketOrders_Error;
+
+                if (_myProxy != null)
+                {
+                    webSocketOrders.SetProxy(_myProxy);
+                }
+
+                webSocketOrders.ConnectAsync(TimeSpan.FromSeconds(30), _clientForSocket);
+
+                return webSocketOrders;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Create orders socket error: " + ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void DetachPortfolioSocketEvents(WebSocket webSocketPortfolio)
+        {
+            webSocketPortfolio.OnOpen -= WebSocketPortfolio_Opened;
+            webSocketPortfolio.OnClose -= WebSocketPortfolio_Closed;
+            webSocketPortfolio.OnMessage -= WebSocketPortfolio_MessageReceived;
+            webSocketPortfolio.OnError -= WebSocketPortfolio_Error;
+        }
+
+        private void DetachOrdersSocketEvents(WebSocket webSocketOrders)
+        {
+            webSocketOrders.OnOpen -= WebSocketOrders_Opened;
+            webSocketOrders.OnClose -= WebSocketOrders_Closed;
+            webSocketOrders.OnMessage -= WebSocketOrders_MessageReceived;
+            webSocketOrders.OnError -= WebSocketOrders_Error;
         }
         private void DeleteWebSocketConnection()
         {
@@ -1488,31 +2309,40 @@ namespace OsEngine.Market.Servers.BCS
                 {
                     if (_webSocketPublicList != null)
                     {
-                        try
-                        {
-                            for (int i = 0; i < _webSocketPublicList.Count; i++)
-                            {
-                                WebSocket webSocketPublic = _webSocketPublicList[i];
+                        List<BcsSocketWrapper> wrappers;
 
-                                webSocketPublic.OnOpen -= WebSocketData_Opened;
-                                webSocketPublic.OnClose -= WebSocketData_Closed;
-                                webSocketPublic.OnMessage -= WebSocketData_MessageReceived;
-                                webSocketPublic.OnError -= WebSocketData_Error;
+                        lock (_webSocketPublicLocker)
+                        {
+                            wrappers = new List<BcsSocketWrapper>(_webSocketPublicList);
+                            _webSocketPublicList.Clear();
+                            _wrapperBySecurityName.Clear();
+                        }
+
+                        for (int i = 0; i < wrappers.Count; i++)
+                        {
+                            WebSocket webSocketPublic = wrappers[i].Socket;
+
+                            if (webSocketPublic == null)
+                            {
+                                continue;
+                            }
+
+                            try
+                            {
+                                DetachMarketDataSocketEvents(webSocketPublic);
 
                                 if (webSocketPublic.ReadyState == WebSocketState.Open)
                                 {
                                     webSocketPublic.CloseAsync();
                                 }
-
-                                webSocketPublic = null;
                             }
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
+                            catch
+                            {
+                                // ignore
+                            }
 
-                        _webSocketPublicList.Clear();
+                            wrappers[i].Socket = null;
+                        }
                     }
 
                     if (_webSocketPortfolio != null)
@@ -1561,10 +2391,8 @@ namespace OsEngine.Market.Servers.BCS
 
         private void CheckActivationSockets()
         {
-            if (_socketDataIsActive == false)
-            {
-                return;
-            }
+            // сокет маркет-даты в активации не участвует: он создаётся лениво
+            // первой подпиской и дальше пересоздаётся бесшовно
 
             if (_socketPortfolioIsActive == false)
             {
@@ -1604,23 +2432,53 @@ namespace OsEngine.Market.Servers.BCS
         private void WebSocketData_Opened(object sender, EventArgs e)
         {
             SendLogMessage("Socket market data activated", LogMessageType.System);
-            _socketDataIsActive = true;
             CheckActivationSockets();
+
+            // первичное открытие после ленивого создания и бесшовный реконнект
+            // проходят один путь: подписки сокета восстанавливаются одним пакетом
+            WebSocket openedSocket = sender as WebSocket;
+            BcsSocketWrapper wrapper = FindPublicSocketWrapper(openedSocket);
+
+            if (wrapper != null)
+            {
+                // grace-окно для канареечного детектора: после открытия
+                // подписки и первые сообщения придут за несколько секунд
+                wrapper.LastMessageTime = DateTime.Now;
+
+                SendWrapperSubscriptions(wrapper, openedSocket);
+            }
         }
 
         private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
             try
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect
+                    || _marketDataReconnectAllowed == false)
                 {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    return;
                 }
+
+                WebSocket deadSocket = sender as WebSocket;
+                BcsSocketWrapper wrapper = FindPublicSocketWrapper(deadSocket);
+
+                if (wrapper == null)
+                {
+                    // сокет уже заменён бесшовным реконнектом и больше не отслеживается
+                    return;
+                }
+
+                // только логируем: сокет пересоздаст поток MarketDataWatchdog,
+                // коннектор остаётся в Connect
+                SendLogMessage($"BCS WebSocket MarketData connection closed (code {e.Code} {e.Reason}). The socket will be reconnected.", LogMessageType.System);
+
+                if (ReferenceEquals(wrapper.Socket, deadSocket))
+                {
+                    wrapper.Socket = null;
+                    wrapper.CanaryActive = false;
+                }
+
+                DetachMarketDataSocketEvents(deadSocket);
             }
             catch (Exception ex)
             {
@@ -1683,7 +2541,13 @@ namespace OsEngine.Market.Servers.BCS
                     return;
                 }
 
-                _lastMarketDataMessageTime = DateTime.Now;
+                // пер-сокетный heartbeat: канарейка на сокете делает молчание видимым
+                BcsSocketWrapper wrapper = FindPublicSocketWrapper(sender as WebSocket);
+
+                if (wrapper != null)
+                {
+                    wrapper.LastMessageTime = DateTime.Now;
+                }
 
                 if (WebSocketDataMessage == null)
                 {
@@ -1715,15 +2579,15 @@ namespace OsEngine.Market.Servers.BCS
         {
             try
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect
+                    || _privateSocketReconnectAllowed == false)
                 {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    return;
                 }
+
+                // только логируем: сокет пересоздаст поток CheckAlivePrivateSockets,
+                // коннектор остаётся в Connect
+                SendLogMessage($"BCS WebSocket Portfolio connection closed (code {e.Code} {e.Reason}). The socket will be reconnected.", LogMessageType.System);
             }
             catch (Exception ex)
             {
@@ -1774,6 +2638,8 @@ namespace OsEngine.Market.Servers.BCS
                     return;
                 }
 
+                _lastPortfolioMessageTime = DateTime.Now;
+
                 if (WebSocketPortfolioMessage == null)
                 {
                     return;
@@ -1804,15 +2670,20 @@ namespace OsEngine.Market.Servers.BCS
         {
             try
             {
-                if (ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect
+                    || _privateSocketReconnectAllowed == false)
                 {
-                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
-                    message += OsLocalization.Market.Message102;
-
-                    SendLogMessage(message, LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    return;
                 }
+
+                if (_ordersConnectionLostTime == DateTime.MinValue)
+                {
+                    _ordersConnectionLostTime = DateTime.Now;
+                }
+
+                // только логируем: сокет пересоздаст поток CheckAlivePrivateSockets
+                // с последующим REST-выравниванием ордеров
+                SendLogMessage($"BCS WebSocket Orders connection closed (code {e.Code} {e.Reason}). The socket will be reconnected.", LogMessageType.System);
             }
             catch (Exception ex)
             {
@@ -1887,10 +2758,29 @@ namespace OsEngine.Market.Servers.BCS
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(220));
 
         private readonly object _depthSubscribeLocker = new object();
+        private readonly Dictionary<string, DateTime> _tradesSubscribeTimes = new Dictionary<string, DateTime>();
+        private readonly Dictionary<string, int> _tradesSubscribeAttempts = new Dictionary<string, int>();
+
+        // стакан и лента сделок - две независимые подписки (dataType 0 и 2),
+        // подтверждения приходят раздельно и с разной задержкой: следим за обоими каналами
         private readonly Dictionary<string, DateTime> _depthSubscribeTimes = new Dictionary<string, DateTime>();
         private readonly Dictionary<string, int> _depthSubscribeAttempts = new Dictionary<string, int>();
-        private readonly TimeSpan _depthConfirmTimeout = TimeSpan.FromSeconds(90);
+
+        // тики подтверждаются мгновенно, стаканы сервер обрабатывает пакетно:
+        // при массовой подписке OrderBookSuccess идут с задержкой до ~2 минут,
+        // первый детект должен быть больше этой очереди
+        private readonly TimeSpan _tradesConfirmTimeout = TimeSpan.FromSeconds(90);
+        private readonly TimeSpan _depthConfirmFirstTimeout = TimeSpan.FromSeconds(240);
+
+        // а вот ретраи - быстрые: если канал мёртв, ждать 4 минуты между попытками
+        // смысла нет (окно деградации depth-регистрации у БКС 19.10 длилось ~25 мин,
+        // быстрый ретрай сократил бы видимую деградацию втрое)
+        private readonly TimeSpan _depthConfirmRetryTimeout = TimeSpan.FromSeconds(90);
         private readonly HashSet<string> _loggedEmptyDepth = new HashSet<string>();
+
+        // время последнего OrderBookSuccess: пока подтверждения стаканов активно приходят,
+        // сервер живо разбирает очередь и ре-подписывать ничего не нужно
+        private DateTime _lastDepthConfirmTime = DateTime.MinValue;
 
         List<Security> _subscribedSecurities = new List<Security>();
 
@@ -1915,61 +2805,55 @@ namespace OsEngine.Market.Servers.BCS
 
                 _subscribedSecurities.Add(security);
 
-                if (_webSocketPublicList.Count == 0)
+                BcsSocketWrapper wrapper = GetOrCreateWrapperForSubscribe();
+
+                if (wrapper == null)
                 {
-                    return;
-                }
-
-                WebSocket webSocketPublic = _webSocketPublicList[_webSocketPublicList.Count - 1];
-
-                if (webSocketPublic.ReadyState == WebSocketState.Open
-                    && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 45 == 0)
-                {
-                    WebSocket newSocket = CreateNewSocketMarketData();
-
-                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
-
-                    while (newSocket != null
-                        && newSocket.ReadyState != WebSocketState.Open
-                        && !_hasLimitReached)
-                    {
-                        Thread.Sleep(1000);
-
-                        if (timeEnd < DateTime.Now)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (newSocket != null && newSocket.ReadyState == WebSocketState.Open)
-                    {
-                        _webSocketPublicList.Add(newSocket);
-                        webSocketPublic = newSocket;
-                    }
-                }
-
-                if (_hasLimitReached)
-                {
+                    // бюджет из 20 соединений исчерпан, подписка отклонена
                     _subscribedSecurities.Remove(security);
                     return;
                 }
 
-                if (webSocketPublic != null)
+                lock (wrapper.Subscriptions)
                 {
-                    string depth = string.Empty;
+                    wrapper.Subscriptions.Add(security);
+                }
 
-                    if (((ServerParameterBool)ServerParameters[17]).Value == false)
+                lock (_webSocketPublicLocker)
+                {
+                    _wrapperBySecurityName[security.Name] = wrapper;
+                }
+
+                if (security.Name == _canaryTicker)
+                {
+                    // пользователь подписался на инструмент-канарейку: его события идут в движок
+                    _canaryIsUserSubscribed = true;
+                }
+
+                WebSocket socket = wrapper.Socket;
+
+                if (socket != null
+                    && socket.ReadyState == WebSocketState.Open)
+                {
+                    string depth = GetMarketDepthValue();
+
+                    // канареечная trades-подписка на этом сокете уже даёт ленту по этому инструменту:
+                    // дублирующую trades-подписку не шлём, иначе события задвоятся
+                    bool tradesAlreadyLive = wrapper.CanaryActive
+                        && security.Name == _canaryTicker;
+
+                    if (tradesAlreadyLive == false)
                     {
-                        depth = "1";
-                    }
-                    else
-                    {
-                        depth = ((ServerParameterEnum)ServerParameters[8]).Value;
+                        socket.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
+
+                        lock (_depthSubscribeLocker)
+                        {
+                            _tradesSubscribeTimes[security.Name] = DateTime.Now;
+                            _tradesSubscribeAttempts[security.Name] = 0;
+                        }
                     }
 
-                    webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
-                    webSocketPublic.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
+                    socket.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}");
 
                     lock (_depthSubscribeLocker)
                     {
@@ -1977,6 +2861,8 @@ namespace OsEngine.Market.Servers.BCS
                         _depthSubscribeAttempts[security.Name] = 0;
                     }
                 }
+                // если сокет ещё не открыт (ленивое создание) или мёртв - подписка записана
+                // в wrapper и уйдёт одним пакетом из Opened-хука / после бесшовного реконнекта
             }
             catch (Exception exception)
             {
@@ -1984,7 +2870,180 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private void CheckDepthSubscriptions()
+        // лимиты БКС: 100 подписок в соединении, 20 одновременных соединений маркет-даты.
+        // Сервер считает подписки, а не бумаги: каждая бумага = 2 подписки (стакан + лента),
+        // реальный потолок 50 инструментов на сокет. 45 - с запасом на канарейку и ре-подписки
+        // (проверено боем: на 51 бумаге (102 подписки) сервер шлёт "Превышен лимит")
+        private const int _maxUserSubscriptionsPerSocket = 45;
+        private const int _maxMarketDataSockets = 20;
+
+        private BcsSocketWrapper GetOrCreateWrapperForSubscribe()
+        {
+            lock (_webSocketPublicLocker)
+            {
+                // последний сокет пула со свободным местом
+                for (int i = _webSocketPublicList.Count - 1; i >= 0; i--)
+                {
+                    BcsSocketWrapper wrapper = _webSocketPublicList[i];
+
+                    int count;
+
+                    lock (wrapper.Subscriptions)
+                    {
+                        count = wrapper.Subscriptions.Count;
+                    }
+
+                    if (count < _maxUserSubscriptionsPerSocket)
+                    {
+                        return wrapper;
+                    }
+                }
+
+                // все сокеты полные - нужен новый, но бюджет соединений жёсткий
+                if (_webSocketPublicList.Count >= _maxMarketDataSockets)
+                {
+                    lock (_subscribeLimitLocker)
+                    {
+                        if (!_hasLimitReached)
+                        {
+                            _hasLimitReached = true;
+                            SendLogMessage("BCS исчерпан бюджет из 20 одновременных WebSocket соединений маркет-даты (~900 инструментов по 45 на сокет). Новые подписки остановлены.",
+                                LogMessageType.Error);
+                        }
+                    }
+
+                    return null;
+                }
+
+                BcsSocketWrapper newWrapper = new BcsSocketWrapper();
+                newWrapper.Socket = CreateNewSocketMarketData();
+                newWrapper.CreatedTime = DateTime.Now;
+                _webSocketPublicList.Add(newWrapper);
+
+                SendLogMessage($"BCS market data: создан сокет пула #{_webSocketPublicList.Count}. Подписки уйдут пакетом после открытия.", LogMessageType.System);
+
+                return newWrapper;
+            }
+        }
+
+        private string GetMarketDepthValue()
+        {
+            // [17] = стандартный ServerParam10 (полный стакан): 10 кастомных параметров + 7 по таблице
+            if (((ServerParameterBool)ServerParameters[17]).Value == false)
+            {
+                return "1";
+            }
+
+            // [8] = кастомный параметр глубины стакана
+            return ((ServerParameterEnum)ServerParameters[8]).Value;
+        }
+
+        // восстанавливает все подписки сокета одним пакетом:
+        // вызывается из Opened-хука при первичном открытии и после бесшовного реконнекта
+        private void SendWrapperSubscriptions(BcsSocketWrapper wrapper, WebSocket socket)
+        {
+            try
+            {
+                if (socket == null
+                    || socket.ReadyState != WebSocketState.Open)
+                {
+                    return;
+                }
+
+                List<Security> securities;
+
+                lock (wrapper.Subscriptions)
+                {
+                    securities = new List<Security>(wrapper.Subscriptions);
+                }
+
+                if (securities.Count == 0)
+                {
+                    return;
+                }
+
+                string depth = GetMarketDepthValue();
+
+                // пакеты по 50 инструментов: лимит БКС 8 КБ на сообщение
+                for (int start = 0; start < securities.Count; start += 50)
+                {
+                    // гейт на каждый пакет: лимит 10 сообщений/сек от клиента
+                    _rateGateSubscribe.WaitToProceed();
+
+                    List<string> argsList = new List<string>();
+
+                    int end = Math.Min(start + 50, securities.Count);
+
+                    for (int i = start; i < end; i++)
+                    {
+                        argsList.Add($"{{\"ticker\": \"{securities[i].Name}\",\"classCode\": \"{GetClassCode(securities[i])}\"}}");
+                    }
+
+                    string instruments = string.Join(",", argsList);
+
+                    socket.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{instruments}]}}");
+                    socket.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{instruments}]}}");
+                }
+
+                // подтверждения подписок должны прийти заново, следим за обоими каналами
+                lock (_depthSubscribeLocker)
+                {
+                    for (int i = 0; i < securities.Count; i++)
+                    {
+                        _tradesSubscribeTimes[securities[i].Name] = DateTime.Now;
+                        _tradesSubscribeAttempts[securities[i].Name] = 0;
+                        _depthSubscribeTimes[securities[i].Name] = DateTime.Now;
+                        _depthSubscribeAttempts[securities[i].Name] = 0;
+                    }
+                }
+
+                SendCanaryTradesFrame(wrapper, socket, securities);
+
+                SendLogMessage($"BCS market data: восстановлено {securities.Count} подписок на сокете пула.", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        // канарейка: trades-подписка на ликвидный эталон отдельным фреймом на каждом сокете.
+        // У маркет-даты БКС нет прикладного heartbeat, поэтому молчание сокета иначе не видно.
+        // Если пользователь сам подписан на этот инструмент на этом сокете -
+        // его подписка и есть канарейка, дубль не нужен
+        private void SendCanaryTradesFrame(BcsSocketWrapper wrapper, WebSocket socket, List<Security> userSecurities)
+        {
+            if (wrapper.CanaryActive)
+            {
+                return;
+            }
+
+            for (int i = 0; i < userSecurities.Count; i++)
+            {
+                if (userSecurities[i].Name == _canaryTicker)
+                {
+                    wrapper.CanaryActive = true;
+                    return;
+                }
+            }
+
+            socket.SendAsync($"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{_canaryTicker}\",\"classCode\": \"{_canaryClassCode}\"}}]}}");
+
+            lock (_webSocketPublicLocker)
+            {
+                _wrapperBySecurityName[_canaryTicker] = wrapper;
+            }
+
+            lock (_depthSubscribeLocker)
+            {
+                _tradesSubscribeTimes[_canaryTicker] = DateTime.Now;
+                _tradesSubscribeAttempts[_canaryTicker] = 0;
+            }
+
+            wrapper.CanaryActive = true;
+        }
+
+        private void CheckSubscriptionsConfirmations()
         {
             while (true)
             {
@@ -1997,50 +3056,200 @@ namespace OsEngine.Market.Servers.BCS
                         continue;
                     }
 
-                    List<string> toResubscribe = new List<string>();
-                    List<string> toStop = new List<string>();
+                    List<string> tradesToResubscribe = new List<string>();
+                    List<string> tradesToStop = new List<string>();
+                    List<string> depthToResubscribe = new List<string>();
+                    List<string> depthToStop = new List<string>();
 
                     lock (_depthSubscribeLocker)
                     {
-                        foreach (KeyValuePair<string, DateTime> pair in _depthSubscribeTimes)
+                        CollectExpiredConfirmations(_tradesSubscribeTimes, _tradesSubscribeAttempts,
+                            _tradesConfirmTimeout, _tradesConfirmTimeout, tradesToResubscribe, tradesToStop);
+
+                        if (_lastDepthConfirmTime.AddSeconds(60) < DateTime.Now)
                         {
-                            if (DateTime.Now - pair.Value > _depthConfirmTimeout)
-                            {
-                                int attempts;
-                                _depthSubscribeAttempts.TryGetValue(pair.Key, out attempts);
-
-                                if (attempts < 3)
-                                {
-                                    toResubscribe.Add(pair.Key);
-                                }
-                                else
-                                {
-                                    toStop.Add(pair.Key);
-                                }
-                            }
+                            CollectExpiredConfirmations(_depthSubscribeTimes, _depthSubscribeAttempts,
+                                _depthConfirmFirstTimeout, _depthConfirmRetryTimeout, depthToResubscribe, depthToStop);
                         }
+                        // иначе сервер прямо сейчас присылает OrderBookSuccess пачками:
+                        // очередь разбирается, ре-подписка только добавит нагрузку
                     }
 
-                    for (int i = 0; i < toResubscribe.Count; i++)
+                    for (int i = 0; i < tradesToResubscribe.Count; i++)
                     {
-                        ReSubscribeDepth(toResubscribe[i]);
+                        ReSubscribeTrades(tradesToResubscribe[i]);
                     }
 
-                    for (int i = 0; i < toStop.Count; i++)
+                    for (int i = 0; i < tradesToStop.Count; i++)
                     {
                         lock (_depthSubscribeLocker)
                         {
-                            _depthSubscribeTimes.Remove(toStop[i]);
-                            _depthSubscribeAttempts.Remove(toStop[i]);
+                            _tradesSubscribeTimes.Remove(tradesToStop[i]);
+                            _tradesSubscribeAttempts.Remove(tradesToStop[i]);
                         }
 
-                        SendLogMessage($"BCS 3 попытки исчерпаны, стакан по инструменту не найден: {toStop[i]}", LogMessageType.System);
+                        SendLogMessage($"BCS 3 попытки исчерпаны, лента сделок по инструменту не найдена: {tradesToStop[i]}", LogMessageType.System);
+                    }
+
+                    for (int i = 0; i < depthToResubscribe.Count; i++)
+                    {
+                        ReSubscribeDepth(depthToResubscribe[i]);
+                    }
+
+                    if (depthToStop.Count > 0)
+                    {
+                        EscalateDeadDepthChannelToSocketReconnect(depthToStop);
                     }
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
+            }
+        }
+
+        // depth-канал сокета мёртв на сервере: 3 ре-подписки не подтвердились.
+        // Бумага тут ни при чём - мёртв канал на конкретном соединении, и лечится
+        // только новым соединением (бой 19.10: depth-канал сокета молчал 5+ минут,
+        // ре-подписки не подтверждались, после реконнекта подтвердились мгновенно).
+        // Канарейка это не ловит: она на trades-канале, а он жив.
+        private void EscalateDeadDepthChannelToSocketReconnect(List<string> depthToStop)
+        {
+            List<BcsSocketWrapper> wrappersToReconnect = new List<BcsSocketWrapper>();
+
+            lock (_webSocketPublicLocker)
+            {
+                for (int i = 0; i < depthToStop.Count; i++)
+                {
+                    BcsSocketWrapper wrapper;
+
+                    if (_wrapperBySecurityName.TryGetValue(depthToStop[i], out wrapper)
+                        && wrappersToReconnect.Contains(wrapper) == false)
+                    {
+                        wrappersToReconnect.Add(wrapper);
+                    }
+                }
+            }
+
+            lock (_depthSubscribeLocker)
+            {
+                for (int i = 0; i < depthToStop.Count; i++)
+                {
+                    _depthSubscribeTimes.Remove(depthToStop[i]);
+                    _depthSubscribeAttempts.Remove(depthToStop[i]);
+                }
+                // записи сняты: после реконнекта SendWrapperSubscriptions
+                // перевзведёт подтверждения всего сокета с нуля
+            }
+
+            for (int i = 0; i < wrappersToReconnect.Count; i++)
+            {
+                if (wrappersToReconnect[i].Socket == null
+                    || wrappersToReconnect[i].Socket.ReadyState != WebSocketState.Open)
+                {
+                    // сокет и так не жив: его пересоздаст обычный watchdog-цикл
+                    continue;
+                }
+
+                SendLogMessage($"BCS depth-канал сокета не подтверждает подписки после 3 попыток ({depthToStop.Count} инструментов). Реконнект сокета.", LogMessageType.Error);
+
+                // 30-сек троттлинг внутри: массовое срабатывание по многим бумагам
+                // того же сокета свернётся в один реконнект
+                ReconnectMarketDataSocket(wrappersToReconnect[i]);
+            }
+        }
+
+        // вызывается под _depthSubscribeLocker
+        private void CollectExpiredConfirmations(Dictionary<string, DateTime> times, Dictionary<string, int> attempts,
+            TimeSpan firstTimeout, TimeSpan retryTimeout, List<string> toResubscribe, List<string> toStop)
+        {
+            foreach (KeyValuePair<string, DateTime> pair in times)
+            {
+                int attemptCount;
+                attempts.TryGetValue(pair.Key, out attemptCount);
+
+                // первая проверка терпеливая (серверные очереди), ретраи быстрые
+                TimeSpan timeout = attemptCount == 0 ? firstTimeout : retryTimeout;
+
+                if (DateTime.Now - pair.Value > timeout)
+                {
+                    if (attemptCount < 3)
+                    {
+                        toResubscribe.Add(pair.Key);
+                    }
+                    else
+                    {
+                        toStop.Add(pair.Key);
+                    }
+                }
+            }
+        }
+
+        private void ReSubscribeTrades(string securityName)
+        {
+            if (_hasLimitReached)
+            {
+                return;
+            }
+
+            BcsSocketWrapper wrapper;
+
+            lock (_webSocketPublicLocker)
+            {
+                if (!_wrapperBySecurityName.TryGetValue(securityName, out wrapper))
+                {
+                    return;
+                }
+            }
+
+            WebSocket socket = wrapper.Socket;
+
+            if (socket == null || socket.ReadyState != WebSocketState.Open)
+            {
+                // сокет мёртв: подписка восстановится пакетом после бесшовного реконнекта
+                return;
+            }
+
+            string classCode = null;
+
+            lock (wrapper.Subscriptions)
+            {
+                Security security = wrapper.Subscriptions.Find(s => s.Name == securityName);
+
+                if (security != null)
+                {
+                    classCode = GetClassCode(security);
+                }
+            }
+
+            if (classCode == null)
+            {
+                // канарейка не живёт в Subscriptions - у неё свои тикер и класс
+                if (securityName == _canaryTicker)
+                {
+                    classCode = _canaryClassCode;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            _rateGateSubscribe.WaitToProceed();
+
+            string tradesMessage = $"{{\"subscribeType\": 0,\"dataType\": 2,\"instruments\": [{{\"ticker\": \"{securityName}\",\"classCode\": \"{classCode}\"}}]}}";
+
+            SendLogMessage($"BCS re-subscribe trades {securityName}: {tradesMessage}", LogMessageType.System);
+
+            socket.SendAsync(tradesMessage);
+
+            lock (_depthSubscribeLocker)
+            {
+                _tradesSubscribeTimes[securityName] = DateTime.Now;
+
+                int attempts;
+                _tradesSubscribeAttempts.TryGetValue(securityName, out attempts);
+                _tradesSubscribeAttempts[securityName] = attempts + 1;
             }
         }
 
@@ -2051,40 +3260,43 @@ namespace OsEngine.Market.Servers.BCS
                 return;
             }
 
-            Security security = null;
+            BcsSocketWrapper wrapper;
 
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            lock (_webSocketPublicLocker)
             {
-                if (_subscribedSecurities[i].Name == securityName)
+                if (!_wrapperBySecurityName.TryGetValue(securityName, out wrapper))
                 {
-                    security = _subscribedSecurities[i];
-                    break;
+                    return;
                 }
             }
 
-            if (security == null || _webSocketPublicList.Count == 0)
+            WebSocket socket = wrapper.Socket;
+
+            if (socket == null || socket.ReadyState != WebSocketState.Open)
             {
+                // сокет мёртв: подписка восстановится пакетом после бесшовного реконнекта
                 return;
             }
 
-            WebSocket webSocketPublic = _webSocketPublicList[_webSocketPublicList.Count - 1];
+            Security security = null;
 
-            if (webSocketPublic == null || webSocketPublic.ReadyState != WebSocketState.Open)
+            lock (wrapper.Subscriptions)
+            {
+                security = wrapper.Subscriptions.Find(s => s.Name == securityName);
+            }
+
+            if (security == null)
             {
                 return;
             }
 
             _rateGateSubscribe.WaitToProceed();
 
-            string depth = ((ServerParameterBool)ServerParameters[17]).Value == false
-                ? "1"
-                : ((ServerParameterEnum)ServerParameters[8]).Value;
-
-            string depthMessage = $"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {depth},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}";
+            string depthMessage = $"{{\"subscribeType\": 0,\"dataType\": 0,\"depth\": {GetMarketDepthValue()},\"instruments\": [{{\"ticker\": \"{security.Name}\",\"classCode\": \"{GetClassCode(security)}\"}}]}}";
 
             SendLogMessage($"BCS re-subscribe depth {security.Name}: {depthMessage}", LogMessageType.System);
 
-            webSocketPublic.SendAsync(depthMessage);
+            socket.SendAsync(depthMessage);
 
             lock (_depthSubscribeLocker)
             {
@@ -2100,46 +3312,61 @@ namespace OsEngine.Market.Servers.BCS
         {
             try
             {
-                if (_webSocketPublicList != null
-                  && _webSocketPublicList.Count != 0)
+                List<BcsSocketWrapper> wrappers;
+
+                lock (_webSocketPublicLocker)
                 {
-                    string depth = string.Empty;
+                    wrappers = new List<BcsSocketWrapper>(_webSocketPublicList);
+                }
 
-                    if (((ServerParameterBool)ServerParameters[17]).Value == false)
+                if (wrappers.Count == 0)
+                {
+                    return;
+                }
+
+                string depth = GetMarketDepthValue();
+
+                for (int i = 0; i < wrappers.Count; i++)
+                {
+                    WebSocket socket = wrappers[i].Socket;
+
+                    if (socket == null
+                        || socket.ReadyState != WebSocketState.Open)
                     {
-                        depth = "1";
-                    }
-                    else
-                    {
-                        depth = ((ServerParameterEnum)ServerParameters[8]).Value;
+                        continue;
                     }
 
-                    for (int i = 0; i < _webSocketPublicList.Count; i++)
+                    List<Security> securities;
+
+                    lock (wrappers[i].Subscriptions)
+                    {
+                        securities = new List<Security>(wrappers[i].Subscriptions);
+                    }
+
+                    if (securities.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    // отписка по каждому сокету только от тех инструментов,
+                    // которые реально на нём подписаны; пакеты по 50 - лимит 8 КБ на сообщение
+                    for (int start = 0; start < securities.Count; start += 50)
                     {
                         _rateGateSubscribe.WaitToProceed();
 
-                        WebSocket webSocketPublic = _webSocketPublicList[i];
+                        List<string> argsList = new List<string>();
 
-                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        int end = Math.Min(start + 50, securities.Count);
+
+                        for (int j = start; j < end; j++)
                         {
-                            if (_subscribedSecurities != null)
-                            {
-                                List<string> argsList = new List<string>();
-
-                                for (int j = 0; j < _subscribedSecurities.Count; j++)
-                                {
-                                    Security security1 = _subscribedSecurities[j];
-
-                                    argsList.Add($"{{\"ticker\": \"{security1.Name}\",\"classCode\": \"{GetClassCode(security1)}\"}}");
-                                }
-
-                                if (argsList.Count > 0)
-                                {
-                                    webSocketPublic.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 0,\"depth\": {depth},\"instruments\":[{string.Join(",", argsList)}]}}");
-                                    webSocketPublic.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 2,\"instruments\":[{string.Join(",", argsList)}]}}");
-                                }
-                            }
+                            argsList.Add($"{{\"ticker\": \"{securities[j].Name}\",\"classCode\": \"{GetClassCode(securities[j])}\"}}");
                         }
+
+                        string instruments = string.Join(",", argsList);
+
+                        socket.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 0,\"depth\": {depth},\"instruments\":[{instruments}]}}");
+                        socket.SendAsync($"{{\"subscribeType\": 1,\"dataType\": 2,\"instruments\":[{instruments}]}}");
                     }
                 }
             }
@@ -2241,6 +3468,11 @@ namespace OsEngine.Market.Servers.BCS
                                 {
                                     Error error = response.errors[i];
                                     SendLogMessage($"Ошибка: {error.message} (Код: {error.code})", LogMessageType.Error);
+
+                                    if (error.code == "NOT_FOUND")
+                                    {
+                                        RemoveSubscriptionAfterNotFound(response.ticker);
+                                    }
                                 }
                             }
                             else
@@ -2256,6 +3488,11 @@ namespace OsEngine.Market.Servers.BCS
                                 {
                                     Error error = response.errors[j];
                                     SendLogMessage($"Ошибка: {error.message} (Код: {error.code})", LogMessageType.Error);
+
+                                    if (error.code == "NOT_FOUND")
+                                    {
+                                        RemoveSubscriptionAfterNotFound(response.ticker);
+                                    }
                                 }
                             }
                             else
@@ -2281,12 +3518,19 @@ namespace OsEngine.Market.Servers.BCS
                             {
                                 _depthSubscribeTimes.Remove(response.ticker);
                                 _depthSubscribeAttempts.Remove(response.ticker);
+                                _lastDepthConfirmTime = DateTime.Now;
                             }
 
                             SendLogMessage($"BCS market data: подписка подтверждена {response.responseType} {response.ticker} {response.classCode}", LogMessageType.System);
                         }
                         else if (response.responseType.Equals("LastTradesSuccess"))
                         {
+                            lock (_depthSubscribeLocker)
+                            {
+                                _tradesSubscribeTimes.Remove(response.ticker);
+                                _tradesSubscribeAttempts.Remove(response.ticker);
+                            }
+
                             SendLogMessage($"BCS market data: подписка подтверждена {response.responseType} {response.ticker} {response.classCode}", LogMessageType.System);
                         }
                     }
@@ -2319,15 +3563,66 @@ namespace OsEngine.Market.Servers.BCS
 
         private Dictionary<string, DateTime> _lastTradeTime = new Dictionary<string, DateTime>();
 
+        // инструмент не существует или недоступен аккаунту: re-подписки бессмысленны,
+        // а 3 попытки confirmation-вотчдога уронили бы эскалацией здоровый сокет
+        // с десятками живых подписок. Снимаем бумагу со всех учётов подписок
+        private void RemoveSubscriptionAfterNotFound(string ticker)
+        {
+            if (string.IsNullOrEmpty(ticker))
+            {
+                return;
+            }
+
+            lock (_depthSubscribeLocker)
+            {
+                _tradesSubscribeTimes.Remove(ticker);
+                _tradesSubscribeAttempts.Remove(ticker);
+                _depthSubscribeTimes.Remove(ticker);
+                _depthSubscribeAttempts.Remove(ticker);
+            }
+
+            lock (_webSocketPublicLocker)
+            {
+                _wrapperBySecurityName.Remove(ticker);
+
+                for (int i = 0; i < _webSocketPublicList.Count; i++)
+                {
+                    lock (_webSocketPublicList[i].Subscriptions)
+                    {
+                        _webSocketPublicList[i].Subscriptions.RemoveAll(s => s.Name == ticker);
+                    }
+                }
+            }
+
+            SendLogMessage($"BCS инструмент недоступен (NOT_FOUND), подписка на него снята: {ticker}", LogMessageType.System);
+        }
+
         private void UpdateTrade(PublicMarketDataResponse tradeData)
         {
+            // тики канарейки не уходят в движок, если пользователь сам на неё не подписан
+            if (_canaryIsUserSubscribed == false
+                && tradeData.ticker == _canaryTicker)
+            {
+                return;
+            }
+
             Trade trade = new Trade();
             trade.SecurityNameCode = tradeData.ticker;
             trade.Time = ConvertUtsStringToDateTimeRu(tradeData.dateTime);
 
-            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 7)
+            if (_ignoreMorningAuctionTrades)
             {
-                return;
+                // утренний аукцион: акции отсекаем до 7:00 мск, фьючерсы и опционы - до 9:00 мск
+                Security security = GetSecurityByName(tradeData.ticker, tradeData.classCode);
+
+                int auctionHour = security != null
+                    && (security.SecurityType == SecurityType.Futures || security.SecurityType == SecurityType.Option)
+                    ? 9 : 7;
+
+                if (trade.Time.Hour < auctionHour)
+                {
+                    return;
+                }
             }
 
             // биржа может прислать тики с перевёрнутым порядком меток, время делаем монотонным по бумаге
@@ -2465,6 +3760,13 @@ namespace OsEngine.Market.Servers.BCS
 
                     if (orderResponse != null && orderResponse.data != null)
                     {
+                        // строковые коды от биржи могут приходить с пробелами (исторический баг " 1")
+                        orderResponse.data.messageType = orderResponse.data.messageType?.Trim();
+                        orderResponse.data.orderStatus = orderResponse.data.orderStatus?.Trim();
+                        orderResponse.data.executionType = orderResponse.data.executionType?.Trim();
+                        orderResponse.data.side = orderResponse.data.side?.Trim();
+                        orderResponse.data.orderType = orderResponse.data.orderType?.Trim();
+
                         if (orderResponse.data.messageType == "9")
                         {
                             SendLogMessage("Приостановка размещения ордера:\n" + orderResponse.data.rejectReason, LogMessageType.Error);
@@ -2523,7 +3825,7 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private void UpdateMyOrder(BcsOrdersResponse orderEvent)
+        private void UpdateMyOrder(BcsOrdersResponse orderEvent, bool forceEvent = false)
         {
             try
             {
@@ -2569,15 +3871,22 @@ namespace OsEngine.Market.Servers.BCS
 
                 if (security != null)
                 {
+                    // lot=0 недопустим: без защиты здесь было DivideByZero на первом событии
+                    decimal lot = security.Lot > 0 ? security.Lot : 1;
+
                     newOrder.SecurityNameCode = security.Name;
                     newOrder.SecurityClassCode = security.NameClass;
-                    newOrder.Volume = orderEvent.data.orderQuantity.ToDecimal() / security.Lot;
+                    newOrder.Volume = orderEvent.data.orderQuantity.ToDecimal() / lot;
+
+                    // исполненный объём обязателен: ChangeOrderPrice считает остаток как Volume-VolumeExecute
+                    newOrder.VolumeExecute = orderEvent.data.executedQuantity.ToDecimal() / lot;
                 }
                 else
                 {
                     newOrder.SecurityNameCode = orderEvent.data.ticker;
                     newOrder.SecurityClassCode = orderEvent.data.classCode;
                     newOrder.Volume = orderEvent.data.orderQuantity.ToDecimal();
+                    newOrder.VolumeExecute = orderEvent.data.executedQuantity.ToDecimal();
                 }
 
                 newOrder.TimeCallBack = ConvertUtsStringToDateTimeRu(orderEvent.data.transactionTime);
@@ -2618,6 +3927,11 @@ namespace OsEngine.Market.Servers.BCS
                             {
                                 // нашли список с номерами ордера, которому меняли цену
                                 newOrder.NumberMarket = nums[0];
+
+                                // последний номер сохраняем: сделки в trades/search живут под ним,
+                                // а цепочку ниже удалим
+                                _latestChangedOrderNumber[nums[0]] = nums[^1];
+
                                 _changedOrderNumsMarket.Remove(nums);
 
                                 break;
@@ -2639,7 +3953,17 @@ namespace OsEngine.Market.Servers.BCS
 
                 string orderString = JsonConvert.SerializeObject(newOrder);
 
-                MyOrderEvent?.Invoke(newOrder);
+                if (forceEvent)
+                {
+                    // GetOrderStatus - путь восстановления: хаб ждёт событие, дедуп не должен его съесть.
+                    // Отпечаток регистрируем, чтобы последующий дубль из сокета не прошёл
+                    IsMyOrderEventDuplicate(newOrder);
+                    MyOrderEvent?.Invoke(newOrder);
+                }
+                else if (IsMyOrderEventDuplicate(newOrder) == false)
+                {
+                    MyOrderEvent?.Invoke(newOrder);
+                }
 
                 if (orderEvent.data.executionType == "11") // сделка
                 {
@@ -2654,71 +3978,28 @@ namespace OsEngine.Market.Servers.BCS
 
         private void TryCreateMyTradeFromOrderEvent(BcsOrdersResponse orderEvent, Order order)
         {
-            try
-            {
-                string executionId = orderEvent.data.executionId;
-
-                if (string.IsNullOrEmpty(executionId))
-                {
-                    EnqueueMyTradeFetch(orderEvent, order);
-                    return;
-                }
-
-                if (IsMyTradeAlreadySent(executionId))
-                {
-                    return;
-                }
-
-                decimal lastQuantity = orderEvent.data.lastQuantity.ToDecimal();
-                decimal averagePrice = orderEvent.data.averagePrice.ToDecimal();
-
-                if (lastQuantity <= 0 || averagePrice <= 0)
-                {
-                    EnqueueMyTradeFetch(orderEvent, order);
-                    return;
-                }
-
-                decimal volumeLots = lastQuantity;
-
-                Security security = GetSecurityByName(orderEvent.data.ticker, orderEvent.data.classCode);
-
-                if (security != null && security.Lot > 0)
-                {
-                    volumeLots = lastQuantity / security.Lot;
-                }
-
-                MyTrade trade = new MyTrade();
-                trade.SecurityNameCode = order.SecurityNameCode;
-                trade.Price = averagePrice;
-                trade.Volume = volumeLots;
-                trade.NumberOrderParent = order.NumberMarket;
-                trade.NumberTrade = executionId;
-                trade.Time = ConvertUtsStringToDateTimeRu(orderEvent.data.transactionTime);
-                trade.Side = order.Side;
-
-                MarkMyTradeSent(executionId);
-
-                MyTradeEvent?.Invoke(trade);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"MyTrade из события error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
-                EnqueueMyTradeFetch(orderEvent, order);
-            }
+            // В событии сделки нет точной цены (averagePrice - средняя по заявке,
+            // при многослойном исполнении она врёт для конкретной сделки).
+            // Поэтому MyTrade всегда добираем через trades/search:
+            // точная цена + единый дедуп по tradeNum вместо двух пространств имён
+            EnqueueMyTradeFetch(orderEvent, order);
         }
 
         private readonly HashSet<string> _pendingMyTradeFetchOrderNumbers = new HashSet<string>();
 
         private readonly string _pendingMyTradeFetchLocker = "bcsPendingMyTradeFetchLocker";
 
-        private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order)
+        private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order, bool force = false)
         {
             try
             {
                 lock (_pendingMyTradeFetchLocker)
                 {
                     // серия частичных исполнений по ордеру даёт серию событий - один фетч заберёт все сделки сразу
-                    if (_pendingMyTradeFetchOrderNumbers.Add(orderEvent.data.orderNumber) == false)
+                    // force-запрос (восстановление через GetOrderStatus) ставим всегда: обычный фетч мог уже
+                    // пометить tradeNum как отправленный, пока хаб был заглушен
+                    if (force == false
+                        && _pendingMyTradeFetchOrderNumbers.Add(orderEvent.data.orderNumber) == false)
                     {
                         return;
                     }
@@ -2732,6 +4013,7 @@ namespace OsEngine.Market.Servers.BCS
                 request.NumberOrderParent = string.IsNullOrEmpty(order.NumberMarket)
                     ? orderEvent.data.orderNumber
                     : order.NumberMarket;
+                request.Force = force;
 
                 if (MyTradesToFetchQueue != null)
                 {
@@ -2741,6 +4023,46 @@ namespace OsEngine.Market.Servers.BCS
             catch (Exception ex)
             {
                 SendLogMessage($"Enqueue my trades fetch error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        // перегрузка для REST-выравнивания после реконнекта ордерного сокета:
+        // добирает сделки по ордерам, исполненным за окно обрыва
+        private void EnqueueMyTradeFetch(Order order)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    return;
+                }
+
+                lock (_pendingMyTradeFetchLocker)
+                {
+                    if (_pendingMyTradeFetchOrderNumbers.Add(order.NumberMarket) == false)
+                    {
+                        return;
+                    }
+                }
+
+                string classCode = GetClassCodeByNameClass(order.SecurityClassCode);
+
+                MyTradeFetchRequest request = new MyTradeFetchRequest();
+                request.Ticker = order.SecurityNameCode;
+                request.ClassCode = classCode;
+                request.Side = order.Side == Side.Buy ? "1" : "2";
+                // сделки ищем по последнему биржевому номеру, родителем остаётся первоначальный
+                request.OrderNumber = GetLatestChangedOrderNumber(order.NumberMarket);
+                request.NumberOrderParent = order.NumberMarket;
+
+                if (MyTradesToFetchQueue != null)
+                {
+                    MyTradesToFetchQueue.Enqueue(request);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Enqueue my trades fetch (order) error: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2802,7 +4124,8 @@ namespace OsEngine.Market.Servers.BCS
                         { "tickers", new string[] { request.Ticker } },
                         { "classCodes", new string[] { request.ClassCode } },
                         { "side", request.Side },
-                        { "startDateTime", DateTime.UtcNow.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
+                        // минус сутки: ночная сессия 00:00-03:00 МСК попадает в предыдущие UTC-сутки
+                        { "startDateTime", DateTime.UtcNow.Date.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
                         { "endDateTime", DateTime.UtcNow.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
                     };
 
@@ -2844,7 +4167,8 @@ namespace OsEngine.Market.Servers.BCS
                             continue;
                         }
 
-                        if (IsMyTradeAlreadySent(numberTrade))
+                        if (request.Force == false
+                            && IsMyTradeAlreadySent(numberTrade))
                         {
                             continue;
                         }
@@ -2869,6 +4193,27 @@ namespace OsEngine.Market.Servers.BCS
             {
                 SendLogMessage("Fetch my trades error: " + ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        // после смены цены ордер живёт на бирже под новым номером, сделки в trades/search -
+        // под ним же. NumberMarket в движке при этом первоначальный: фильтр по нему
+        // отсекал бы все сделки изменённого ордера
+        private string GetLatestChangedOrderNumber(string originalNumber)
+        {
+            if (_latestChangedOrderNumber.TryGetValue(originalNumber, out string latest))
+            {
+                return latest;
+            }
+
+            for (int i = 0; i < _changedOrderNumsMarket.Count; i++)
+            {
+                if (_changedOrderNumsMarket[i][0] == originalNumber)
+                {
+                    return _changedOrderNumsMarket[i][^1];
+                }
+            }
+
+            return originalNumber;
         }
 
         private bool IsMyTradeAlreadySent(string numberTrade)
@@ -2897,6 +4242,34 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
+        // дедуп событий ордеров по биржевому отпечатку NumberMarket+State+TimeCallBack:
+        // выравнивание по REST после бесшовного реконнекта не должно повторять
+        // события, уже доставленные сокетом до обрыва
+        private List<string> _sentMyOrderEvents = new List<string>();
+        private string _sentMyOrderEventsLocker = "sentMyOrderEventsLockerBcs";
+
+        private bool IsMyOrderEventDuplicate(Order order)
+        {
+            string key = order.NumberMarket + "|" + order.State + "|" + order.TimeCallBack.Ticks;
+
+            lock (_sentMyOrderEventsLocker)
+            {
+                if (_sentMyOrderEvents.Contains(key))
+                {
+                    return true;
+                }
+
+                _sentMyOrderEvents.Add(key);
+
+                while (_sentMyOrderEvents.Count > 1000)
+                {
+                    _sentMyOrderEvents.RemoveAt(0);
+                }
+
+                return false;
+            }
+        }
+
         private class MyTradeFetchRequest
         {
             public string Ticker;
@@ -2904,14 +4277,24 @@ namespace OsEngine.Market.Servers.BCS
             public string Side;
             public string OrderNumber;
             public string NumberOrderParent;
+            // true только из GetOrderStatus: хаб ждёт MyTrade, дедуп не должен съесть повторную отправку
+            public bool Force;
         }
 
         private OrderStateType GetOrderState(string status)
         {
             OrderStateType stateType;
 
+            // защита от пробелов в строковых кодах (исторический баг " 1")
+            status = status?.Trim();
+
             if (status == "0" || status == "5")
             {
+                stateType = OrderStateType.Active;
+            }
+            else if (status == "6" || status == "9")
+            {
+                // транзитные состояния: в процессе отмены / изменения - ордер жив на бирже
                 stateType = OrderStateType.Active;
             }
             else if (status == "8")
@@ -2949,9 +4332,16 @@ namespace OsEngine.Market.Servers.BCS
 
         #region 10 Trade
 
+        // лимит БКС 10 RPS на сервис "Заявки" СУММАРНО (restrictions.txt):
+        // один общий гейт на все операции с заявками, иначе три независимых
+        // давали до 30 RPS и штурм 429
         private RateGate _rateGateOrdersOperations = new RateGate(1, TimeSpan.FromMilliseconds(100));
-        private RateGate _rateGateOrderStatus = new RateGate(1, TimeSpan.FromMilliseconds(100));
-        private RateGate _rateGateGetOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        // лимит БКС 200000 заявок в сутки на счёт: считаем свои отправки
+        // (SendOrder и ChangeOrderPrice - редактирование порождает новую заявку)
+        private int _ordersSentToday;
+        private DateTime _ordersDayMarker = DateTime.MinValue;
+        private bool _ordersLimitWarned;
         private string _orderNumbersLocker = "orderNumbersLocker";
         private Dictionary<int, Guid> _guidByNumberOrders = new Dictionary<int, Guid>();
         private Dictionary<Guid, int> _numberByGuidOrders = new Dictionary<Guid, int>();
@@ -2959,9 +4349,44 @@ namespace OsEngine.Market.Servers.BCS
         private List<List<string>> _changedOrderNumsMarket = [];
         private Dictionary<string, int> _userNumberByOrderId = new Dictionary<string, int>();
 
+        // первоначальный номер -> последний номер после смены цены (постоянный,
+        // в отличие от цепочек _changedOrderNumsMarket, которые удаляются на финале)
+        private Dictionary<string, string> _latestChangedOrderNumber = new Dictionary<string, string>();
+
+        // дневной лимит заявок: предупреждение на 180k (одноразовое), стоп на 200k -
+        // биржа при превышении всё равно ответит 429, но лучше не доводить
+        private bool CheckDailyOrdersLimit()
+        {
+            DateTime today = DateTime.Now.Date;
+
+            if (_ordersDayMarker != today)
+            {
+                _ordersDayMarker = today;
+                _ordersSentToday = 0;
+                _ordersLimitWarned = false;
+            }
+
+            _ordersSentToday++;
+
+            if (_ordersSentToday >= 180000 && _ordersLimitWarned == false)
+            {
+                _ordersLimitWarned = true;
+                SendLogMessage($"BCS: отправлено {_ordersSentToday} заявок за сутки, приближение к дневному лимиту 200000.", LogMessageType.Error);
+            }
+
+            return _ordersSentToday < 200000;
+        }
+
         public void SendOrder(Order order)
         {
             _rateGateOrdersOperations.WaitToProceed();
+
+            if (CheckDailyOrdersLimit() == false)
+            {
+                CreateOrderFail(order);
+                SendLogMessage("Order fail. Достигнут дневной лимит БКС 200000 заявок. Ордер не отправлен.", LogMessageType.Error);
+                return;
+            }
 
             try
             {
@@ -2996,7 +4421,7 @@ namespace OsEngine.Market.Servers.BCS
                 jsonContent.Add("orderType", type);
                 jsonContent.Add("orderQuantity", quantity);
                 jsonContent.Add("ticker", order.SecurityNameCode);
-                jsonContent.Add("classCode", order.SecurityClassCode.Split('-')[1]);
+                jsonContent.Add("classCode", GetClassCodeByNameClass(order.SecurityClassCode));
 
                 if (order.TypeOrder == OrderPriceType.Limit)
                 {
@@ -3055,6 +4480,12 @@ namespace OsEngine.Market.Servers.BCS
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateOrdersOperations.WaitToProceed();
+
+            if (CheckDailyOrdersLimit() == false)
+            {
+                SendLogMessage("Order change price fail. Достигнут дневной лимит БКС 200000 заявок.", LogMessageType.Error);
+                return;
+            }
 
             try
             {
@@ -3240,7 +4671,7 @@ namespace OsEngine.Market.Servers.BCS
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            _rateGateOrderStatus.WaitToProceed();
+            _rateGateOrdersOperations.WaitToProceed();
 
             try
             {
@@ -3271,12 +4702,12 @@ namespace OsEngine.Market.Servers.BCS
                         SendLogMessage("Order fail! Reason: " + statusResponse.data.rejectReason, LogMessageType.Error);
                     }
 
-                    UpdateMyOrder(statusResponse);
+                    UpdateMyOrder(statusResponse, true);
 
                     if (stateType == OrderStateType.Done || stateType == OrderStateType.Partial)
                     {
                         // восстановление сделок по исполненному ордеру, когда события ордера были потеряны
-                        EnqueueMyTradeFetch(statusResponse, order);
+                        EnqueueMyTradeFetch(statusResponse, order, true);
                     }
 
                     return stateType;
@@ -3417,6 +4848,70 @@ namespace OsEngine.Market.Servers.BCS
             return null;
         }
 
+        // лёгкая версия GetHistoricalOrders для выравнивания после реконнекта:
+        // одна страница (100 записей на сторону), окно - последние сутки,
+        // без пагинации за всю историю
+        private List<Order> GetRecentFinalOrders()
+        {
+            List<Order> orders = new List<Order>();
+
+            try
+            {
+                for (int side = 1; side <= 2; side++)
+                {
+                    _rateGateOrdersOperations.WaitToProceed();
+
+                    string endPoint = "/trade-api-bff-order-details/api/v1/orders/search?page=0&size=100&sort=orderDateTime,desc";
+
+                    Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>
+                    {
+                        { "startDateTime", DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
+                        { "endDateTime", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
+                        { "side", side },
+                        { "orderStatus", new int[] { 1, 2 } },
+                        { "orderTypes", new int[] { 1, 2, 3, 10 } },
+                        { "tickers", Array.Empty<string>() },
+                        { "classCodes", Array.Empty<string>() }
+                    };
+
+                    string jsonRequest = JsonConvert.SerializeObject(jsonContent);
+
+                    HttpResponseMessage orderListResponse = CreateHttpRequestAsync(endPoint, HttpMethod.Post, jsonRequest).Result;
+
+                    if (orderListResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        string errorMsg = orderListResponse.Content.ReadAsStringAsync().Result;
+                        SendLogMessage($"Recent orders getting error: {orderListResponse.StatusCode} || msg:{errorMsg}", LogMessageType.Error);
+                        continue;
+                    }
+
+                    string responseMsg = orderListResponse.Content.ReadAsStringAsync().Result;
+                    BcsOrdersListResponse ordersResponse = JsonConvert.DeserializeAnonymousType(responseMsg, new BcsOrdersListResponse());
+
+                    if (ordersResponse == null || ordersResponse.records == null)
+                    {
+                        continue;
+                    }
+
+                    for (int i = 0; i < ordersResponse.records.Length; i++)
+                    {
+                        Order order = ConvertToOsEngineOrder(ordersResponse.records[i]);
+
+                        if (order != null)
+                        {
+                            orders.Add(order);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Recent orders getting error: " + ex.ToString(), LogMessageType.Error);
+            }
+
+            return orders;
+        }
+
         private List<Order> GetOrdersFromExchangeByStatus(int[] orderStatuses, int side)
         {
             List<Order> orders = new List<Order>();
@@ -3427,7 +4922,7 @@ namespace OsEngine.Market.Servers.BCS
             {
                 do
                 {
-                    _rateGateGetOrders.WaitToProceed();
+                    _rateGateOrdersOperations.WaitToProceed();
 
                     page++;
 
@@ -3499,6 +4994,11 @@ namespace OsEngine.Market.Servers.BCS
             {
                 Order order = new Order();
 
+                // строковые коды от биржи могут приходить с пробелами (исторический баг " 1")
+                string recordStatus = record.orderStatus?.Trim();
+                string recordType = record.orderType?.Trim();
+                string recordSide = record.side?.Trim();
+
                 Security security = GetSecurityByName(record.ticker, record.classCode);
 
                 if (security != null)
@@ -3529,19 +5029,19 @@ namespace OsEngine.Market.Servers.BCS
 
                 order.Volume = record.orderQuantityLots.ToDecimal();
                 order.VolumeExecute = record.executedQuantityLots.ToDecimal();
-                order.Side = record.side == "1" ? Side.Buy : Side.Sell;
+                order.Side = recordSide == "1" ? Side.Buy : Side.Sell;
 
                 if (_myPortfolios.Count == 1)
                 {
                     order.PortfolioNumber = _myPortfolios[0].Number;
                 }
 
-                if (record.orderStatus == "1")
+                if (recordStatus == "1")
                 {
                     order.State = OrderStateType.Cancel;
                     order.TimeCancel = ConvertUtsStringToDateTimeRu(record.updateDateTime);
                 }
-                else if (record.orderStatus == "2")
+                else if (recordStatus == "2")
                 {
                     order.State = OrderStateType.Done;
                     order.TimeDone = ConvertUtsStringToDateTimeRu(record.updateDateTime);
@@ -3552,9 +5052,9 @@ namespace OsEngine.Market.Servers.BCS
                     order.TimeCreate = ConvertUtsStringToDateTimeRu(record.updateDateTime);
                 }
 
-                if (record.orderType == "1")
+                if (recordType == "1")
                     order.TypeOrder = OrderPriceType.Market;
-                else if (record.orderType == "3")
+                else if (recordType == "3")
                     order.TypeOrder = OrderPriceType.Iceberg;
                 else
                     order.TypeOrder = OrderPriceType.Limit; // типы 2 и 10 — лимитные, 4-7 и 11 — стоп/тейк, порождающие лимитные
@@ -3612,6 +5112,31 @@ namespace OsEngine.Market.Servers.BCS
                         if (_httpClient != null)
                         {
                             HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+                            if (response.StatusCode == HttpStatusCode.Unauthorized && i < maxRetries - 1)
+                            {
+                                // токен умер раньше срока (отзыв/смена секрета на стороне БКС):
+                                // перевыпускаем и повторяем запрос - заголовок ставится на каждый запрос
+                                response.Dispose();
+
+                                SendLogMessage($"Ответ 401 по пути: <<{path}>>, перевыпуск токена и повтор", LogMessageType.System);
+
+                                bool refreshed;
+
+                                lock (_tokenRefreshLocker)
+                                {
+                                    refreshed = GetAccess24HToken();
+                                }
+
+                                if (refreshed == false)
+                                {
+                                    SendLogMessage("BCS: 401 и перевыпуск токена не удался. Переподключение коннектора.", LogMessageType.Error);
+                                    ForceDisconnect();
+                                    return null;
+                                }
+
+                                continue;
+                            }
 
                             if (response.StatusCode == HttpStatusCode.TooManyRequests && i < maxRetries - 1)
                             {

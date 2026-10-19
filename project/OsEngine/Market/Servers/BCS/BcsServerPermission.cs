@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.BCS
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         #endregion
 
@@ -259,7 +259,7 @@ namespace OsEngine.Market.Servers.BCS
 
         public int AsyncOrderSending_RateGateLimitMls
         {
-            get { return 10; }
+            get { return 100; }
         }
 
         public bool IsSupports_AsyncCandlesStarter
@@ -269,7 +269,7 @@ namespace OsEngine.Market.Servers.BCS
 
         public int AsyncCandlesStarter_RateGateLimitMls
         {
-            get { return 10; }
+            get { return 500; }
         }
 
         public string[] IpAddressServer
