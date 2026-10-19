@@ -115,6 +115,8 @@ namespace OsEngine.Robots.Helpers
 
         private bool _isLoaded;
 
+        private bool _serverTimeMissingLogged;
+
         private void DcaTimeBot_ParametrsChangeByUser()
         {
             if (StartProgram != StartProgram.IsOsTrader)
@@ -263,7 +265,25 @@ namespace OsEngine.Robots.Helpers
                         continue;
                     }
 
-                    if (_tradePeriodsSettings.CanTradeThisTime(_tab.TimeServerCurrent) == false)
+                    DateTime serverTime = _tab.TimeServerCurrent;
+
+                    if (serverTime == DateTime.MinValue)
+                    {
+                        if (_serverTimeMissingLogged == false)
+                        {
+                            SendNewLogMessage("Server time is not received yet. DCA trading is suspended until first data from the server.", LogMessageType.System);
+                            _serverTimeMissingLogged = true;
+                        }
+                        continue;
+                    }
+
+                    if (_serverTimeMissingLogged == true)
+                    {
+                        SendNewLogMessage("Server time is received. DCA trading is resumed.", LogMessageType.System);
+                        _serverTimeMissingLogged = false;
+                    }
+
+                    if (_tradePeriodsSettings.CanTradeThisTime(serverTime) == false)
                     {
                         continue;
                     }
