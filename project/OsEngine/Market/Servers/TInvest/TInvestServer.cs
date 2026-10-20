@@ -4142,6 +4142,8 @@ namespace OsEngine.Market.Servers.TInvest
                             else
                             {
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                                // bug-0115: Success is a fact to age from - seed the staleness clock, else first-book silence never trips
+                                _lastOrderBookTimeUtc[sub.InstrumentUid] = DateTime.UtcNow;
                             }
                         }
                     }
