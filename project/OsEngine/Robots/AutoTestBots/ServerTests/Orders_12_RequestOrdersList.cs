@@ -337,26 +337,36 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 2.1) Запрос на возврат 100 активных ордеров.
 
-            List<Order> ordersFromRequest = Server.GetHistoricalOrders();
+            // История коннектора за день содержит ордера всех тестов сессии — сверяем только свои
+            List<int> myOrderNumbers = new List<int>();
+            for (int i = 0; i < ordersArrayBuy.Count; i++) myOrderNumbers.Add(ordersArrayBuy[i].NumberUser);
+            for (int i = 0; i < orderArraySell.Count; i++) myOrderNumbers.Add(orderArraySell[i].NumberUser);
 
-            if (ordersFromRequest == null)
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2); // канон ожидания прихода данных в файле (:217/:525/:562)
+            List<Order> ordersFromRequest = null;
+            int rawCount = 0;
+            // shortcut: кап AServer :4461 = 100, при истории>100 asc-срез не отдаёт мои свежие — по подтверждению raw=100 в ретесте отдельная заявка (count/постраничность), в этот фикс не тащить
+            while (true)
             {
-                this.SetNewError("Error 16. ordersFromRequest == null");
-                return false;
+                List<Order> raw = Server.GetHistoricalOrders();
+                rawCount = raw == null ? 0 : raw.Count;
+                if (raw != null && raw.Count != 0)
+                {
+                    ordersFromRequest = raw.FindAll(o => myOrderNumbers.Contains(o.NumberUser));
+                    if (ordersFromRequest.Count == countOfAllOrdersInTest) break;
+                }
+                if (timeEndWait < DateTime.Now)
+                {
+                    if (raw == null) { this.SetNewError("Error 16. ordersFromRequest == null"); return false; }
+                    if (raw.Count == 0) { this.SetNewError("Error 17. ordersFromRequest.Count == 0"); return false; }
+                    this.SetNewError("Error 18. ordersFromRequest.Count != countOfAllOrdersInTest. Mine " + ordersFromRequest.Count
+                        + " of " + countOfAllOrdersInTest + ", raw " + rawCount + (rawCount == 100 ? " (cap)" : ""));
+                    return false;
+                }
+                this.SetNewServiceInfo("Waiting history. Mine " + (ordersFromRequest == null ? "-" : ordersFromRequest.Count.ToString()) + " of " + countOfAllOrdersInTest + ", raw " + rawCount);
+                Thread.Sleep(5000);
             }
-            if (ordersFromRequest.Count == 0)
-            {
-                this.SetNewError("Error 17. ordersFromRequest.Count == 0");
-                return false;
-            }
-
-            ordersFromRequest = ordersFromRequest.GetRange(0, countOfAllOrdersInTest);
-
-            if (ordersFromRequest.Count != countOfAllOrdersInTest)
-            {
-                this.SetNewError("Error 18. ordersFromRequest.Count != countOfAllOrdersInTest");
-                return false;
-            }
+            int historyCount = rawCount;
 
             for (int i = 0; i < ordersFromRequest.Count; i++)
             {
@@ -414,7 +424,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             List<Order> ordersFromPartRequests = new List<Order>();
 
-            for (int i = 0; i < countOfAllOrdersInTest; i += 1)
+            // обход всей истории (historyCount зафиксирован с 2.1; +1 страница = «последний пустой» по замыслу :14/:18, при конкурентном росте истории декоративен)
+            for (int i = 0; i <= historyCount; i += 1)
             {
                 List<Order> currentOrders = Server.GetHistoricalOrders(i, 1);
 
@@ -424,7 +435,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     break;
                 }
 
-                ordersFromPartRequests.AddRange(currentOrders);
+                for (int j = 0; j < currentOrders.Count; j++)
+                {
+                    if (myOrderNumbers.Contains(currentOrders[j].NumberUser))
+                    {
+                        ordersFromPartRequests.Add(currentOrders[j]);
+                    }
+                }
             }
 
             if (ordersFromPartRequests.Count == 0)
