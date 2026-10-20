@@ -1481,8 +1481,12 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                _bestBid = bestBid;
-                _bestAsk = bestAsk;
+                // one-sided bid/ask is a partial observation (one-sided depth, auction): keep last complete best pair (bug-0023, T5b)
+                if (bestBid != 0 && bestAsk != 0)
+                {
+                    _bestBid = bestBid;
+                    _bestAsk = bestAsk;
+                }
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
