@@ -122,6 +122,8 @@ namespace OsEngine.Robots.SpeculantSet
         private DateTime _lastDividendsUpdateCheckDate = DateTime.MinValue;
         private bool _dividendsUpdating = false;
 
+        private bool _serverTimeMissingLogged; // server time is server-global (BotTabSimple:1360 -> ConnectorCandles.MarketTime:1908 -> _myServer.ServerTime), deployment is single-server; do not port this sticky form to multi-server bots without per-server state
+
         #endregion
 
         #region Constructor
@@ -355,7 +357,33 @@ namespace OsEngine.Robots.SpeculantSet
                     return;
                 }
 
-                if (_tradePeriodsSettings.CanTradeThisTime(tab.TimeServerCurrent) == false)
+                DateTime serverTime = tab.TimeServerCurrent;
+
+                if (serverTime == DateTime.MinValue)
+                {
+                    if (_serverTimeMissingLogged == false)
+                    {
+                        try
+                        {
+                            _serverTimeMissingLogged = true;
+                            SendNewLogMessage("Server time is not received yet. Speculant set trading is suspended until first data from the server.", Logging.LogMessageType.System);
+                        }
+                        catch { }
+                    }
+                    return;
+                }
+
+                if (_serverTimeMissingLogged == true)
+                {
+                    try
+                    {
+                        _serverTimeMissingLogged = false;
+                        SendNewLogMessage("Server time is received. Speculant set trading is resumed.", Logging.LogMessageType.System);
+                    }
+                    catch { }
+                }
+
+                if (_tradePeriodsSettings.CanTradeThisTime(serverTime) == false)
                 {
                     // в неторговое время отменяем заявки на вход и деактивируем стопы позиций
                     tab.BuyAtStopCancel();
@@ -420,7 +448,33 @@ namespace OsEngine.Robots.SpeculantSet
                     return;
                 }
 
-                if (_tradePeriodsSettings.CanTradeThisTime(tab.TimeServerCurrent) == false)
+                DateTime serverTime = tab.TimeServerCurrent;
+
+                if (serverTime == DateTime.MinValue)
+                {
+                    if (_serverTimeMissingLogged == false)
+                    {
+                        try
+                        {
+                            _serverTimeMissingLogged = true;
+                            SendNewLogMessage("Server time is not received yet. Speculant set trading is suspended until first data from the server.", Logging.LogMessageType.System);
+                        }
+                        catch { }
+                    }
+                    return;
+                }
+
+                if (_serverTimeMissingLogged == true)
+                {
+                    try
+                    {
+                        _serverTimeMissingLogged = false;
+                        SendNewLogMessage("Server time is received. Speculant set trading is resumed.", Logging.LogMessageType.System);
+                    }
+                    catch { }
+                }
+
+                if (_tradePeriodsSettings.CanTradeThisTime(serverTime) == false)
                 {
                     // в неторговое время отменяем заявки на вход и деактивируем стопы позиций
                     tab.SellAtStopCancel();
