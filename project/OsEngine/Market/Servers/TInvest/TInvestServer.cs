@@ -4680,6 +4680,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (orderStateResponse.OrderState != null)
                     {
+                        NoteOrderFound(orderStateResponse.OrderState.OrderId); // событие по номеру из стрима: заявка жива на бирже, сброс счётчика
+
                         Security security = GetSecurityByIdFast(orderStateResponse.OrderState.InstrumentUid);
                         OrderStateStreamResponse.Types.OrderState state = orderStateResponse.OrderState;
 
@@ -5764,7 +5766,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (message.Contains("Internal network error"))
                 {
-                    OrderStateType orderStateType = GetOrderStatus(order);
+                    OrderStateType orderStateType = GetOrderStatusWithTrades(order, true, "post_retry");
 
                     if (orderStateType == OrderStateType.None)
                     {
@@ -6063,6 +6065,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         private string _cancelOrdersLocker = "_cancelOrdersLocker";
 
+        // BUG-0123: подтверждения однозначного «Order not found» от брокера по NumberMarket
+        private Dictionary<string, int> _orderNotFoundConfirms = new Dictionary<string, int>();
+
+        private string _orderNotFoundConfirmsLocker = "_orderNotFoundConfirmsLocker";
+
         public bool CancelOrder(Order order)
         {
             try
@@ -6110,7 +6117,12 @@ namespace OsEngine.Market.Servers.TInvest
                 if (order.TypeOrder == OrderPriceType.StopLimit
                     || order.TypeOrder == OrderPriceType.StopMarket)
                 {
-                    return CancelStopOrder(order);
+                    bool stopResult = CancelStopOrder(order);
+                    if (stopResult)
+                    {
+                        ClearCancelTry(order.NumberMarket);
+                    }
+                    return stopResult;
                 }
 
                 CancelOrderRequest request = new CancelOrderRequest();
@@ -6140,6 +6152,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
+                    ClearCancelTry(order.NumberMarket);
                     return true;
                 }
 
@@ -6156,6 +6169,7 @@ namespace OsEngine.Market.Servers.TInvest
                             + order.SecurityNameCode + " " + order.NumberMarket
                             + ". Broker message: " + cancelErrorMessage, LogMessageType.System);
 
+                        ClearCancelTry(order.NumberMarket);
                         return true;
                     }
 
@@ -6170,6 +6184,7 @@ namespace OsEngine.Market.Servers.TInvest
                     return false;
                 }
 
+                ClearCancelTry(order.NumberMarket);
                 return true;
             }
             catch (Exception exception)
@@ -6177,6 +6192,15 @@ namespace OsEngine.Market.Servers.TInvest
                 SendLogMessage(OsLocalization.Market.Label293 + "\n" + exception.ToString(), LogMessageType.System);
             }
             return false;
+        }
+
+        // Отзыв успешен — снимаем записи попыток отзыва этого номера. Семантика «>=2 неудачи подряд» сохранена
+        private void ClearCancelTry(string numberMarket)
+        {
+            lock (_cancelOrdersLocker)
+            {
+                _cancelOrderNums.RemoveAll(x => x == numberMarket);
+            }
         }
 
         public void CancelAllOrders()
@@ -6307,25 +6331,15 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     string message = GetGRPCErrorMessage(ex);
 
-                    if (message.Contains("Order not found"))
-                    {
-                        // брокер однозначно: такой заявки нет - финализируем её в движке
-                        // как отменённую, иначе хаб будет опрашивать её вечно
-                        SendLogMessage("Order not found on broker, marking as cancelled: " + order.SecurityNameCode
-                            + " " + order.NumberMarket, LogMessageType.System);
-
-                        order.State = OrderStateType.Cancel;
-                        order.TimeCancel = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
-
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
-
-                        return OrderStateType.Cancel;
-                    }
-
                     SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.System);
+
+                    if (IsOrderNotFoundError(message))
+                    {
+                        // Заместо безусловного терминала #2064: один not-found убивает живую заявку
+                        // на гонке регистрации в пути постинга (гейт source) и мутирует hub-объект из чужого треда.
+                        // Терминал — двумя подтверждениями через NoteOrderNotFound, возврат остаётся None (контракт).
+                        NoteOrderNotFound(order, source);
+                    }
 
                     Thread.Sleep(1);
                     return OrderStateType.None;
@@ -6337,6 +6351,8 @@ namespace OsEngine.Market.Servers.TInvest
                     Thread.Sleep(1);
                     return OrderStateType.None;
                 }
+                NoteOrderFound(order.NumberMarket); // успешный опрос: заявка у брокера есть, снимаем подтверждения
+
                 Order newOrder = new Order();
 
                 Security security = _securities.FirstOrDefault(s => s.Name == order.SecurityNameCode);
@@ -7462,6 +7478,83 @@ namespace OsEngine.Market.Servers.TInvest
             }
 
             return result;
+        }
+
+        private bool IsOrderNotFoundError(string grpcMessage)
+        {
+            return grpcMessage != null && grpcMessage.IndexOf("Order not found", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        // «Order not found» от брокера дважды подряд => терминальный Cancel (BUG-0123).
+        // Возврат None не меняем — это штатный контракт для коллеров; сигнал событием
+        private void NoteOrderNotFound(Order order, string source)
+        {
+            if (!string.IsNullOrEmpty(source))
+            {   // считаем только hub-опрос и верификацию после отзыва; ретрай постинга — не факт смерти заявки
+                return;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                return;
+            }
+
+            int count = 0;
+
+            lock (_orderNotFoundConfirmsLocker)
+            {
+                _orderNotFoundConfirms.TryGetValue(order.NumberMarket, out count);
+                count++;
+
+                if (count < 2)
+                {
+                    _orderNotFoundConfirms[order.NumberMarket] = count;
+                }
+                else
+                {
+                    _orderNotFoundConfirms.Remove(order.NumberMarket);
+                }
+            }
+
+            if (count < 2)
+            {
+                SendLogMessage("Order " + order.NumberMarket + " not found at broker, confirmation 1/2", LogMessageType.System);
+                return;
+            }
+
+            SendLogMessage("Order " + order.NumberMarket + " not found at broker twice. Marked Cancel.", LogMessageType.Error);
+
+            // новая копия: hub-объект мутируется из стрим/робот-тредов, в событие даём своё
+            Order deadOrder = new Order();
+            deadOrder.NumberUser = order.NumberUser;
+            deadOrder.NumberMarket = order.NumberMarket;
+            deadOrder.SecurityNameCode = order.SecurityNameCode;
+            deadOrder.SecurityClassCode = order.SecurityClassCode;
+            deadOrder.PortfolioNumber = order.PortfolioNumber;
+            deadOrder.Side = order.Side;
+            deadOrder.TypeOrder = order.TypeOrder;
+            deadOrder.Price = order.Price;
+            deadOrder.Volume = order.Volume;
+            deadOrder.TimeCreate = order.TimeCreate;
+            deadOrder.State = OrderStateType.Cancel;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(deadOrder);
+            }
+        }
+
+        private void NoteOrderFound(string numberMarket)
+        {
+            if (string.IsNullOrEmpty(numberMarket))
+            {
+                return;
+            }
+
+            lock (_orderNotFoundConfirmsLocker)
+            {
+                _orderNotFoundConfirms.Remove(numberMarket);
+            }
         }
 
         private string GetGRPCErrorMessage(RpcException exception)

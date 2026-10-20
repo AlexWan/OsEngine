@@ -484,7 +484,8 @@ namespace OsEngine.Market.Servers
 
                                 if (newOrder.State == OrderStateType.Fail
                                     || newOrder.State == OrderStateType.Cancel
-                                    || newOrder.State == OrderStateType.Done)
+                                    || newOrder.State == OrderStateType.Done
+                                    || newOrder.State == OrderStateType.LostAfterActive)
                                 {
                                     if (_fullLogIsOn)
                                     {
@@ -698,6 +699,7 @@ namespace OsEngine.Market.Servers
             if(order.CountTriesToGetOrderStatus >= 5)
             {
                 order.IsFinallyLost = true;
+                order.Order.State = OrderStateType.LostAfterActive; // BUG-0123: робот не должен оставаться с залипшей Active
 
                 if(LostOrderEvent != null)
                 {

@@ -4383,6 +4383,10 @@ namespace OsEngine.Market.Servers
             message += "NumberMarket: " + order.NumberMarket + "\n";
 
             SendLogMessage(message, LogMessageType.Error);
+
+            order.ServerType = ServerType;
+            order.ServerName = ServerNameUnique;
+            _ordersToSend.Enqueue(order); // BUG-0123: терминальный статус роботу через штатный тред, хаб-тред не блокируем
         }
 
         private void _ordersHub_LostMyTradesEvent(Order order)
