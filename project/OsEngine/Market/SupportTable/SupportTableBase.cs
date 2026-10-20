@@ -216,16 +216,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(binanceFutures);
 
-            SupportConnection bitGet = new SupportConnection()
-            {
-                ServerType = ServerType.BitGetSpot,
-                SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Bitget.png",
-                LingSiteUrl = "https://partner.bitget.com/bg/txme90901684140842016",
-                Discount = 20
-            };
-            supportList.Add(bitGet);
-
             SupportConnection okx = new SupportConnection()
             {
                 ServerType = ServerType.OKX,

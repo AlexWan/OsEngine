@@ -40,7 +40,7 @@
             <Button Name="ButtonClosePositions" Content="Close all poses" HorizontalAlignment="Center" Margin="0,333,0,0" VerticalAlignment="Top" Width="285"/>
 
             <Button Name="ButtonSec1Connection" Content="Security 1. BTCUSDT. 1Min. BinanceFutures" VerticalAlignment="Top" Margin="10,0,10,0"/>
-            <Button Name="ButtonSec2Connection" Content="Security 2. ETHUSDT. 1Min. BitGet" VerticalAlignment="Top" Margin="11,147,9,0"/>
+            <Button Name="ButtonSec2Connection" Content="Security 2. ETHUSDT. 1Min. BinanceFutures" VerticalAlignment="Top" Margin="11,147,9,0"/>
             <Label Name="LabelSec1Regime" Content="Regime" HorizontalAlignment="Left" Margin="11,76,0,0" VerticalAlignment="Top"/>
             <ComboBox Name="ComboBoxSec1Regime"  HorizontalAlignment="Left" Margin="107,76,0,0" VerticalAlignment="Top" Width="106"/>
             <Label Name="LabelSec2Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,224,0,0" VerticalAlignment="Top"/>

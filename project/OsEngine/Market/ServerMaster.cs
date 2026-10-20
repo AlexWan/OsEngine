@@ -35,8 +35,6 @@ using OsEngine.Market.Servers.TInvest;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
-using OsEngine.Market.Servers.BitGet.BitGetSpot;
-using OsEngine.Market.Servers.BitGet.BitGetFutures;
 using OsEngine.Market.Servers.Alor;
 using OsEngine.Market.Servers.GateIo.GateIoSpot;
 using OsEngine.Market.Servers.GateIo.GateIoFutures;
@@ -87,11 +85,9 @@ using System.Windows.Controls;
 using OsEngine.Market.Servers.ExMo.ExmoSpot;
 using OsEngine.Market.Servers.BybitData;
 using OsEngine.Market.Servers.GateIoData;
-using OsEngine.Market.Servers.BitGetData;
 using OsEngine.Market.Servers.MetaTrader5;
 using OsEngine.Market.Servers.QscalpMarketDepth;
 using OsEngine.Market.Servers.TData;
-using OsEngine.Market.Servers.BitGetUnified;
 using OsEngine.Market.Servers.TwelveData;
 using OsEngine.Market.Servers.BCS;
 using OsEngine.Market.ServerEncryption;
@@ -396,8 +392,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.OKX);
-                serverTypes.Add(ServerType.BitGetSpot);
-                serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.BingXSpot);
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.XTSpot);
@@ -419,7 +413,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.TelegramNews);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.AscendexSpot);
-                serverTypes.Add(ServerType.BitGetUnified);
                 serverTypes.Add(ServerType.TwelveData);
                 serverTypes.Add(ServerType.BCS);
 
@@ -536,8 +529,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.BitGetSpot);
-                serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.YahooFinance);
@@ -549,7 +540,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.OKXData);
                 serverTypes.Add(ServerType.BybitData);
                 serverTypes.Add(ServerType.GateIoData);
-                serverTypes.Add(ServerType.BitGetData);
                 serverTypes.Add(ServerType.MetaTrader5);
                 serverTypes.Add(ServerType.QscalpMarketDepth);
                 serverTypes.Add(ServerType.TDataHistory);
@@ -691,10 +681,6 @@ namespace OsEngine.Market
 
                     SaveMostPopularServers(type);
 
-                    if (type == ServerType.BitGetUnified)
-                    {
-                        newServer = new BitGetUnifiedServer(uniqueNum);
-                    }
                     if (type == ServerType.TDataHistory)
                     {
                         newServer = new TDataServer();
@@ -702,10 +688,6 @@ namespace OsEngine.Market
                     if (type == ServerType.QscalpMarketDepth)
                     {
                         newServer = new QscalpMarketDepthServer();
-                    }
-                    if (type == ServerType.BitGetData)
-                    {
-                        newServer = new BitGetDataServer();
                     }
                     if (type == ServerType.GateIoData)
                     {
@@ -786,14 +768,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.Alor)
                     {
                         newServer = new AlorServer(uniqueNum);
-                    }
-                    else if (type == ServerType.BitGetFutures)
-                    {
-                        newServer = new BitGetServerFutures(uniqueNum);
-                    }
-                    else if (type == ServerType.BitGetSpot)
-                    {
-                        newServer = new BitGetServerSpot(uniqueNum);
                     }
                     else if (type == ServerType.OKX)
                     {
@@ -1607,14 +1581,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new AlorServerPermission();
                 }
-                else if (type == ServerType.BitGetSpot)
-                {
-                    serverPermission = new BitGetSpotServerPermission();
-                }
-                else if (type == ServerType.BitGetFutures)
-                {
-                    serverPermission = new BitGetFuturesServerPermission();
-                }
                 else if (type == ServerType.OKX)
                 {
                     serverPermission = new OkxServerPermission();
@@ -1787,10 +1753,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new GateIoDataServerPermission();
                 }
-                else if (type == ServerType.BitGetData)
-                {
-                    serverPermission = new BitGetDataServerPermission();
-                }
                 else if (type == ServerType.QscalpMarketDepth)
                 {
                     serverPermission = new QscalpMarketDepthServerPermission();
@@ -1798,10 +1760,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.TDataHistory)
                 {
                     serverPermission = new TDataServerPermission();
-                }
-                else if (type == ServerType.BitGetUnified)
-                {
-                    serverPermission = new BitGetUnifiedServerPermission();
                 }
                 else if (type == ServerType.TwelveData)
                 {
@@ -2461,16 +2419,6 @@ namespace OsEngine.Market
         OKX,
 
         /// <summary>
-        /// BitGetSpot exchange
-        /// </summary>
-        BitGetSpot,
-
-        /// <summary>
-        /// BitGetFutures exchange
-        /// </summary>
-        BitGetFutures,
-
-        /// <summary>
         /// Alor OpenAPI & Websocket
         /// </summary>
         Alor,
@@ -2664,12 +2612,6 @@ namespace OsEngine.Market
         GateIoData,
 
         /// <summary>
-        /// downloading historical data from exchange BitGet
-        /// скачивание исторических данных с биржи BitGet
-        /// </summary>
-        BitGetData,
-
-        /// <summary>
         /// downloading historical depths
         /// скачивание историческихстаканов в формате qsh
         /// </summary>
@@ -2680,12 +2622,6 @@ namespace OsEngine.Market
         /// скачивание исторических данных из архивов T-Invest
         /// </summary>
         TDataHistory,
-
-        /// <summary>
-        /// Unified API for exchange BitGet (spot and futures)
-        /// Унифицированный API для биржи BitGet (спот и фьючерсы)
-        /// </summary>
-        BitGetUnified,
 
         /// <summary>
         /// downloading historical data from T-Invest archives
