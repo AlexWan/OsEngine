@@ -59,7 +59,7 @@
    (бумага/класс/портфель/объём из конфига; портфель — первый с коннектора) →
    `bot_click_param_button` (кнопка запуска теста) → **проверка запуска**: ждём
    маркер `Tests started <КлассТеста>` в логе робота (до `TestStartTimeoutMinutes`,
-   дефолт 2 мин; нет маркера — FAIL «test did not start») → чтение лог-файла робота
+   дефолт 2 мин; нет маркера — FAIL «test did not start»; fresh «Test start ignored: previous test is running» over baseline, подтверждённый ≥3 поллингами подряд и не ранее 10 с от клика — FAIL «robot is busy with a previous test») → чтение лог-файла робота
    `Engine\Log\*<BotName>*Log_*.txt` до отчёта `REPORT <Класс>` + `STATUS:`
    (таймаут 25 мин на тест) → отчёт с корректным STATUS = PASS, пойманные тестом
    ошибки пишутся в лог как информация.

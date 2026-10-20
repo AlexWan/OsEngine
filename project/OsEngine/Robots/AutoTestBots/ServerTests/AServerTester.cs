@@ -502,10 +502,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonDataTest1_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Data_1;
 
@@ -515,10 +512,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonDataTest2_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Data_2;
 
@@ -528,10 +522,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonDataTest3_UserClickOnButtonEvent1()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Data_3;
 
@@ -541,10 +532,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonDataTest4_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Data_4;
 
@@ -554,10 +542,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonDataTest5_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Data_5;
 
@@ -567,10 +552,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonMarketDepth_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Var_2_MarketDepth;
 
@@ -580,10 +562,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonTrades_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Var_3_Trades;
 
@@ -593,10 +572,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonSecTests_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Var_1_Securities;
 
@@ -606,10 +582,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest1_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Conn_1;
 
@@ -619,10 +592,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest2_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Conn_2;
 
@@ -632,10 +602,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest3_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Conn_3;
 
@@ -645,10 +612,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest4_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Conn_4;
 
@@ -658,10 +622,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonConnectionTest5_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Conn_5;
 
@@ -694,10 +655,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest1_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_1;
 
@@ -707,10 +665,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest2_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_2;
 
@@ -720,10 +675,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest3_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_3;
 
@@ -733,10 +685,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest4_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_4;
 
@@ -746,10 +695,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest5_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_5;
 
@@ -759,10 +705,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest6_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_6;
 
@@ -772,10 +715,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest7_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_7;
 
@@ -785,10 +725,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest8_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_8;
 
@@ -798,10 +735,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest9_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_9;
 
@@ -811,10 +745,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest10_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_10;
 
@@ -824,10 +755,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest11_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_11;
 
@@ -837,10 +765,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest12_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_12;
 
@@ -850,10 +775,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest13_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_13;
 
@@ -863,10 +785,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest14_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_14;
 
@@ -876,10 +795,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest15_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_15;
 
@@ -889,10 +805,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonOrdersTest16_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Order_16;
 
@@ -902,10 +815,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonPortfolioTest1_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.Portfolio_1;
 
@@ -915,10 +825,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple1_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_1;
 
@@ -928,10 +835,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple2_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_2;
 
@@ -941,10 +845,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple3_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_3;
 
@@ -954,10 +855,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple4_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_4;
 
@@ -967,10 +865,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple5_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_5;
 
@@ -980,10 +875,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void ButtonBotTabSimple6_UserClickOnButtonEvent()
         {
-            if (_threadIsWork == true)
-            {
-                return;
-            }
+            if (StartIgnoredIfBusy()) { return; }
 
             CurTestType = ServerTestType.BotTabSimple_6;
 
@@ -1602,6 +1494,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         }
 
         private bool _threadIsWork;
+
+        // Гейд занятости: клик в занятого робота обязан быть виден в логе (харнесс матчит эту строку)
+        private bool StartIgnoredIfBusy()
+        {
+            if (_threadIsWork == true)
+            {
+                SendNewLogMessage("Test start ignored: previous test is running", LogMessageType.Error);
+                return true;
+            }
+
+            return false;
+        }
 
         List<AServerTester> _testers = new List<AServerTester>();
 
