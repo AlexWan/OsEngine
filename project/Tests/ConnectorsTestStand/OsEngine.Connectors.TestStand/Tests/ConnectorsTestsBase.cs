@@ -683,15 +683,18 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return;
                 }
 
-                // Baseline of "start ignored" lines must be taken BEFORE the click:
+                // Baseline of BOTH start signals must be taken BEFORE the click:
                 // the robot writes its log asynchronously, a post-click baseline
                 // could catch the flush of this click's own ignore line and miss busy.
                 string logDir = Path.Combine(Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty, "Engine", "Log");
-                int busyBaseline = CountStartIgnored(logDir, DateTime.Now);
+                string startMarker = "Tests started " + test.ReportMarker.Replace("REPORT ", string.Empty);
+                (int busyBaseline, int markerBaseline) = ScanStartSignals(logDir, DateTime.Now, startMarker);
                 if (busyBaseline < 0)
                 {
-                    // baseline unreadable: busy detection off for this test, keep the honest timeout reason
+                    // baseline unreadable: BOTH detections off for this test (fail-closed),
+                    // the honest timeout reason is kept
                     busyBaseline = int.MaxValue;
+                    markerBaseline = int.MaxValue;
                 }
 
                 DateTime testStart = DateTime.Now;
@@ -710,7 +713,7 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return;
                 }
 
-                if (!WaitTestStartMarker(test, testStart, busyBaseline))
+                if (!WaitTestStartMarker(test, testStart, busyBaseline, markerBaseline))
                 {
                     _context.RecordFail(ModuleName, method, _lastStartIgnored
                         ? $"{test.Id}: test start ignored - robot is busy with a previous test"
@@ -927,16 +930,25 @@ namespace OsEngine.Connectors.TestStand.Tests
 
         private bool _lastStartIgnored;
 
+        // Busy must be confirmed over several polls: the log writer flushes ~every 2s
+        // and a concurrent flush can read a file truncated - one observation is not enough
+        private const int BusyConfirmPolls = 3;
+        private static readonly TimeSpan BusyConfirmDelay = TimeSpan.FromSeconds(10);
+
         /// <summary>
-        /// Occurrences of the start-ignored line in the robot log files, same file
-        /// sample as the marker loop. An increase over the pre-click baseline means
-        /// this click was ignored (busy). Returns -1 if any read failed, so callers
-        /// never compare a partial count against a full one (that could false-busy).
+        /// One pass over the robot log files returning both start signals: occurrences of
+        /// the start-ignored line and of the start marker. Same file sample everywhere:
+        /// day files only, File.GetCreationTimeUtc >= from.Date.AddDays(-1) - refresh-immun,
+        /// an unrelated append never admits a file the rule would reject (at most two day
+        /// files exist, the log has no retention). Returns (-1, -1) ONLY on an IO exception;
+        /// a concurrent flush can read a file truncated WITHOUT an exception (the writer
+        /// uses FileShare.Read, the reader ReadWrite), so one observation of a signal is
+        /// never trusted alone. A failed baseline disables both detections.
         /// </summary>
-        private int CountStartIgnored(string logDir, DateTime from)
+        private (int ignored, int started) ScanStartSignals(string logDir, DateTime from, string marker)
         {
-            int count = 0;
-            bool failed = false;
+            int ignored = 0;
+            int started = 0;
             try
             {
                 if (Directory.Exists(logDir))
@@ -945,7 +957,7 @@ namespace OsEngine.Connectors.TestStand.Tests
 
                     for (int i = 0; i < files.Length; i++)
                     {
-                        if (File.GetLastWriteTime(files[i]) < from.AddMinutes(-1))
+                        if (File.GetCreationTimeUtc(files[i]) < from.Date.AddDays(-1))
                         {
                             continue;
                         }
@@ -955,72 +967,84 @@ namespace OsEngine.Connectors.TestStand.Tests
                         int idx = content.IndexOf(StartIgnoredMarker, StringComparison.Ordinal);
                         while (idx >= 0)
                         {
-                            count++;
+                            ignored++;
                             idx = content.IndexOf(StartIgnoredMarker, idx + StartIgnoredMarker.Length, StringComparison.Ordinal);
+                        }
+
+                        idx = content.IndexOf(marker, StringComparison.Ordinal);
+                        while (idx >= 0)
+                        {
+                            started++;
+                            idx = content.IndexOf(marker, idx + marker.Length, StringComparison.Ordinal);
                         }
                     }
                 }
             }
             catch
             {
-                // log file is being written. Count unknown, retry on next poll
-                failed = true;
+                // IO failure. Counts unknown, retry on next poll; never compare a partial
+                // count against a full one (that could false-busy / false-pass)
+                return (-1, -1);
             }
 
-            return failed ? -1 : count;
+            return (ignored, started);
         }
 
         /// <summary>
-        /// Wait for the "Tests started &lt;TestClass&gt;" marker in the robot log.
-        /// The robot writes this marker when a test thread actually starts
-        /// (AServerTester). No marker after the button click = the test did not
-        /// start (wrong parameters, precondition errors like "No Servers Found").
-        /// A fresh start-ignored line over busyBaseline = the robot was busy with a
-        /// previous test, fail fast instead of waiting out the full timeout.
+        /// Wait for a NEW "Tests started &lt;TestClass&gt;" occurrence (delta over the
+        /// pre-click markerBaseline: a same-day repeat of the same test must not pass
+        /// on an old marker). A fresh start-ignored line over busyBaseline = the robot
+        /// was busy with a previous test: fail fast, but only when the increase holds
+        /// over BusyConfirmPolls consecutive polls and not earlier than BusyConfirmDelay
+        /// from testStart - the confirmation window covers torn reads and marker lag
+        /// (the ignore line flushes before the slower marker). A (-1, -1) pass is
+        /// fail-closed: no marker win, busy streak reset. On expiry the reason is not
+        /// upgraded: an unconfirmed busy stays the honest "test did not start".
         /// </summary>
-        private bool WaitTestStartMarker(ServerTestInfo test, DateTime testStart, int busyBaseline)
+        private bool WaitTestStartMarker(ServerTestInfo test, DateTime testStart, int busyBaseline, int markerBaseline)
         {
             string engineDir = Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty;
             string logDir = Path.Combine(engineDir, "Engine", "Log");
             string marker = "Tests started " + test.ReportMarker.Replace("REPORT ", string.Empty);
 
             DateTime deadline = DateTime.Now.Add(TestStartTimeout);
+            int busyStreak = 0;
 
             while (DateTime.Now < deadline)
             {
-                try
+                (int ignored, int started) signal = ScanStartSignals(logDir, testStart, marker);
+
+                if (signal.ignored >= 0)
                 {
-                    if (Directory.Exists(logDir))
+                    // Marker is checked first every pass: a fresh marker always
+                    // beats a stale/busy line. Only then the confirmed busy fail-fast.
+                    if (signal.started > markerBaseline)
                     {
-                        string[] files = Directory.GetFiles(logDir, "*" + TesterBotName + "*Log_*.txt");
+                        return true;
+                    }
 
-                        for (int i = 0; i < files.Length; i++)
-                        {
-                            if (File.GetLastWriteTime(files[i]) < testStart.AddMinutes(-1))
-                            {
-                                continue;
-                            }
+                    if (signal.ignored > busyBaseline)
+                    {
+                        busyStreak++;
+                    }
+                    else
+                    {
+                        busyStreak = 0;
+                    }
 
-                            string content = ReadFileShared(files[i]);
-
-                            if (content.IndexOf(marker, StringComparison.Ordinal) >= 0)
-                            {
-                                return true;
-                            }
-                        }
-
-                        // Marker is checked first every iteration: a fresh marker always
-                        // beats a stale/busy line. Only then fail fast on a fresh ignore.
-                        if (CountStartIgnored(logDir, testStart) > busyBaseline)
-                        {
-                            _lastStartIgnored = true;
-                            return false;
-                        }
+                    // shortcut (Risk 5.1 residual): a third-party click on the busy robot landing
+                    // between baseline and our marker can still be attributed to this click, and a
+                    // UI-stall beyond the confirmation window lags the marker. Accepted: the fail
+                    // verdict stays correct, only its reason can be off.
+                    if (busyStreak >= BusyConfirmPolls && DateTime.Now - testStart >= BusyConfirmDelay)
+                    {
+                        _lastStartIgnored = true;
+                        return false;
                     }
                 }
-                catch
+                else
                 {
-                    // log file is being written. Retry
+                    busyStreak = 0;
                 }
 
                 Thread.Sleep(1000);
