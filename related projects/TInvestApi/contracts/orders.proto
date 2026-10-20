@@ -169,6 +169,7 @@ message GetOrderStateRequest {
   string order_id = 2 [(google.api.field_behavior) = REQUIRED]; //Идентификатор заявки.
   PriceType price_type = 3; //Тип цены.
   optional OrderIdType order_id_type = 4; //Тип идентификатора заявки.
+  optional google.protobuf.Timestamp order_date = 5; //Дата выставления заявки в часовом поясе UTC.
 }
 
 //Запрос получения списка активных торговых поручений.

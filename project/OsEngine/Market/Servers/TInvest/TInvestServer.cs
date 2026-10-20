@@ -5339,6 +5339,11 @@ namespace OsEngine.Market.Servers.TInvest
                 getOrderStateRequest.OrderId = order.NumberMarket;
                 getOrderStateRequest.AccountId = order.PortfolioNumber;
 
+                if (order.TimeCreate != DateTime.MinValue)
+                {
+                    getOrderStateRequest.OrderDate = TimeZoneInfo.ConvertTimeToUtc(order.TimeCreate, _mskTimeZone).ToTimestamp();
+                }
+
                 OrderState state = null;
                 try
                 {
