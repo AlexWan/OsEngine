@@ -37,7 +37,14 @@ namespace OsEngine.OsTester.TestStand.Tests
             }
 
             CreateRobots();
-            EnableTrading();
+
+            // U1 abort: параметры не распознаны — гнать дальше на дефолтах бессмысленно,
+            // причина уже записана в RecordFail внутри SetBotParamsStrict
+            if (!EnableTrading())
+            {
+                return;
+            }
+
             ConfigureSources();
             RunBaseline();
             RunCommission();
@@ -155,10 +162,15 @@ namespace OsEngine.OsTester.TestStand.Tests
                 return;
             }
 
-            SetVolumePercent(10m);
+            // U1 abort: без распознанного Volume тест меряет не то (fail уже записан)
+            if (!SetVolumePercent(10m))
+            {
+                return;
+            }
 
             TestMetrics metrics = RunAndGetMetrics();
 
+            // U1 continue: замеры собраны, факт провала восстановления записан RecordFail
             SetVolumePercent(20m);
 
             if (metrics == null)
@@ -185,10 +197,15 @@ namespace OsEngine.OsTester.TestStand.Tests
                 return;
             }
 
-            SetIndicatorParams();
+            // U1 abort: без распознанных параметров индикаторов сравнение с baseline невалидно
+            if (!SetIndicatorParams())
+            {
+                return;
+            }
 
             TestMetrics metrics = RunAndGetMetrics();
 
+            // U1 continue: замеры собраны, факт провала восстановления записан RecordFail
             RestoreIndicatorParams();
 
             if (metrics == null)
@@ -321,19 +338,11 @@ namespace OsEngine.OsTester.TestStand.Tests
             return !IsError(response);
         }
 
-        private void EnableTrading()
+        private bool EnableTrading()
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Regime"] = "On" }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Regime"] = "On" }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Regime"] = "On" }, "EnableTrading")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Regime"] = "On" }, "EnableTrading");
         }
 
         private void SetCommission(string type, decimal value)
@@ -357,51 +366,26 @@ namespace OsEngine.OsTester.TestStand.Tests
             WaitForReconnect();
         }
 
-        private void SetVolumePercent(decimal value)
+        private bool SetVolumePercent(decimal value)
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Volume"] = value }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Volume"] = value }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Volume"] = value }, "SetVolumePercent")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Volume"] = value }, "SetVolumePercent");
         }
 
-        private void SetIndicatorParams()
+        private bool SetIndicatorParams()
         {
-            // SmaTrendSample: Sma length 30 -> 10
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Sma length"] = 10 }
-            });
-
-            // BollingerRevers: Bollinger Length 12 -> 6
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Bollinger Length"] = 6 }
-            });
+            // SmaTrendSample: Sma length 30 -> 10; BollingerRevers: Bollinger Length 12 -> 6
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Sma length"] = 10 }, "SetIndicatorParams")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Bollinger Length"] = 6 }, "SetIndicatorParams");
         }
 
-        private void RestoreIndicatorParams()
+        private bool RestoreIndicatorParams()
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Sma length"] = 30 }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Bollinger Length"] = 12 }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Sma length"] = 30 }, "RestoreIndicatorParams")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Bollinger Length"] = 12 }, "RestoreIndicatorParams");
         }
 
         #endregion

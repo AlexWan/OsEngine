@@ -840,8 +840,20 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return false;
                 }
 
+                // сервер отвечает IsError=false и на нераспознанные имена (not_found[]) -
+                // без сверки updated молча прошли бы опечатки в именах параметров
+                List<string> sent = new List<string>(parameters.Keys);
+                List<string> missing = GetParamsNotUpdated(responseConfig, sent);
+
+                if (missing != null)
+                {
+                    _context.RecordFail(ModuleName, method,
+                        $"{test.Id} bot_set_params: {missing.Count} of {sent.Count} parameter(s) not recognized by robot: {string.Join(", ", missing)}");
+                    return false;
+                }
+
                 _context.RecordPass(ModuleName, method,
-                    $"{test.Id} params set: {parameters.Count} parameter(s)");
+                    $"{test.Id} params set: {responseConfig.GetProperty("updated_count").GetInt32()} of {sent.Count} parameter(s)");
                 return true;
             }
             catch (Exception error)
@@ -1220,6 +1232,41 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Params from sentNames missing in the "updated" array of a bot_set_params
+        /// response (the server reports them in "not_found" but keeps IsError=false).
+        /// Null = all sent names were updated; a malformed/missing "updated" array
+        /// counts as "nothing updated" so it fails too.
+        /// </summary>
+        public static List<string> GetParamsNotUpdated(JsonElement config, IReadOnlyCollection<string> sentNames)
+        {
+            HashSet<string> updated = new HashSet<string>(StringComparer.Ordinal);
+
+            if (config.TryGetProperty("updated", out JsonElement updatedArr)
+                && updatedArr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement name in updatedArr.EnumerateArray())
+                {
+                    string updatedName = name.GetString();
+                    if (updatedName != null)
+                    {
+                        updated.Add(updatedName);
+                    }
+                }
+            }
+
+            List<string> missing = new List<string>();
+            foreach (string name in sentNames)
+            {
+                if (!updated.Contains(name))
+                {
+                    missing.Add(name);
+                }
+            }
+
+            return missing.Count == 0 ? null : missing;
         }
 
         private bool TryParseConfigSilent(string response, out JsonElement config)
