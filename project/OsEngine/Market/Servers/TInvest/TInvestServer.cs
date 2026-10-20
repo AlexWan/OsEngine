@@ -135,6 +135,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
 
                 _pollSubscribedSecurities.Clear();
+                _historyOrdersWindowHours = HistoryOrdersWindowHours;   // окно истории сбрасываем на каждом reconnect
                 _marketDataStreams = new List<MarketDataStreamWrapper>();
                 _securityStreamMap = new Dictionary<string, MarketDataStreamWrapper>();
 
@@ -5492,7 +5493,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, onlyActive);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, onlyActive, out _);
                 if (newOrders != null && newOrders.Count > 0)
                 {
                     orders.AddRange(newOrders);
@@ -5502,12 +5503,16 @@ namespace OsEngine.Market.Servers.TInvest
             return orders;
         }
 
-        private List<Order> GetAllOrdersFromExchangeByPortfolio(string accountId, bool onlyActive)
+        // История заявок — окно в часах: период «от полуночи» растёт в течение дня и биржа его отбивает
+        // (лимит не задокументирован). sticky: сузившись после отказа, обратно не расширяется, сброс на Connect.
+        // shortcut: история отдаётся за последние N часов текущего дня, полный день — по заявке на постраничность истории
+        private const int HistoryOrdersWindowHours = 6;
+        // безвредная гонка поля при параллельных вызовах: максимальный ущерб — один лишний переопрос, монитор не держим
+        private int _historyOrdersWindowHours = HistoryOrdersWindowHours;
+
+        private List<Order> GetAllOrdersFromExchangeByPortfolio(string accountId, bool onlyActive, out bool failed)
         {
-            lock (_rageGateOrdersLocker)
-            {
-                _rateGateOrders.WaitToProceed();
-            }
+            failed = true;
 
             if (_securities == null
                 || _securities.Count == 0)
@@ -5515,8 +5520,17 @@ namespace OsEngine.Market.Servers.TInvest
                 return null;
             }
 
-            try
+            DateTime utcNow = DateTime.UtcNow;
+            int hours = _historyOrdersWindowHours;
+            GetOrdersResponse response = null;
+
+            for (int attempt = 0; attempt < 3; attempt++)
             {
+                lock (_rageGateOrdersLocker)
+                {
+                    _rateGateOrders.WaitToProceed();
+                }
+
                 GetOrdersRequest getOrdersRequest = new GetOrdersRequest();
                 getOrdersRequest.AccountId = accountId;
 
@@ -5527,14 +5541,51 @@ namespace OsEngine.Market.Servers.TInvest
                     getOrdersRequest.AdvancedFilters.ExecutionStatus.Add(OrderExecutionReportStatus.ExecutionReportStatusRejected);
                     getOrdersRequest.AdvancedFilters.ExecutionStatus.Add(OrderExecutionReportStatus.ExecutionReportStatusFill);
 
-                    getOrdersRequest.AdvancedFilters.From = DateTime.UtcNow.Date.ToTimestamp();
-                    getOrdersRequest.AdvancedFilters.To = DateTime.UtcNow.ToTimestamp();
+                    // История — за последние N часов текущего дня: с начала дня период растёт, биржа отбивает его
+                    DateTime from = utcNow.AddHours(-hours);
+                    DateTime dayStart = utcNow.Date;
+                    getOrdersRequest.AdvancedFilters.From = (from < dayStart ? dayStart : from).ToTimestamp();
+                    getOrdersRequest.AdvancedFilters.To = utcNow.ToTimestamp();
                 }
 
-                GetOrdersResponse response = _ordersClient.GetOrders(getOrdersRequest, _gRpcMetadata);
+                try
+                {
+                    response = _ordersClient.GetOrders(getOrdersRequest, _gRpcMetadata);
+                    break;
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
 
+                    if (message.IndexOf("maximum request period exceeded", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        hours = Math.Max(1, hours / 2);
+                        SendLogMessage("History window too large. Retry with " + hours + "h. Info: " + message, LogMessageType.System);
+                        continue;
+                    }
+
+                    if (message.Contains("no server message") == false)
+                    {
+                        SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.System);
+                    }
+
+                    return null;
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("Get all orders request error. " + exception.ToString(), LogMessageType.System);
+                    return null;
+                }
+            }
+
+            _historyOrdersWindowHours = hours;
+
+            try
+            {
                 if (response != null)
                 {
+                    failed = false;
+
                     List<Order> osEngineOrders = new List<Order>();
 
                     for (int i = 0; i < response.Orders.Count; i++)
@@ -5619,15 +5670,6 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("Get all orders request error. ", LogMessageType.System);
                 }
             }
-            catch (RpcException ex)
-            {
-                string message = GetGRPCErrorMessage(ex);
-
-                if (message.Contains("no server message") == false)
-                {
-                    SendLogMessage($"Error getting all orders. Info: {message}", LogMessageType.System);
-                }
-            }
             catch (Exception exception)
             {
                 SendLogMessage("Get all orders request error. " + exception.ToString(), LogMessageType.System);
@@ -5644,7 +5686,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, true);
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, true, out _);
                 if (newOrders != null && newOrders.Count > 0)
                 {
                     orders.AddRange(newOrders);
@@ -5711,14 +5753,29 @@ namespace OsEngine.Market.Servers.TInvest
             // 1 берём все ордера
 
             List<Order> orders = new List<Order>();
+            bool historyFailed = false;
 
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, false);
+                bool failed;
+                List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_myPortfolios[i].Number, false, out failed);
+                if (failed)
+                {
+                    historyFailed = true;
+                    continue;
+                }
+
                 if (newOrders != null && newOrders.Count > 0)
                 {
                     orders.AddRange(newOrders);
                 }
+            }
+
+            if (historyFailed)
+            {   // заявки не получены — доклеивать стопы и выдавать это как историю нельзя.
+                // System, не Error: Error на поллинге журнала = ErrorLogMessageBox каждые 5 секунд
+                SendLogMessage("GetHistoricalOrders: orders request failed", LogMessageType.System);
+                return null;
             }
 
             List<Order> historicalStopOrders = GetHistoricalStopOrders();
