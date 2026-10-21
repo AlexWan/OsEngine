@@ -60,7 +60,15 @@ namespace OsEngine.Robots
             _icebergCount = CreateParameter("Iceberg count", 1, 1, 50, 1);
             _allowedSpreadSize = CreateParameter("Allowed spread size(%)", 0.01m, 0.01m, 0.01m, 0.01m);
 
-            _timeToBuy = CreateParameterTimeOfDay("Time to buy", 23, 0, 0, 0);
+            if (startProgram == StartProgram.IsOsTrader)
+            {
+                _timeToBuy = CreateParameterTimeOfDay("Time to buy", 23, 0, 0, 0);
+            }
+            else
+            {
+                _timeToBuy = CreateParameterTimeOfDay("Time to buy", 18, 30, 0, 0);
+            }
+
             _timeToSell = CreateParameterTimeOfDay("Time to sell", 10, 05, 0, 0);
 
             _tradeMonday = CreateParameterCheckBox("Trading on Monday", true);
