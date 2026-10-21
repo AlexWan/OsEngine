@@ -107,7 +107,12 @@ namespace OsEngine.OsTester.TestStand.Tests
 
             RecordPass("SimpleCreate", $"{_bot1} (SmaTrendSample), {_bot2} (BollingerRevers)");
 
-            EnableTrading(_bot1, _bot2);
+            // U1 abort: параметры не распознаны — продолжать на дефолтах бессмысленно,
+            // причина уже записана в RecordFail внутри SetBotParamsStrict
+            if (!EnableTrading(_bot1, _bot2))
+            {
+                return;
+            }
 
             string security = GetFirstSecurityName();
             _tab1 = GetTabName(_bot1, "Simple");
@@ -193,10 +198,15 @@ namespace OsEngine.OsTester.TestStand.Tests
                 return;
             }
 
-            SetVolumePercent(10m);
+            // U1 abort: без распознанного Volume тест меряет не то (fail уже записан)
+            if (!SetVolumePercent(10m))
+            {
+                return;
+            }
 
             TestMetrics metrics = RunAndGetMetrics();
 
+            // U1 continue: замеры собраны, факт провала восстановления записан RecordFail
             SetVolumePercent(20m);
 
             if (metrics == null)
@@ -223,10 +233,15 @@ namespace OsEngine.OsTester.TestStand.Tests
                 return;
             }
 
-            SetIndicatorParams();
+            // U1 abort: без распознанных параметров индикаторов сравнение с baseline невалидно
+            if (!SetIndicatorParams())
+            {
+                return;
+            }
 
             TestMetrics metrics = RunAndGetMetrics();
 
+            // U1 continue: замеры собраны, факт провала восстановления записан RecordFail
             RestoreIndicatorParams();
 
             if (metrics == null)
@@ -264,7 +279,11 @@ namespace OsEngine.OsTester.TestStand.Tests
 
             RecordPass("ScreenerCreate", $"{_screener1} (SmaScreener), {_screener2} (BollingerMomentumScreener)");
 
-            EnableTrading(_screener1, _screener2);
+            // U1 abort: параметры не распознаны — продолжать на дефолтах бессмысленно
+            if (!EnableTrading(_screener1, _screener2))
+            {
+                return;
+            }
 
             _screenerTab1 = GetTabName(_screener1, "Screener");
             _screenerTab2 = GetTabName(_screener2, "Screener");
@@ -327,7 +346,11 @@ namespace OsEngine.OsTester.TestStand.Tests
 
             RecordPass("GridCreate", $"{_gridBot} (GridBollinger)");
 
-            EnableTrading(_gridBot);
+            // U1 abort: параметры не распознаны — продолжать на дефолтах бессмысленно
+            if (!EnableTrading(_gridBot))
+            {
+                return;
+            }
 
             string security = GetFirstSecurityName();
             _gridTab = GetTabName(_gridBot, "Simple");
@@ -413,16 +436,14 @@ namespace OsEngine.OsTester.TestStand.Tests
             return !IsError(response);
         }
 
-        private void EnableTrading(params string[] botIds)
+        private bool EnableTrading(params string[] botIds)
         {
+            bool ok = true;
             foreach (string botId in botIds)
             {
-                ToolsCall("bot_set_params", new
-                {
-                    bot_id = botId,
-                    parameters = new Dictionary<string, object> { ["Regime"] = "On" }
-                });
+                ok &= SetBotParamsStrict(botId, new Dictionary<string, object> { ["Regime"] = "On" }, "EnableTrading");
             }
+            return ok;
         }
 
         private void SetCommission(string type, decimal value)
@@ -444,49 +465,25 @@ namespace OsEngine.OsTester.TestStand.Tests
             });
         }
 
-        private void SetVolumePercent(decimal value)
+        private bool SetVolumePercent(decimal value)
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Volume"] = value }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Volume"] = value }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Volume"] = value }, "SetVolumePercent")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Volume"] = value }, "SetVolumePercent");
         }
 
-        private void SetIndicatorParams()
+        private bool SetIndicatorParams()
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Sma length"] = 10 }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Bollinger Length"] = 6 }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Sma length"] = 10 }, "SetIndicatorParams")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Bollinger Length"] = 6 }, "SetIndicatorParams");
         }
 
-        private void RestoreIndicatorParams()
+        private bool RestoreIndicatorParams()
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Sma length"] = 30 }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Bollinger Length"] = 12 }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Sma length"] = 30 }, "RestoreIndicatorParams")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Bollinger Length"] = 12 }, "RestoreIndicatorParams");
         }
 
         private List<object> GetScreenerSecurities()

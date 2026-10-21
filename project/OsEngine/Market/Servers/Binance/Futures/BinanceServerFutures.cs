@@ -2362,6 +2362,29 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
+        // класс бумаги из реестра по символу. Snapshot + try/catch: UpdatePairs перестраивает реестр на reconnect, исключение отсюда = потеря WS-события
+        private string GetSecurityClassCode(string symbol)
+        {
+            try
+            {
+                List<Security> list = _securities;
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i].Name == symbol)
+                    {
+                        return list[i].NameClass;
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return null;
+        }
+
         private void UpdateMyOrderAndMyOrders(string mes)
         {
             // если ошибки в ответе ордера
@@ -2393,6 +2416,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
+                newOrder.SecurityClassCode = GetSecurityClassCode(order.s);
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                 newOrder.NumberUser = orderNumUser;
 
@@ -2423,6 +2447,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
+                newOrder.SecurityClassCode = GetSecurityClassCode(order.s);
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                 newOrder.TimeCancel = newOrder.TimeCallBack;
                 newOrder.NumberUser = orderNumUser;
@@ -2452,6 +2477,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
+                newOrder.SecurityClassCode = GetSecurityClassCode(order.s);
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                 newOrder.NumberUser = orderNumUser;
                 newOrder.NumberMarket = order.i.ToString();
@@ -2498,6 +2524,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 {
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = order.s;
+                    newOrder.SecurityClassCode = GetSecurityClassCode(order.s);
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                     newOrder.NumberUser = orderNumUser;
                     newOrder.NumberMarket = order.i.ToString();
@@ -2527,6 +2554,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = order.s;
+                newOrder.SecurityClassCode = GetSecurityClassCode(order.s);
                 newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(ord.T));
                 newOrder.TimeCancel = newOrder.TimeCallBack;
                 newOrder.NumberUser = orderNumUser;
@@ -3129,6 +3157,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                     newOrder.ServerType = ServerType.BinanceFutures;
                     newOrder.SecurityNameCode = orderOnBoardResp.symbol;
+                    newOrder.SecurityClassCode = GetSecurityClassCode(orderOnBoardResp.symbol);
                     newOrder.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoardResp.time));
                     newOrder.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(orderOnBoardResp.updateTime));
 
@@ -3242,6 +3271,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 newOrder.NumberMarket = orderOnBoard.orderId;
                 newOrder.NumberUser = oldOrder.NumberUser;
                 newOrder.SecurityNameCode = oldOrder.SecurityNameCode;
+                newOrder.SecurityClassCode = string.IsNullOrEmpty(oldOrder.SecurityClassCode)
+                    ? GetSecurityClassCode(oldOrder.SecurityNameCode)
+                    : oldOrder.SecurityClassCode;
                 // newOrder.State = OrderStateType.Cancel;
 
                 newOrder.Volume = oldOrder.Volume;

@@ -57,7 +57,12 @@ namespace OsEngine.OsTester.TestStand.Tests
                 return;
             }
 
-            EnableTrading();
+            // U1 abort: параметры не распознаны — продолжать на дефолтах бессмысленно,
+            // причина уже записана в RecordFail внутри SetBotParamsStrict
+            if (!EnableTrading())
+            {
+                return;
+            }
 
             string security = GetFirstSecurityName();
             _tab1 = GetTabName(_bot1, "Simple");
@@ -245,19 +250,11 @@ namespace OsEngine.OsTester.TestStand.Tests
             return !IsError(response);
         }
 
-        private void EnableTrading()
+        private bool EnableTrading()
         {
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot1,
-                parameters = new Dictionary<string, object> { ["Regime"] = "On" }
-            });
-
-            ToolsCall("bot_set_params", new
-            {
-                bot_id = _bot2,
-                parameters = new Dictionary<string, object> { ["Regime"] = "On" }
-            });
+            return
+                SetBotParamsStrict(_bot1, new Dictionary<string, object> { ["Regime"] = "On" }, "EnableTrading")
+                && SetBotParamsStrict(_bot2, new Dictionary<string, object> { ["Regime"] = "On" }, "EnableTrading");
         }
 
         private void SetSlippage(int value)

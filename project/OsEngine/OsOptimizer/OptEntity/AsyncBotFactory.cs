@@ -42,7 +42,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                     }
 
                     if (_bots[i].NameStrategyUniq == botName &&
-                        _bots[i].GetNameStrategyType() == botType)
+                        (botType == _bots[i].GetNameStrategyType() || botType == _bots[i].FileName))
                     {
                         lock (_botLocker)
                         {

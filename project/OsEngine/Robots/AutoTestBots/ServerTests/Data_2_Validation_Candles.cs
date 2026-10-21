@@ -93,6 +93,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             // запрашиваем данные и проверяем свечи на задвоенность и прочие странности
 
             ValidateCandles(permission, security, lastMidnightTime);
+
+            // Day по текущему незакрытому дню, bug-0064
+
+            if (permission.DataFeedTfDayCanLoad)
+            {
+                ValidateCurrentDay(security, lastMidnightTime);
+            }
         }
 
         // странные вопросы
@@ -144,6 +151,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, actualTime, "FakeActualDate");
             }
+            if (permission.DataFeedTfDayCanLoad)
+            {
+                CheckCandleFakeData(TimeFrame.Day, security, startTime, endTime, actualTime, "FakeActualDate");
+            }
         }
 
         private void CheckStartFakeData(IServerPermission permission, Security security, DateTime lastMidnightTime)
@@ -191,6 +202,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "FakeStartTime");
             }
+            if (permission.DataFeedTfDayCanLoad)
+            {
+                CheckCandleFakeData(TimeFrame.Day, security, startTime, endTime, startTime, "FakeStartTime");
+            }
         }
 
         private void CheckFutureData(IServerPermission permission, Security security, DateTime lastMidnightTime)
@@ -237,6 +252,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "FutureDate");
             }
+            // Day в Future не дёрнут намеренно, см. shortcut в CheckOldData. Day с
+            // аномальными параметрами ловят FakeStartTime/FakeActualDate выше.
         }
 
         private void CheckOldData(IServerPermission permission, Security security, DateTime lastMidnightTime)
@@ -283,6 +300,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 CheckCandleFakeData(TimeFrame.Hour4, security, startTime, endTime, startTime, "oldDate");
             }
+            // shortcut: Day здесь и в Future не дёрнут намеренно: на по-дневной загрузке
+            // истории 20-летнее окно = тысячи запросов бирже (TInvest GetCandleHistoryFromDays).
         }
 
         private void CheckCandleFakeData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime, DateTime actualTime, string typeRequest)
@@ -377,6 +396,63 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 List<Candle> candles = GetCandles(TimeFrame.Hour4, security, startTime, endTime);
                 ValidateCandles(candles, TimeFrame.Hour4);
             }
+            if (permission.DataFeedTfDayCanLoad)
+            {
+                List<Candle> candles = GetCandles(TimeFrame.Day, security, startTime, endTime);
+                ValidateCandles(candles, TimeFrame.Day);
+            }
+        }
+
+        // bug-0064: Day по окну с текущим незакрытым днём. Отсутствие сегодняшней свечи
+        // не ошибка (выходной / праздник / до открытия), задвоение — Error 21.
+
+        private void ValidateCurrentDay(Security security, DateTime lastMidnightTime)
+        {
+            DateTime startTime = lastMidnightTime.AddDays(-3);
+            DateTime endTime = lastMidnightTime.AddDays(1);
+
+            SetNewServiceInfo("Validation Current Day startTime: " + startTime.ToString());
+            SetNewServiceInfo("Validation Current Day endTime: " + endTime.ToString());
+
+            List<Candle> candles = GetCandles(TimeFrame.Day, security, startTime, endTime);
+
+            ValidateCurrentDayCandles(candles);
+        }
+
+        // GAP-1 seam: проверка списка отдельно от запроса, чтобы срабатывания
+        // Error 21 было чем доказать юнит-стендом без живого сервера.
+
+        private void ValidateCurrentDayCandles(List<Candle> candles)
+        {
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
+            int todayCount = CountCandlesOfDay(candles, DateTime.Now.Date);
+
+            if (todayCount > 1)
+            {
+                SetNewError("Error 21. Candles of today are duplicated. " + TimeFrame.Day.ToString() + " Count today: " + todayCount.ToString());
+                return;
+            }
+
+            ValidateCandles(candles, TimeFrame.Day);
+        }
+
+        private static int CountCandlesOfDay(List<Candle> candles, DateTime day)
+        {
+            int count = 0;
+
+            for (int i = 0; i < candles.Count; i++)
+            {
+                if (candles[i].TimeStart.Date == day)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private List<Candle> GetCandles(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime)
@@ -434,6 +510,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (candleLast.TimeStart == candleNow.TimeStart)
                 {
                     SetNewError("Error 9. Candle time is equal!" + timeFrame.ToString());
+                    return;
+                }
+
+                // Двух свечей одного календарного дня на Day не бывает, bug-0064
+
+                if (timeFrame == TimeFrame.Day
+                    && candleLast.TimeStart.Date == candleNow.TimeStart.Date)
+                {
+                    SetNewError("Error 20. Candle date is duplicated!" + timeFrame.ToString());
                     return;
                 }
             }

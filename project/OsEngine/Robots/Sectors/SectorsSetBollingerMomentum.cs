@@ -74,6 +74,8 @@ namespace OsEngine.Robots.Sectors
 
         private Dictionary<string, DateTime> _lastLogicCandleBySecurity = new Dictionary<string, DateTime>();
 
+        private bool _serverTimeMissingLogged; // server time is server-global (BotTabSimple:1360 -> ConnectorCandles.MarketTime:1908 -> _myServer.ServerTime), deployment is single-server; do not port this sticky form to multi-server bots without per-server state
+
         #endregion
 
         #region Parameters
@@ -739,7 +741,33 @@ namespace OsEngine.Robots.Sectors
 
             _lastLogicCandleBySecurity[tab.Connector.SecurityName] = lastCandleTime;
 
-            if (_tradePeriodsSettings.CanTradeThisTime(tab.TimeServerCurrent) == false)
+            DateTime serverTime = tab.TimeServerCurrent;
+
+            if (serverTime == DateTime.MinValue)
+            {
+                if (_serverTimeMissingLogged == false)
+                {
+                    try
+                    {
+                        _serverTimeMissingLogged = true;
+                        SendNewLogMessage("Server time is not received yet. Sector set trading is suspended until first data from the server.", LogMessageType.System);
+                    }
+                    catch { }
+                }
+                return;
+            }
+
+            if (_serverTimeMissingLogged == true)
+            {
+                try
+                {
+                    _serverTimeMissingLogged = false;
+                    SendNewLogMessage("Server time is received. Sector set trading is resumed.", LogMessageType.System);
+                }
+                catch { }
+            }
+
+            if (_tradePeriodsSettings.CanTradeThisTime(serverTime) == false)
             {
                 // в неторговое время отменяем заявки на вход и деактивируем стопы позиций
                 tab.BuyAtStopCancel();

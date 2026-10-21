@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using OsEngine.OsTester.TestStand;
 
@@ -40,6 +41,69 @@ namespace OsEngine.OsTester.TestStand.Tests
         protected string QuietCall(string method, object arguments)
         {
             return _context.Client.ToolsCall(method, arguments);
+        }
+
+        /// <summary>
+        /// bot_set_params со сверкой: сервер отвечает IsError=false и на нераспознанные
+        /// имена (not_found[]), без проверки опечатки в именах прошли бы как PASS на
+        /// дефолтах робота. false = вызов ошибочен или не все имена распознаны
+        /// (RecordFail уже записан); вызывающий шаг обязан прерваться (abort), а не
+        /// продолжать прогон на дефолтах - иначе тест меряет не то, что настроил.
+        /// </summary>
+        protected bool SetBotParamsStrict(string botId, Dictionary<string, object> parameters, string step)
+        {
+            string response = ToolsCall("bot_set_params", new { bot_id = botId, parameters = parameters });
+
+            if (!TryParseJson(response, out JsonElement config))
+            {
+                RecordFail(step, $"bot_set_params: error response for {botId}");
+                return false;
+            }
+
+            List<string> missing = GetParamsNotUpdated(config, parameters.Keys);
+
+            if (missing != null)
+            {
+                RecordFail(step,
+                    $"bot_set_params: {missing.Count} of {parameters.Count} parameter(s) not recognized by robot {botId}: {string.Join(", ", missing)}");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Params from sentNames missing in the "updated" array of a bot_set_params
+        /// response. Null = all sent names were updated; a malformed/missing "updated"
+        /// array counts as "nothing updated" so it fails too.
+        /// </summary>
+        public static List<string> GetParamsNotUpdated(JsonElement config, IReadOnlyCollection<string> sentNames)
+        {
+            HashSet<string> updated = new HashSet<string>(StringComparer.Ordinal);
+
+            if (config.TryGetProperty("updated", out JsonElement updatedArr)
+                && updatedArr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement name in updatedArr.EnumerateArray())
+                {
+                    string updatedName = name.GetString();
+                    if (updatedName != null)
+                    {
+                        updated.Add(updatedName);
+                    }
+                }
+            }
+
+            List<string> missing = new List<string>();
+            foreach (string name in sentNames)
+            {
+                if (!updated.Contains(name))
+                {
+                    missing.Add(name);
+                }
+            }
+
+            return missing.Count == 0 ? null : missing;
         }
 
         #endregion
