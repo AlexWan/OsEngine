@@ -169,7 +169,7 @@ namespace OsEngine.OsCapitalAllocation
 
                 for (int j = 0; j < botInFiles.Count; j++)
                 {
-                    BotInFile found = botInFiles[j].Bots.Find(b => b.Name == robot.NameStrategyUniq.Split('_')[0]);
+                    BotInFile found = botInFiles[j].Bots.Find(b => b.Name == robot.NameStrategyUniq);
 
                     if (found != null)
                     {

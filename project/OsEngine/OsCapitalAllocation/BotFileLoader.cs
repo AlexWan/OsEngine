@@ -27,7 +27,13 @@ namespace OsEngine.OsCapitalAllocation
 
             BotFile botFile = new BotFile();
 
-            botFile.BotName = Path.GetFileName(filePath).Split('_')[0];
+            string fileName = Path.GetFileName(filePath);
+
+            const string dealsSuffix = "_Deals.txt";
+
+            botFile.BotName = fileName.EndsWith(dealsSuffix)
+                ? fileName.Substring(0, fileName.Length - dealsSuffix.Length)
+                : Path.GetFileNameWithoutExtension(fileName);
             botFile.Path = filePath;
 
             string[] lines = File.ReadAllLines(filePath);
