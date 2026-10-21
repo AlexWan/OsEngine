@@ -124,6 +124,19 @@ namespace OsEngine.OsCapitalAllocation
         public void ClearBots()
         {
             Bots.Clear();
+            ResetResult();
+        }
+
+        /// <summary>
+        /// Сбросить результат расчёта (после смены ботов или неудачного расчёта),
+        /// чтобы result_get/result_save не отдавали устаревший результат прошлого прогона.
+        /// </summary>
+        private void ResetResult()
+        {
+            Matrix = null;
+            Weights = null;
+            Clusters = null;
+            Hrp = null;
         }
 
         /// <summary>
@@ -159,6 +172,7 @@ namespace OsEngine.OsCapitalAllocation
 
             if (matrix == null)
             {
+                ResetResult();
                 return;
             }
 
@@ -179,6 +193,7 @@ namespace OsEngine.OsCapitalAllocation
 
             if (matrix == null)
             {
+                ResetResult();
                 return;
             }
 

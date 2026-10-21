@@ -188,7 +188,7 @@ namespace OsEngine.MCP.Modules
             master.ClearBots();
             master.AddBotsFromPaths(paths);
 
-            return new { bots_count = master.Bots.Count };
+            return new { bots_count = master.Bots.Count, not_found = GetMissingFiles(paths) };
         }
 
         private object AddBots(JsonElement parameters)
@@ -199,7 +199,7 @@ namespace OsEngine.MCP.Modules
 
             master.AddBotsFromPaths(paths);
 
-            return new { bots_count = master.Bots.Count };
+            return new { bots_count = master.Bots.Count, not_found = GetMissingFiles(paths) };
         }
 
         private static List<string> ParsePaths(JsonElement parameters)
@@ -220,6 +220,24 @@ namespace OsEngine.MCP.Modules
             }
 
             return paths;
+        }
+
+        /// <summary>
+        /// Пути из переданного списка, которых нет на диске (файл не найден).
+        /// </summary>
+        private static List<string> GetMissingFiles(List<string> paths)
+        {
+            List<string> notFound = new List<string>();
+
+            foreach (string path in paths)
+            {
+                if (File.Exists(path) == false)
+                {
+                    notFound.Add(path);
+                }
+            }
+
+            return notFound;
         }
 
         private object GetBots()
