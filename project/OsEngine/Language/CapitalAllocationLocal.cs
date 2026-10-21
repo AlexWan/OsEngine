@@ -52,8 +52,8 @@ namespace OsEngine.Language
             "Ru:Точность_");
 
         public string TabCorrelationClustering => OsLocalization.ConvertToLocString(
-            "Eng:Correlation clustering_" +
-            "Ru:Кластеризация по корреляции_");
+            "Eng:Equal-weight clustering_" +
+            "Ru:Равновесная кластеризация_");
 
         public string TabHierarchicalRiskParity => OsLocalization.ConvertToLocString(
             "Eng:Hierarchical Risk Parity_" +
