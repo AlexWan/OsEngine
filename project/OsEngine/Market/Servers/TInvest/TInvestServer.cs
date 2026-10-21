@@ -5587,8 +5587,6 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (response != null)
                 {
-                    failed = false;
-
                     List<Order> osEngineOrders = new List<Order>();
 
                     for (int i = 0; i < response.Orders.Count; i++)
@@ -5666,6 +5664,7 @@ namespace OsEngine.Market.Servers.TInvest
                         osEngineOrders.Add(newOrder);
                     }
 
+                    failed = false;   // только на полностью размеченном ответе: бросок в маппинге должен остаться failed=true
                     return osEngineOrders;
                 }
                 else
