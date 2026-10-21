@@ -82,8 +82,8 @@
 | `log_get_mcp_log` | Последние записи лога MCP |
 | `prime_settings_get` | Общие настройки терминала |
 | `prime_settings_set` | Изменить общие настройки терминала |
-| `mcp_settings_get` | Настройки хоста MCP |
-| `mcp_settings_set` | Изменить настройки хоста MCP |
+| `mcp_settings_get` | Настройки хоста MCP (`apiKey` маскируется) |
+| `mcp_settings_set` | Изменить настройки хоста MCP (в эхе `settings` `apiKey` маскируется; замаскированный `apiKey` из ответа не подставлять обратно в `apiKey`) |
 | `server_management_get_list` | Список развёрнутых биржевых коннекторов (имя, тип, статус) |
 | `server_management_activate` | Активация сервера указанного типа: загрузка сохранённых экземпляров и создание основного |
 | `server_management_get_trade_connectors` | Список типов коннекторов, доступных для торговли |
@@ -91,7 +91,7 @@
 | `server_management_get_connector_permissions` | Разрешения коннектора (`IServerPermission`): таймфреймы, торговые права, плечо, время жизни ордеров |
 | `server_management_get_data_timeframes` | Список таймфреймов, доступных для скачивания с коннектора (`type`). `"MarketDepthHistory"` — история стакана |
 | `server_instance_get_params` | Параметры экземпляра сервера (пароли маскируются) |
-| `server_instance_set_params` | Установить параметры экземпляра сервера |
+| `server_instance_set_params` | Установить параметры экземпляра сервера (в эхе `updated` пароли маскируются по канону `server_instance_get_params`) |
 | `server_instance_create` | Создать новый экземпляр коннектора указанного типа |
 | `server_instance_delete` | Удалить экземпляр коннектора (номер 0 защищён) |
 | `server_instance_connect` | Подключить экземпляр сервера |
