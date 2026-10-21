@@ -683,12 +683,14 @@ namespace OsEngine.Connectors.TestStand.Tests
                     return;
                 }
 
+                // Single time snapshot for baseline and polls (Risk 5.2)
+                DateTime testStart = DateTime.Now;
                 // Baseline of BOTH start signals must be taken BEFORE the click:
                 // the robot writes its log asynchronously, a post-click baseline
                 // could catch the flush of this click's own ignore line and miss busy.
                 string logDir = Path.Combine(Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty, "Engine", "Log");
                 string startMarker = "Tests started " + test.ReportMarker.Replace("REPORT ", string.Empty);
-                (int busyBaseline, int markerBaseline) = ScanStartSignals(logDir, DateTime.Now, startMarker);
+                (int busyBaseline, int markerBaseline) = ScanStartSignals(logDir, testStart, startMarker);
                 if (busyBaseline < 0)
                 {
                     // baseline unreadable: BOTH detections off for this test (fail-closed),
@@ -697,7 +699,6 @@ namespace OsEngine.Connectors.TestStand.Tests
                     markerBaseline = int.MaxValue;
                 }
 
-                DateTime testStart = DateTime.Now;
 
                 object clickRequest = new { bot_id = _createdTesterBotName, param_name = test.ButtonName };
 
