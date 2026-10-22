@@ -17,49 +17,97 @@ namespace OsEngine.OsCapitalAllocation
     public class CapitalAllocationMaster
     {
         /// <summary>
+        /// Событие изменения состояния (боты/результат) — для перерисовки UI,
+        /// когда состояние меняет не человек, а MCP API.
+        /// </summary>
+        public event Action StateChangedEvent;
+
+        /// <summary>
         /// Загруженные боты (стратегии).
         /// </summary>
         public List<BotFile> Bots = new List<BotFile>();
 
+        private ReturnPeriodType _periodType = ReturnPeriodType.Week;
+
         /// <summary>
         /// Точность агрегации доходности (неделя/месяц).
         /// </summary>
-        public ReturnPeriodType PeriodType = ReturnPeriodType.Week;
+        public ReturnPeriodType PeriodType
+        {
+            get { return _periodType; }
+            set { if (_periodType == value) return; _periodType = value; NotifyChanged(); }
+        }
+
+        private DateTime? _startTime;
 
         /// <summary>
         /// Начало диапазона периодов (null — без ограничения).
         /// </summary>
-        public DateTime? StartTime;
+        public DateTime? StartTime
+        {
+            get { return _startTime; }
+            set { if (_startTime == value) return; _startTime = value; NotifyChanged(); }
+        }
+
+        private DateTime? _endTime;
 
         /// <summary>
         /// Конец диапазона периодов (null — без ограничения).
         /// </summary>
-        public DateTime? EndTime;
+        public DateTime? EndTime
+        {
+            get { return _endTime; }
+            set { if (_endTime == value) return; _endTime = value; NotifyChanged(); }
+        }
 
         /// <summary>
         /// Последний рассчитанный алгоритм.
         /// </summary>
         public CapitalAllocationAlgorithmType Algorithm = CapitalAllocationAlgorithmType.CorrelationClustering;
 
+        private double _minCorrelation = 0.4;
+
         /// <summary>
         /// Порог корреляции для CorrelationClustering.
         /// </summary>
-        public double MinCorrelation = 0.4;
+        public double MinCorrelation
+        {
+            get { return _minCorrelation; }
+            set { if (_minCorrelation == value) return; _minCorrelation = value; NotifyChanged(); }
+        }
+
+        private LinkageMethod _linkageMethod = LinkageMethod.Single;
 
         /// <summary>
         /// Метод линковки для Hierarchical Risk Parity.
         /// </summary>
-        public LinkageMethod LinkageMethod = LinkageMethod.Single;
+        public LinkageMethod LinkageMethod
+        {
+            get { return _linkageMethod; }
+            set { if (_linkageMethod == value) return; _linkageMethod = value; NotifyChanged(); }
+        }
+
+        private CovarianceMethod _covarianceMethod = CovarianceMethod.Sample;
 
         /// <summary>
         /// Способ оценки ковариации для Hierarchical Risk Parity.
         /// </summary>
-        public CovarianceMethod CovarianceMethod = CovarianceMethod.Sample;
+        public CovarianceMethod CovarianceMethod
+        {
+            get { return _covarianceMethod; }
+            set { if (_covarianceMethod == value) return; _covarianceMethod = value; NotifyChanged(); }
+        }
+
+        private CorrelationType _correlationType = CorrelationType.Pearson;
 
         /// <summary>
         /// Тип корреляции для Hierarchical Risk Parity.
         /// </summary>
-        public CorrelationType CorrelationType = CorrelationType.Pearson;
+        public CorrelationType CorrelationType
+        {
+            get { return _correlationType; }
+            set { if (_correlationType == value) return; _correlationType = value; NotifyChanged(); }
+        }
 
         /// <summary>
         /// Последняя построенная матрица доходностей.
@@ -95,6 +143,8 @@ namespace OsEngine.OsCapitalAllocation
             {
                 Bots.Add(bots[i]);
             }
+
+            NotifyChanged();
         }
 
         /// <summary>
@@ -116,6 +166,8 @@ namespace OsEngine.OsCapitalAllocation
                     Bots.Add(bot);
                 }
             }
+
+            NotifyChanged();
         }
 
         /// <summary>
@@ -125,6 +177,7 @@ namespace OsEngine.OsCapitalAllocation
         {
             Bots.Clear();
             ResetResult();
+            NotifyChanged();
         }
 
         /// <summary>
@@ -137,6 +190,24 @@ namespace OsEngine.OsCapitalAllocation
             Weights = null;
             Clusters = null;
             Hrp = null;
+        }
+
+        /// <summary>
+        /// Оповестить UI об изменении состояния. Сбой подписчика не должен ронять расчёт.
+        /// </summary>
+        private void NotifyChanged()
+        {
+            try
+            {
+                if (StateChangedEvent != null)
+                {
+                    StateChangedEvent();
+                }
+            }
+            catch
+            {
+                // подписчик (UI) упал — состояние уже изменено, расчёт продолжается
+            }
         }
 
         /// <summary>
@@ -173,6 +244,7 @@ namespace OsEngine.OsCapitalAllocation
             if (matrix == null)
             {
                 ResetResult();
+                NotifyChanged();
                 return;
             }
 
@@ -182,6 +254,7 @@ namespace OsEngine.OsCapitalAllocation
             Clusters = clustering.Clusters;
             Hrp = null;
             Algorithm = CapitalAllocationAlgorithmType.CorrelationClustering;
+            NotifyChanged();
         }
 
         /// <summary>
@@ -194,6 +267,7 @@ namespace OsEngine.OsCapitalAllocation
             if (matrix == null)
             {
                 ResetResult();
+                NotifyChanged();
                 return;
             }
 
@@ -206,6 +280,7 @@ namespace OsEngine.OsCapitalAllocation
             Hrp = hrp;
             Clusters = null;
             Algorithm = CapitalAllocationAlgorithmType.HierarchicalRiskParity;
+            NotifyChanged();
         }
     }
 }

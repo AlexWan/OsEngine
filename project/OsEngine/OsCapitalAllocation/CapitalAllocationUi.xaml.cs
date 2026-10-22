@@ -35,6 +35,8 @@ namespace OsEngine.OsCapitalAllocation
 
         private CapitalAllocationMaster _master = new CapitalAllocationMaster();
 
+        private bool _syncingToUi;
+
         private Forms.DataGridView _gridBots;
 
         private Forms.DataGridView _gridResultCorrelationClustering;
@@ -138,6 +140,74 @@ namespace OsEngine.OsCapitalAllocation
 
             Closing += CapitalAllocationUi_Closing;
             Closed += CapitalAllocationUi_Closed;
+
+            _master.StateChangedEvent += Master_StateChanged;
+        }
+
+        /// <summary>
+        /// Состояние мастера изменилось (человеком или MCP) — перерисовать окно в UI-потоке.
+        /// </summary>
+        private void Master_StateChanged()
+        {
+            try
+            {
+                if (Dispatcher.CheckAccess() == false)
+                {
+                    Dispatcher.Invoke(RefreshFromMaster);
+                    return;
+                }
+
+                RefreshFromMaster();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void RefreshFromMaster()
+        {
+            try
+            {
+                SyncSettingsToUi();
+                PaintBotsGrid();
+                ShowCorrelationClusteringResult();
+                ShowHierarchicalRiskParityResult();
+                PaintEquityChart();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Синхронизировать контролы настроек с текущими значениями мастера
+        /// (для случая, когда настройки меняет MCP, а не человек).
+        /// </summary>
+        private void SyncSettingsToUi()
+        {
+            try
+            {
+                _syncingToUi = true;
+
+                ComboBoxPeriod.SelectedIndex = _master.PeriodType == ReturnPeriodType.Week ? 0 : 1;
+                DatePickerStart.SelectedDate = _master.StartTime;
+                DatePickerEnd.SelectedDate = _master.EndTime;
+
+                TextBoxMinCorrelation.Text = _master.MinCorrelation.ToString();
+                ComboBoxLinkage.SelectedIndex = (int)_master.LinkageMethod;
+                ComboBoxCovariance.SelectedIndex = (int)_master.CovarianceMethod;
+                ComboBoxCorrelation.SelectedIndex = (int)_master.CorrelationType;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            finally
+            {
+                _syncingToUi = false;
+            }
         }
 
         private void SetLocalization()
@@ -315,6 +385,8 @@ namespace OsEngine.OsCapitalAllocation
                 ButtonHelpBaseEquity.Click -= ButtonHelp_Click;
                 ButtonHelpCorrelationClustering.Click -= ButtonHelp_Click;
                 ButtonHelpHierarchicalRiskParity.Click -= ButtonHelp_Click;
+
+                _master.StateChangedEvent -= Master_StateChanged;
 
                 Closing -= CapitalAllocationUi_Closing;
                 Closed -= CapitalAllocationUi_Closed;
@@ -1569,6 +1641,11 @@ namespace OsEngine.OsCapitalAllocation
         {
             try
             {
+                if (_syncingToUi)
+                {
+                    return;
+                }
+
                 PaintEquityChart();
             }
             catch (Exception error)
@@ -1581,6 +1658,11 @@ namespace OsEngine.OsCapitalAllocation
         {
             try
             {
+                if (_syncingToUi)
+                {
+                    return;
+                }
+
                 PaintEquityChart();
             }
             catch (Exception error)
@@ -1593,6 +1675,11 @@ namespace OsEngine.OsCapitalAllocation
         {
             try
             {
+                if (_syncingToUi)
+                {
+                    return;
+                }
+
                 PaintEquityChart();
             }
             catch (Exception error)
