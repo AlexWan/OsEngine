@@ -1680,9 +1680,12 @@ namespace OsEngine.Market.Servers.BCS
                     _myPortfolios.Add(portfolio);
                 }
 
+                // БКС дублирует каждую строку портфеля по всем срокам расчётов (T0/T1/T2/T365),
+                // поэтому берём только T365 - иначе суммы и UnrealizedPnl умножаются на 4
+                // (проверено зондом 22.10.2026: futuresHolding тоже приходит со всеми четырьмя term)
                 List<BcsPortfolio> portfT365term = bcsPortfolios.FindAll(p => p.account == accounts[i]
                     && p.type != "futuresLimit" && p.type != "otcLimit"
-                    && (p.type == "futuresHolding" || p.term == "T365"));
+                    && p.term == "T365");
 
                 if (portfT365term.Count > 0)
                 {
@@ -1721,13 +1724,24 @@ namespace OsEngine.Market.Servers.BCS
                             posCurrBalance = quantity * currPrice;
                         }
 
-                        totalBalance += posCurrBalance;
-
-                        // блокировка портфеля - в рублях (как ValueCurrent), не в штуках:
-                        // пропорциональная доля рублёвой оценки позиции
-                        if (quantity > 0 && currBlocked > 0)
+                        if (portfT365term[j].type != "futuresHolding")
                         {
-                            totalBlocked += posCurrBalance * (currBlocked / quantity);
+                            totalBalance += posCurrBalance;
+
+                            // блокировка портфеля - в рублях (как ValueCurrent), не в штуках:
+                            // пропорциональная доля рублёвой оценки позиции
+                            if (quantity > 0 && currBlocked > 0)
+                            {
+                                totalBlocked += posCurrBalance * (currBlocked / quantity);
+                            }
+                        }
+                        else
+                        {
+                            // equity как в приложении БКС: currentValueRub фьючерса/опциона -
+                            // знаковая оценка обязательства (шорт = минус), которая дублирует ГО,
+                            // уже сидящее в кэше. В средства добавляем только вариационку
+                            // (проверено зондом 22.10.2026 против "текущей стоимости" в приложении)
+                            totalBalance += currUnrealizedPl;
                         }
 
                         totalUnrealizedPl += currUnrealizedPl;
