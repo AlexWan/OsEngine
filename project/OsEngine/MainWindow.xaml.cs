@@ -274,6 +274,12 @@ namespace OsEngine
                 });
 
                 ProccesIsWorked = false;
+
+                // отключаем все коннекторы до остановки MCP: иначе gRPC-стримы (TInvest и др.)
+                // остаются живыми после завершения и «глючат» токен на сервере биржи
+                try { ServerMaster.AbortAll(); }
+                catch (Exception ex) { ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error); }
+
                 _mcpMaster?.SendTerminalStopped("shutting_down");
                 StopMcpHost();
                 GlobalGUILayout.IsClosed = true;
