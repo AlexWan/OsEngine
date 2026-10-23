@@ -1,11 +1,11 @@
 ﻿using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market;
+using System;
 using System.Windows;
 
 namespace OsEngine.Market.Servers.TelegramNews.TGAuthEntity
 {
-    /// <summary>
-    /// Логика взаимодействия для AuthTGCodeDialogUi.xaml
-    /// </summary>
     public partial class AuthTGCodeDialogUi : Window
     {
         public string VerificationCode { get; private set; }
@@ -21,19 +21,51 @@ namespace OsEngine.Market.Servers.TelegramNews.TGAuthEntity
             ButtonSend.Content = OsLocalization.Market.SendButton;
             ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
 
-            this.Activate();
-            this.Focus();
+            ButtonSend.Click += ButtonSend_Click;
+            ButtonCancel.Click += ButtonCancel_Click;
+            Closing += AuthTGCodeDialogUi_Closing;
+
+            Activate();
+            TextBoxCode.Focus();
         }
 
-        private void ButtonSendCode_Click(object sender, RoutedEventArgs e)
+        private void ButtonSend_Click(object sender, RoutedEventArgs e)
         {
-            VerificationCode = TextBoxCode.Text;
-            DialogResult = true;
+            try
+            {
+                VerificationCode = TextBoxCode.Text;
+                DialogResult = true;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            try
+            {
+                DialogResult = false;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void AuthTGCodeDialogUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                ButtonSend.Click -= ButtonSend_Click;
+                ButtonCancel.Click -= ButtonCancel_Click;
+                Closing -= AuthTGCodeDialogUi_Closing;
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
     }
 }

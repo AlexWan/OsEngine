@@ -2088,6 +2088,46 @@ namespace OsEngine.Language
            "Eng:Telegram authorization_" +
            "Ru:Telegram авторизация_");
 
+        public string ServerParamTelegramChannels => OsLocalization.ConvertToLocString(
+           "Eng:Telegram channel IDs_" +
+           "Ru:ID каналов Telegram_");
+
+        public string ServerParamTelegramChannelsDescription => OsLocalization.ConvertToLocString(
+           "Eng:Comma separated channel IDs. Channel ID starts with -100, group ID starts with minus. Example. -1001234567890, -123456789_" +
+           "Ru:ID каналов через запятую. ID канала начинается с -100, ID группы с минуса. Пример. -1001234567890, -123456789_");
+
+        public string ServerParamTelegramApiId => OsLocalization.ConvertToLocString(
+           "Eng:API ID_" +
+           "Ru:API ID_");
+
+        public string ServerParamTelegramApiIdDescription => OsLocalization.ConvertToLocString(
+           "Eng:API ID of your Telegram application. Get it at my.telegram.org_" +
+           "Ru:API ID вашего приложения Telegram. Получить на my.telegram.org_");
+
+        public string ServerParamTelegramApiHash => OsLocalization.ConvertToLocString(
+           "Eng:API Hash_" +
+           "Ru:API Hash_");
+
+        public string ServerParamTelegramApiHashDescription => OsLocalization.ConvertToLocString(
+           "Eng:API Hash of your Telegram application. Get it at my.telegram.org_" +
+           "Ru:API Hash вашего приложения Telegram. Получить на my.telegram.org_");
+
+        public string ServerParamTelegramPhone => OsLocalization.ConvertToLocString(
+           "Eng:Phone number_" +
+           "Ru:Номер телефона_");
+
+        public string ServerParamTelegramPhoneDescription => OsLocalization.ConvertToLocString(
+           "Eng:Phone number of the Telegram account in international format_" +
+           "Ru:Номер телефона аккаунта Telegram в международном формате_");
+
+        public string ServerParamTelegramMaxMissedNewsAge => OsLocalization.ConvertToLocString(
+           "Eng:Max missed news age, hours (0 = all)_" +
+           "Ru:Макс. возраст пропущенных новостей, часов (0 = все)_");
+
+        public string ServerParamTelegramMaxMissedNewsAgeDescription => OsLocalization.ConvertToLocString(
+           "Eng:News older than this number of hours are not sent to robots after reconnect. Zero disables the filter_" +
+           "Ru:Новости старше указанного количества часов не отправляются роботам после переподключения. Ноль отключает фильтр_");
+
         public string LeverageButton => OsLocalization.ConvertToLocString(
            "Eng:Set leverage_" +
            "Ru:Настроить обеспечение_");
