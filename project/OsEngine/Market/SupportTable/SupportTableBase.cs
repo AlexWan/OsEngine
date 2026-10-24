@@ -296,16 +296,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(xt);
 
-            SupportConnection askend = new SupportConnection()
-            {
-                ServerType = ServerType.AscendexSpot,
-                SupportType = SupportServerType.Standard,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Ascend.png",
-                LingSiteUrl = "https://ascendex.com/register?inviteCode=BPEFZZW8Q",
-                Discount = 25
-            };
-            supportList.Add(askend);
-
             SupportConnection pionex = new SupportConnection()
             {
                 ServerType = ServerType.PionexSpot,

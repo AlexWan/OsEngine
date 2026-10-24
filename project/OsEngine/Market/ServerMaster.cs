@@ -79,7 +79,6 @@ using OsEngine.Market.AutoFollow;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader;
 using System.Linq;
-using OsEngine.Market.Servers.AscendexSpot;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
 using OsEngine.Market.Servers.ExMo.ExmoSpot;
@@ -412,7 +411,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BloFinFutures);
                 serverTypes.Add(ServerType.TelegramNews);
                 serverTypes.Add(ServerType.BinanceData);
-                serverTypes.Add(ServerType.AscendexSpot);
                 serverTypes.Add(ServerType.TwelveData);
                 serverTypes.Add(ServerType.BCS);
 
@@ -536,7 +534,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.CoinExSpot);
                 serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.BinanceData);
-                serverTypes.Add(ServerType.AscendexSpot);
                 serverTypes.Add(ServerType.OKXData);
                 serverTypes.Add(ServerType.BybitData);
                 serverTypes.Add(ServerType.GateIoData);
@@ -920,10 +917,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.BloFinFutures)
                     {
                         newServer = new BloFinFuturesServer(uniqueNum);
-                    }
-                    else if (type == ServerType.AscendexSpot)
-                    {
-                        newServer = new AscendexSpotServer(uniqueNum);
                     }
                     else if (type == ServerType.TwelveData)
                     {
@@ -1732,10 +1725,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.BinanceData)
                 {
                     serverPermission = new BinanceDataServerPermission();
-                }
-                else if (type == ServerType.AscendexSpot)
-                {
-                    serverPermission = new AscendexSpotServerPermission();
                 }
                 else if (type == ServerType.OKXData)
                 {
@@ -2587,11 +2576,6 @@ namespace OsEngine.Market
         /// скачивание исторических данных с биржи Binance
         /// </summary>
         BinanceData,
-
-        /// <summary>
-        ///  AscendexSpot exchange
-        /// </summary>
-        AscendexSpot,
 
         /// <summary>
         /// downloading historical data from exchange OKX
