@@ -326,26 +326,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(coinEx);
 
-            SupportConnection bitMart = new SupportConnection()
-            {
-                ServerType = ServerType.BitMartSpot,
-                SupportType = SupportServerType.Standard,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartSpot.png",
-                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en", 
-                Discount = 40
-            };
-            supportList.Add(bitMart);
-
-            SupportConnection bitMartFutures = new SupportConnection()
-            {
-                ServerType = ServerType.BitMartFutures,
-                SupportType = SupportServerType.Standard,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartFutures.png",
-                LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
-                Discount = 30
-            };
-            supportList.Add(bitMartFutures);
-
             SupportConnection bingx = new SupportConnection()
             {
                 ServerType = ServerType.BingXSpot,

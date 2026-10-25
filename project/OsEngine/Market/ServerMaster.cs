@@ -53,8 +53,6 @@ using OsEngine.Market.Servers.HTX.Spot;
 using OsEngine.Market.Servers.HTX.Futures;
 using OsEngine.Market.Servers.HTX.Swap;
 using OsEngine.Market.Servers.MoexFixFastSpot;
-using OsEngine.Market.Servers.BitMart;
-using OsEngine.Market.Servers.BitMartFutures;
 using OsEngine.Market.Servers.MoexFixFastCurrency;
 using OsEngine.Market.Servers.MoexFixFastTwimeFutures;
 using OsEngine.Market.Servers.TraderNet;
@@ -397,8 +395,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTFutures);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.BitMartSpot);
-                serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.MexcSpot);
@@ -877,14 +873,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.HTXSwap)
                     {
                         newServer = new HTXSwapServer(uniqueNum);
-                    }
-                    else if (type == ServerType.BitMartSpot)
-                    {
-                        newServer = new BitMartSpotServer();
-                    }
-                    else if (type == ServerType.BitMartFutures)
-                    {
-                        newServer = new BitMartFuturesServer();
                     }
                     else if (type == ServerType.TraderNet)
                     {
@@ -1657,14 +1645,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.Plaza)
                 {
                     serverPermission = new PlazaServerPermission();
-                }
-                else if (type == ServerType.BitMartSpot)
-                {
-                    serverPermission = new BitMartSpotServerPermission();
-                }
-                else if (type == ServerType.BitMartFutures)
-                {
-                    serverPermission = new BitMartFuturesServerPermission();
                 }
                 else if (type == ServerType.MoexFixFastCurrency)
                 {
@@ -2481,14 +2461,6 @@ namespace OsEngine.Market
         /// FIX/FAST for MOEX Spot
         /// </summary>
         MoexFixFastSpot,
-
-        /// BitMartSpot Spot exchange
-        /// </summary>
-        BitMartSpot,
-
-        /// BitMartSpot Futures exchange
-        /// </summary>
-        BitMartFutures,
 
         /// <summary>
         /// FIX/FAST for MOEX Currency
