@@ -77,7 +77,6 @@ using OsEngine.OsTrader;
 using System.Linq;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
-using OsEngine.Market.Servers.ExMo.ExmoSpot;
 using OsEngine.Market.Servers.BybitData;
 using OsEngine.Market.Servers.GateIoData;
 using OsEngine.Market.Servers.MetaTrader5;
@@ -381,7 +380,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitfinexFutures);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
-                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -514,7 +512,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
-                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
@@ -787,10 +784,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.Bybit)
                     {
                         newServer = new BybitServer(uniqueNum);
-                    }
-                    else if (type == ServerType.ExmoSpot)
-                    {
-                        newServer = new ExmoSpotServer();
                     }
                     else if (type == ServerType.Transaq)
                     {
@@ -1688,10 +1681,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new OKXDataServerPermission();
                 }
-                else if (type == ServerType.ExmoSpot)
-                {
-                    serverPermission = new ExmoSpotServerPermission();
-                }
                 else if (type == ServerType.BybitData)
                 {
                     serverPermission = new BybitDataServerPermission();
@@ -2279,12 +2268,6 @@ namespace OsEngine.Market
         /// биржа криптовалют Binance, секция фьючеры
         /// </summary>
         BinanceFutures,
-
-        /// <summary>
-        /// cryptocurrency exchange Exmo
-        /// биржа криптовалют Exmo
-        /// </summary>
-        ExmoSpot,
 
         /// <summary>
         /// terminal Ninja Trader

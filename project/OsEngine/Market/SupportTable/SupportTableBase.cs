@@ -326,16 +326,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bingx);
 
-            SupportConnection exMo = new SupportConnection()
-            {
-                ServerType = ServerType.ExmoSpot,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Exmo.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(exMo);
-
             return supportList;
         }
     }
