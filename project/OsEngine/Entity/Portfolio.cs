@@ -70,6 +70,11 @@ namespace OsEngine.Entity
         /// </summary>
         public void SetNewPosition(PositionOnBoard position)
         {
+            if (position == null)
+            {
+                return;
+            }
+
             if(string.IsNullOrEmpty(position.SecurityNameCode))
             {
                 return;

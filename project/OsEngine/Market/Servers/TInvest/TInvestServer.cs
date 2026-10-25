@@ -1223,6 +1223,39 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
+        private readonly object _portfolioDataLocker = new object();
+
+        private List<Portfolio> CreatePortfoliosSnapshot()
+        {
+            lock (_portfolioDataLocker)
+            {
+                List<Portfolio> snapshot = new List<Portfolio>(_myPortfolios.Count);
+
+                for (int i = 0; i < _myPortfolios.Count; i++)
+                {
+                    Portfolio source = _myPortfolios[i];
+                    Portfolio clone = new Portfolio();
+                    clone.Number = source.Number;
+                    clone.ValueBegin = source.ValueBegin;
+                    clone.ValueCurrent = source.ValueCurrent;
+                    clone.ValueBlocked = source.ValueBlocked;
+                    clone.UnrealizedPnl = source.UnrealizedPnl;
+                    clone.ValueLiquidCash = source.ValueLiquidCash;
+                    clone.ServerType = source.ServerType;
+                    clone.ServerUniqueName = source.ServerUniqueName;
+
+                    if (source.PositionOnBoard != null)
+                    {
+                        clone.PositionOnBoard = new List<PositionOnBoard>(source.PositionOnBoard);
+                    }
+
+                    snapshot.Add(clone);
+                }
+
+                return snapshot;
+            }
+        }
+
         private DateTime _lastTimeGetPortfolio;
 
         public void GetPortfolios()
@@ -1324,7 +1357,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (PortfolioEvent != null)
                     {
-                        PortfolioEvent(_myPortfolios);
+                        PortfolioEvent(CreatePortfoliosSnapshot());
                     }
                 }
                 else
@@ -1432,10 +1465,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void UpdatePositionsInPortfolio(PortfolioResponse portfolio, int tryCount)
         {
-            if (portfolio == null)
+            lock (_portfolioDataLocker)
             {
-                return;
-            }
+                if (portfolio == null)
+                {
+                    return;
+                }
 
             tryCount++;
 
@@ -1581,6 +1616,11 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                 }
 
+                if (instrument == null)
+                {
+                    continue;
+                }
+
                 PositionOnBoard newPos = new PositionOnBoard();
 
                 newPos.PortfolioName = portf.Number;
@@ -1629,6 +1669,11 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (Exception ex)
                 {
                     SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.System);
+                }
+
+                if (instrument == null)
+                {
+                    continue;
                 }
 
                 PositionOnBoard newPos = new PositionOnBoard();
@@ -1738,6 +1783,7 @@ namespace OsEngine.Market.Servers.TInvest
             for (int i = 0; i < sectionPoses.Count; i++)
             {
                 portf.SetNewPosition(sectionPoses[i]);
+            }
             }
         }
 
@@ -3767,6 +3813,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (positionsResponse.Position != null)
                     {
+                        lock (_portfolioDataLocker)
+                        {
 
                         PositionData posData = positionsResponse.Position;
                         Portfolio portf = _myPortfolios.Find((p) => p.Number == posData.AccountId);
@@ -3799,6 +3847,11 @@ namespace OsEngine.Market.Servers.TInvest
                             catch (Exception ex)
                             {
                                 SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
+                            }
+
+                            if (instrument == null)
+                            {
+                                continue;
                             }
 
                             PositionOnBoard newPos = new PositionOnBoard();
@@ -3842,6 +3895,11 @@ namespace OsEngine.Market.Servers.TInvest
                                 SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.System);
                             }
 
+                            if (instrument == null)
+                            {
+                                continue;
+                            }
+
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
@@ -3878,6 +3936,11 @@ namespace OsEngine.Market.Servers.TInvest
                                 SendLogMessage("Error getting instrument data for " + pos.InstrumentUid + " " + ex.ToString(), LogMessageType.System);
                             }
 
+                            if (instrument == null)
+                            {
+                                continue;
+                            }
+
                             PositionOnBoard newPos = new PositionOnBoard();
 
                             newPos.PortfolioName = portf.Number;
@@ -3891,7 +3954,8 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (PortfolioEvent != null)
                         {
-                            PortfolioEvent(_myPortfolios);
+                            PortfolioEvent(CreatePortfoliosSnapshot());
+                        }
                         }
                     }
                 }

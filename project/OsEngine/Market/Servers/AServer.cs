@@ -2265,6 +2265,11 @@ namespace OsEngine.Market.Servers
                     {
                         for (int i2 = 0; i2 < positions.Count; i2++)
                         {
+                            if (positions[i2] == null)
+                            {
+                                continue;
+                            }
+
                             curPortfolio.SetNewPosition(positions[i2]);
                         }
                     }
