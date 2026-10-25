@@ -316,16 +316,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(woo);
 
-            SupportConnection coinEx = new SupportConnection()
-            {
-                ServerType = ServerType.CoinExSpot,
-                SupportType = SupportServerType.Standard,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\CoinEx.png",
-                LingSiteUrl = "https://www.coinex.com/register?rc=3hscg",
-                Discount = 5
-            };
-            supportList.Add(coinEx);
-
             SupportConnection bingx = new SupportConnection()
             {
                 ServerType = ServerType.BingXSpot,
@@ -335,16 +325,6 @@ namespace OsEngine.Market.SupportTable
                 Discount = 30
             };
             supportList.Add(bingx);
-
-            SupportConnection exMo = new SupportConnection()
-            {
-                ServerType = ServerType.ExmoSpot,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Exmo.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(exMo);
 
             return supportList;
         }

@@ -61,8 +61,6 @@ using OsEngine.Market.Servers.KiteConnect;
 using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
-using OsEngine.Market.Servers.CoinEx.Spot;
-using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
@@ -79,7 +77,6 @@ using OsEngine.OsTrader;
 using System.Linq;
 using OsEngine.Market.Servers.OKXData;
 using System.Windows.Controls;
-using OsEngine.Market.Servers.ExMo.ExmoSpot;
 using OsEngine.Market.Servers.BybitData;
 using OsEngine.Market.Servers.GateIoData;
 using OsEngine.Market.Servers.MetaTrader5;
@@ -383,7 +380,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitfinexFutures);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
-                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -399,8 +395,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.MexcSpot);
                 serverTypes.Add(ServerType.AstsBridge);
-                serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.RSSNews);
                 serverTypes.Add(ServerType.SmartLabNews);
                 serverTypes.Add(ServerType.AExchange);
@@ -518,7 +512,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
-                serverTypes.Add(ServerType.ExmoSpot);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
                 serverTypes.Add(ServerType.Bybit);
@@ -527,8 +520,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.YahooFinance);
                 serverTypes.Add(ServerType.Polygon);
-                serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.OKXData);
                 serverTypes.Add(ServerType.BybitData);
@@ -794,10 +785,6 @@ namespace OsEngine.Market
                     {
                         newServer = new BybitServer(uniqueNum);
                     }
-                    else if (type == ServerType.ExmoSpot)
-                    {
-                        newServer = new ExmoSpotServer();
-                    }
                     else if (type == ServerType.Transaq)
                     {
                         newServer = new TransaqServer();
@@ -893,14 +880,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.Polygon)
                     {
                         newServer = new PolygonServer();
-                    }
-                    else if (type == ServerType.CoinExSpot)
-                    {
-                        newServer = new CoinExServerSpot();
-                    }
-                    else if (type == ServerType.CoinExFutures)
-                    {
-                        newServer = new CoinExServerFutures();
                     }
                     else if (type == ServerType.BloFinFutures)
                     {
@@ -1674,14 +1653,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new PolygonServerPermission();
                 }
-                else if (type == ServerType.CoinExSpot)
-                {
-                    serverPermission = new CoinExServerSpotPermission();
-                }
-                else if (type == ServerType.CoinExFutures)
-                {
-                    serverPermission = new CoinExServerFuturesPermission();
-                }
                 else if (type == ServerType.RSSNews)
                 {
                     serverPermission = new RSSNewsServerPermission();
@@ -1709,10 +1680,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.OKXData)
                 {
                     serverPermission = new OKXDataServerPermission();
-                }
-                else if (type == ServerType.ExmoSpot)
-                {
-                    serverPermission = new ExmoSpotServerPermission();
                 }
                 else if (type == ServerType.BybitData)
                 {
@@ -2303,12 +2270,6 @@ namespace OsEngine.Market
         BinanceFutures,
 
         /// <summary>
-        /// cryptocurrency exchange Exmo
-        /// биржа криптовалют Exmo
-        /// </summary>
-        ExmoSpot,
-
-        /// <summary>
         /// terminal Ninja Trader
         /// нинзя трейдер
         /// </summary>
@@ -2501,18 +2462,6 @@ namespace OsEngine.Market
         /// Polygon.io
         /// </summary>
         Polygon,
-
-        /// <summary>
-        /// Spot for cryptocurrency exchange CoinEx.com
-        /// Спот биржи криптовалют CoinEx.com
-        /// </summary>
-        CoinExSpot,
-
-        /// <summary>
-        /// Futures for cryptocurrency exchange CoinEx.com
-        /// Фьюючерсы биржи криптовалют CoinEx.com
-        /// </summary>
-        CoinExFutures,
 
         /// <summary>
         /// Reading news from RSS feeds
