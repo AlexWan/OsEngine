@@ -61,8 +61,6 @@ using OsEngine.Market.Servers.KiteConnect;
 using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
-using OsEngine.Market.Servers.CoinEx.Spot;
-using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
@@ -399,8 +397,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.MexcSpot);
                 serverTypes.Add(ServerType.AstsBridge);
-                serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.RSSNews);
                 serverTypes.Add(ServerType.SmartLabNews);
                 serverTypes.Add(ServerType.AExchange);
@@ -527,8 +523,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.YahooFinance);
                 serverTypes.Add(ServerType.Polygon);
-                serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.BinanceData);
                 serverTypes.Add(ServerType.OKXData);
                 serverTypes.Add(ServerType.BybitData);
@@ -893,14 +887,6 @@ namespace OsEngine.Market
                     else if (type == ServerType.Polygon)
                     {
                         newServer = new PolygonServer();
-                    }
-                    else if (type == ServerType.CoinExSpot)
-                    {
-                        newServer = new CoinExServerSpot();
-                    }
-                    else if (type == ServerType.CoinExFutures)
-                    {
-                        newServer = new CoinExServerFutures();
                     }
                     else if (type == ServerType.BloFinFutures)
                     {
@@ -1673,14 +1659,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.Polygon)
                 {
                     serverPermission = new PolygonServerPermission();
-                }
-                else if (type == ServerType.CoinExSpot)
-                {
-                    serverPermission = new CoinExServerSpotPermission();
-                }
-                else if (type == ServerType.CoinExFutures)
-                {
-                    serverPermission = new CoinExServerFuturesPermission();
                 }
                 else if (type == ServerType.RSSNews)
                 {
@@ -2501,18 +2479,6 @@ namespace OsEngine.Market
         /// Polygon.io
         /// </summary>
         Polygon,
-
-        /// <summary>
-        /// Spot for cryptocurrency exchange CoinEx.com
-        /// Спот биржи криптовалют CoinEx.com
-        /// </summary>
-        CoinExSpot,
-
-        /// <summary>
-        /// Futures for cryptocurrency exchange CoinEx.com
-        /// Фьюючерсы биржи криптовалют CoinEx.com
-        /// </summary>
-        CoinExFutures,
 
         /// <summary>
         /// Reading news from RSS feeds
