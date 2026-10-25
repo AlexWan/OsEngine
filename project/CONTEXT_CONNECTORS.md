@@ -258,7 +258,7 @@ private RateGate _rateGateOrdersOperations = new RateGate(1, TimeSpan.FromMillis
 
 У многих бирж есть ограничение на количество подписок (стакан + лента сделок) в рамках одного WebSocket-соединения. Поэтому коннекторы держат **пул публичных сокетов** (`List<WebSocket>`): пока подписок мало — работает один сокет, при превышении порога создаётся новый, и последующие подписки уходят в него.
 
-Каноническая реализация — `BitGetServerFutures.cs:1663-1687` (и скопировано оттуда в BCS `:1663-1688`, BingX, Bitfinex, BitMart и др.): при `Count % 30 == 0` создаётся новый сокет, до 10 секунд ждём его открытия, добавляем в пул, подписку отправляем в последний сокет списка:
+Каноническая реализация — `BcsServer.cs:1663-1688` (скопирована в BingX, Bitfinex и др.): при `Count % 30 == 0` создаётся новый сокет, до 10 секунд ждём его открытия, добавляем в пул, подписку отправляем в последний сокет списка:
 
 ```csharp
 WebSocket webSocketPublic = _webSocketPublicList[_webSocketPublicList.Count - 1];
@@ -297,7 +297,7 @@ if (webSocketPublic.ReadyState == WebSocketState.Open
 - При `Dispose`/реконнекте закрывается **весь пул** с отпиской событий каждого сокета, список очищается — иначе дубли (см. 4.4 и 11.6).
 - Если биржа вместо лимита присылает ошибку «превышено число подписок» — логируй и прекращай новые подписки (пример: `_hasLimitReached` в BCS).
 
-Заметь: не везде пул нужен. **Alor** (`AlorServer.cs:1566-1699`) обходится одним публичным сокетом, зато ведёт **реестр подписок по guid** (`_subscriptionsData`: guid → `AlorSocketSubscription{SubType, ServiceInfo, Guid}`) — это даёт точечную `Unsubscribe(security)` по каждой бумаге и типу подписки. Если у биржи нет лимита на подписки, но есть отписки по id — бери алоровский паттерн; если лимит есть — пул в духе BitGet; при необходимости они комбинируются.
+Заметь: не везде пул нужен. **Alor** (`AlorServer.cs:1566-1699`) обходится одним публичным сокетом, зато ведёт **реестр подписок по guid** (`_subscriptionsData`: guid → `AlorSocketSubscription{SubType, ServiceInfo, Guid}`) — это даёт точечную `Unsubscribe(security)` по каждой бумаге и типу подписки. Если у биржи нет лимита на подписки, но есть отписки по id — бери алоровский паттерн; если лимит есть — пул сокетов (как у BCS); при необходимости они комбинируются.
 
 ### 4.3. Активация соединения
 
@@ -444,7 +444,7 @@ if (webSocketPublic.ReadyState == WebSocketState.Open
 
 - `GetActiveOrders(startIndex, count)` / `GetHistoricalOrders(startIndex, count)` — постраничная выгрузка из API (пагинация, сортировка по времени убыв.), маппинг в `Order` через общий конвертер.
 - `GetAllActivOrders` — для восстановления после реконнекта (permission `CanQueryOrdersAfterReconnect`).
-- `GetOrderStatus(Order)` — запрос статуса одной заявки и возврат `OrderStateType`. Идеал (реализован в BCS): чистый запрос без `MyOrderEvent`, события — только из сокета исполнения. Но поллинг-механика хаба (`AServerOrdersHub.ActiveStateOrderCheckStatusEvent`) **игнорирует возвращаемое значение** и реагирует только на события, поэтому большинство коннекторов (OKX, BitGet, TInvest, Bybit) всё же эмитят `MyOrderEvent`/`MyTradeEvent` из `GetOrderStatus` — иначе заявка после 5 попыток объявляется потерянной. Эмиссия из `GetOrderStatus` не ошибка; главное — не плодить дубли по одной и той же заявке (дедупликация по `NumberUser`/`tradeId`).
+- `GetOrderStatus(Order)` — запрос статуса одной заявки и возврат `OrderStateType`. Идеал (реализован в BCS): чистый запрос без `MyOrderEvent`, события — только из сокета исполнения. Но поллинг-механика хаба (`AServerOrdersHub.ActiveStateOrderCheckStatusEvent`) **игнорирует возвращаемое значение** и реагирует только на события, поэтому большинство коннекторов (OKX, TInvest, Bybit) всё же эмитят `MyOrderEvent`/`MyTradeEvent` из `GetOrderStatus` — иначе заявка после 5 попыток объявляется потерянной. Эмиссия из `GetOrderStatus` не ошибка; главное — не плодить дубли по одной и той же заявке (дедупликация по `NumberUser`/`tradeId`).
 
 ---
 

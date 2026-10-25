@@ -174,11 +174,6 @@ namespace OsEngine.Instructions
             {
                 result.Add(LinkHtx);
             }
-            else if (serverType == ServerType.BitMartSpot
-                || serverType == ServerType.BitMartFutures)
-            {
-                result.Add(LinkBitMart);
-            }
             else if (serverType == ServerType.BloFinFutures)
             {
                 result.Add(LinkBloFin);
@@ -747,17 +742,6 @@ namespace OsEngine.Instructions
             {
                 Description = "Подключение к HTX",
                 PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub17&items%5B%5D=item75"
-            },
-        };
-
-        public Instruction LinkBitMart = new Instruction()
-        {
-            Type = InstructionType.Video,
-
-            Ru = new InstructionLocalized()
-            {
-                Description = "Подключение к BitMart",
-                PostLink = "https://o-s-a.net/os-engine-faq?cats%5B%5D=tab10&subcats%5B%5D=sub17&items%5B%5D=item393"
             },
         };
 

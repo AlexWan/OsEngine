@@ -68,7 +68,7 @@ namespace OsEngine.Market.Servers.Pionex
             if (string.IsNullOrEmpty(_publicKey) ||
                 string.IsNullOrEmpty(_secretKey))
             {
-                SendLogMessage("Can`t run Bitget Spot connector. No keys",
+                SendLogMessage("Can`t run Pionex Spot connector. No keys",
                     LogMessageType.Error);
                 return;
             }
