@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.GateIoData
     {
         public ServerType ServerType
         {
-            get { return ServerType.BybitData; }
+            get { return ServerType.GateIoData; }
         }
 
         #region DataFeedPermissions
