@@ -7,6 +7,7 @@ using OsEngine.Alerts;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Entity;
+using OsEngine.IndicatorMarketDepth;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -84,6 +85,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
+
+                _marketDepthIndicatorsMaster = new MarketDepthIndicatorsMaster(TabName, StartProgram);
 
                 if (_connector.SecurityName != null && _connector.PortfolioName != null && _connector.ServerFullName != null)
                 {
@@ -460,6 +463,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _marketDepthPainter.Delete();
                     _marketDepthPainter.LogMessageEvent -= SetNewLogMessage;
                     _marketDepthPainter = null;
+                }
+
+                if (_marketDepthIndicatorsMaster != null)
+                {
+                    _marketDepthIndicatorsMaster.Delete();
+                    _marketDepthIndicatorsMaster = null;
                 }
 
                 if (PositionOpenerToStop != null)
@@ -846,6 +855,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Class drawing a marketDepth
         /// </summary>
         private MarketDepthPainter _marketDepthPainter;
+
+        private MarketDepthIndicatorsMaster _marketDepthIndicatorsMaster;
+
+        /// <summary>
+        /// Мастер стаканных индикаторов (доступ к индикаторам и их значениям из робота).
+        /// </summary>
+        public MarketDepthIndicatorsMaster MarketDepthIndicators
+        {
+            get { return _marketDepthIndicatorsMaster; }
+        }
 
         /// <summary>
         /// Transaction creation wizard
@@ -7789,6 +7808,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _marketDepthPainter.ProcessMarketDepth(marketDepth);
             }
 
+            if (_marketDepthIndicatorsMaster != null)
+            {
+                _marketDepthIndicatorsMaster.Process(marketDepth);
+            }
+
             if (MarketDepthUpdateEvent != null)
             {
                 MarketDepthUpdateEvent(marketDepth);
@@ -8245,6 +8269,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (trade == null)
             {
                 return;
+            }
+
+            if (_marketDepthIndicatorsMaster != null)
+            {
+                _marketDepthIndicatorsMaster.ProcessTrade(trade);
             }
 
             if (_journal == null)

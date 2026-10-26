@@ -15,7 +15,7 @@
 | **MCP (V2, рекомендуемый)** | `http://localhost:6500/api/v2/mcp` (Streamable HTTP) |
 | **MCP (V1, легаси)** | `http://localhost:6500/api/v1/mcp` |
 | **SSE (V1, легаси)** | `http://localhost:6500/api/v1/events` (в V2 события — через `GET /api/v2/mcp`) |
-| **Тестовые стенды** | `Tests/McpTestStand/` (MCP API) · `Tests/OsDataTestStand/` (OsData) · `Tests/OsTesterTestStand/` (тестер) · `Tests/ClusteringTestStand/` (кластеризация) |
+| **Тестовые стенды** | `Tests/McpTestStand/` (MCP API) · `Tests/OsDataTestStand/` (OsData) · `Tests/OsTesterTestStand/` (тестер) · `Tests/ClusteringTestStand/` (кластеризация) · `Tests/IndicatorMarketDepthTestStand/` (стаканные индикаторы) |
 
 ## Что читать под задачу
 
@@ -25,6 +25,8 @@
 | Робот / скринер | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_ROBOTS.md` |
 | Секторальные роботы (SectorsSet) | `CONTEXT_SECTORS_SET.md` |
 | Индикатор | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_INDICATORS.md` |
+| Стаканный / тиковый индикатор | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_INDICATORS_MARKET_DEPTH.md` |
+| Описания стаканных/тиковых индикаторов | `CONTEXT_INDICATORS_MARKET_DEPTH_DESCRIPTIONS.md` |
 | Индекс / спред | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_INDEX_AND_SPREAD.md` |
 | Пары / фьючерсы | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_PAIRS_AND_FUTURES.md` |
 | Сетки / MM | `CONTEXT_ROBOTS_ARCHITECTURE.md` + `CONTEXT_GRIDS.md` |
@@ -41,6 +43,7 @@
 | Тестовый стенд OsData | `Tests/CONTEXT_OSDATA_TESTSTAND.md` |
 | Тестовый стенд тестера | `Tests/CONTEXT_OSTESTER_TESTSTAND.md` |
 | Тестовый стенд кластеризации | `Tests/CONTEXT_CLUSTERING_TESTSTAND.md` |
+| Тестовый стенд стаканных индикаторов | `Tests/CONTEXT_INDICATOR_MARKET_DEPTH_TESTSTAND.md` |
 | Защита / пароли / блокировка | `CONTEXT_SECURITY.md` |
 | Дорожная карта MCP | `TempContext/CONTEXT_MCP_API_DEVELOPMENT.md` |
 | Дивиденды в роботах | `Tests/CONTEXT_DIVIDENDS_UPDATER.md` |
@@ -89,10 +92,13 @@ cd Tests/OsTesterTestStand/OsEngine.OsTester.TestStand/bin/Debug/net10.0
 
 cd Tests/ClusteringTestStand/OsEngine.Clustering.TestStand/bin/Debug/net10.0
 ./OsEngine.Clustering.TestStand.exe
+
+cd Tests/IndicatorMarketDepthTestStand/OsEngine.IndicatorMarketDepth.TestStand/bin/Debug/net10.0
+./OsEngine.IndicatorMarketDepth.TestStand.exe --indicator OrderBookImbalance
 ```
 
 **Важно:** перед `dotnet build` завершить `OsEngine.exe`, иначе файл заблокирован.
 
 ## Ссылки
 
-[CONTEXT_ROBOTS_ARCHITECTURE.md](CONTEXT_ROBOTS_ARCHITECTURE.md) · [CONTEXT_ROBOTS.md](CONTEXT_ROBOTS.md) · [CONTEXT_SECTORS_SET.md](CONTEXT_SECTORS_SET.md) · [CONTEXT_INDICATORS.md](CONTEXT_INDICATORS.md) · [CONTEXT_DIVIDENDS_UPDATER.md](Tests/CONTEXT_DIVIDENDS_UPDATER.md) · [CONTEXT_SYNTHETIC_BOND.md](CONTEXT_SYNTHETIC_BOND.md) · [CONTEXT_REBALANCER.md](CONTEXT_REBALANCER.md) · [CONTEXT_RISK_PARITY.md](CONTEXT_RISK_PARITY.md) · [CONTEXT_THEMES.md](CONTEXT_THEMES.md) · [CONTEXT_VPS_VDS.md](CONTEXT_VPS_VDS.md) · [CONTEXT_CODING_GUIDELINES.md](CONTEXT_CODING_GUIDELINES.md) · [CONTEXT_CONNECTORS.md](CONTEXT_CONNECTORS.md) · [CONTEXT_MCP_V2.md](CONTEXT_MCP_V2.md) · [CONTEXT_MCP_V1.md](CONTEXT_MCP_V1.md) · [CONTEXT_MCP_SCENARIO_V2.md](CONTEXT_MCP_SCENARIO_V2.md) · [CONTEXT_MCP_SCENARIO_V1.md](CONTEXT_MCP_SCENARIO_V1.md) · [CONTEXT_MCP_TESTSTAND.md](Tests/CONTEXT_MCP_TESTSTAND.md) · [CONTEXT_OSDATA_TESTSTAND.md](Tests/CONTEXT_OSDATA_TESTSTAND.md) · [CONTEXT_OSTESTER_TESTSTAND.md](Tests/CONTEXT_OSTESTER_TESTSTAND.md) · [CONTEXT_CLUSTERING_TESTSTAND.md](Tests/CONTEXT_CLUSTERING_TESTSTAND.md) · [TempContext/CONTEXT_MCP_API_DEVELOPMENT.md](TempContext/CONTEXT_MCP_API_DEVELOPMENT.md)
+[CONTEXT_ROBOTS_ARCHITECTURE.md](CONTEXT_ROBOTS_ARCHITECTURE.md) · [CONTEXT_ROBOTS.md](CONTEXT_ROBOTS.md) · [CONTEXT_SECTORS_SET.md](CONTEXT_SECTORS_SET.md) · [CONTEXT_INDICATORS.md](CONTEXT_INDICATORS.md) · [CONTEXT_INDICATORS_MARKET_DEPTH.md](CONTEXT_INDICATORS_MARKET_DEPTH.md) · [CONTEXT_INDICATORS_MARKET_DEPTH_DESCRIPTIONS.md](CONTEXT_INDICATORS_MARKET_DEPTH_DESCRIPTIONS.md) · [CONTEXT_DIVIDENDS_UPDATER.md](Tests/CONTEXT_DIVIDENDS_UPDATER.md) · [CONTEXT_SYNTHETIC_BOND.md](CONTEXT_SYNTHETIC_BOND.md) · [CONTEXT_REBALANCER.md](CONTEXT_REBALANCER.md) · [CONTEXT_RISK_PARITY.md](CONTEXT_RISK_PARITY.md) · [CONTEXT_THEMES.md](CONTEXT_THEMES.md) · [CONTEXT_VPS_VDS.md](CONTEXT_VPS_VDS.md) · [CONTEXT_CODING_GUIDELINES.md](CONTEXT_CODING_GUIDELINES.md) · [CONTEXT_CONNECTORS.md](CONTEXT_CONNECTORS.md) · [CONTEXT_MCP_V2.md](CONTEXT_MCP_V2.md) · [CONTEXT_MCP_V1.md](CONTEXT_MCP_V1.md) · [CONTEXT_MCP_SCENARIO_V2.md](CONTEXT_MCP_SCENARIO_V2.md) · [CONTEXT_MCP_SCENARIO_V1.md](CONTEXT_MCP_SCENARIO_V1.md) · [CONTEXT_MCP_TESTSTAND.md](Tests/CONTEXT_MCP_TESTSTAND.md) · [CONTEXT_OSDATA_TESTSTAND.md](Tests/CONTEXT_OSDATA_TESTSTAND.md) · [CONTEXT_OSTESTER_TESTSTAND.md](Tests/CONTEXT_OSTESTER_TESTSTAND.md) · [CONTEXT_CLUSTERING_TESTSTAND.md](Tests/CONTEXT_CLUSTERING_TESTSTAND.md) · [CONTEXT_INDICATOR_MARKET_DEPTH_TESTSTAND.md](Tests/CONTEXT_INDICATOR_MARKET_DEPTH_TESTSTAND.md) · [TempContext/CONTEXT_MCP_API_DEVELOPMENT.md](TempContext/CONTEXT_MCP_API_DEVELOPMENT.md)

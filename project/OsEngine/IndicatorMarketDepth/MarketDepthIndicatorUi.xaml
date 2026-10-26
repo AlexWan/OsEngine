@@ -1,0 +1,23 @@
+<Window x:Class="OsEngine.IndicatorMarketDepth.MarketDepthIndicatorUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Indicator settings" Height="420" Width="520" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True">
+    <Grid>
+        <TabControl Margin="0,0,0,37">
+            <TabItem Name="TabItemParam" Header="Parameters">
+                <Grid Background="{DynamicResource ControlBackgroundNormalLight}">
+                    <WindowsFormsHost Name="HostParameters" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="TabItemVisual" Header="Visual">
+                <Grid Background="{DynamicResource ControlBackgroundNormalLight}">
+                    <WindowsFormsHost Name="HostVisual" Margin="0,0,0,0"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button Name="ButtonDefault" Content="Default" HorizontalAlignment="Left" Margin="10,0,0,7" VerticalAlignment="Bottom" Width="100" Click="ButtonDefault_Click"/>
+        <Button Name="ButtonDescription" Content="?" HorizontalAlignment="Left" Margin="112,0,0,7" VerticalAlignment="Bottom" Width="26" Height="23" Click="ButtonDescription_Click"/>
+        <Button Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,120,7" VerticalAlignment="Bottom" Width="90" Click="ButtonCancel_Click"/>
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,20,7" VerticalAlignment="Bottom" Width="90" Click="ButtonAccept_Click"/>
+    </Grid>
+</Window>

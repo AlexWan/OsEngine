@@ -1,0 +1,27 @@
+<Window x:Class="OsEngine.IndicatorMarketDepth.MarketDepthIndicatorCreateUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Create market depth indicator" Height="520" Width="540" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Topmost="True">
+    <Grid>
+        <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="12,8,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxName" HorizontalAlignment="Left" Margin="70,5,0,0" Width="110" Height="23" VerticalAlignment="Top"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,12,0" VerticalAlignment="Top">
+            <TextBox Name="TextBoxSearchSecurity" Width="150" Height="23" VerticalAlignment="Center"
+                     TextChanged="TextBoxSearchSecurity_TextChanged"
+                     GotFocus="TextBoxSearchSecurity_GotFocus"
+                     LostFocus="TextBoxSearchSecurity_LostFocus"
+                     Foreground="Gray"/>
+            <Button Name="ButtonLeftInSearchResults" Content="&lt;" Width="22" Height="22" VerticalAlignment="Center" Click="ButtonLeftInSearchResults_Click"/>
+            <Label Name="LabelCurrentResultShow" Content="1" VerticalAlignment="Center"/>
+            <Label Name="LabelCommasResultShow" Content=" / " VerticalAlignment="Center"/>
+            <Label Name="LabelCountResultsShow" Content="0" VerticalAlignment="Center"/>
+            <Button Name="ButtonRightInSearchResults" Content="&gt;" Width="22" Height="22" VerticalAlignment="Center" Click="ButtonRightInSearchResults_Click"/>
+        </StackPanel>
+
+        <WindowsFormsHost Name="HostIndicators" Margin="4,36,4,34"/>
+
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,12,6" VerticalAlignment="Bottom" Width="90" Click="ButtonAccept_Click"/>
+        <Button Name="ButtonCancel" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,112,6" VerticalAlignment="Bottom" Width="90" Click="ButtonCancel_Click"/>
+    </Grid>
+</Window>

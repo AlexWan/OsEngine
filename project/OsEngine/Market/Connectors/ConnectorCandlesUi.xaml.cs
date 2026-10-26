@@ -1952,7 +1952,7 @@ namespace OsEngine.Market.Connectors
                     box.Items.Add(TimeFrame.Sec2.ToString());
                     box.Items.Add(TimeFrame.Sec1.ToString());
 
-                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick.ToString();
+                    ComboBoxCandleMarketDataType.SelectedItem = GetCandleMarketDataTypeForCurrentMode().ToString();
                     ComboBoxCandleMarketDataType.IsEnabled = true;
                 }
                 else
@@ -2092,6 +2092,42 @@ namespace OsEngine.Market.Connectors
                 }
 
             }
+        }
+
+        private CandleMarketDataType GetCandleMarketDataTypeForCurrentMode()
+        {
+            TesterServer serverTester = null;
+            OptimizerServer serverOpt = null;
+
+            List<IServer> serversAll = ServerMaster.GetServers();
+
+            if (serversAll != null && serversAll.Count > 0)
+            {
+                IServer serverI = serversAll[0];
+
+                if (serverI.ServerType == ServerType.Tester)
+                {
+                    serverTester = (TesterServer)serverI;
+                }
+                else if (serverI.ServerType == ServerType.Optimizer)
+                {
+                    serverOpt = (OptimizerServer)serverI;
+                }
+            }
+
+            TesterDataType type = serverTester != null
+                ? serverTester.TypeTesterData
+                : serverOpt != null
+                    ? serverOpt.TypeTesterData
+                    : TesterDataType.Candle;
+
+            if (type == TesterDataType.MarketDepthAllCandleState
+                || type == TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                return CandleMarketDataType.MarketDepth;
+            }
+
+            return CandleMarketDataType.Tick;
         }
 
         private void _candlesRealizationGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)

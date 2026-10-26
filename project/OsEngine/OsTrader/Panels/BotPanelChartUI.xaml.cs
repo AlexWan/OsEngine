@@ -7,8 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Forms.Integration;
+using System.Windows.Threading;
 using OsEngine.Charts.CandleChart;
+using OsEngine.Charts.MarketDepthChart;
 using OsEngine.Entity;
+using OsEngine.IndicatorMarketDepth;
 using OsEngine.Journal;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -96,6 +101,13 @@ namespace OsEngine.OsTrader.Panels
 
             TabControlBotTab.SelectionChanged += TabControlBotTab_SelectionChanged;
             TabControlBotTab_SelectionChanged(null, null);
+
+            TabControlMarketDepth.SelectionChanged += TabControlMarketDepth_SelectionChanged;
+
+            _mdRepaintTimer = new DispatcherTimer();
+            _mdRepaintTimer.Interval = TimeSpan.FromMilliseconds(700);
+            _mdRepaintTimer.Tick += _mdRepaintTimer_Tick;
+            _mdRepaintTimer.Start();
         }
 
         private BotPanel _panel;
@@ -113,6 +125,18 @@ namespace OsEngine.OsTrader.Panels
                 LocationChanged -= RobotUi_LocationChanged;
 
                 TabControlBotTab.SelectionChanged -= TabControlBotTab_SelectionChanged;
+                TabControlMarketDepth.SelectionChanged -= TabControlMarketDepth_SelectionChanged;
+
+                if (_mdRepaintTimer != null)
+                {
+                    _mdRepaintTimer.Stop();
+                    _mdRepaintTimer.Tick -= _mdRepaintTimer_Tick;
+                    _mdRepaintTimer = null;
+                }
+
+                ClearMarketDepthIndicatorTabs();
+
+                UnsubscribeAllMdRepaint();
 
                 if (_panel != null)
                 {
@@ -187,6 +211,7 @@ namespace OsEngine.OsTrader.Panels
             TabItemClosedPos.Header = OsLocalization.Trader.Label19;
             TabItemLogBot.Header = OsLocalization.Trader.Label23;
             TabItemMarketDepth.Header = OsLocalization.Trader.Label25;
+            TabItemMarketDepthBase.Header = OsLocalization.ConvertToLocString("Eng:Base_Ru:База_");
             TabItemAlerts.Header = OsLocalization.Trader.Label26;
             TabItemControl.Header = OsLocalization.Trader.Label27;
             TabItemStopLimits.Header = OsLocalization.Trader.Label193;
@@ -384,6 +409,8 @@ namespace OsEngine.OsTrader.Panels
                 {
                     Title = _startTitle;
                 }
+
+                RebuildMarketDepthIndicatorTabs();
             }
             catch (Exception ex)
             {
@@ -392,6 +419,344 @@ namespace OsEngine.OsTrader.Panels
         }
 
         private string _startTitle;
+
+        #endregion
+
+        #region Market depth indicators
+
+        private DispatcherTimer _mdRepaintTimer;
+
+        private Dictionary<AMarketDepth, MarketDepthIndicatorChart> _mdIndicatorCharts = new Dictionary<AMarketDepth, MarketDepthIndicatorChart>();
+
+        private HashSet<MarketDepthIndicatorsMaster> _mdRepaintSubscribedMasters = new HashSet<MarketDepthIndicatorsMaster>();
+
+        private bool _ignoreMdTabSelection;
+
+        private BotTabSimple GetActiveSimpleTab()
+        {
+            if (_panel == null || _panel.ActiveTab == null)
+            {
+                return null;
+            }
+
+            if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
+            {
+                return null;
+            }
+
+            return (BotTabSimple)_panel.ActiveTab;
+        }
+
+        private void ClearMarketDepthIndicatorTabs()
+        {
+            for (int i = TabControlMarketDepth.Items.Count - 1; i >= 0; i--)
+            {
+                if (TabControlMarketDepth.Items[i] == TabItemMarketDepthBase)
+                {
+                    continue;
+                }
+
+                if (TabControlMarketDepth.Items[i] == TabItemMarketDepthPlus)
+                {
+                    continue;
+                }
+
+                TabControlMarketDepth.Items.RemoveAt(i);
+            }
+
+            foreach (KeyValuePair<AMarketDepth, MarketDepthIndicatorChart> pair in _mdIndicatorCharts)
+            {
+                pair.Value.StopPaint();
+            }
+
+            _mdIndicatorCharts.Clear();
+        }
+
+        private void RebuildMarketDepthIndicatorTabs()
+        {
+            _ignoreMdTabSelection = true;
+
+            ClearMarketDepthIndicatorTabs();
+            UnsubscribeAllMdRepaint();
+
+            BotTabSimple tab = GetActiveSimpleTab();
+
+            if (tab != null && tab.MarketDepthIndicators != null)
+            {
+            List<AMarketDepth> indicators = tab.MarketDepthIndicators.Indicators;
+
+            SubscribeMdRepaint(tab.MarketDepthIndicators);
+
+            for (int i = 0; i < indicators.Count; i++)
+                {
+                    AddMarketDepthIndicatorTab(indicators[i]);
+                }
+            }
+
+            _ignoreMdTabSelection = false;
+
+            TabControlMarketDepth.SelectedItem = TabItemMarketDepthBase;
+        }
+
+        private TabItem AddMarketDepthIndicatorTab(AMarketDepth indicator)
+        {
+            TabItem tab = new TabItem();
+            tab.Header = indicator.Name;
+            tab.Tag = indicator;
+
+            Grid grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            Grid topRow = new Grid();
+            topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            topRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            TextBlock typeText = new TextBlock();
+            typeText.Text = indicator.GetType().Name;
+            typeText.VerticalAlignment = VerticalAlignment.Center;
+            typeText.HorizontalAlignment = HorizontalAlignment.Left;
+            typeText.Margin = new Thickness(2, 0, 8, 0);
+            typeText.Foreground = Themes.ThemeManager.GetBrush("LabelForegroundBrush");
+
+            StackPanel buttonsPanel = new StackPanel();
+            buttonsPanel.Orientation = Orientation.Horizontal;
+            buttonsPanel.Margin = new Thickness(0, 2, 2, 2);
+
+            Button editButton = new Button();
+            editButton.Content = OsLocalization.ConvertToLocString("Eng:Edit_Ru:Ред_");
+            editButton.Tag = indicator;
+            editButton.Click += SettingsMarketDepthIndicatorButton_Click;
+            editButton.Margin = new Thickness(0, 0, 4, 0);
+            editButton.Width = 46;
+            editButton.Height = 22;
+
+            Button deleteButton = new Button();
+            deleteButton.Content = OsLocalization.ConvertToLocString("Eng:Delete_Ru:Удал_");
+            deleteButton.Tag = indicator;
+            deleteButton.Click += RemoveMarketDepthIndicatorButton_Click;
+            deleteButton.Width = 46;
+            deleteButton.Height = 22;
+
+            buttonsPanel.Children.Add(editButton);
+            buttonsPanel.Children.Add(deleteButton);
+
+            Grid.SetColumn(typeText, 0);
+            Grid.SetColumn(buttonsPanel, 1);
+
+            topRow.Children.Add(typeText);
+            topRow.Children.Add(buttonsPanel);
+
+            WindowsFormsHost host = new WindowsFormsHost();
+
+            MarketDepthIndicatorChart chart = new MarketDepthIndicatorChart();
+            chart.StartPaint(host, indicator.Name);
+            _mdIndicatorCharts[indicator] = chart;
+
+            Grid.SetRow(topRow, 0);
+            Grid.SetRow(host, 1);
+
+            grid.Children.Add(topRow);
+            grid.Children.Add(host);
+
+            tab.Content = grid;
+
+            int plusIndex = TabControlMarketDepth.Items.Count - 1;
+            TabControlMarketDepth.Items.Insert(plusIndex, tab);
+
+            return tab;
+        }
+
+        private void RemoveMarketDepthIndicatorButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            AMarketDepth indicator = (AMarketDepth)button.Tag;
+
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
+                "Eng:Are you sure you want to delete the indicator?_Ru:Вы уверены что хотите удалить индикатор?_"));
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
+            BotTabSimple tab = GetActiveSimpleTab();
+
+            if (tab == null || tab.MarketDepthIndicators == null)
+            {
+                return;
+            }
+
+            tab.MarketDepthIndicators.DeleteIndicator(indicator);
+
+            RebuildMarketDepthIndicatorTabs();
+        }
+
+        private void SettingsMarketDepthIndicatorButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            AMarketDepth indicator = (AMarketDepth)button.Tag;
+
+            indicator.ShowDialog();
+        }
+
+        private void TabControlMarketDepth_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_ignoreMdTabSelection)
+            {
+                return;
+            }
+
+            if (TabControlMarketDepth.SelectedItem != TabItemMarketDepthPlus)
+            {
+                return;
+            }
+
+            BotTabSimple tab = GetActiveSimpleTab();
+
+            if (tab == null || tab.MarketDepthIndicators == null)
+            {
+                ResetMdTabSelection();
+                return;
+            }
+
+            List<string> existingNames = new List<string>();
+
+            for (int i = 0; i < tab.MarketDepthIndicators.Indicators.Count; i++)
+            {
+                existingNames.Add(tab.MarketDepthIndicators.Indicators[i].Name);
+            }
+
+            MarketDepthIndicatorCreateUi ui = new MarketDepthIndicatorCreateUi(existingNames);
+            ui.ShowDialog();
+
+            if (ui.IsAccepted == false)
+            {
+                ResetMdTabSelection();
+                return;
+            }
+
+            AMarketDepth indicator = tab.MarketDepthIndicators.CreateIndicator(ui.IndicatorType, ui.IndicatorName);
+
+            TabItem createdTab = null;
+
+            if (indicator != null)
+            {
+                createdTab = AddMarketDepthIndicatorTab(indicator);
+            }
+
+            if (createdTab != null)
+            {
+                SelectMdTab(createdTab);
+            }
+            else
+            {
+                ResetMdTabSelection();
+            }
+        }
+
+        private void SelectMdTab(TabItem tab)
+        {
+            if (tab == null)
+            {
+                return;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                TabControlMarketDepth.SelectedItem = tab;
+            }));
+        }
+
+        private void ResetMdTabSelection()
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                TabControlMarketDepth.SelectedItem = TabItemMarketDepthBase;
+            }));
+        }
+
+        private void SubscribeMdRepaint(MarketDepthIndicatorsMaster master)
+        {
+            if (master == null)
+            {
+                return;
+            }
+
+            if (_mdRepaintSubscribedMasters.Add(master))
+            {
+                master.NeedToRePaintEvent += MarketDepthIndicators_NeedToRePaintEvent;
+            }
+        }
+
+        private void UnsubscribeAllMdRepaint()
+        {
+            foreach (MarketDepthIndicatorsMaster master in _mdRepaintSubscribedMasters)
+            {
+                master.NeedToRePaintEvent -= MarketDepthIndicators_NeedToRePaintEvent;
+            }
+
+            _mdRepaintSubscribedMasters.Clear();
+        }
+
+        private bool IsMarketDepthAreaVisible()
+        {
+            if (IsVisible == false)
+            {
+                return false;
+            }
+
+            if (WindowState == WindowState.Minimized)
+            {
+                return false;
+            }
+
+            if (TabControlControl == null || TabControlMarketDepth == null)
+            {
+                return false;
+            }
+
+            if (TabControlControl.SelectedItem != TabItemMarketDepth)
+            {
+                return false;
+            }
+
+            object selected = TabControlMarketDepth.SelectedItem;
+
+            if (selected == null || selected == TabItemMarketDepthBase || selected == TabItemMarketDepthPlus)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void MarketDepthIndicators_NeedToRePaintEvent()
+        {
+            if (IsMarketDepthAreaVisible() == false)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<AMarketDepth, MarketDepthIndicatorChart> pair in _mdIndicatorCharts)
+            {
+                pair.Value.PaintIndicator(pair.Key);
+            }
+        }
+
+        private void _mdRepaintTimer_Tick(object sender, EventArgs e)
+        {
+            if (IsMarketDepthAreaVisible() == false)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<AMarketDepth, MarketDepthIndicatorChart> pair in _mdIndicatorCharts)
+            {
+                pair.Value.PaintIndicator(pair.Key);
+            }
+        }
 
         #endregion
 

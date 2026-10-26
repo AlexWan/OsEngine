@@ -2048,10 +2048,7 @@ namespace OsEngine.Market.Servers.Tester
             string message = string.Format(OsLocalization.Market.Label377,
                 _server.TimeMin.ToString(_currentCulture), _server.TimeMax.ToString(_currentCulture));
 
-            ServerMaster.SendNewLogMessage(message, LogMessageType.Error);
-
-            CustomMessageBoxUi ui = new CustomMessageBoxUi(message);
-            ui.ShowDialog();
+            ServerMaster.SendNewLogMessage(message, LogMessageType.System);
         }
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

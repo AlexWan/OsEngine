@@ -2,6 +2,7 @@
 
 Как писать и использовать индикаторы на базе `Aindicator`.
 Базовая архитектура роботов — в `CONTEXT.md`. Шаблоны промптов для заказа новых индикаторов — в `CONTEXT_PROMPTS_INDICATORS.md`.
+Стаканные и тиковые индикаторы на базе `AMarketDepth` — в [`CONTEXT_INDICATORS_MARKET_DEPTH.md`](CONTEXT_INDICATORS_MARKET_DEPTH.md).
 
 ## 1. Индикаторы
 

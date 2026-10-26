@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "OsEngine.IndicatorMarketDepth.TestStand/1.0.0": {
+        "runtime": {
+          "OsEngine.IndicatorMarketDepth.TestStand.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "OsEngine.IndicatorMarketDepth.TestStand/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

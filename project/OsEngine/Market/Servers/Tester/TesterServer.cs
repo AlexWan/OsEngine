@@ -5539,6 +5539,11 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.Tick;
                 }
+                else if (TypeTesterData == TesterDataType.MarketDepthAllCandleState
+                    || TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
+                {
+                    timeFrameBuilder.CandleMarketDataType = CandleMarketDataType.MarketDepth;
+                }
 
                 // start security for unloading / запускаем бумагу на выгрузку
 
