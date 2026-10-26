@@ -139,7 +139,7 @@ namespace OsEngine.Charts.MarketDepthChart
 
             _indicator = indicator;
 
-            List<IndicatorDataSeries> series = indicator.DataSeries;
+            List<MarketDepthDataSeries> series = indicator.DataSeries;
 
             ChartArea area = FindAreaByNameSafe("Prime");
 
@@ -178,7 +178,7 @@ namespace OsEngine.Charts.MarketDepthChart
                 return;
             }
 
-            List<IndicatorDataSeries> series = indicator.DataSeries;
+            List<MarketDepthDataSeries> series = indicator.DataSeries;
 
             for (int i = 0; series != null && i < series.Count; i++)
             {
@@ -244,7 +244,7 @@ namespace OsEngine.Charts.MarketDepthChart
 
                     for (int i = 0; i < _indicator.DataSeries.Count; i++)
                     {
-                        IndicatorDataSeries dataSeries = _indicator.DataSeries[i];
+                        MarketDepthDataSeries dataSeries = _indicator.DataSeries[i];
 
                         if (dataSeries.IsPaint == false || index >= dataSeries.Values.Count)
                         {
@@ -299,7 +299,7 @@ namespace OsEngine.Charts.MarketDepthChart
             }
         }
 
-        private void PaintLine(IndicatorDataSeries dataSeries, AxisType axis)
+        private void PaintLine(MarketDepthDataSeries dataSeries, AxisType axis)
         {
             if (dataSeries.Values == null || dataSeries.Values.Count == 0)
             {
@@ -339,7 +339,7 @@ namespace OsEngine.Charts.MarketDepthChart
             }
         }
 
-        private void PaintColumn(IndicatorDataSeries dataSeries, AxisType axis)
+        private void PaintColumn(MarketDepthDataSeries dataSeries, AxisType axis)
         {
             if (dataSeries.Values == null || dataSeries.Values.Count == 0)
             {
@@ -375,7 +375,7 @@ namespace OsEngine.Charts.MarketDepthChart
             }
         }
 
-        private void PaintPoint(IndicatorDataSeries dataSeries, AxisType axis)
+        private void PaintPoint(MarketDepthDataSeries dataSeries, AxisType axis)
         {
             if (dataSeries.Values == null || dataSeries.Values.Count == 0)
             {
@@ -404,14 +404,14 @@ namespace OsEngine.Charts.MarketDepthChart
             }
         }
 
-        private static bool HasTimes(IndicatorDataSeries dataSeries)
+        private static bool HasTimes(MarketDepthDataSeries dataSeries)
         {
             return dataSeries.Times != null
                 && dataSeries.Times.Count == dataSeries.Values.Count
                 && dataSeries.Times.Count > 0;
         }
 
-        private static double GetX(IndicatorDataSeries dataSeries, int index, bool useTime)
+        private static double GetX(MarketDepthDataSeries dataSeries, int index, bool useTime)
         {
             if (useTime)
             {
@@ -421,7 +421,7 @@ namespace OsEngine.Charts.MarketDepthChart
             return index;
         }
 
-        private static string GetToolTip(IndicatorDataSeries dataSeries, int index, bool useTime)
+        private static string GetToolTip(MarketDepthDataSeries dataSeries, int index, bool useTime)
         {
             string value = dataSeries.Values[index].ToString("0.####");
 

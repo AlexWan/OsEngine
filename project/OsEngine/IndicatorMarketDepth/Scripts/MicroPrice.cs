@@ -23,7 +23,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             }
         }
 
-        private IndicatorDataSeries _series;
+        private MarketDepthDataSeries _series;
 
         public override void OnStateChange(MarketDepthIndicatorState state)
         {

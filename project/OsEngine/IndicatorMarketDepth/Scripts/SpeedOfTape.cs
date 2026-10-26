@@ -28,7 +28,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             get { return MarketDepthIndicatorDataSource.Trades; }
         }
 
-        private IndicatorDataSeries _speed;
+        private MarketDepthDataSeries _speed;
 
         private int _lastCount = -1;
 

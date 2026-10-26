@@ -33,9 +33,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthDecimal _largeThreshold;
 
-        private IndicatorDataSeries _avgTradeSize;
+        private MarketDepthDataSeries _avgTradeSize;
 
-        private IndicatorDataSeries _largeTradeShare;
+        private MarketDepthDataSeries _largeTradeShare;
 
         private int _lastCount = -1;
 

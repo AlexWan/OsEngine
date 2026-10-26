@@ -33,7 +33,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthInt _levels;
 
-        private IndicatorDataSeries _score;
+        private MarketDepthDataSeries _score;
 
         private List<decimal> _lastBidVols = new List<decimal>();
 

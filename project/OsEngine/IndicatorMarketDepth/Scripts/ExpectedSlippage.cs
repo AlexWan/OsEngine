@@ -26,9 +26,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthDecimal _volume;
 
-        private IndicatorDataSeries _slippageBuy;
+        private MarketDepthDataSeries _slippageBuy;
 
-        private IndicatorDataSeries _slippageSell;
+        private MarketDepthDataSeries _slippageSell;
 
         public override void OnStateChange(MarketDepthIndicatorState state)
         {

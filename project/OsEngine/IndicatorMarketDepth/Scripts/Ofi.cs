@@ -28,7 +28,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             get { return false; }
         }
 
-        private IndicatorDataSeries _series;
+        private MarketDepthDataSeries _series;
 
         private bool _hasPrev;
 

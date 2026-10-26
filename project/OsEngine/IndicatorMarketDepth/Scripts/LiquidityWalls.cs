@@ -25,13 +25,13 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthInt _levels;
 
-        private IndicatorDataSeries _bidWall;
+        private MarketDepthDataSeries _bidWall;
 
-        private IndicatorDataSeries _bidWallPrice;
+        private MarketDepthDataSeries _bidWallPrice;
 
-        private IndicatorDataSeries _askWall;
+        private MarketDepthDataSeries _askWall;
 
-        private IndicatorDataSeries _askWallPrice;
+        private MarketDepthDataSeries _askWallPrice;
 
         public override void OnStateChange(MarketDepthIndicatorState state)
         {

@@ -32,9 +32,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthString _aggregation;
 
-        private IndicatorDataSeries _delta;
+        private MarketDepthDataSeries _delta;
 
-        private IndicatorDataSeries _cvd;
+        private MarketDepthDataSeries _cvd;
 
         private int _lastCount = -1;
 

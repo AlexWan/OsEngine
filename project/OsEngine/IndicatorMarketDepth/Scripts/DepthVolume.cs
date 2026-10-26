@@ -28,9 +28,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthInt _levels;
 
-        private IndicatorDataSeries _bidSeries;
+        private MarketDepthDataSeries _bidSeries;
 
-        private IndicatorDataSeries _askSeries;
+        private MarketDepthDataSeries _askSeries;
 
         public override void OnStateChange(MarketDepthIndicatorState state)
         {

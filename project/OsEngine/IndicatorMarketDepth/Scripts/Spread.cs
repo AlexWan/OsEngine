@@ -29,11 +29,11 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthInt _period;
 
-        private IndicatorDataSeries _series;
+        private MarketDepthDataSeries _series;
 
-        private IndicatorDataSeries _seriesMa;
+        private MarketDepthDataSeries _seriesMa;
 
-        private IndicatorDataSeries _seriesVol;
+        private MarketDepthDataSeries _seriesVol;
 
         private List<decimal> _history = new List<decimal>();
 

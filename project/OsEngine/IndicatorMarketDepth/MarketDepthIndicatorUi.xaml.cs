@@ -269,7 +269,7 @@ namespace OsEngine.IndicatorMarketDepth
 
             for (int i = 0; i < _indicator.DataSeries.Count; i++)
             {
-                IndicatorDataSeries series = _indicator.DataSeries[i];
+                MarketDepthDataSeries series = _indicator.DataSeries[i];
                 DataGridViewRow row = new DataGridViewRow();
 
                 row.Cells.Add(new DataGridViewTextBoxCell());

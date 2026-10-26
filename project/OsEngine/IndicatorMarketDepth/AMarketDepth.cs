@@ -337,26 +337,26 @@ namespace OsEngine.IndicatorMarketDepth
 
         #region Data series
 
-        public IndicatorDataSeries CreateSeries(string name, Color color,
+        public MarketDepthDataSeries CreateSeries(string name, Color color,
             IndicatorChartPaintType chartPaintType, bool isPaint)
         {
-            IndicatorDataSeries oldSeries = DataSeries.Find(val => val.Name == name);
+            MarketDepthDataSeries oldSeries = DataSeries.Find(val => val.Name == name);
 
             if (oldSeries != null)
             {
                 return oldSeries;
             }
 
-            IndicatorDataSeries newSeries = new IndicatorDataSeries(color, name, chartPaintType, isPaint);
+            MarketDepthDataSeries newSeries = new MarketDepthDataSeries(color, name, chartPaintType, isPaint);
             DataSeries.Add(newSeries);
             CheckSeriesParametersInSaveData(newSeries);
 
             return newSeries;
         }
 
-        public List<IndicatorDataSeries> DataSeries = new List<IndicatorDataSeries>();
+        public List<MarketDepthDataSeries> DataSeries = new List<MarketDepthDataSeries>();
 
-        private void CheckSeriesParametersInSaveData(IndicatorDataSeries series)
+        private void CheckSeriesParametersInSaveData(MarketDepthDataSeries series)
         {
             if (Name == "")
             {
@@ -425,7 +425,7 @@ namespace OsEngine.IndicatorMarketDepth
         /// <summary>
         /// Записать значение в последний слот серии (после того как базовый класс добавил слот).
         /// </summary>
-        protected void SetValue(IndicatorDataSeries series, decimal value)
+        protected void SetValue(MarketDepthDataSeries series, decimal value)
         {
             if (series == null || series.Values.Count == 0)
             {
@@ -485,7 +485,7 @@ namespace OsEngine.IndicatorMarketDepth
 
             for (int i = 0; i < DataSeries.Count; i++)
             {
-                IndicatorDataSeries series = DataSeries[i];
+                MarketDepthDataSeries series = DataSeries[i];
 
                 if (series.Values.Count == 0)
                 {
@@ -540,7 +540,7 @@ namespace OsEngine.IndicatorMarketDepth
 
                 for (int i = 0; i < DataSeries.Count; i++)
                 {
-                    IndicatorDataSeries series = DataSeries[i];
+                    MarketDepthDataSeries series = DataSeries[i];
 
                     if (series.Values.Count == 0)
                     {

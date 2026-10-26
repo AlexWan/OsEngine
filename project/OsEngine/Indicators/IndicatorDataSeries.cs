@@ -49,10 +49,6 @@ namespace OsEngine.Indicators
 
             result += IsPaint + "&";
 
-            result += LineWidth + "&";
-
-            result += ZeroIsGap + "&";
-
             return result;
         }
 
@@ -68,24 +64,6 @@ namespace OsEngine.Indicators
             Enum.TryParse(array[2], out ChartPaintType);
 
             IsPaint = Convert.ToBoolean(array[3]);
-
-            if (array.Length > 4)
-            {
-                LineWidth = Convert.ToInt32(array[4]);
-            }
-            else
-            {
-                LineWidth = 1;
-            }
-
-            if (array.Length > 5)
-            {
-                ZeroIsGap = Convert.ToBoolean(array[5]);
-            }
-            else
-            {
-                ZeroIsGap = false;
-            }
         }
 
         /// <summary>
@@ -94,7 +72,6 @@ namespace OsEngine.Indicators
         public void Clear()
         {
             Values.Clear();
-            Times.Clear();
         }
 
         /// <summary>
@@ -104,8 +81,6 @@ namespace OsEngine.Indicators
         {
             Values.Clear();
             Values = null;
-            Times.Clear();
-            Times = null;
         }
 
         #endregion
@@ -133,14 +108,16 @@ namespace OsEngine.Indicators
         public bool CanReBuildHistoricalValues;
 
         /// <summary>
-        /// line width on the chart, for the Line type.
-        /// толщина линии на графике, для типа Line.
+        /// line width on the chart, for the Line type. Is not saved in settings
+        /// толщина линии на графике, для типа Line. В настройки не сохраняется
         /// </summary>
         public int LineWidth = 1;
 
         /// <summary>
         /// zero values are drawn as a gap anywhere in the line, not only before the first value (Line type).
+        /// Is not saved in settings
         /// нулевые значения рисуются разрывом в любом месте линии, а не только до первого значения (тип Line).
+        /// В настройки не сохраняется
         /// </summary>
         public bool ZeroIsGap;
 
@@ -148,12 +125,6 @@ namespace OsEngine.Indicators
         /// series data points
         /// </summary>
         public List<decimal> Values = new List<decimal>();
-
-        /// <summary>
-        /// time of each data point, aligned by index with Values
-        /// время каждой точки, выровнено по индексу с Values
-        /// </summary>
-        public List<DateTime> Times = new List<DateTime>();
 
         /// <summary>
         /// the last value of the series

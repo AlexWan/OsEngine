@@ -31,7 +31,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private ParameterMarketDepthInt _period;
 
-        private IndicatorDataSeries _rvol;
+        private MarketDepthDataSeries _rvol;
 
         private int _lastCount = -1;
 
