@@ -194,20 +194,29 @@ namespace OsEngine
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (_applicationShutdownRequested || Dispatcher.HasShutdownStarted)
-            { // завершение инициировано извне (Application.Shutdown) — окна не показываем
-                TerminateNow();
-                return;
-            }
+            try
+            {
+                _aiAdTimer?.Stop();
 
-            if (_shutdownRequested != 0)
-            { // повторный Closing во время уже идущего завершения
-                e.Cancel = true;
-                return;
-            }
+                if (_applicationShutdownRequested || Dispatcher.HasShutdownStarted)
+                { // завершение инициировано извне (Application.Shutdown) — окна не показываем
+                    TerminateNow();
+                    return;
+                }
 
-            e.Cancel = true; // завершаемся сами по сторожу (немодально, с досохранением)
-            BeginGracefulShutdown(false);
+                if (_shutdownRequested != 0)
+                { // повторный Closing во время уже идущего завершения
+                    e.Cancel = true;
+                    return;
+                }
+
+                e.Cancel = true; // завершаемся сами по сторожу (немодально, с досохранением)
+                BeginGracefulShutdown(false);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         /// <summary>Приложение уже завершается извне — MainWindow_Closing не должен показывать окна. UI-поток.</summary>
@@ -1554,16 +1563,60 @@ namespace OsEngine
             }
         }
 
+        private bool _aiVideoIsCurrent = false;
+
+        private System.Windows.Threading.DispatcherTimer _aiAdTimer;
+
         private void GifT_MediaEnded(object sender, RoutedEventArgs e)
         {
-            GifT.Pause(); // останавливаем на последнем кадре
+            try
+            {
+                GifT.Pause(); // останавливаем на последнем кадре
+
+                if (_aiVideoIsCurrent == false)
+                { // после заставки Т-Банк, через паузу, показываем рекламу курса
+                    if (_aiAdTimer == null)
+                    {
+                        _aiAdTimer = new System.Windows.Threading.DispatcherTimer();
+                        _aiAdTimer.Interval = TimeSpan.FromSeconds(2);
+                        _aiAdTimer.Tick += AiAdTimer_Tick;
+                    }
+
+                    _aiAdTimer.Stop();
+                    _aiAdTimer.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void AiAdTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                _aiAdTimer.Stop();
+
+                _aiVideoIsCurrent = true;
+                GifT.Source = new Uri(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images\MainWIndow\ai.mp4"));
+                GifT.Play();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void VideoGrid_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             try
             {
-                Process.Start(new ProcessStartInfo("https://www.tbank.ru/invest") { UseShellExecute = true });
+                string url = _aiVideoIsCurrent
+                    ? "https://o-s-a.net/course-ai-robots.html"
+                    : "https://www.tbank.ru/invest";
+
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch
             {
@@ -1573,37 +1626,64 @@ namespace OsEngine
 
         private void ButtonLocal_Click(object sender, RoutedEventArgs e)
         {
-            OsLocalization.OsLocalType newType;
-
-            if (ButtonLocal_Ru.Background is System.Windows.Media.SolidColorBrush ruBrush
-                && ruBrush.Color == Themes.ThemeManager.GetColor("ControlForeground"))
+            try
             {
-                return;
+                OsLocalization.OsLocalType newType;
+
+                if (ButtonLocal_Ru.Background is System.Windows.Media.SolidColorBrush ruBrush
+                    && ruBrush.Color == Themes.ThemeManager.GetColor("ControlForeground"))
+                {
+                    return;
+                }
+
+                if (Enum.TryParse("Ru", out newType))
+                {
+                    OsLocalization.CurLocalization = newType;
+                    Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+
+                    ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                    ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
+
+                    if (_aiAdTimer != null)
+                    {
+                        _aiAdTimer.Stop();
+                    }
+
+                    _aiVideoIsCurrent = false;
+                    GifT.Source = new Uri(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images\MainWIndow\tbank.mp4"));
+                    GifT.Position = TimeSpan.Zero;
+                    GifT.Play();
+                }
             }
-
-            if (Enum.TryParse("Ru", out newType))
+            catch (Exception ex)
             {
-                OsLocalization.CurLocalization = newType;
-                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
-
-                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlForeground");
-                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
-                GifT.Position = TimeSpan.Zero;
-                GifT.Play();
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         private void ButtonLocal_Eng_Click(object sender, RoutedEventArgs e)
         {
-            OsLocalization.OsLocalType newType;
-
-            if (Enum.TryParse("Eng", out newType))
+            try
             {
-                OsLocalization.CurLocalization = newType;
-                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+                OsLocalization.OsLocalType newType;
 
-                ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlForeground");
-                ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
+                if (Enum.TryParse("Eng", out newType))
+                {
+                    OsLocalization.CurLocalization = newType;
+                    Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+
+                    if (_aiAdTimer != null)
+                    {
+                        _aiAdTimer.Stop();
+                    }
+
+                    ButtonLocal_Eng.Background = Themes.ThemeManager.GetBrush("ControlForeground");
+                    ButtonLocal_Ru.Background = Themes.ThemeManager.GetBrush("ControlBackgroundNormal");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

@@ -187,6 +187,7 @@
     <None Remove="Images\MainWIndow\flag_eng.png" />
     <None Remove="Images\MainWIndow\flag_ru.png" />
     <None Remove="Images\MainWIndow\tbank.mp4" />
+    <None Remove="Images\MainWIndow\ai.mp4" />
     <None Remove="Images\RestartBenchmark.png" />
   </ItemGroup>
   <ItemGroup>
@@ -287,6 +288,9 @@
     <Resource Include="Images\eye.png" />
     <Resource Include="Images\eyeBig.png" />
     <Content Include="Images\MainWIndow\tbank.mp4">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\MainWIndow\ai.mp4">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
