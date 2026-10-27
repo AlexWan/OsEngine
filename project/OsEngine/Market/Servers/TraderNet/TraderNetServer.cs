@@ -86,7 +86,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 HttpResponseMessage responseMessage = CreateAuthQuery($"/api/getMarketStatus", "POST", null, data);
                 string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                if (responseMessage != null && responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     CreateWebSocketConnection();
                 }
@@ -948,7 +948,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                SendLogMessage($"ConvertCandles: {ex.Message}", LogMessageType.Error);
+                SendLogMessage($"ConvertCandles: {ex.ToString()}", LogMessageType.Error);
                 return null;
             }
         }
@@ -1188,19 +1188,33 @@ namespace OsEngine.Market.Servers.TraderNet
 
             try
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect ||
+                    _webSocket == null)
                 {
                     return;
                 }
 
                 Thread.Sleep(5000);
 
+                if (ServerStatus == ServerConnectStatus.Disconnect ||
+                    _webSocket == null)
+                {
+                    return;
+                }
+
                 _webSocket.SendAsync("[\"portfolio\"]");
+
+                if (ServerStatus == ServerConnectStatus.Disconnect ||
+                    _webSocket == null)
+                {
+                    return;
+                }
+
                 _webSocket.SendAsync("[\"orders\"]");
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1248,7 +1262,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.Message, LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2137,7 +2151,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
         }
