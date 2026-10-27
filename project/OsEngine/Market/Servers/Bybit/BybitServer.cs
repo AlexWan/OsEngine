@@ -665,9 +665,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_useOptions)
                 {
-                    LoadOptionInstruments("BTC");
-                    LoadOptionInstruments("ETH");
-                    LoadOptionInstruments("SOL");
+                    LoadOptionInstruments();
                 }
 
                 if (_securities.Count > 0)
@@ -693,13 +691,13 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void LoadOptionInstruments(string baseCoin = "BTC")
+        private void LoadOptionInstruments()
         {
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
             parametrs.Add("limit", "1000");
 
             parametrs["category"] = Category.option.ToString();
-            parametrs["baseCoin"] = baseCoin;
+            parametrs["baseCoin"] = "All"; // All — все базовые активы одной пагинацией, без хардкода списка базовых монет
             parametrs["cursor"] = "";
             bool allLoaded = false;
 
