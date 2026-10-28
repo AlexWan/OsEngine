@@ -19,7 +19,7 @@ namespace OsEngine.OsData.TestStand.Tests
     /// </summary>
     public class MarketDepthOnlineTests : OsDataTestsBase
     {
-        private const int WaitSeconds = 20;
+        private const int WaitSeconds = 60;
 
         public MarketDepthOnlineTests(TestContext context)
             : base(context, "MD_ONLINE")
@@ -282,6 +282,26 @@ namespace OsEngine.OsData.TestStand.Tests
                 _context.RecordFail(Module, "files", security.Name + ": пустых .qsh-файлов " + emptyFiles);
             }
 
+            // 4.5.2. Файл должен быть мульти-стрим .Both.qsh (стакан + лента), а не старый .Quotes.qsh.
+            int bothFiles = 0;
+
+            foreach (string file in qshFiles)
+            {
+                if (file.EndsWith(".Both.qsh", StringComparison.OrdinalIgnoreCase))
+                {
+                    bothFiles++;
+                }
+            }
+
+            if (bothFiles == qshFiles.Length)
+            {
+                _context.RecordPass(Module, "both_format", security.Name + ": файлы .Both.qsh");
+            }
+            else
+            {
+                _context.RecordFail(Module, "both_format", security.Name + ": ожидался .Both.qsh, найдено " + bothFiles + "/" + qshFiles.Length);
+            }
+
             TestValidity(security, qshFiles);
         }
 
@@ -289,10 +309,15 @@ namespace OsEngine.OsData.TestStand.Tests
         {
             long totalFrames = 0;
             long totalChanges = 0;
+            long totalDeals = 0;
             long crossed = 0;
             long badPrice = 0;
             long badVolume = 0;
+            long nonMonotonic = 0;
+            long nonMonotonicDeals = 0;
+            long priceOutOfRange = 0;
             int parsedFiles = 0;
+            int wrongStreamCount = 0;
 
             foreach (string file in qshFiles)
             {
@@ -306,9 +331,18 @@ namespace OsEngine.OsData.TestStand.Tests
                 parsedFiles++;
                 totalFrames += stats.Frames;
                 totalChanges += stats.Changes;
+                totalDeals += stats.Deals;
                 crossed += stats.Crossed;
                 badPrice += stats.BadPrice;
                 badVolume += stats.BadVolume;
+                nonMonotonic += stats.NonMonotonic;
+                nonMonotonicDeals += stats.NonMonotonicDeals;
+                priceOutOfRange += stats.PriceOutOfRange;
+
+                if (stats.StreamCount != 2)
+                {
+                    wrongStreamCount++;
+                }
             }
 
             if (parsedFiles == 0)
@@ -317,15 +351,48 @@ namespace OsEngine.OsData.TestStand.Tests
                 return;
             }
 
-            if (crossed == 0 && badPrice == 0 && badVolume == 0)
+            // 4.5.3. streamCount=2 — формат мульти-стрим (стакан + лента в одном файле).
+            if (wrongStreamCount == 0)
+            {
+                _context.RecordPass(Module, "stream_count", security.Name + ": streamCount=2 во всех файлах");
+            }
+            else
+            {
+                _context.RecordFail(Module, "stream_count", security.Name + ": streamCount!=2 в " + wrongStreamCount + " из " + parsedFiles + " файлов");
+            }
+
+            // 4.5.4. Лента записана (сделки > 0).
+            bool targeted = string.IsNullOrEmpty(_context.TargetSecurity) == false;
+
+            if (totalDeals > 0)
+            {
+                _context.RecordPass(Module, "deals", security.Name + ": сделок " + totalDeals);
+            }
+            else if (targeted)
+            {
+                _context.RecordFail(Module, "deals", security.Name + ": лента не записалась (сделок 0)");
+            }
+            else
+            {
+                _context.RecordPass(Module, "deals", security.Name + ": сделок 0 (неликвид/вне сессии — пропускаем)");
+            }
+
+            // 4.5.5. Валидность: стакан + лента. Хронология кадров (nonMonotonic) — в отчёт,
+            // т.к. онлайн пишет в порядке прихода (без буферов), микро-откаты времени кадра допустимы.
+            double priceOutPercent = totalDeals == 0 ? 0 : (double)priceOutOfRange / totalDeals * 100.0;
+
+            if (crossed == 0 && badPrice == 0 && badVolume == 0 && nonMonotonicDeals == 0 && priceOutOfRange == 0)
             {
                 _context.RecordPass(Module, "validity", security.Name + ": срезов " + totalFrames + ", изменений " + totalChanges
-                    + ", bid≤ask/цена/объём валидны");
+                    + ", сделок " + totalDeals + ", bid≤ask/цена/объём валидны, DATETIME монотонен, цена сделок в диапазоне"
+                    + (nonMonotonic > 0 ? ", откатов времени кадров (порядок прихода) " + nonMonotonic : ""));
             }
             else
             {
                 _context.RecordFail(Module, "validity", security.Name + ": срезов " + totalFrames + ", изменений " + totalChanges
-                    + ", битых: crossed " + crossed + ", цена " + badPrice + ", объём " + badVolume);
+                    + ", сделок " + totalDeals + ", битых: crossed " + crossed + ", цена " + badPrice + ", объём " + badVolume
+                    + ", откатов DATETIME " + nonMonotonicDeals + ", сделок вне диапазона цены " + priceOutOfRange + "/" + totalDeals
+                    + " (" + priceOutPercent.ToString("F3") + "%)");
             }
         }
 

@@ -54,6 +54,8 @@ namespace OsEngine.OsData.TestStand.Tests
                         return null;
                     }
 
+                    stats.StreamCount = streamCount;
+
                     byte[] streamTypes = new byte[streamCount];
 
                     for (int i = 0; i < streamCount; i++)
@@ -72,6 +74,9 @@ namespace OsEngine.OsData.TestStand.Tests
                     long lastPrice = 0;
                     long dealsLastMs = 0;
                     long dealsLastId = 0;
+                    long dealsLastPrice = 0;
+                    long prevFrameTime = long.MinValue;
+                    long prevDealMs = long.MinValue;
                     long maxBid = long.MinValue;
                     long minAsk = long.MaxValue;
                     Dictionary<long, long> bids = new Dictionary<long, long>();
@@ -80,6 +85,13 @@ namespace OsEngine.OsData.TestStand.Tests
                     while (true)
                     {
                         lastTimeStamp = reader.ReadGrowing(lastTimeStamp);
+
+                        // глобальная хронология: время кадра не должно откатываться назад
+                        if (lastTimeStamp < prevFrameTime)
+                        {
+                            stats.NonMonotonic++;
+                        }
+                        prevFrameTime = lastTimeStamp;
 
                         int streamIndex = 0;
 
@@ -169,9 +181,26 @@ namespace OsEngine.OsData.TestStand.Tests
                             if ((flags & 0x04) != 0) dealsLastMs = reader.ReadGrowing(dealsLastMs);
                             if ((flags & 0x08) != 0) dealsLastId = reader.ReadGrowing(dealsLastId);
                             if ((flags & 0x10) != 0) reader.ReadLeb128();
-                            if ((flags & 0x20) != 0) reader.ReadLeb128();
+                            if ((flags & 0x20) != 0) dealsLastPrice += reader.ReadLeb128();
                             if ((flags & 0x40) != 0) reader.ReadLeb128();
                             if ((flags & 0x80) != 0) reader.ReadLeb128();
+
+                            // монотонность биржевого времени сделки (DATETIME)
+                            if (dealsLastMs < prevDealMs)
+                            {
+                                stats.NonMonotonicDeals++;
+                            }
+                            prevDealMs = dealsLastMs;
+
+                            // цена сделки не должна уходить далеко от текущего стакана
+                            if (maxBid != long.MinValue && minAsk != long.MaxValue)
+                            {
+                                if (dealsLastPrice * 1000 > minAsk * 1003
+                                    || dealsLastPrice * 1000 < maxBid * 997)
+                                {
+                                    stats.PriceOutOfRange++;
+                                }
+                            }
 
                             stats.Deals++;
                         }
@@ -415,6 +444,8 @@ namespace OsEngine.OsData.TestStand.Tests
 
     public class QshStats
     {
+        public int StreamCount;
+
         public long Frames;
 
         public long Changes;
@@ -426,5 +457,11 @@ namespace OsEngine.OsData.TestStand.Tests
         public long BadVolume;
 
         public long Deals;
+
+        public long NonMonotonic;
+
+        public long NonMonotonicDeals;
+
+        public long PriceOutOfRange;
     }
 }

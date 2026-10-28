@@ -221,9 +221,13 @@ namespace OsEngine.OsData.TestStand.Tests
         {
             long totalFrames = 0;
             long totalChanges = 0;
+            long totalDeals = 0;
             long crossed = 0;
             long badPrice = 0;
             long badVolume = 0;
+            long nonMonotonic = 0;
+            long nonMonotonicDeals = 0;
+            long priceOutOfRange = 0;
             int parsedFiles = 0;
 
             foreach (string file in qshFiles)
@@ -238,9 +242,13 @@ namespace OsEngine.OsData.TestStand.Tests
                 parsedFiles++;
                 totalFrames += stats.Frames;
                 totalChanges += stats.Changes;
+                totalDeals += stats.Deals;
                 crossed += stats.Crossed;
                 badPrice += stats.BadPrice;
                 badVolume += stats.BadVolume;
+                nonMonotonic += stats.NonMonotonic;
+                nonMonotonicDeals += stats.NonMonotonicDeals;
+                priceOutOfRange += stats.PriceOutOfRange;
             }
 
             if (parsedFiles == 0)
@@ -249,15 +257,19 @@ namespace OsEngine.OsData.TestStand.Tests
                 return;
             }
 
-            if (crossed == 0 && badPrice == 0 && badVolume == 0)
+            double priceOutPercent = totalDeals == 0 ? 0 : (double)priceOutOfRange / totalDeals * 100.0;
+
+            if (crossed == 0 && badPrice == 0 && badVolume == 0 && nonMonotonic == 0 && nonMonotonicDeals == 0 && priceOutOfRange == 0)
             {
                 _context.RecordPass(Module, "validity", security.Name + ": срезов " + totalFrames + ", изменений " + totalChanges
-                    + ", bid≤ask/цена/объём валидны");
+                    + ", сделок " + totalDeals + ", bid≤ask/цена/объём валидны, хронология и цена сделок валидны");
             }
             else
             {
                 _context.RecordFail(Module, "validity", security.Name + ": срезов " + totalFrames + ", изменений " + totalChanges
-                    + ", битых: crossed " + crossed + ", цена " + badPrice + ", объём " + badVolume);
+                    + ", сделок " + totalDeals + ", битых: crossed " + crossed + ", цена " + badPrice + ", объём " + badVolume
+                    + ", откатов времени " + nonMonotonic + ", откатов DATETIME " + nonMonotonicDeals
+                    + ", сделок вне диапазона цены " + priceOutOfRange + "/" + totalDeals + " (" + priceOutPercent.ToString("F3") + "%)");
             }
         }
 

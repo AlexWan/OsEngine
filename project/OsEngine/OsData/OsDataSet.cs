@@ -2692,6 +2692,7 @@ namespace OsEngine.OsData
                 MarketDepthSource.Clear();
                 MarketDepthSource.Delete();
                 MarketDepthSource.MarketDepthUpdateEvent -= MarketDepthSource_MarketDepthUpdateEvent;
+                MarketDepthSource.NewTickEvent -= MarketDepthSource_NewTickEvent;
                 MarketDepthSource.LogMessageEvent -= SendNewLogMessage;
                 MarketDepthSource = null;
             }
@@ -2717,6 +2718,7 @@ namespace OsEngine.OsData
             MarketDepthSource.TimeFrameBuilder.TimeFrame = TimeFrame.MarketDepth;
 
             MarketDepthSource.MarketDepthUpdateEvent += MarketDepthSource_MarketDepthUpdateEvent;
+            MarketDepthSource.NewTickEvent += MarketDepthSource_NewTickEvent;
             MarketDepthSource.LogMessageEvent += SendNewLogMessage;
 
             Task.Run(() => UpdateMarketDataAsync());
@@ -2725,7 +2727,7 @@ namespace OsEngine.OsData
             //worker.Start();
         }
 
-        private void CreateHeader(BinaryWriter writer, MarketDepth md)
+        private void CreateHeader(BinaryWriter writer, DateTime firstEventTime)
         {
             try
             {
@@ -2735,18 +2737,19 @@ namespace OsEngine.OsData
                 WriteString(writer, "OsEngine");
                 WriteString(writer, $"VolumeStep:{_volumeStep}");
 
-                long startTicks = DateTime.UtcNow.Ticks;
+                _lastTimeStamp = TimeManager.GetTimeStampMillisecondsFromStartTime(firstEventTime);
 
-                _lastTimeStamp = TimeManager.GetTimeStampMillisecondsFromStartTime(md.Time);
+                writer.Write(firstEventTime.Ticks);
 
-                writer.Write(startTicks);
-
-                byte streamCount = (byte)1;
+                byte streamCount = (byte)2;
                 writer.Write(streamCount);
 
                 string instrumentCode = $"{_serverType.ToString()}:{_secName}:{_secClass}:1:{_priceStep}";
 
                 writer.Write(GetStreamId(StreamType.Quotes));
+                WriteString(writer, instrumentCode);
+
+                writer.Write(GetStreamId(StreamType.Deals));
                 WriteString(writer, instrumentCode);
 
                 writer.Flush();
@@ -2792,7 +2795,7 @@ namespace OsEngine.OsData
             }
         }
 
-        private void WriteFrameHeader(DataBinaryWriter writer, DateTime time, ref long lastTimeStamp, StreamType streamType)
+        private void WriteFrameHeader(DataBinaryWriter writer, DateTime time, ref long lastTimeStamp, byte streamIndex)
         {
             try
             {
@@ -2803,6 +2806,7 @@ namespace OsEngine.OsData
                 _lastFrameDateTime = time;
 
                 writer.WriteGrowing(diff);
+                writer.Write(streamIndex);
             }
             catch (Exception ex)
             {
@@ -2814,15 +2818,15 @@ namespace OsEngine.OsData
 
         #region Thread converter
 
-        private void CreateStream(MarketDepth md)
+        private void CreateStream(DateTime firstEventTime)
         {
             _fileStream = new FileStream(_filePath, FileMode.Create, FileAccess.Write);
             _binaryWriter = new DataBinaryWriter(_fileStream);
 
-            CreateHeader(_binaryWriter, md);
+            CreateHeader(_binaryWriter, firstEventTime);
         }
 
-        private async void UpdateMarketDataAsync()
+        private void UpdateMarketDataAsync()
         {
             while (true)
             {
@@ -2838,68 +2842,76 @@ namespace OsEngine.OsData
 
                         OffStream();
 
-                        await Task.Delay(500);
-                        //Thread.Sleep(500);
+                        Thread.Sleep(500);
                         continue;
                     }
 
-                    if (MarketDepthQueue.IsEmpty == false)
+                    object item;
+
+                    if (MarketDepthQueue.TryDequeue(out item))
                     {
-                        MarketDepth md = null;
+                        if (item == null) continue;
 
-                        if (MarketDepthQueue.TryDequeue(out md))
+                        DateTime eventTime = item is MarketDepth
+                            ? ((MarketDepth)item).Time
+                            : ((Trade)item).Time;
+
+                        if (_lastFrameDateTime.Date != eventTime.Date)
                         {
-                            if (md != null)
+                            _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Both.qsh";
+
+                            bool fileExist = File.Exists(_filePath);
+
+                            if (fileExist == false)
                             {
-                                MarketDepth marketDepth = md;
+                                _lastMarketDepth = null;
+                                _lastMarketDepthPrice = 0;
+                                _lastTimeStamp = 0;
+                                _dealsStream = new DealsStream();
 
-                                if (marketDepth == null) continue;
-
-                                if (_lastFrameDateTime.Date != marketDepth.Time.Date)
-                                {
-                                    _filePath = _pathSecurityFolder + "\\" + SecName.RemoveExcessFromSecurityName() + "." + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".Quotes" + ".qsh";
-
-                                    bool fileExist = File.Exists(_filePath);
-
-                                    if (fileExist == false)
-                                    {
-                                        _lastMarketDepth = null;
-                                        _lastMarketDepthPrice = 0;
-                                        _lastTimeStamp = 0;
-
-                                        OffStream();
-                                        CreateStream(marketDepth);
-                                    }
-                                    else if (_lastMarketDepth == null
-                                        && fileExist == true)
-                                    {
-                                        OffStream();
-                                        ReadBinaryFile();
-                                    }
-                                }
-
-                                if (_fileStream == null)
-                                {
-                                    _fileStream = new FileStream(_filePath, FileMode.Append, FileAccess.Write);
-                                }
-
-                                if (_binaryWriter == null)
-                                {
-                                    _binaryWriter = new DataBinaryWriter(_fileStream);
-                                }
-
-                                if (_lastMarketDepth == null)
-                                {
-                                    WriteFrameHeader(_binaryWriter, marketDepth.Time, ref _lastTimeStamp, StreamType.Quotes);
-                                    WriteFirstMarketDepthData(_binaryWriter, marketDepth);
-
-                                    _lastMarketDepth = marketDepth;
-                                }
-                                else
-                                {
-                                    WriteSecondMarketDepthData(_binaryWriter, marketDepth);
-                                }
+                                OffStream();
+                                CreateStream(eventTime);
                             }
+                            else if (_lastMarketDepth == null
+                                && fileExist == true)
+                            {
+                                OffStream();
+                                ReadBinaryFile();
+                            }
+                        }
+
+                        if (_fileStream == null)
+                        {
+                            _fileStream = new FileStream(_filePath, FileMode.Append, FileAccess.Write);
+                        }
+
+                        if (_binaryWriter == null)
+                        {
+                            _binaryWriter = new DataBinaryWriter(_fileStream);
+                        }
+
+                        if (item is MarketDepth)
+                        {
+                            MarketDepth marketDepth = (MarketDepth)item;
+
+                            if (_lastMarketDepth == null)
+                            {
+                                WriteFrameHeader(_binaryWriter, marketDepth.Time, ref _lastTimeStamp, (byte)0);
+                                WriteFirstMarketDepthData(_binaryWriter, marketDepth);
+
+                                _lastMarketDepth = marketDepth;
+                            }
+                            else
+                            {
+                                WriteSecondMarketDepthData(_binaryWriter, marketDepth);
+                            }
+                        }
+                        else if (item is Trade)
+                        {
+                            Trade trade = (Trade)item;
+
+                            WriteFrameHeader(_binaryWriter, trade.Time, ref _lastTimeStamp, (byte)1);
+                            _dealsStream.Write(_binaryWriter, trade, _priceStep, _volumeStep);
                         }
                     }
                 }
@@ -2910,6 +2922,7 @@ namespace OsEngine.OsData
                     _lastMarketDepth = null;
                     _lastMarketDepthPrice = 0;
                     _lastTimeStamp = 0;
+                    _dealsStream = new DealsStream();
 
                     OffStream();
                 }
@@ -2953,7 +2966,7 @@ namespace OsEngine.OsData
 
                 if (changes.Count > 0)
                 {
-                    WriteFrameHeader(writer, md.Time, ref _lastTimeStamp, StreamType.Quotes);
+                    WriteFrameHeader(writer, md.Time, ref _lastTimeStamp, (byte)0);
                     WriteChangesToFile(writer, changes);
                     _lastMarketDepth = md;
                 }
@@ -3219,24 +3232,29 @@ namespace OsEngine.OsData
 
                             int streamCount = dataReader.ReadByte();
 
-                            if (streamCount != 1) return false;
+                            if (streamCount != 2) return false;
 
-                            StreamType streamType = (StreamType)dataReader.ReadByte();
-                            if (streamType != StreamType.Quotes) return false;
-                            string securityName = dataReader.ReadString();
-
-                            string[] step = securityName.Split(':');
-
-                            double priceStep = 1;
-                            if (step.Length == 5)
+                            for (int i = 0; i < streamCount; i++)
                             {
-                                if (double.TryParse(step[4].Replace(',', '.'), NumberStyles.Float, NumberFormatInfo.InvariantInfo, out priceStep))
+                                StreamType streamType = (StreamType)dataReader.ReadByte();
+                                string securityName = dataReader.ReadString();
+
+                                if (streamType == StreamType.Quotes)
                                 {
-                                    _priceStep = (decimal)priceStep;
+                                    string[] step = securityName.Split(':');
+
+                                    double priceStep = 1;
+                                    if (step.Length == 5)
+                                    {
+                                        if (double.TryParse(step[4].Replace(',', '.'), NumberStyles.Float, NumberFormatInfo.InvariantInfo, out priceStep))
+                                        {
+                                            _priceStep = (decimal)priceStep;
+                                        }
+                                        else return false;
+                                    }
+                                    else return false;
                                 }
-                                else return false;
                             }
-                            else return false;
 
                             break;
 
@@ -3246,6 +3264,7 @@ namespace OsEngine.OsData
                     }
 
                     MarketDepth marketDepth = new MarketDepth();
+                    _dealsStream = new DealsStream();
 
                     try
                     {
@@ -3254,10 +3273,19 @@ namespace OsEngine.OsData
                             _lastTimeStamp = dataReader.ReadGrowing(_lastTimeStamp);
                             DateTime time = TimeManager.GetDateTimeFromStartTimeMilliseconds(_lastTimeStamp);
 
-                            marketDepth.SetMarketDepthFromBinaryFile(dataReader, _priceStep, _volumeStep, _lastTimeStamp);
-                            marketDepth.Time = time;
-                            _lastMarketDepth = marketDepth;
-                            _lastMarketDepthPrice = marketDepth.LastBinaryPrice;
+                            byte streamIndex = dataReader.ReadByte();
+
+                            if (streamIndex == 0)
+                            {
+                                marketDepth.SetMarketDepthFromBinaryFile(dataReader, _priceStep, _volumeStep, _lastTimeStamp);
+                                marketDepth.Time = time;
+                                _lastMarketDepth = marketDepth;
+                                _lastMarketDepthPrice = marketDepth.LastBinaryPrice;
+                            }
+                            else if (streamIndex == 1)
+                            {
+                                _dealsStream.Read(dataReader, _priceStep, _volumeStep);
+                            }
                         }
                     }
                     catch (EndOfStreamException)
@@ -3350,7 +3378,9 @@ namespace OsEngine.OsData
 
         public BotTabSimple MarketDepthSource;
 
-        private ConcurrentQueue<MarketDepth> MarketDepthQueue = new ConcurrentQueue<MarketDepth>();
+        private ConcurrentQueue<object> MarketDepthQueue = new ConcurrentQueue<object>();
+
+        private DealsStream _dealsStream = new DealsStream();
 
         public event Action<string, LogMessageType> NewLogMessageEvent;
 
@@ -3409,6 +3439,17 @@ namespace OsEngine.OsData
             md.Time = DateTime.UtcNow;
 
             MarketDepthQueue.Enqueue(md);
+        }
+
+        private void MarketDepthSource_NewTickEvent(Trade trade)
+        {
+            if (_isDeleted == true) return;
+
+            if (IsLoad == false) return;
+
+            trade.Time = DateTime.UtcNow;
+
+            MarketDepthQueue.Enqueue(trade);
         }
 
         #endregion

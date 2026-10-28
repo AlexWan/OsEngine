@@ -116,7 +116,13 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
                 byte streamType = reader.ReadByte();
                 securityName = streamType == (byte)StreamType.Messages ? null : reader.ReadString();
 
+                bool isDeals = streamType == (byte)StreamType.Deals;
+
                 long lastFrameMs = createdMs;
+
+                // frame header в Qscalp в UTC, а DATETIME сделки — в Москве; переводим кадры в Москву
+                lastFrameMs += TimeManager.MoscowUtcOffsetMs;
+
                 long lastDealMs = 0;
                 long lastDealId = 0;
 
@@ -164,7 +170,11 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
                     byte[] payload = new byte[payloadEnd - payloadStart];
                     Array.Copy(data, payloadStart, payload, 0, payload.Length);
 
-                    frames.Add(new QshFrame { TimeMs = lastFrameMs, StreamIndex = streamIndex, Payload = payload });
+                    // сделки сортируем по биржевому времени DATETIME (точнее грубого frame header),
+                    // стакан — по frame header. У первой сделки DATETIME уже задан (DateTime=true).
+                    long sortTimeMs = isDeals && lastDealMs != 0 ? lastDealMs : lastFrameMs;
+
+                    frames.Add(new QshFrame { TimeMs = sortTimeMs, StreamIndex = streamIndex, Payload = payload });
                 }
             }
 

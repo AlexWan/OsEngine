@@ -4,6 +4,11 @@ namespace OsEngine.Market.Servers.Entity
 {
     public static class TimeManager
     {
+        /// <summary>
+        /// Сдвиг московского времени относительно UTC. Москва без летнего времени (UTC+3).
+        /// </summary>
+        public const long MoscowUtcOffsetMs = 3 * 60 * 60 * 1000;
+
         public static DateTime GetExchangeTime(string needTimeZone)
         {
             TimeZoneInfo neededTimeZone = TimeZoneInfo.FindSystemTimeZoneById(needTimeZone);

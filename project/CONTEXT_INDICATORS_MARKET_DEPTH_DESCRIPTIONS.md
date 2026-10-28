@@ -139,7 +139,7 @@ AskDepth = Σ Ask[i]   по i от 0 до Levels−1
 
 ## 3. Spread — Спред
 
-**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/Spread.cs`
+**Файл:** `Custom\IndicatorsMarketDepth\Scripts\Spread.cs` (custom, горячая загрузка)
 **Вход:** стакан (`MarketDepth`)
 
 ### Суть
@@ -571,7 +571,7 @@ Rvol = объём текущей секунды / средний объём пр
 
 ## 12. TradeSizeAnalytics — Аналитика размера сделок
 
-**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/TradeSizeAnalytics.cs`
+**Файл:** `Custom\IndicatorsMarketDepth\Scripts\TradeSizeAnalytics.cs` (custom, горячая загрузка)
 **Вход:** лента сделок (`Trade`)
 
 ### Суть
