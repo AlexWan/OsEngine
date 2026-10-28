@@ -867,6 +867,21 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Creates a market depth indicator of the specified type, adds it to the стакан tab
+        /// and returns it for parameter binding. Mirrors the candle CreateIndicator method.
+        /// </summary>
+        /// <param name="bot">Current bot</param>
+        /// <param name="typeName">Indicator type (e.g. "Spread", "Iceberg"). Must match the indicator class name.</param>
+        /// <param name="canDelete">Whether the user can remove the indicator from the стакан tab.</param>
+        public AMarketDepth CreateMarketDepthIndicator(BotPanel bot, string typeName, bool canDelete)
+        {
+            string baseName = $"{bot.NameStrategyUniq}{typeName}";
+            string indicatorName = GetNextIndicatorName(baseName);
+
+            return MarketDepthIndicators.CreateIndicator(typeName, indicatorName, canDelete);
+        }
+
+        /// <summary>
         /// Transaction creation wizard
         /// </summary>
         public PositionCreator _dealCreator;

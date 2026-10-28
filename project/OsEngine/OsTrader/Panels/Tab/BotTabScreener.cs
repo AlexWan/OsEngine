@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
+using OsEngine.IndicatorMarketDepth;
 using OsEngine.Indicators;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -295,6 +296,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             LoadIndicators();
             ReloadIndicatorsOnTabs();
 
+            LoadMarketDepthIndicators();
+            ReloadMarketDepthIndicatorsOnTabs();
+
             if (startProgram != StartProgram.IsOsOptimizer)
             {
                 AddNewTabToWatch(this);
@@ -577,6 +581,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ReloadIndicatorsOnTabs();
+            ReloadMarketDepthIndicatorsOnTabs();
             SetJournalsInPosViewer();
         }
 
@@ -1136,6 +1141,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 IsLoadTabs = false;
                 ReloadIndicatorsOnTabs();
+                ReloadMarketDepthIndicatorsOnTabs();
 
                 if (Tabs.Count != 0)
                 {
@@ -2881,6 +2887,177 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void BotTabScreener_IndicatorUpdateEvent()
         {
             SynchFirstTab();
+        }
+
+        #endregion
+
+        #region Creating / deleting / storing market depth indicators
+
+        /// <summary>
+        /// Создать стаканный индикатор для скринера.
+        /// Индикатор создаётся на каждой вкладке скринера (по каждой бумаге).
+        /// </summary>
+        /// <param name="num">Номер индикатора (уникальный в рамках скринера).</param>
+        /// <param name="type">Тип индикатора (имя класса, напр. "Spread", "Iceberg").</param>
+        /// <param name="param">Параметры индикатора в порядке объявления (без HistoryDepth).</param>
+        /// <param name="canDelete">Может ли пользователь удалить индикатор.</param>
+        public void CreateMarketDepthIndicator(int num, string type, List<string> param, bool canDelete)
+        {
+            try
+            {
+                if (_marketDepthIndicators.Find(ind => ind.Num == num) != null)
+                {
+                    NeedToReloadTabs = true;
+                    return;
+                }
+
+                IndicatorOnTabs indicator = new IndicatorOnTabs();
+                indicator.Num = num;
+                indicator.Type = type;
+                indicator.NameArea = "";
+                indicator.CanDelete = canDelete;
+
+                if (param != null)
+                {
+                    indicator.Parameters = param;
+                }
+
+                _marketDepthIndicators.Add(indicator);
+
+                SaveMarketDepthIndicators();
+                ReloadMarketDepthIndicatorsOnTabs();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void LoadMarketDepthIndicators()
+        {
+            if (!File.Exists(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        IndicatorOnTabs ind = new IndicatorOnTabs();
+                        ind.SetFromStr(str);
+                        _marketDepthIndicators.Add(ind);
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void SaveMarketDepthIndicators()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt", false))
+                {
+                    for (int i = 0; i < _marketDepthIndicators.Count; i++)
+                    {
+                        writer.WriteLine(_marketDepthIndicators[i].GetSaveStr());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
+        /// Стаканные индикаторы скринера
+        /// </summary>
+        public List<IndicatorOnTabs> _marketDepthIndicators = new List<IndicatorOnTabs>();
+
+        public void ReloadMarketDepthIndicatorsOnTabs()
+        {
+            for (int i = 0; i < _marketDepthIndicators.Count; i++)
+            {
+                CreateMarketDepthIndicatorOnTabs(_marketDepthIndicators[i]);
+            }
+        }
+
+        private void CreateMarketDepthIndicatorOnTabs(IndicatorOnTabs ind)
+        {
+            for (int i = 0; i < Tabs.Count; i++)
+            {
+                string name = ind.Num + ind.Type + TabName;
+
+                AMarketDepth newIndicator = Tabs[i].MarketDepthIndicators.CreateIndicator(ind.Type, name, ind.CanDelete);
+
+                if (newIndicator == null)
+                {
+                    continue;
+                }
+
+                SetMarketDepthIndicatorParameters(newIndicator, ind.Parameters);
+
+                newIndicator.Save();
+            }
+        }
+
+        private void SetMarketDepthIndicatorParameters(AMarketDepth indicator, List<string> parameters)
+        {
+            if (parameters == null || parameters.Count == 0)
+            {
+                return;
+            }
+
+            List<IParameterMarketDepth> userParams = new List<IParameterMarketDepth>();
+
+            for (int i = 0; i < indicator.Parameters.Count; i++)
+            {
+                if (indicator.Parameters[i].Name != "HistoryDepth")
+                {
+                    userParams.Add(indicator.Parameters[i]);
+                }
+            }
+
+            if (parameters.Count != userParams.Count)
+            {
+                return;
+            }
+
+            for (int i = 0; i < userParams.Count; i++)
+            {
+                IParameterMarketDepth param = userParams[i];
+                string value = parameters[i];
+
+                if (param.Type == MarketDepthParameterType.Int)
+                {
+                    ((ParameterMarketDepthInt)param).ValueInt = Convert.ToInt32(value);
+                }
+                else if (param.Type == MarketDepthParameterType.Decimal)
+                {
+                    ((ParameterMarketDepthDecimal)param).ValueDecimal = value.ToDecimal();
+                }
+                else if (param.Type == MarketDepthParameterType.Bool)
+                {
+                    ((ParameterMarketDepthBool)param).ValueBool = Convert.ToBoolean(value);
+                }
+                else if (param.Type == MarketDepthParameterType.String)
+                {
+                    ((ParameterMarketDepthString)param).ValueString = value;
+                }
+            }
         }
 
         #endregion

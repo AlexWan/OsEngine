@@ -28,6 +28,8 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
 
         public string Security { get; set; } = "SBER";
 
+        public string SecondSecurity { get; set; } = "GAZP";
+
         public DateTime DateFrom { get; set; }
 
         public DateTime DateTo { get; set; }

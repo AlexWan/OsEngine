@@ -37,6 +37,8 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private List<decimal> _history = new List<decimal>();
 
+        private DateTime _lastHistoryTime = DateTime.MinValue;
+
         public override void OnStateChange(MarketDepthIndicatorState state)
         {
             if (state == MarketDepthIndicatorState.Configure)
@@ -85,11 +87,16 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
                 period = 10;
             }
 
-            _history.Add(spread);
-
-            while (_history.Count > period)
+            if (_lastHistoryTime == DateTime.MinValue || depth.Time >= _lastHistoryTime.AddSeconds(1))
             {
-                _history.RemoveAt(0);
+                _lastHistoryTime = depth.Time;
+
+                _history.Add(spread);
+
+                while (_history.Count > period)
+                {
+                    _history.RemoveAt(0);
+                }
             }
 
             decimal average = Average(_history);

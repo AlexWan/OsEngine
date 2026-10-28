@@ -130,6 +130,12 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                 number++;
             }
 
+            RunModule(context, number, "RobotLayer", () => new RobotLayerModule(context).Run());
+            number++;
+
+            RunModule(context, number, "ScreenerLayer", () => new ScreenerLayerModule(context).Run());
+            number++;
+
             if (_moduleFilter.Length > 0 && _matchedModules == 0)
             {
                 Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

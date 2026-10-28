@@ -17,7 +17,7 @@
   - Источник: `TDataHistory`, таймфрейм `Tick`.
   - Тестер: `TickAllCandleState`.
   - Архив TDataHistory публикуется с задержкой; если запрошенный диапазон ещё не доступен, стенд автоматически сдвигает диапазон на 7 дней назад (до 6 попыток).
-- По умолчанию: инструмент `SBER`, последние 10 календарных дней.
+- По умолчанию: инструменты `SBER` и `GAZP` (второй нужен модулю скринера), последние 10 календарных дней.
 - Если сет с нужными файлами уже есть, повторно не скачивается.
 
 ## 3. Специальный робот
@@ -34,6 +34,11 @@
 
 Робот создаёт два одинаковых индикатора (основной и контрольный) через `BotTabSimple.MarketDepthIndicators`, получает стакан и сделки через события таба, завершает проверки по `Connector.TestOverEvent` и пишет результат в `ReportJson` с лог-маркером `MDI_TEST_DONE`.
 
+Дополнительно два тест-бота для роботного слоя создания индикаторов (глава 5):
+
+- `MarketDepthRobotLayerTestBot` (`Robots/AutoTestBots/`) — на `BotTabSimple`, создаёт `Spread` через `BotTabSimple.CreateMarketDepthIndicator` и привязывает параметры к `StrategyParameter`.
+- `MarketDepthScreenerTestBot` (`Robots/AutoTestBots/`) — на `BotTabScreener`, создаёт `Spread` через `BotTabScreener.CreateMarketDepthIndicator` на всех табах.
+
 ## 4. Проверки робота (17)
 
 `Deploy`, `Description`, `SeriesPresence`, `ParameterNames`, `Schema`, `InputCoverage`, `ValuesProduced`, `HistoryLimit`, `StorageMonotonicity`, `Throttling`, `TwinDeterminism`, `ValueRange`, `ReferenceValue`, `RecalculateStability`, `HistoryResize`, `ClearReset`, `NoExceptions`.
@@ -41,6 +46,18 @@
 `Description` требует непустое описание, `SeriesPresence` — хотя бы одну серию, `ParameterNames` — уникальные непустые имена параметров, `NoExceptions` — отсутствие ошибок во время расчёта (базовый класс `AMarketDepth` оборачивает `OnProcess`/`OnProcessTrade`/`OnStateChange` в `try/catch` и фиксирует `ErrorCount`/`LastError`).
 
 Профили диапазона и эталонного значения реализованы для `OrderBookImbalance`, `DepthVolume`, `Spread`, `Delta`, `SpeedOfTape`, `Rvol`, `MicroPrice`, `Ofi`, `LiquidityWalls`, `ExpectedSlippage`, `TradeSizeAnalytics`. Для `Spoofing` проверяется диапазон `0..1`, эталон не задан. Для типов без профиля тест `ValueRange` помечается как `SKIP`, а `ReferenceValue` — для типов без эталона.
+
+### 4.1 Модуль `RobotLayer` — роботный слой на BotTabSimple (12 проверок)
+
+Гоняет `MarketDepthRobotLayerTestBot`. Проверки: `Deploy`, `CanDelete`, `DataSource`, `InMaster`, `ParamBindMode`, `ParamBindPeriod`, `SeriesPresence`, `ValuesProduced`, `InputCoverage`, `ParamChangeReapply`, `UniqueName`, `NoExceptions`.
+
+Суть: индикатор создаётся через `BotTabSimple.CreateMarketDepthIndicator`, его параметры (`Mode`/`Period`) привязываются к `StrategyParameter` робота, проверяется `CanDelete=false`, нахождение в `MarketDepthIndicators`, заполнение серий, перепривязка параметров и отсутствие исключений.
+
+### 4.2 Модуль `ScreenerLayer` — роботный слой на BotTabScreener (10 проверок)
+
+Гоняет `MarketDepthScreenerTestBot` на двух бумагах (`SBER` + `GAZP`). Проверки: `Deploy`, `DescriptorNumType`, `DescriptorCanDelete`, `DescriptorParams`, `OnTabs`, `TabCanDelete`, `ValuesProduced`, `ParamMapping`, `LoadSave`, `NoExceptions`.
+
+Суть: индикатор создаётся через `BotTabScreener.CreateMarketDepthIndicator`, проверяется дескриптор (`Num`/`Type`/`CanDelete`/параметры), раздача индикатора по каждому табу, пропуск служебного `HistoryDepth` при маппинге параметров, запись файла `ScreenerMarketDepthIndicators.txt` и отсутствие исключений.
 
 ## 5. MCP-сценарий одного индикатора
 
@@ -57,12 +74,16 @@
 
 Новые MCP-методы не требуются.
 
+Модуль `ScreenerLayer` вместо `bot_set_config_tab_simple` использует `bot_set_config_tab_screener` (список `securities` из двух бумаг + `candle_market_data_type=MarketDepth`).
+
 ## 6. Запуск
 
 ```bash
 cd Tests/IndicatorMarketDepthTestStand/OsEngine.IndicatorMarketDepth.TestStand/bin/Debug/net10.0
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --indicator OrderBookImbalance
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --module DepthVolume
+./OsEngine.IndicatorMarketDepth.TestStand.exe --module RobotLayer
+./OsEngine.IndicatorMarketDepth.TestStand.exe --module ScreenerLayer
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --security SBER --data-from 2026-09-21 --data-to 2026-09-30
 ```
 

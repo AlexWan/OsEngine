@@ -20,6 +20,8 @@
 | 10 | SpeedOfTape (Скорость ленты) | лента |
 | 11 | Rvol (Относительный объём) | лента |
 | 12 | TradeSizeAnalytics (Аналитика размера сделок) | лента |
+| 13 | Iceberg (Айсберг / Поглощение) | стакан + лента |
+| 14 | Resilience (Устойчивость / Восстановление) | стакан + лента |
 
 Структура карточки у всех одинаковая:
 
@@ -611,5 +613,123 @@ LargeTradeShare = Σ(объём крупных сделок) / Σ(объём в�
 
 - ATAS — Big Trades: https://help.atas.net/en/support/solutions/articles/72000602332-big-trades
 - ATAS — 4 useful tricks of the Big Trades Indicator: https://atas.net/blog/4-useful-tricks-of-the-big-trades-indicator/
+
+---
+
+## 13. Iceberg — Айсберг / Поглощение
+
+**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/Iceberg.cs`
+**Вход:** стакан + лента (`Both`)
+
+### Суть
+
+Айсберг-заявка показывает в книге только небольшую «вершину», а остальной объём скрыт. Когда вершину съедают сделками, скрытая часть мгновенно пополняет её. Индикатор ловит ключевой признак: **сделки идут по лучшей цене, а видимый объём уровня почти не уменьшается** — это «поглощение» (absorption) или скрытая ликвидность.
+
+### Формула
+
+За окно `Window` секунд, отдельно для каждой стороны книги:
+
+```
+tradedAsk = Σ объём сделок-покупок, исполненных по лучшему аску (объём ≥ TradeThreshold)
+tradedBid = Σ объём сделок-продаж, исполненных по лучшему биду (объём ≥ TradeThreshold)
+
+eatenAsk = Σ max(0, V_ask_prev − V_ask_now)   — суммарное уменьшение объёма лучшего аска
+eatenBid = Σ max(0, V_bid_prev − V_bid_now)   — суммарное уменьшение объёма лучшего бида
+
+AbsorptionAsk = 1 − eatenAsk / tradedAsk   (0, если tradedAsk < MinTrades)
+AbsorptionBid = 1 − eatenBid / tradedBid   (0, если tradedBid < MinTrades)
+```
+
+`V_ask_prev`/`V_ask_now` — объём лучшего аска на предыдущем и текущем снимке стакана.
+
+Смысл дроби `eaten / traded`: какая доля пришедшего сделками объёма реально «сняла» видимый объём уровня. Остальное (1 − эта доля) было поглощено скрытой ликвидностью.
+
+### Параметры
+
+| Имя | Тип | По умолчанию | Смысл |
+|---|---|---|---|
+| `Window` | int | `10` | Окно накопления, секунд |
+| `TradeThreshold` | decimal | `0` | Минимальный объём сделки для учёта (0 — все сделки) |
+| `MinTrades` | int | `3` | Минимальное число сделок за окно, чтобы считать значение достоверным |
+
+### Серии
+
+| Имя | Тип отрисовки | Смысл |
+|---|---|---|
+| `AbsorptionAsk` | Line | Поглощение на аске (скрытые продажи), 0..1 |
+| `AbsorptionBid` | Line | Поглощение на биде (скрытые покупки), 0..1 |
+
+### Как читать
+
+- `≈ 1` — сделками съели заметный объём, но видимый уровень почти не просел → скрытая ликвидность (айсберг) пополняет его.
+- `≈ 0` — видимый объём реально тает по мере сделок, скрытой ликвидности нет.
+- Высокий `AbsorptionBid` — крупный покупатель прячет объём под ценой (поддержка), высокий `AbsorptionAsk` — крупный продавец над ценой (сопротивление).
+
+### Источники
+
+- dxFeed — Iceberg Detection Solution: https://dxfeed.com/solutions/iceberg-detection-solution/
+- Bookmap — Iceberg Orders Tracker: https://bookmap.com/knowledgebase/docs/KB-Bookmap-Wiki-Iceberg-Orders-Tracker
+- QuantStrategy — Detecting Hidden Intent: Iceberg Orders and Order Book Spoofing: https://quantstrategy.io/blog/detecting-hidden-intent-unmasking-iceberg-orders-and-order/
+
+---
+
+## 14. Resilience — Устойчивость / Восстановление
+
+**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/Resilience.cs`
+**Вход:** стакан + лента (`Both`)
+
+### Суть
+
+Устойчивость книги заявок — как быстро ликвидность восстанавливается после агрессивных сделок. После крупного удара по лучшему уровню глубина проваливается, а затем пассивные заявки её добирают. Индикатор показывает текущую глубину относительно недавнего максимума и отмечает сами удары по книге.
+
+### Формула
+
+Глубина считается по первым `Depth` уровням каждой стороны:
+
+```
+Depth(t) = Σ Bid[i] + Σ Ask[i]     по i от 0 до Depth−1
+```
+
+Восстановление — текущая глубина к максимуму за окно `Window` секунд:
+
+```
+DepthMax(t) = max(Depth) за последние Window секунд
+Resilience(t) = Depth(t) / DepthMax(t)     (0..1)
+```
+
+Удар по книге — агрессивная сделка объёмом не меньше `TradeThreshold`:
+
+```
+Shocks(t) = число сделок объёмом ≥ TradeThreshold за текущую секунду
+```
+
+### Параметры
+
+| Имя | Тип | По умолчанию | Смысл |
+|---|---|---|---|
+| `Window` | int | `10` | Окно максимума, секунд |
+| `Depth` | int | `5` | Сколько уровней каждой стороны суммировать в глубину |
+| `TradeThreshold` | decimal | `100` | Порог объёма сделки, которая считается ударом |
+
+### Серии
+
+| Имя | Тип отрисовки | Смысл |
+|---|---|---|
+| `Depth` | Column | Суммарная глубина первых `Depth` уровней |
+| `Resilience` | Line | Глубина к недавнему максимуму, 0..1 |
+| `Shocks` | Column | Число крупных сделок за секунду |
+
+### Как читать
+
+- `Resilience ≈ 1` — ликвидность держится на уровне недавнего пика (быстро добирают).
+- `Resilience ≪ 1` — после удара глубина не восстановилась, рынок тонкий.
+- Резкий спад `Resilience` одновременно с ростом `Shocks` — агрессивный игрок выбивает ликвидность.
+- Возврат `Resilience` к 1 после `Shocks` — ликвидность устойчивая, «подхватила» удар.
+
+### Источники
+
+- Large (2007) — Measuring the resiliency of an electronic limit order book: https://www.sciencedirect.com/science/article/pii/S1386418106000528
+- Degryse, De Jong, Van Kervel — Resiliency of the limit order book (Journal of Economic Dynamics and Control, 2015): https://www.sciencedirect.com/science/article/abs/pii/S0165188915001797
+- Limit-order book resiliency after effective market orders (arXiv): https://arxiv.org/abs/1602.00731
 
 ---

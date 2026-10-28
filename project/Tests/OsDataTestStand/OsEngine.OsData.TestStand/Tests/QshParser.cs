@@ -47,14 +47,31 @@ namespace OsEngine.OsData.TestStand.Tests
                     reader.ReadString(); // appName
                     reader.ReadString(); // comment (VolumeStep)
                     reader.ReadInt64(); // time
-                    reader.ReadByte(); // streamCount
-                    reader.ReadByte(); // streamType
-                    reader.ReadString(); // securityName (PriceStep)
+                    int streamCount = reader.ReadByte();
+
+                    if (streamCount < 1 || streamCount > 32)
+                    {
+                        return null;
+                    }
+
+                    byte[] streamTypes = new byte[streamCount];
+
+                    for (int i = 0; i < streamCount; i++)
+                    {
+                        streamTypes[i] = (byte)reader.ReadByte();
+
+                        if (streamTypes[i] != 0x50) // Messages без securityName
+                        {
+                            reader.ReadString(); // securityName
+                        }
+                    }
 
                     headerParsed = true;
 
                     long lastTimeStamp = 0;
                     long lastPrice = 0;
+                    long dealsLastMs = 0;
+                    long dealsLastId = 0;
                     long maxBid = long.MinValue;
                     long minAsk = long.MaxValue;
                     Dictionary<long, long> bids = new Dictionary<long, long>();
@@ -64,69 +81,103 @@ namespace OsEngine.OsData.TestStand.Tests
                     {
                         lastTimeStamp = reader.ReadGrowing(lastTimeStamp);
 
-                        long count = reader.ReadLeb128();
+                        int streamIndex = 0;
 
-                        for (long i = 0; i < count; i++)
+                        if (streamCount > 1)
                         {
-                            long priceDelta = reader.ReadLeb128();
-                            lastPrice += priceDelta;
-                            long volume = reader.ReadLeb128();
-
-                            // Сброс аккумулятора цены (delete с ценой 0) — легитимный маркер Qscalp,
-                            // а не реальный уровень. Проверяем цену только для реальных уровней.
-                            if (lastPrice <= 0 && volume != 0)
-                            {
-                                stats.BadPrice++;
-                            }
-
-                            if (volume == 0)
-                            {
-                                if (bids.Remove(lastPrice) && lastPrice == maxBid)
-                                {
-                                    maxBid = FindMax(bids);
-                                }
-
-                                if (asks.Remove(lastPrice) && lastPrice == minAsk)
-                                {
-                                    minAsk = FindMin(asks);
-                                }
-                            }
-                            else if (volume > 0)
-                            {
-                                asks[lastPrice] = volume;
-
-                                if (bids.Remove(lastPrice) && lastPrice == maxBid)
-                                {
-                                    maxBid = FindMax(bids);
-                                }
-
-                                if (lastPrice < minAsk)
-                                {
-                                    minAsk = lastPrice;
-                                }
-                            }
-                            else
-                            {
-                                bids[lastPrice] = -volume;
-
-                                if (asks.Remove(lastPrice) && lastPrice == minAsk)
-                                {
-                                    minAsk = FindMin(asks);
-                                }
-
-                                if (lastPrice > maxBid)
-                                {
-                                    maxBid = lastPrice;
-                                }
-                            }
+                            streamIndex = reader.ReadByte();
                         }
 
-                        stats.Frames++;
-                        stats.Changes += count;
-
-                        if (bids.Count > 0 && asks.Count > 0 && maxBid > minAsk)
+                        if (streamIndex < 0 || streamIndex >= streamCount)
                         {
-                            stats.Crossed++;
+                            return null;
+                        }
+
+                        byte streamType = streamTypes[streamIndex];
+
+                        if (streamType == 0x10) // Quotes
+                        {
+                            long count = reader.ReadLeb128();
+
+                            for (long i = 0; i < count; i++)
+                            {
+                                long priceDelta = reader.ReadLeb128();
+                                lastPrice += priceDelta;
+                                long volume = reader.ReadLeb128();
+
+                                // Сброс аккумулятора цены (delete с ценой 0) — легитимный маркер Qscalp,
+                                // а не реальный уровень. Проверяем цену только для реальных уровней.
+                                if (lastPrice <= 0 && volume != 0)
+                                {
+                                    stats.BadPrice++;
+                                }
+
+                                if (volume == 0)
+                                {
+                                    if (bids.Remove(lastPrice) && lastPrice == maxBid)
+                                    {
+                                        maxBid = FindMax(bids);
+                                    }
+
+                                    if (asks.Remove(lastPrice) && lastPrice == minAsk)
+                                    {
+                                        minAsk = FindMin(asks);
+                                    }
+                                }
+                                else if (volume > 0)
+                                {
+                                    asks[lastPrice] = volume;
+
+                                    if (bids.Remove(lastPrice) && lastPrice == maxBid)
+                                    {
+                                        maxBid = FindMax(bids);
+                                    }
+
+                                    if (lastPrice < minAsk)
+                                    {
+                                        minAsk = lastPrice;
+                                    }
+                                }
+                                else
+                                {
+                                    bids[lastPrice] = -volume;
+
+                                    if (asks.Remove(lastPrice) && lastPrice == minAsk)
+                                    {
+                                        minAsk = FindMin(asks);
+                                    }
+
+                                    if (lastPrice > maxBid)
+                                    {
+                                        maxBid = lastPrice;
+                                    }
+                                }
+                            }
+
+                            stats.Frames++;
+                            stats.Changes += count;
+
+                            if (bids.Count > 0 && asks.Count > 0 && maxBid > minAsk)
+                            {
+                                stats.Crossed++;
+                            }
+                        }
+                        else if (streamType == 0x20) // Deals
+                        {
+                            byte flags = (byte)reader.ReadByte();
+
+                            if ((flags & 0x04) != 0) dealsLastMs = reader.ReadGrowing(dealsLastMs);
+                            if ((flags & 0x08) != 0) dealsLastId = reader.ReadGrowing(dealsLastId);
+                            if ((flags & 0x10) != 0) reader.ReadLeb128();
+                            if ((flags & 0x20) != 0) reader.ReadLeb128();
+                            if ((flags & 0x40) != 0) reader.ReadLeb128();
+                            if ((flags & 0x80) != 0) reader.ReadLeb128();
+
+                            stats.Deals++;
+                        }
+                        else
+                        {
+                            return null;
                         }
                     }
                 }
@@ -373,5 +424,7 @@ namespace OsEngine.OsData.TestStand.Tests
         public long BadPrice;
 
         public long BadVolume;
+
+        public long Deals;
     }
 }

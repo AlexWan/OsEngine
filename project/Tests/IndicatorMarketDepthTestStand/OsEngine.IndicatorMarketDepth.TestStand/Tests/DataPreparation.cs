@@ -175,7 +175,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             string add = ToolsCall("data_set_securities_add", new
             {
                 name = setName,
-                securities = new[] { new { name = _context.Security } }
+                securities = new[] { new { name = _context.Security }, new { name = _context.SecondSecurity } }
             });
 
             if (IsError(add))
@@ -203,7 +203,10 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
                 return false;
             }
 
-            return CountLocalQshFiles() >= ExpectedTradingDays();
+            int expected = ExpectedTradingDays();
+
+            return CountLocalQshFiles(_context.Security) >= expected
+                && CountLocalQshFiles(_context.SecondSecurity) >= expected;
         }
 
         private bool TickSetIsComplete()
@@ -249,12 +252,12 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             return false;
         }
 
-        private int CountLocalQshFiles()
+        private int CountLocalQshFiles(string security)
         {
             try
             {
                 string dataDir = Path.Combine(Path.GetDirectoryName(_context.OsEnginePath) ?? string.Empty, "Data");
-                string mdFolder = Path.Combine(dataDir, "Set_" + _context.DataSetName, _context.Security, "MarketDepth");
+                string mdFolder = Path.Combine(dataDir, "Set_" + _context.DataSetName, security, "MarketDepth");
 
                 if (Directory.Exists(mdFolder) == false)
                 {

@@ -33,6 +33,11 @@ namespace OsEngine.IndicatorMarketDepth
 
         public AMarketDepth CreateIndicator(string typeName, string name)
         {
+            return CreateIndicator(typeName, name, true);
+        }
+
+        public AMarketDepth CreateIndicator(string typeName, string name, bool canDelete)
+        {
             for (int i = 0; i < Indicators.Count; i++)
             {
                 if (Indicators[i].Name == name)
@@ -41,7 +46,7 @@ namespace OsEngine.IndicatorMarketDepth
                 }
             }
 
-            AMarketDepth indicator = MarketDepthIndicatorsFactory.CreateByName(typeName, name, true, _startProgram);
+            AMarketDepth indicator = MarketDepthIndicatorsFactory.CreateByName(typeName, name, canDelete, _startProgram);
 
             if (indicator == null)
             {
