@@ -386,6 +386,10 @@ namespace OsEngine.Market.Servers.TInvest
 
         private bool _activeSignalsRestored = false;
 
+        // стратегии, про которые уже написали в лог исключение из опроса
+        // (closed/draft) — чтобы не спамить сообщением каждый цикл
+        private HashSet<string> _excludedStrategiesLogged = new HashSet<string>();
+
         // последние рыночные цены из gRPC-потока, нужны для определения типа отложенного сигнала
         private Dictionary<string, decimal> _lastMarketPrices = new Dictionary<string, decimal>();
 
@@ -801,6 +805,22 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 if (string.IsNullOrEmpty(strategies[i].strategyId) == false)
                 {
+                    if (strategies[i].status == "closed"
+                        || strategies[i].status == "draft")
+                    {
+                        // закрытые и черновые стратегии не опрашиваем: API
+                        // отвечает на их сигналы/позиции 404 «стратегия не найдена».
+                        // Frozen остаётся в опросе — её сигналы живы
+                        if (_excludedStrategiesLogged.Add(strategies[i].strategyId))
+                        {
+                            SendLogMessage("Autofollow. Strategy is " + strategies[i].status
+                                + ". Excluded from polling " + strategies[i].title
+                                + " " + strategies[i].strategyId, LogMessageType.System);
+                        }
+
+                        continue;
+                    }
+
                     aliveStrategies.Add(strategies[i].strategyId);
                 }
             }
@@ -811,7 +831,8 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     AfStrategy strategy = strategies[i];
 
-                    if (string.IsNullOrEmpty(strategy.strategyId))
+                    if (string.IsNullOrEmpty(strategy.strategyId)
+                        || aliveStrategies.Contains(strategy.strategyId) == false)
                     {
                         continue;
                     }
@@ -4198,7 +4219,8 @@ namespace OsEngine.Market.Servers.TInvest
                     return JsonConvert.DeserializeObject<AfPortfolioPositionResponse>(responseBody);
                 }
 
-                SendLogMessage("Autofollow. Error getting portfolio position " + GetRestErrorMessage(response), LogMessageType.Error);
+                SendLogMessage("Autofollow. Error getting portfolio position. Strategy " + strategyId
+                    + ". " + GetRestErrorMessage(response), LogMessageType.Error);
             }
             catch (Exception ex) when (IsShutdownRaceError(ex))
             {
@@ -4207,7 +4229,8 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage("Autofollow. Error getting portfolio position " + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Autofollow. Error getting portfolio position. Strategy " + strategyId
+                    + ". " + ex.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -4237,7 +4260,8 @@ namespace OsEngine.Market.Servers.TInvest
                 }
 
                 // 5xx у Т-Банка случаются в момент исполнения сигналов — не засоряем лог ошибками
-                SendLogMessage("Autofollow. Error getting signals " + GetRestErrorMessage(response),
+                SendLogMessage("Autofollow. Error getting signals. Strategy " + strategyId
+                    + ". " + GetRestErrorMessage(response),
                     (int)response.StatusCode >= 500 ? LogMessageType.System : LogMessageType.Error);
             }
             catch (Exception ex) when (IsShutdownRaceError(ex))
@@ -4247,7 +4271,8 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage("Autofollow. Error getting signals " + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Autofollow. Error getting signals. Strategy " + strategyId
+                    + ". " + ex.ToString(), LogMessageType.Error);
             }
 
             return null;
@@ -4277,7 +4302,8 @@ namespace OsEngine.Market.Servers.TInvest
                 }
 
                 // 5xx у Т-Банка случаются в момент исполнения сигналов — не засоряем лог ошибками
-                SendLogMessage("Autofollow. Error getting stop signals " + GetRestErrorMessage(response),
+                SendLogMessage("Autofollow. Error getting stop signals. Strategy " + strategyId
+                    + ". " + GetRestErrorMessage(response),
                     (int)response.StatusCode >= 500 ? LogMessageType.System : LogMessageType.Error);
             }
             catch (Exception ex) when (IsShutdownRaceError(ex))
@@ -4287,7 +4313,8 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage("Autofollow. Error getting stop signals " + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Autofollow. Error getting stop signals. Strategy " + strategyId
+                    + ". " + ex.ToString(), LogMessageType.Error);
             }
 
             return null;
