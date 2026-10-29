@@ -4443,7 +4443,6 @@ namespace OsEngine.Market.Servers.Bybit
                             newTrade.NumberTrade = trade.execId;
                             newTrade.NumberOrderParent = orderBase.NumberMarket;
                             newTrade.Price = trade.execPrice.ToDecimal();
-                            newTrade.Volume = trade.execQty.ToDecimal();
                             newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(trade.execTime));
 
                             string side = trade.side;
@@ -4455,6 +4454,15 @@ namespace OsEngine.Market.Servers.Bybit
                             else
                             {
                                 newTrade.Side = Side.Sell;
+                            }
+
+                            if (category == Category.spot && newTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(trade.execFee))
+                            {   // The spot commission for purchases is taken from the purchased coin.
+                                newTrade.Volume = trade.execQty.ToDecimal() - trade.execFee.ToDecimal();
+                            }
+                            else
+                            {
+                                newTrade.Volume = trade.execQty.ToDecimal();
                             }
 
                             myTrades.Add(newTrade);
