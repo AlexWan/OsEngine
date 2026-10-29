@@ -59,6 +59,18 @@
 
 Суть: индикатор создаётся через `BotTabScreener.CreateMarketDepthIndicator`, проверяется дескриптор (`Num`/`Type`/`CanDelete`/параметры), раздача индикатора по каждому табу, пропуск служебного `HistoryDepth` при маппинге параметров, запись файла `ScreenerMarketDepthIndicators.txt` и отсутствие исключений.
 
+### 4.3 Модуль `Smoke` — smoke-тест торгового робота
+
+Запускается через `--robot <StrategyName>`. Деплоит реального торгового робота в тестере на стаканных данных и проверяет работоспособность:
+
+1. `bot_create` по имени стратегии;
+2. `bot_get_sources` — автоопределение типа таба (`Simple`/`Screener`);
+3. `bot_set_config_tab_simple` / `bot_set_config_tab_screener` — настройка на `MarketDepth`;
+4. `tester_start` (fast-forward) — прогон;
+5. `bot_journal_get_closed_positions` — проверка, что робот совершил сделки (`count > 0`).
+
+Проверки: `BotCreate`, `BotTab`, `BotConfig`, `TestRun`, `Trades`.
+
 ## 5. MCP-сценарий одного индикатора
 
 1. `tester_data_set_config` — сет и тип `MarketDepthAllCandleState`.
@@ -84,9 +96,10 @@ cd Tests/IndicatorMarketDepthTestStand/OsEngine.IndicatorMarketDepth.TestStand/b
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --module DepthVolume
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --module RobotLayer
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --module ScreenerLayer
+./OsEngine.IndicatorMarketDepth.TestStand.exe --robot HhfSpreadBot --module 1,Smoke
 ./OsEngine.IndicatorMarketDepth.TestStand.exe --security SBER --data-from 2026-09-21 --data-to 2026-09-30
 ```
 
-Параметры командной строки: `--os-engine-path`, `--port`, `--api-key`, `--timeout`, `--module`, `--indicator`, `--security`, `--data-from`, `--data-to`, `--min-data-days`, `--no-wait`.
+Параметры командной строки: `--os-engine-path`, `--port`, `--api-key`, `--timeout`, `--module`, `--indicator`, `--robot`, `--security`, `--data-from`, `--data-to`, `--min-data-days`, `--no-wait`.
 
 Запуск стенда MCP — только с явного разрешения пользователя (как и другие стенды MCP). Итог — ненулевой код выхода при фейлах.

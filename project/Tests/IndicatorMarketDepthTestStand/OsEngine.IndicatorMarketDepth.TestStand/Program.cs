@@ -136,6 +136,12 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
             RunModule(context, number, "ScreenerLayer", () => new ScreenerLayerModule(context).Run());
             number++;
 
+            if (string.IsNullOrEmpty(options.Robot) == false)
+            {
+                RunModule(context, number, "Smoke", () => new RobotsModule(context, options.Robot).Run());
+                number++;
+            }
+
             if (_moduleFilter.Length > 0 && _matchedModules == 0)
             {
                 Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");
@@ -264,6 +270,9 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                     case "--min-data-days":
                         options.MinDataDays = int.Parse(args[++i]);
                         break;
+                    case "--robot":
+                        options.Robot = args[++i];
+                        break;
                 }
             }
 
@@ -284,6 +293,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
         public DateTime DateFrom;
         public DateTime DateTo;
         public int MinDataDays;
+        public string Robot = string.Empty;
         public string ModuleFilter = string.Empty;
     }
 
