@@ -23,6 +23,12 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         public bool PrepareSet()
         {
+            if (DepthSetIsComplete() && TickSetIsComplete())
+            {
+                RecordPass("DataReady", "данные уже есть на диске, OsData не нужен");
+                return true;
+            }
+
             _context.RestartOsEngine(string.Empty);
             ToolsCall("terminal_open_mode", new { mode = "data" });
 
@@ -198,11 +204,6 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         private bool DepthSetIsComplete()
         {
-            if (SetExists(_context.DataSetName) == false)
-            {
-                return false;
-            }
-
             int expected = ExpectedTradingDays();
 
             return CountLocalQshFiles(_context.Security) >= expected
@@ -211,11 +212,6 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         private bool TickSetIsComplete()
         {
-            if (SetExists(TickSetName) == false)
-            {
-                return false;
-            }
-
             string filePath = GetTickFilePath();
 
             try
@@ -226,30 +222,6 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             {
                 return false;
             }
-        }
-
-        private bool SetExists(string name)
-        {
-            string response = QuietCall("data_get_sets", new { });
-
-            if (!TryParseJson(response, out JsonElement root) || root.ValueKind != JsonValueKind.Array)
-            {
-                return false;
-            }
-
-            foreach (JsonElement item in root.EnumerateArray())
-            {
-                string setName = item.TryGetProperty("name", out JsonElement nameElement)
-                    ? nameElement.GetString() ?? string.Empty
-                    : string.Empty;
-
-                if (setName == name || setName == "Set_" + name)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private int CountLocalQshFiles(string security)

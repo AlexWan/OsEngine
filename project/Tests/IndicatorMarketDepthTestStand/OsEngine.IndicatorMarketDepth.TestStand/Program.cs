@@ -138,7 +138,8 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
 
             if (string.IsNullOrEmpty(options.Robot) == false)
             {
-                RunModule(context, number, "Smoke", () => new RobotsModule(context, options.Robot).Run());
+                Dictionary<string, object> botParams = ParseBotParams(options.Params);
+                RunModule(context, number, "Smoke", () => new RobotsModule(context, options.Robot, botParams).Run());
                 number++;
             }
 
@@ -150,6 +151,51 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                     Console.WriteLine(entry);
                 }
             }
+        }
+
+        private static Dictionary<string, object> ParseBotParams(string raw)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return result;
+            }
+
+            string[] parts = raw.Split(',');
+
+            foreach (string part in parts)
+            {
+                string[] kv = part.Split('=');
+
+                if (kv.Length != 2)
+                {
+                    continue;
+                }
+
+                string key = kv[0].Trim();
+                string value = kv[1].Trim();
+
+                int intValue;
+
+                if (int.TryParse(value, out intValue))
+                {
+                    result[key] = intValue;
+                    continue;
+                }
+
+                decimal decimalValue;
+
+                if (decimal.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out decimalValue))
+                {
+                    result[key] = decimalValue;
+                    continue;
+                }
+
+                result[key] = value;
+            }
+
+            return result;
         }
 
         private static void RunModule(TestContext context, int number, string name, Action run)
@@ -273,6 +319,9 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                     case "--robot":
                         options.Robot = args[++i];
                         break;
+                    case "--params":
+                        options.Params = args[++i];
+                        break;
                 }
             }
 
@@ -294,6 +343,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
         public DateTime DateTo;
         public int MinDataDays;
         public string Robot = string.Empty;
+        public string Params = string.Empty;
         public string ModuleFilter = string.Empty;
     }
 

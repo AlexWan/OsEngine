@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
@@ -18,9 +19,12 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
     {
         private readonly string _robotStrategy;
 
-        public RobotsModule(TestContext context, string robotStrategy) : base(context, "Smoke")
+        private readonly Dictionary<string, object> _botParams;
+
+        public RobotsModule(TestContext context, string robotStrategy, Dictionary<string, object> botParams) : base(context, "Smoke")
         {
             _robotStrategy = robotStrategy;
+            _botParams = botParams ?? new Dictionary<string, object>();
         }
 
         public void Run()
@@ -65,6 +69,11 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             {
                 RecordFail("BotCreate", "робот '" + _robotStrategy + "' не создался");
                 return;
+            }
+
+            if (_botParams.Count > 0)
+            {
+                SetBotParams(botId);
             }
 
             string tabType = DetectTabType(botId);
@@ -122,6 +131,8 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
                 RecordPass("Profit", "прибыль " + profitPercent.ToString("F2") + "% (абс " + profitAbs.ToString("F2") + ", net " + netProfit.ToString("F2") + ")");
                 RecordPass("HoldingTime", "среднее время удержания " + averageHoldingTime);
+                RecordPass("Long", GetSideSummary(botId, "Long"));
+                RecordPass("Short", GetSideSummary(botId, "Short"));
             }
             else
             {
@@ -143,6 +154,11 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             return root.TryGetProperty("name", out JsonElement nameElement)
                 ? nameElement.GetString() ?? string.Empty
                 : string.Empty;
+        }
+
+        private void SetBotParams(string botId)
+        {
+            QuietCall("bot_set_params", new { bot_id = botId, parameters = _botParams });
         }
 
         private string DetectTabType(string botId)
@@ -306,6 +322,39 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
             }
 
             return timeElement.GetString() ?? string.Empty;
+        }
+
+        private string GetSideSummary(string botId, string side)
+        {
+            string response = QuietCall("bot_journal_get_statistics", new { bot_name = botId, side = side });
+
+            if (!TryParseJson(response, out JsonElement root))
+            {
+                return side + ": нет данных";
+            }
+
+            int dealsCount = 0;
+
+            if (root.TryGetProperty("deals_count", out JsonElement dealsElement) && dealsElement.ValueKind == JsonValueKind.Number)
+            {
+                dealsCount = dealsElement.GetInt32();
+            }
+
+            decimal netProfitPercent = 0m;
+
+            if (root.TryGetProperty("net_profit_percent", out JsonElement percentElement) && percentElement.ValueKind == JsonValueKind.Number)
+            {
+                netProfitPercent = percentElement.GetDecimal();
+            }
+
+            decimal netProfit = 0m;
+
+            if (root.TryGetProperty("net_profit", out JsonElement profitElement) && profitElement.ValueKind == JsonValueKind.Number)
+            {
+                netProfit = profitElement.GetDecimal();
+            }
+
+            return side + ": сделок " + dealsCount + ", прибыль " + netProfitPercent.ToString("F2") + "% (абс " + netProfit.ToString("F2") + ")";
         }
 
         private void DeleteBot(string botId)

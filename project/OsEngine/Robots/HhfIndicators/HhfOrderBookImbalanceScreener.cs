@@ -28,6 +28,8 @@ namespace OsEngine.Robots.HhfIndicators
     {
         private BotTabScreener _screenerTab;
 
+        private NonTradePeriods _nonTradePeriods;
+
         private readonly Dictionary<string, DateTime> _longSignalSince = new Dictionary<string, DateTime>();
 
         private readonly Dictionary<string, DateTime> _shortSignalSince = new Dictionary<string, DateTime>();
@@ -73,6 +75,16 @@ namespace OsEngine.Robots.HhfIndicators
 
             _screenerTab.CreateCandleIndicator(1, "Bollinger",
                 new List<string> { BollingerLength.ValueInt.ToString(), BollingerDeviation.ValueDecimal.ToString() }, "Prime");
+
+            _nonTradePeriods = new NonTradePeriods(name);
+
+            if (_nonTradePeriods.HaveSettingsInFile == false)
+            {
+                _nonTradePeriods.SetMoexSpotNonTradePeriods();
+            }
+
+            StrategyParameterButton nonTradePeriodsButton = CreateParameterButton("Non trade periods", "Base");
+            nonTradePeriodsButton.UserClickOnButtonEvent += NonTradePeriodsButton_UserClickOnButtonEvent;
 
             _screenerTab.MarketDepthUpdateEvent += Screener_MarketDepthUpdateEvent;
 
@@ -157,6 +169,11 @@ namespace OsEngine.Robots.HhfIndicators
                 }
                 else
                 {
+                    if (_nonTradePeriods.CanTradeThisTime(tab.Connector.MarketTime) == false)
+                    {
+                        return;
+                    }
+
                     string tabName = tab.TabName;
 
                     bool longCondition = imbalance >= (double)LongThreshold.ValueDecimal && price < lower;
@@ -279,6 +296,11 @@ namespace OsEngine.Robots.HhfIndicators
             }
 
             return count;
+        }
+
+        private void NonTradePeriodsButton_UserClickOnButtonEvent()
+        {
+            _nonTradePeriods.ShowDialog();
         }
 
         private void HhfOrderBookImbalanceScreener_ParametrsChangeByUser()
