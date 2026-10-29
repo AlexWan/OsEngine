@@ -1971,12 +1971,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     order.VolumeExecute = qOrder.Quantity - qOrder.Balance;
                 }
 
-                if (_ordersAllReadyCanseled.Find(o => o.NumberUser == qOrder.TransID) != null)
-                {
-                    order.State = OrderStateType.Cancel;
-                    order.TimeCancel = order.TimeCallBack;
-                }
-
                 order.NumberMarket = qOrder.OrderNum.ToString() + "+" + order.NumberUser.ToString();
 
                 if (qOrder.Operation == Operation.Buy)
@@ -2124,7 +2118,8 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                if (transReply.Status == 0 || transReply.Status == 3 || transReply.Status == 1)
+                if (transReply.Status == 0 || transReply.Status == 3 || transReply.Status == 1
+                    || transReply.Status == 12 || transReply.Status == 15) // The outcome is still unknown.
                 {
                     return;
                 }
@@ -2241,6 +2236,8 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public void SendOrder(Order order)
         {
+            bool sendStarted = false;
+
             try
             {
                 _rateGateSendOrder.WaitToProceed();
@@ -2267,7 +2264,12 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 lock (_serverLocker)
                 {
-                    long res = QuikLua.Orders.CreateOrder(qOrder).Result;
+                    var orders = QuikLua.Orders;
+
+                    order.State = OrderStateType.Pending;
+                    sendStarted = true;
+
+                    long res = orders.CreateOrder(qOrder).Result;
 
                     if (res > 0)
                     {
@@ -2289,7 +2291,7 @@ namespace OsEngine.Market.Servers.QuikLua
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-                order.State = OrderStateType.Fail;
+                order.State = sendStarted ? OrderStateType.Pending : OrderStateType.Fail;
 
                 if (MyOrderEvent != null)
                 {
@@ -2298,15 +2300,12 @@ namespace OsEngine.Market.Servers.QuikLua
             }
         }
 
-        private List<Order> _ordersAllReadyCanseled = new List<Order>();
-
         public bool CancelOrder(Order order)
         {
             try
             {
                 _rateGateSendOrder.WaitToProceed();
 
-                _ordersAllReadyCanseled.Add(order);
                 QuikSharp.DataStructures.Transaction.Order qOrder = new QuikSharp.DataStructures.Transaction.Order();
                 qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
                 qOrder.Account = order.PortfolioNumber;
@@ -2424,12 +2423,6 @@ namespace OsEngine.Market.Servers.QuikLua
                         order.VolumeExecute = foundOrder.Quantity - foundOrder.Balance;
 
                         needTrade = true;
-                    }
-
-                    if (_ordersAllReadyCanseled.Find(o => o.NumberUser == foundOrder.TransID) != null)
-                    {
-                        order.State = OrderStateType.Cancel;
-                        order.TimeCancel = order.TimeCallBack;
                     }
 
                     if (foundOrder.Operation == Operation.Buy)
