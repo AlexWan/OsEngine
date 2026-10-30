@@ -10,18 +10,16 @@
 |---|---|---|---|
 | 1 | HhfOrderBookImbalanceScreener | OrderBookImbalance | Screener |
 | 2 | HhfDepthVolumeBot | DepthVolume | Simple |
-| 3 | HhfSpreadScreener | Spread | Screener (пропущен) |
-| 4 | HhfMicroPriceBot | MicroPrice | Simple (пропущен) |
-| 5 | HhfLiquidityWallsBot | LiquidityWalls + Keltner | Screener |
-| 6 | HhfOfiBot | Ofi | Simple |
-| 7 | HhfExpectedSlippageBot | ExpectedSlippage | Simple |
-| 8 | HhfSpoofingBot | Spoofing | Simple |
-| 9 | HhfDeltaBot | Delta | Simple |
-| 10 | HhfSpeedOfTapeBot | SpeedOfTape | Simple |
-| 11 | HhfRvolScreener | Rvol | Screener |
-| 12 | HhfTradeSizeAnalyticsBot | TradeSizeAnalytics | Simple |
-| 13 | HhfIcebergBot | Iceberg | Simple |
-| 14 | HhfResilienceBot | Resilience | Simple |
+| 3 | HhfLiquidityWallsBot | LiquidityWalls + Keltner | Screener |
+| 4 | HhfOfiBot | Ofi | Simple |
+| 5 | HhfExpectedSlippageBot | ExpectedSlippage | Simple |
+| 6 | HhfSpoofingBot | Spoofing | Simple |
+| 7 | HhfDeltaBot | Delta | Simple |
+| 8 | HhfSpeedOfTapeBot | SpeedOfTape | Simple |
+| 9 | HhfRvolScreener | Rvol | Screener |
+| 10 | HhfTradeSizeAnalyticsBot | TradeSizeAnalytics | Simple |
+| 11 | HhfIcebergBot | Iceberg | Simple |
+| 12 | HhfResilienceBot | Resilience | Simple |
 
 ---
 
@@ -125,7 +123,7 @@
 
 ---
 
-## 5. HhfLiquidityWallsBot — Пробой плиты по LiquidityWalls + Келтнер
+## 3. HhfLiquidityWallsBot — Пробой плиты по LiquidityWalls + Келтнер
 
 **Файл:** `OsEngine/Robots/HhfIndicators/HhfLiquidityWallsBot.cs`
 **Источник:** Screener (несколько бумаг)
