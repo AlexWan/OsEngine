@@ -501,7 +501,7 @@ namespace OsEngine.OsTrader.Panels
         private TabItem AddMarketDepthIndicatorTab(AMarketDepth indicator)
         {
             TabItem tab = new TabItem();
-            tab.Header = indicator.Name;
+            tab.Header = TruncateIndicatorName(indicator.Name);
             tab.Tag = indicator;
 
             Grid grid = new Grid();
@@ -550,7 +550,7 @@ namespace OsEngine.OsTrader.Panels
             WindowsFormsHost host = new WindowsFormsHost();
 
             MarketDepthIndicatorChart chart = new MarketDepthIndicatorChart();
-            chart.StartPaint(host, indicator.Name);
+            chart.StartPaint(host, TruncateIndicatorName(indicator.Name));
             _mdIndicatorCharts[indicator] = chart;
 
             Grid.SetRow(topRow, 0);
@@ -565,6 +565,16 @@ namespace OsEngine.OsTrader.Panels
             TabControlMarketDepth.Items.Insert(plusIndex, tab);
 
             return tab;
+        }
+
+        private string TruncateIndicatorName(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name.Length <= 10)
+            {
+                return name;
+            }
+
+            return name.Substring(0, 10) + "...";
         }
 
         private void RemoveMarketDepthIndicatorButton_Click(object sender, RoutedEventArgs e)

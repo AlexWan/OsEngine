@@ -58,11 +58,14 @@ namespace OsEngine.Robots.HhfIndicators
 
         public StrategyParameterDecimal Volume;
 
+        public StrategyParameterString Regime;
+
         public HhfDepthVolumeBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
             WallPercent = CreateParameter("WallPercent", 40m, 1m, 500m, 5m);
             AveragingPeriod = CreateParameter("AveragingPeriod", 90, 5, 600, 5);
             ConfirmationTime = CreateParameter("ConfirmationTime", 3, 1, 300, 1);
@@ -73,7 +76,7 @@ namespace OsEngine.Robots.HhfIndicators
             VolumeType = CreateParameter("VolumeType", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             Volume = CreateParameter("Volume", 10m, 1m, 100m, 1m);
 
-            _depthVolume = _tab.CreateMarketDepthIndicator(this, "DepthVolume", false);
+            _depthVolume = _tab.MarketDepthIndicators.CreateIndicator("DepthVolume", "DV", false);
 
             if (_depthVolume != null)
             {
@@ -85,7 +88,9 @@ namespace OsEngine.Robots.HhfIndicators
                 }
             }
 
-            _sma = _tab.CreateIndicator(this, "Sma", "Prime", false, (decimal)SmaLength.ValueInt);
+            _sma = (Aindicator)IndicatorsFactory.CreateIndicatorByName("Sma", "SMA", false);
+            ((IndicatorParameterInt)_sma.Parameters.Find(p => p.Name == "Length")).ValueInt = SmaLength.ValueInt;
+            _tab.CreateCandleIndicator(_sma, "Prime");
 
             _nonTradePeriods = new NonTradePeriods(name);
 
@@ -94,7 +99,7 @@ namespace OsEngine.Robots.HhfIndicators
                 _nonTradePeriods.SetMoexSpotNonTradePeriods();
             }
 
-            StrategyParameterButton nonTradePeriodsButton = CreateParameterButton("Non trade periods", "Base");
+            StrategyParameterButton nonTradePeriodsButton = CreateParameterButton("Non trade periods");
             nonTradePeriodsButton.UserClickOnButtonEvent += NonTradePeriodsButton_UserClickOnButtonEvent;
 
             _tab.MarketDepthUpdateEvent += Tab_MarketDepthUpdateEvent;
@@ -159,11 +164,16 @@ namespace OsEngine.Robots.HhfIndicators
                     return;
                 }
 
+                if (Regime.ValueString == "Off")
+                {
+                    return;
+                }
+
                 double price = GetCurrentPrice();
                 double smaValue = GetSmaValue();
 
-                bool longAllowed = smaValue > 0 && price > smaValue;
-                bool shortAllowed = smaValue > 0 && price < smaValue;
+                bool longAllowed = smaValue > 0 && price > smaValue && Regime.ValueString != "OnlyShort";
+                bool shortAllowed = smaValue > 0 && price < smaValue && Regime.ValueString != "OnlyLong";
 
                 bool shortWall = askDepth >= _avgAskDepth * (1 + (double)WallPercent.ValueDecimal / 100);
                 bool longWall = bidDepth >= _avgBidDepth * (1 + (double)WallPercent.ValueDecimal / 100);

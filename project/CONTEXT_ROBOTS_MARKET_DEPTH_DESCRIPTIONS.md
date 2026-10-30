@@ -10,9 +10,9 @@
 |---|---|---|---|
 | 1 | HhfOrderBookImbalanceScreener | OrderBookImbalance | Screener |
 | 2 | HhfDepthVolumeBot | DepthVolume | Simple |
-| 3 | HhfSpreadScreener | Spread | Screener |
-| 4 | HhfMicroPriceBot | MicroPrice | Simple |
-| 5 | HhfLiquidityWallsBot | LiquidityWalls | Simple |
+| 3 | HhfSpreadScreener | Spread | Screener (пропущен) |
+| 4 | HhfMicroPriceBot | MicroPrice | Simple (пропущен) |
+| 5 | HhfLiquidityWallsBot | LiquidityWalls + Keltner | Screener |
 | 6 | HhfOfiBot | Ofi | Simple |
 | 7 | HhfExpectedSlippageBot | ExpectedSlippage | Simple |
 | 8 | HhfSpoofingBot | Spoofing | Simple |
@@ -56,6 +56,7 @@
 
 | Имя | Тип | По умолчанию | Смысл |
 |---|---|---|---|
+| `Regime` | строка | Off | Режим: `Off` / `On` / `OnlyLong` / `OnlyShort` |
 | `LongThreshold` | decimal | 0.6 | Порог входа в лонг (дисбаланс) |
 | `ShortThreshold` | decimal | −0.6 | Порог входа в шорт (дисбаланс) |
 | `ConfirmationTime` | int | 2 | Секунд подряд, которые сигнал должен удерживаться |
@@ -106,6 +107,7 @@
 
 | Имя | Тип | По умолчанию | Смысл |
 |---|---|---|---|
+| `Regime` | строка | Off | Режим: `Off` / `On` / `OnlyLong` / `OnlyShort` |
 | `WallPercent` | decimal | 40 | На сколько % глубина выше базы — стена |
 | `AveragingPeriod` | int | 90 | Период EMA базы (сек) |
 | `ConfirmationTime` | int | 3 | Секунд подтверждения сигнала |
@@ -120,3 +122,57 @@
 
 - EMA базы считается по стаканным обновлениям (~1/сек); период `AveragingPeriod` приблизителен.
 - Выход только по стопу/профиту — без возврата по стене.
+
+---
+
+## 5. HhfLiquidityWallsBot — Пробой плиты по LiquidityWalls + Келтнер
+
+**Файл:** `OsEngine/Robots/HhfIndicators/HhfLiquidityWallsBot.cs`
+**Источник:** Screener (несколько бумаг)
+
+### Индикаторы
+
+**LiquidityWalls** (стакан) — крупнейший уровень и его цена на каждой стороне книги: `BidWall`/`BidWallPrice` (крупнейший бид и его цена), `AskWall`/`AskWallPrice` (крупнейший аск и его цена).
+
+**KeltnerChannel** (свечной, на минутках) — канал вокруг EMA цены на расстоянии, кратном ATR. Серии `Up Channel` (верхняя) и `Down Channel` (нижняя) задают направление тренда.
+
+### Суть
+
+Робот ловит пробой «плиты» — крупной стены на **краю** стакана, которая держалась определённое время и вдруг исчезла. Исчезла аск-плита (сопротивление убрали) и цена выше верхней линии Келтнера — лонг; исчезла бид-плита (поддержку убрали) и цена ниже нижней линии Келтнера — шорт.
+
+### Логика (на каждый таб скринера)
+
+**Подписка на события источника:** `tab.MarketDepthUpdateEvent` (обновление стакана) на каждом табе скринера.
+
+1. Ведём EMA-базу по `AskWall` и `BidWall`. «Плита» = объём ≥ базы × (1 + WallPercent/100) **и** плита на краю:
+   - аск-плита: `AskWallPrice == md.Asks[0].Price` (крупнейший аск — на лучшем аске);
+   - бид-плита: `BidWallPrice == md.Bids[0].Price` (крупнейший бид — на лучшем биде).
+2. Плита должна удержаться ≥ `WallPersistenceTime` секунд.
+3. Когда плита исчезает (объём упал к базе):
+   - аск-плита исчезла **и** цена > верхней линии Келтнера → лонг: `tab.BuyAtMarket(GetVolume(tab))`.
+   - бид-плита исчезла **и** цена < нижней линии Келтнера → шорт: `tab.SellAtMarket(GetVolume(tab))`.
+4. Выход (стоп/профит): реальные ордера `CloseAtStop`/`CloseAtProfit`.
+5. Общее число открытых позиций на всех бумагах < `MaxPositions`.
+
+### Параметры
+
+| Имя | Тип | По умолчанию | Смысл |
+|---|---|---|---|
+| `Regime` | строка | Off | Режим: `Off` / `On` / `OnlyLong` / `OnlyShort` |
+| `Levels` | int | 20 | Глубина индикатора LiquidityWalls |
+| `WallPercent` | decimal | 50 | На сколько % объём выше EMA базы — плита |
+| `AveragingPeriod` | int | 60 | Период EMA базы (сек) |
+| `WallPersistenceTime` | int | 10 | Секунд удержания плиты |
+| `KeltnerEmaPeriod` | int | 20 | Период EMA канала Келтнера |
+| `KeltnerMultiplier` | decimal | 2 | Множитель ATR канала Келтнера |
+| `TakeProfit` | decimal | 0.2 | Тейк-профит, % от цены входа |
+| `StopLoss` | decimal | 0.2 | Стоп-лосс, % от цены входа |
+| `VolumeType` | строка | Deposit percent | Тип объёма |
+| `Volume` | decimal | 10 | Объём (% от депозита) |
+| `MaxPositions` | int | 3 | Максимум одновременно открытых позиций (на все бумаги скринера) |
+
+### Риски и ограничения
+
+- Плита определяется относительно EMA-базы по стаканным обновлениям (~1/сек); период `WallPersistenceTime` приблизителен.
+- Выход только по стопу/профиту.
+- Канал Келтнера считается по минутным свечам; внутри минуты значения линии «замирают» до закрытия свечи.

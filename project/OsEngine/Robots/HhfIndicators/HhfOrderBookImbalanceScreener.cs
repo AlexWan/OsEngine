@@ -44,6 +44,8 @@ namespace OsEngine.Robots.HhfIndicators
 
         public StrategyParameterDecimal Volume;
 
+        public StrategyParameterString Regime;
+
         public StrategyParameterInt MaxPositions;
 
         public StrategyParameterInt Levels;
@@ -59,6 +61,7 @@ namespace OsEngine.Robots.HhfIndicators
             TabCreate(BotTabType.Screener);
             _screenerTab = TabsScreener[0];
 
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
             LongThreshold = CreateParameter("LongThreshold", 0.6m, 0m, 1m, 0.05m);
             ShortThreshold = CreateParameter("ShortThreshold", -0.6m, -1m, 0m, 0.05m);
             ConfirmationTime = CreateParameter("ConfirmationTime", 2, 1, 300, 1);
@@ -83,7 +86,7 @@ namespace OsEngine.Robots.HhfIndicators
                 _nonTradePeriods.SetMoexSpotNonTradePeriods();
             }
 
-            StrategyParameterButton nonTradePeriodsButton = CreateParameterButton("Non trade periods", "Base");
+            StrategyParameterButton nonTradePeriodsButton = CreateParameterButton("Non trade periods");
             nonTradePeriodsButton.UserClickOnButtonEvent += NonTradePeriodsButton_UserClickOnButtonEvent;
 
             _screenerTab.MarketDepthUpdateEvent += Screener_MarketDepthUpdateEvent;
@@ -174,10 +177,15 @@ namespace OsEngine.Robots.HhfIndicators
                         return;
                     }
 
+                    if (Regime.ValueString == "Off")
+                    {
+                        return;
+                    }
+
                     string tabName = tab.TabName;
 
-                    bool longCondition = imbalance >= (double)LongThreshold.ValueDecimal && price < lower;
-                    bool shortCondition = imbalance <= (double)ShortThreshold.ValueDecimal && price > upper;
+                    bool longCondition = imbalance >= (double)LongThreshold.ValueDecimal && price < lower && Regime.ValueString != "OnlyShort";
+                    bool shortCondition = imbalance <= (double)ShortThreshold.ValueDecimal && price > upper && Regime.ValueString != "OnlyLong";
 
                     if (longCondition == false)
                     {

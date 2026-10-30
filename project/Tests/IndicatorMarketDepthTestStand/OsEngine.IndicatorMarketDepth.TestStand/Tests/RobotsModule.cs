@@ -71,10 +71,14 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
                 return;
             }
 
-            if (_botParams.Count > 0)
+            Dictionary<string, object> botParams = new Dictionary<string, object>(_botParams);
+
+            if (botParams.ContainsKey("Regime") == false)
             {
-                SetBotParams(botId);
+                botParams["Regime"] = "On";
             }
+
+            SetBotParams(botId, botParams);
 
             string tabType = DetectTabType(botId);
 
@@ -156,9 +160,9 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
                 : string.Empty;
         }
 
-        private void SetBotParams(string botId)
+        private void SetBotParams(string botId, Dictionary<string, object> parameters)
         {
-            QuietCall("bot_set_params", new { bot_id = botId, parameters = _botParams });
+            QuietCall("bot_set_params", new { bot_id = botId, parameters = parameters });
         }
 
         private string DetectTabType(string botId)
