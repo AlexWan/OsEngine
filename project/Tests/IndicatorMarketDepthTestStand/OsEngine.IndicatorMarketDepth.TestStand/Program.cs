@@ -274,7 +274,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                 options.DateTo = options.DateTo.AddDays(-1);
             }
 
-            options.DateFrom = options.DateTo.AddDays(-9);
+            options.DateFrom = options.DateTo.AddDays(-14);
             options.MinDataDays = 3;
 
             for (int i = 0; i < args.Length; i++)

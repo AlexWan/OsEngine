@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -178,10 +179,17 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         private bool AddSecurity(string setName)
         {
+            List<object> securities = new List<object>();
+
+            foreach (string security in _context.Securities)
+            {
+                securities.Add(new { name = security });
+            }
+
             string add = ToolsCall("data_set_securities_add", new
             {
                 name = setName,
-                securities = new[] { new { name = _context.Security }, new { name = _context.SecondSecurity } }
+                securities = securities
             });
 
             if (IsError(add))
@@ -206,8 +214,15 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
         {
             int expected = ExpectedTradingDays();
 
-            return CountLocalQshFiles(_context.Security) >= expected
-                && CountLocalQshFiles(_context.SecondSecurity) >= expected;
+            foreach (string security in _context.Securities)
+            {
+                if (CountLocalQshFiles(security) < expected)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool TickSetIsComplete()

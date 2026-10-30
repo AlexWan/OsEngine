@@ -30,6 +30,8 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
 
         public string SecondSecurity { get; set; } = "GAZP";
 
+        public List<string> Securities { get; set; } = new List<string> { "SBER", "GAZP", "LKOH", "GMKN", "VTBR" };
+
         public DateTime DateFrom { get; set; }
 
         public DateTime DateTo { get; set; }

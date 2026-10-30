@@ -11,15 +11,7 @@
 | 1 | HhfOrderBookImbalanceScreener | OrderBookImbalance | Screener |
 | 2 | HhfDepthVolumeBot | DepthVolume | Simple |
 | 3 | HhfLiquidityWallsBot | LiquidityWalls + Keltner | Screener |
-| 4 | HhfOfiBot | Ofi | Simple |
-| 5 | HhfExpectedSlippageBot | ExpectedSlippage | Simple |
-| 6 | HhfSpoofingBot | Spoofing | Simple |
-| 7 | HhfDeltaBot | Delta | Simple |
-| 8 | HhfSpeedOfTapeBot | SpeedOfTape | Simple |
-| 9 | HhfRvolScreener | Rvol | Screener |
-| 10 | HhfTradeSizeAnalyticsBot | TradeSizeAnalytics | Simple |
-| 11 | HhfIcebergBot | Iceberg | Simple |
-| 12 | HhfResilienceBot | Resilience | Simple |
+| 4 | HhfOfiBot | Ofi + OrderBookImbalance | Screener |
 
 ---
 
@@ -174,3 +166,51 @@
 - Плита определяется относительно EMA-базы по стаканным обновлениям (~1/сек); период `WallPersistenceTime` приблизителен.
 - Выход только по стопу/профиту.
 - Канал Келтнера считается по минутным свечам; внутри минуты значения линии «замирают» до закрытия свечи.
+
+---
+
+## 4. HhfOfiBot — OFI-импульс + перевес стакана
+
+**Файл:** `OsEngine/Robots/HhfIndicators/HhfOfiBot.cs`
+**Источник:** Screener
+
+### Индикаторы
+
+1. **Ofi (Поток заявок)** — стакан. Изменение давления покупателей и продавцов на лучших уровнях стакана между двумя обновлениями. Серия `Ofi`: положительное значение — приток ликвидности в биды (давление вверх), отрицательное — в аски (давление вниз).
+2. **OrderBookImbalance (Дисбаланс стакана)** — стакан. Перевес пассивной ликвидности на стороне бидов или асков. Серия `Imbalance` от −1 до +1: положительное — перевес покупателей (давление вверх), отрицательное — продавцов.
+
+### Суть
+
+Робот ловит крупный импульс потока заявок (Ofi) и входит только если текущий перевес стакана на стороне входа: лонг — импульс покупок **и** перевес на бидах, шорт — импульс продаж **и** перевес на асках.
+
+### Логика (на скринере)
+
+**Подписка на события источника:** `screenerTab.MarketDepthUpdateEvent` (обновление стакана по каждому табу скринера).
+
+1. Ведём EMA-базу по `|Ofi|` для каждого таба отдельно (порог «крупного» импульса).
+2. **Вход (по маркету), все условия одновременно:**
+   - Лонг: `Ofi > 0` **и** `|Ofi| ≥ базы × (1 + ImpulsePercent/100)` **удерживается ≥ ConfirmationTime с** **и** `Imbalance ≥ ImbalanceThreshold`, на табе нет позиции, общее число позиций < `MaxPositions` → `tab.BuyAtMarket(GetVolume(tab))`.
+   - Шорт: `Ofi < 0` **и** `|Ofi| ≥ базы × (1 + ImpulsePercent/100)` **удерживается ≥ ConfirmationTime с** **и** `Imbalance ≤ −ImbalanceThreshold`, на табе нет позиции, общее число позиций < `MaxPositions` → `tab.SellAtMarket(GetVolume(tab))`.
+3. **Выход:** тейк — `CloseAtProfit` (лимитка), стоп — `CloseAtStop`; штатный отзыватор лимиток по времени выключен (`SecondToCloseIsOn`/`SecondToOpenIsOn = false`).
+
+### Параметры
+
+| Имя | Тип | По умолчанию | Смысл |
+|---|---|---|---|
+| `Regime` | строка | Off | Режим: `Off` / `On` / `OnlyLong` / `OnlyShort` |
+| `ImpulsePercent` | decimal | 60 | На сколько % `|Ofi|` выше EMA базы — импульс |
+| `AveragingPeriod` | int | 60 | Период EMA базы (~сек) |
+| `ConfirmationTime` | int | 2 | Секунд подтверждения импульса |
+| `ImbalanceLevels` | int | 5 | Число уровней стакана для OrderBookImbalance |
+| `ImbalanceThreshold` | decimal | 0.5 | Минимальный перевес `Imbalance` для входа |
+| `TakeProfit` | decimal | 0.1 | Тейк-профит, % от цены входа |
+| `StopLoss` | decimal | 0.1 | Стоп-лосс, % от цены входа |
+| `VolumeType` | строка | Deposit percent | Тип объёма |
+| `Volume` | decimal | 10 | Объём (% от депозита) |
+| `MaxPositions` | int | 3 | Максимум одновременно открытых позиций (на все бумаги скринера) |
+
+### Риски и ограничения
+
+- Импульс определяется относительно EMA-базы по `|Ofi|` (~1 обновление/сек); период `AveragingPeriod` приблизителен.
+- Перевес стакана требует `|Imbalance| ≥ ImbalanceThreshold` (по умолчанию 0.4).
+- Выход только по стопу/профиту.

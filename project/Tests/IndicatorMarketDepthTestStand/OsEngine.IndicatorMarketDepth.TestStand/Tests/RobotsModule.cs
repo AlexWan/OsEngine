@@ -143,6 +143,8 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
                 RecordFail("Trades", "робот не совершил ни одной сделки");
             }
 
+            CheckPositionsHealth(botId);
+
             DeleteBot(botId);
         }
 
@@ -239,6 +241,13 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         private bool ConfigureScreener(string botId, string tabName)
         {
+            List<object> securities = new List<object>();
+
+            foreach (string security in _context.Securities)
+            {
+                securities.Add(new { name = security });
+            }
+
             string response = ToolsCall("bot_set_config_tab_screener", new
             {
                 bot_id = botId,
@@ -249,11 +258,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
                 emulator_is_on = true,
                 candle_market_data_type = "MarketDepth",
                 time_frame = "Min1",
-                securities = new[]
-                {
-                    new { name = _context.Security },
-                    new { name = _context.SecondSecurity }
-                }
+                securities = securities
             });
 
             return !IsError(response);
@@ -364,6 +369,95 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
         private void DeleteBot(string botId)
         {
             QuietCall("bot_delete", new { bot_id = botId });
+        }
+
+        private void CheckPositionsHealth(string botId)
+        {
+            string closedResponse = QuietCall("bot_journal_get_closed_positions", new { bot_name = botId, include_failed = true });
+
+            int strangeCount = 0;
+            List<string> strangeStates = new List<string>();
+            double totalSeconds = 0;
+            int holdingCount = 0;
+
+            if (TryParseJson(closedResponse, out JsonElement closedRoot)
+                && closedRoot.TryGetProperty("positions", out JsonElement positions)
+                && positions.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement pos in positions.EnumerateArray())
+                {
+                    string state = pos.TryGetProperty("state", out JsonElement stateElement)
+                        ? stateElement.GetString() ?? string.Empty
+                        : string.Empty;
+
+                    if (string.IsNullOrEmpty(state) == false && state != "Done")
+                    {
+                        strangeCount++;
+
+                        if (strangeStates.Contains(state) == false)
+                        {
+                            strangeStates.Add(state);
+                        }
+                    }
+
+                    if (TryGetHoldingSeconds(pos, out double seconds))
+                    {
+                        totalSeconds += seconds;
+                        holdingCount++;
+                    }
+                }
+            }
+
+            if (strangeCount > 0)
+            {
+                RecordFail("PositionsState", "странных позиций " + strangeCount + " (" + string.Join(", ", strangeStates) + ")");
+            }
+            else
+            {
+                RecordPass("PositionsState", "странных статусов нет");
+            }
+
+            if (holdingCount > 0)
+            {
+                double avgSeconds = totalSeconds / holdingCount;
+                double avgHours = avgSeconds / 3600;
+
+                if (avgHours > 5)
+                {
+                    RecordFail("HoldingAvg", "среднее удержание " + avgHours.ToString("F2") + " ч больше 5 ч");
+                }
+                else
+                {
+                    RecordPass("HoldingAvg", "среднее удержание " + FormatHolding(avgSeconds));
+                }
+            }
+        }
+
+        private bool TryGetHoldingSeconds(JsonElement pos, out double seconds)
+        {
+            seconds = 0;
+
+            if (pos.TryGetProperty("open_time", out JsonElement openElement)
+                && openElement.ValueKind == JsonValueKind.String
+                && pos.TryGetProperty("close_time", out JsonElement closeElement)
+                && closeElement.ValueKind == JsonValueKind.String)
+            {
+                if (DateTime.TryParse(openElement.GetString(), out DateTime open)
+                    && DateTime.TryParse(closeElement.GetString(), out DateTime close)
+                    && close >= open)
+                {
+                    seconds = (close - open).TotalSeconds;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private string FormatHolding(double seconds)
+        {
+            TimeSpan span = TimeSpan.FromSeconds(seconds);
+            return "H " + span.Hours + " M " + span.Minutes + " S " + span.Seconds;
         }
     }
 }
