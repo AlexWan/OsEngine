@@ -208,6 +208,50 @@ namespace OsEngine.Candles.Series
             }
         }
 
+        // Начало свечи, в которую попадает время. Сетка повторяется каждые сутки со сдвигом SecondsShift, поэтому интервал,
+        // которому принадлежит время, может начинаться в предыдущих или в следующих сутках (сдвиг > 0: [00:00, сдвиг) — хвост
+        // последней свечи прошлых суток; сдвиг < 0: интервал через полночь). Берём ближайший старт не позже времени.
+        private DateTime GetCandleStartTime(DateTime time)
+        {
+            if (_timesStartCandles.Count == 0)
+            {
+                return time;
+            }
+
+            // сетка равномерная: старт i-й свечи суток = сдвиг + i * таймфрейм (счёт от полуночи)
+            TimeSpan shift = _timesStartCandles[0] - new DateTime(2022, 1, 1, 0, 0, 0);
+
+            DateTime best = time;
+            bool found = false;
+
+            for (int d = -1; d <= 1; d++)
+            {
+                DateTime dayStart = time.Date.AddDays(d) + shift;
+
+                if (dayStart > time)
+                {
+                    continue;
+                }
+
+                long index = (time - dayStart).Ticks / _timeFrameSpan.Ticks;
+
+                if (index >= _timesStartCandles.Count)
+                {
+                    index = _timesStartCandles.Count - 1;
+                }
+
+                DateTime start = dayStart.AddTicks(index * _timeFrameSpan.Ticks);
+
+                if (found == false || start > best)
+                {
+                    best = start;
+                    found = true;
+                }
+            }
+
+            return best;
+        }
+
         public override void UpDateCandle(DateTime time, decimal price, decimal volume, bool canPushUp, Side side)
         {
             if (CandlesAll != null
@@ -226,23 +270,7 @@ namespace OsEngine.Candles.Series
                 // пришла первая сделка
                 CandlesAll = new List<Candle>();
 
-                DateTime timeNextCandle = time;
-
-                for(int i = 0;i < _timesStartCandles.Count-1;i++)
-                {
-                    DateTime curTime = _timesStartCandles[i];
-                    DateTime nextTime = _timesStartCandles[i+1];
-
-                    if(time.TimeOfDay >= curTime.TimeOfDay &&
-                        time.TimeOfDay < nextTime.TimeOfDay)
-                    {
-                        timeNextCandle = curTime;
-                        break;
-                    }
-                }
-
-                timeNextCandle = new DateTime(time.Year, time.Month, time.Day,
-                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+                DateTime timeNextCandle = GetCandleStartTime(time);
 
                 Candle candle = new Candle()
                 {
@@ -288,23 +316,7 @@ namespace OsEngine.Candles.Series
                     }
                 }
 
-                DateTime timeNextCandle = time;
-
-                for (int i = 0; i < _timesStartCandles.Count - 1; i++)
-                {
-                    DateTime curTime = _timesStartCandles[i];
-                    DateTime nextTime = _timesStartCandles[i+1];
-
-                    if (time.TimeOfDay >= curTime.TimeOfDay &&
-                        time.TimeOfDay < nextTime.TimeOfDay)
-                    {
-                        timeNextCandle = curTime;
-                        break;
-                    }
-                }
-
-                timeNextCandle = new DateTime(time.Year, time.Month, time.Day,
-                    timeNextCandle.Hour, timeNextCandle.Minute, timeNextCandle.Second, timeNextCandle.Millisecond);
+                DateTime timeNextCandle = GetCandleStartTime(time);
 
                 Candle newCandle = new Candle()
                 {
