@@ -1560,10 +1560,15 @@ namespace OsEngine.MCP.Modules
                         && TimeSpan.TryParse(valueElement.GetString(), out TimeSpan timeSpan))
                     {
                         StrategyParameterTimeOfDay timeParam = (StrategyParameterTimeOfDay)parameter;
-                        timeParam.Value.Hour = timeSpan.Hours;
-                        timeParam.Value.Minute = timeSpan.Minutes;
-                        timeParam.Value.Second = timeSpan.Seconds;
-                        timeParam.Value.Millisecond = timeSpan.Milliseconds;
+
+                        // LoadParamFromString поднимает ValueChange, по которому BotPanel
+                        // сохраняет параметры в файл. Прямая запись в Value.Hour/Minute/...
+                        // событие не поднимает, и изменение теряется при перезапуске терминала.
+                        timeParam.LoadParamFromString(new[]
+                        {
+                            timeParam.Name,
+                            $"{timeSpan.Hours}:{timeSpan.Minutes}:{timeSpan.Seconds}:{timeSpan.Milliseconds}"
+                        });
                     }
                     else
                     {
