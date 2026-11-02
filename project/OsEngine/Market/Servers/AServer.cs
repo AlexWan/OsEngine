@@ -3560,6 +3560,11 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                if (security == null)
+                {
+                    return null;
+                }
+
                 if (_allTrades == null)
                 {
                     return null;
