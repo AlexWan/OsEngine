@@ -6371,6 +6371,11 @@ namespace OsEngine.Market.Servers.Tester
 
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
+            if (security == null)
+            {
+                return null;
+            }
+
             for (int i = 0; _allTrades != null && i < _allTrades.Length; i++)
             {
                 if (_allTrades[i] != null && _allTrades[i].Count != 0 &&

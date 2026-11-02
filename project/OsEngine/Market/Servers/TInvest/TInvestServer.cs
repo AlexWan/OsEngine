@@ -1,4 +1,4 @@
-/*
+﻿/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -549,53 +549,69 @@ namespace OsEngine.Market.Servers.TInvest
                     _useOptions = ((ServerParameterBool)ServerParameters[3]).Value;
                     _useOther = ((ServerParameterBool)ServerParameters[4]).Value;
 
-                    _rateGateInstruments.WaitToProceed();
-                    CurrenciesResponse currenciesResponse = null;
+                    // Справочник отдаём движку частями - сразу после каждого загруженного типа.
+                    // Вкладки начинают находить свои бумаги в первые секунды,
+                    // не дожидаясь загрузки всего списка целиком.
+                    // Ошибка загрузки одного типа не должна обрывать весь справочник:
+                    // логируем и продолжаем со следующим типом
 
-                    currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
-
-                    if (UpdateCurrenciesFromServer(currenciesResponse) == false)
+                    try
                     {
-                        SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                        return;
+                        _rateGateInstruments.WaitToProceed();
+                        CurrenciesResponse currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
+
+                        if (UpdateCurrenciesFromServer(currenciesResponse))
+                        {
+                            SendCurrentSecurities();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage(OsLocalization.Market.Label323 + " currencies. " + ex.ToString(), LogMessageType.Error);
                     }
 
                     if (_useStock || _useOther)
                     {
-                        _rateGateInstruments.WaitToProceed();
-
-                        SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
-
-                        if (UpdateSharesFromServer(result) == false)
+                        try
                         {
-                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                            return;
+                            _rateGateInstruments.WaitToProceed();
+
+                            SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+
+                            if (UpdateSharesFromServer(result))
+                            {
+                                SendCurrentSecurities();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323 + " shares. " + ex.ToString(), LogMessageType.Error);
                         }
                     }
 
                     if (_useFutures)
                     {
-                        _rateGateInstruments.WaitToProceed();
-
-                        FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
-
-                        if (UpdateFuturesFromServer(result) == false)
+                        try
                         {
-                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                            return;
+                            _rateGateInstruments.WaitToProceed();
+
+                            FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+
+                            if (UpdateFuturesFromServer(result))
+                            {
+                                SendCurrentSecurities();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323 + " futures. " + ex.ToString(), LogMessageType.Error);
                         }
                     }
 
                     if (_useOptions)
                     {
                         // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
-                        // No options still for T-Invest 
+                        // No options still for T-Invest
                         //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.System);
 
                         //_rateGateInstruments.WaitToProceed();
@@ -620,37 +636,52 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_useOther)
                     {
-                        _rateGateInstruments.WaitToProceed();
-
-                        BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        if (UpdateBondsFromServer(result) == false)
+                        try
                         {
-                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                            return;
+                            _rateGateInstruments.WaitToProceed();
+
+                            BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
+
+                            if (UpdateBondsFromServer(result))
+                            {
+                                SendCurrentSecurities();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323 + " bonds. " + ex.ToString(), LogMessageType.Error);
                         }
 
-                        _rateGateInstruments.WaitToProceed();
-
-                        EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
-                        if (UpdateEtfsFromServer(etfs) == false)
+                        try
                         {
-                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                            return;
+                            _rateGateInstruments.WaitToProceed();
+
+                            EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
+
+                            if (UpdateEtfsFromServer(etfs))
+                            {
+                                SendCurrentSecurities();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323 + " etfs. " + ex.ToString(), LogMessageType.Error);
                         }
 
-                        _rateGateInstruments.WaitToProceed();
-
-                        IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
-                        if (UpdateIndicativesFromServer(indicatives) == false)
+                        try
                         {
-                            SendLogMessage(OsLocalization.Market.Label323, LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                            return;
+                            _rateGateInstruments.WaitToProceed();
+
+                            IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+
+                            if (UpdateIndicativesFromServer(indicatives))
+                            {
+                                SendCurrentSecurities();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage(OsLocalization.Market.Label323 + " indicatives. " + ex.ToString(), LogMessageType.Error);
                         }
                     }
 
@@ -658,10 +689,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SendLogMessage(OsLocalization.Market.Label287 + " " + _securities.Count, LogMessageType.System);
 
-                        if (SecurityEvent != null)
-                        {
-                            SecurityEvent.Invoke(_securities);
-                        }
+                        SendCurrentSecurities();
 
                         GetPortfolios();
                     }
@@ -686,6 +714,18 @@ namespace OsEngine.Market.Servers.TInvest
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
+            }
+        }
+
+        private void SendCurrentSecurities()
+        {
+            // снимок списка: дальше по коду в _securities продолжают добавляться бумаги
+            List<Security> snapshot = new List<Security>(_securities);
+
+            if (snapshot.Count > 0
+                && SecurityEvent != null)
+            {
+                SecurityEvent.Invoke(snapshot);
             }
         }
 

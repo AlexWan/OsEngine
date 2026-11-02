@@ -1384,6 +1384,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
+            if (security == null)
+            {
+                return new List<Trade>();
+            }
+
             if (_allTrades != null)
             {
                 foreach (var tradesList in _allTrades)
