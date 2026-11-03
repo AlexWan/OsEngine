@@ -43,6 +43,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestRunSimulation();
             TestGetReport();
             TestJournalData();
+            TestStatsCoincidence();
             TestScreenerConfiguration();
             TestIndexArbitrage();
             TestPositionSupportScreener();
@@ -2276,6 +2277,113 @@ namespace OsEngine.McpApi.TestStand.Tests
                     config = innerDocument.RootElement.Clone();
                     return true;
                 }
+            }
+        }
+
+        private void TestStatsCoincidence()
+        {
+            const string checkName = "report_vs_journal";
+            const string reportMethod = "tester_get_report";
+            const string journalMethod = "bot_journal_get_statistics";
+
+            try
+            {
+                _context.PrintRequest(Module, checkName, new { });
+                string reportResponse = _context.Client.ToolsCall(reportMethod, new { });
+
+                if (!TryParseConfig(reportResponse, reportMethod, out JsonElement reportConfig))
+                {
+                    _context.RecordFail(Module, checkName, "failed to parse report");
+                    return;
+                }
+
+                if (!reportConfig.TryGetProperty("statistics_full", out JsonElement reportStats)
+                    || reportStats.ValueKind != JsonValueKind.Object)
+                {
+                    _context.RecordFail(Module, checkName, "statistics_full missing");
+                    return;
+                }
+
+                string journalResponse = _context.Client.ToolsCall(journalMethod, new { bot_name = "" });
+                _context.PrintResponse(journalResponse);
+
+                using (var journalDocument = JsonDocument.Parse(journalResponse))
+                {
+                    JsonElement journalResult = journalDocument.RootElement;
+
+                    if (!journalResult.TryGetProperty("IsError", out JsonElement isError) || isError.GetBoolean())
+                    {
+                        _context.RecordFail(Module, checkName, "journal IsError is true");
+                        return;
+                    }
+
+                    if (!journalResult.TryGetProperty("Content", out JsonElement journalContent) || journalContent.GetArrayLength() == 0)
+                    {
+                        _context.RecordFail(Module, checkName, "journal Content empty");
+                        return;
+                    }
+
+                    string journalText = journalContent[0].GetProperty("Text").GetString() ?? string.Empty;
+
+                    using (var journalInner = JsonDocument.Parse(journalText))
+                    {
+                        JsonElement journalStats = journalInner.RootElement;
+
+                        List<string> mismatches = new List<string>();
+
+                        CheckDecimalEqual(reportStats, "profit_percent", journalStats, "net_profit_percent", "profit_percent", mismatches);
+                        CheckDecimalEqual(reportStats, "max_drawdown", journalStats, "max_drawdown_percent", "max_drawdown", mismatches);
+                        CheckDecimalEqual(reportStats, "sharpe_ratio", journalStats, "sharpe", "sharpe", mismatches);
+                        CheckDecimalEqual(reportStats, "profit_factor", journalStats, "profit_factor", "profit_factor", mismatches);
+                        CheckDecimalEqual(reportStats, "recovery", journalStats, "recovery", "recovery", mismatches);
+                        CheckDecimalEqual(reportStats, "commission", journalStats, "commission", "commission", mismatches);
+                        CheckIntEqual(reportStats, "trades", journalStats, "deals_count", "deals_count", mismatches);
+                        CheckIntEqual(reportStats, "winning_trades", journalStats, "profitable_deals", "profitable_deals", mismatches);
+
+                        if (mismatches.Count > 0)
+                        {
+                            _context.RecordFail(Module, checkName, string.Join("; ", mismatches));
+                            return;
+                        }
+                    }
+                }
+
+                _context.RecordPass(Module, checkName, "tester_get_report.statistics_full matches bot_journal_get_statistics");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, checkName, error.Message);
+            }
+        }
+
+        private static void CheckDecimalEqual(JsonElement a, string aName, JsonElement b, string bName, string label, List<string> mismatches)
+        {
+            if (!a.TryGetProperty(aName, out JsonElement aEl) || !aEl.TryGetDecimal(out decimal aVal)
+                || !b.TryGetProperty(bName, out JsonElement bEl) || !bEl.TryGetDecimal(out decimal bVal))
+            {
+                mismatches.Add($"{label}: field missing or not a number");
+                return;
+            }
+
+            if (Math.Abs(aVal - bVal) > 0.0001m)
+            {
+                mismatches.Add($"{label}: report={aVal}, journal={bVal}");
+            }
+        }
+
+        private static void CheckIntEqual(JsonElement a, string aName, JsonElement b, string bName, string label, List<string> mismatches)
+        {
+            if (!a.TryGetProperty(aName, out JsonElement aEl) || !aEl.TryGetInt32(out int aVal)
+                || !b.TryGetProperty(bName, out JsonElement bEl) || !bEl.TryGetInt32(out int bVal))
+            {
+                mismatches.Add($"{label}: field missing or not an int");
+                return;
+            }
+
+            if (aVal != bVal)
+            {
+                mismatches.Add($"{label}: report={aVal}, journal={bVal}");
             }
         }
 

@@ -4457,16 +4457,16 @@ namespace OsEngine.MCP.Modules
             return new
             {
                 net_profit = PositionStatisticGenerator.GetAllProfitInAbsolute(dealsArray, false),
-                net_profit_percent = PositionStatisticGenerator.GetAllProfitPercent(dealsArray, false),
+                net_profit_percent = Math.Round(PositionStatisticGenerator.GetAllProfitPercent(dealsArray, false), 4),
                 deals_count = PositionStatisticGenerator.GetAllDealsCount(dealsArray),
                 average_holding_time = PositionStatisticGenerator.GetAverageTimeOnPoses(dealsArray),
-                sharpe = PositionStatisticGenerator.GetSharpRatio(dealsArray, 7),
-                profit_factor = PositionStatisticGenerator.GetProfitFactor(dealsArray),
-                recovery = PositionStatisticGenerator.GetRecovery(dealsArray),
+                sharpe = Math.Round(PositionStatisticGenerator.GetSharpRatio(dealsArray, 7), 4),
+                profit_factor = Math.Round(PositionStatisticGenerator.GetProfitFactor(dealsArray), 4),
+                recovery = Math.Round(PositionStatisticGenerator.GetRecovery(dealsArray), 4),
                 profitable_deals = PositionStatisticGenerator.GetProfitDeal(dealsArray),
                 losing_deals = deals.Count - PositionStatisticGenerator.GetProfitDeal(dealsArray),
-                max_drawdown_percent = PositionStatisticGenerator.GetMaxDownPercent(dealsArray),
-                commission = PositionStatisticGenerator.GetCommissionAmount(dealsArray)
+                max_drawdown_percent = Math.Round(PositionStatisticGenerator.GetMaxDownPercent(dealsArray), 4),
+                commission = Math.Round(PositionStatisticGenerator.GetCommissionAmount(dealsArray), 4)
             };
         }
 

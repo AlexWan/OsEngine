@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using OsEngine.Candles;
 using OsEngine.Entity;
@@ -1160,22 +1161,29 @@ namespace OsEngine.MCP.Modules
 
             if (positions != null && positions.Count > 0)
             {
-                Position[] deals = positions.ToArray();
+                List<Position> deals = positions.FindAll(p => p.State != PositionStateType.OpeningFail);
 
-                stats["profit_abs"] = PositionStatisticGenerator.GetAllProfitInAbsolute(deals, true);
-                stats["profit_percent"] = Math.Round(PositionStatisticGenerator.GetAllProfitPercent(deals, true), 4);
-                stats["trades"] = PositionStatisticGenerator.GetAllDealsCount(deals);
-                stats["profit_factor"] = Math.Round(PositionStatisticGenerator.GetProfitFactor(deals), 4);
-                stats["recovery"] = Math.Round(PositionStatisticGenerator.GetRecovery(deals), 4);
-                stats["payoff_ratio"] = Math.Round(PositionStatisticGenerator.GetPayOffRatio(deals), 4);
-                stats["sharpe_ratio"] = Math.Round(PositionStatisticGenerator.GetSharpRatio(deals, 0m), 4);
-                stats["max_drawdown"] = Math.Round(PositionStatisticGenerator.GetMaxDownPercent(deals), 4);
-                stats["commission"] = Math.Round(PositionStatisticGenerator.GetCommissionAmount(deals), 4);
-                stats["winning_trades"] = PositionStatisticGenerator.GetProfitDeal(deals);
-                stats["winning_trades_percent"] = Math.Round(PositionStatisticGenerator.GetProfitDialPercent(deals), 4);
-                stats["average_profit"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInAbsolute(deals), 4);
-                stats["average_profit_percent"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(deals), 4);
-                stats["average_holding_time"] = PositionStatisticGenerator.GetAverageTimeOnPoses(deals);
+                if (deals.Count > 1)
+                {
+                    deals = deals.OrderBy(p => p.TimeOpen).ToList();
+                }
+
+                Position[] dealsArray = deals.ToArray();
+
+                stats["profit_abs"] = PositionStatisticGenerator.GetAllProfitInAbsolute(dealsArray, false);
+                stats["profit_percent"] = Math.Round(PositionStatisticGenerator.GetAllProfitPercent(dealsArray, false), 4);
+                stats["trades"] = PositionStatisticGenerator.GetAllDealsCount(dealsArray);
+                stats["profit_factor"] = Math.Round(PositionStatisticGenerator.GetProfitFactor(dealsArray), 4);
+                stats["recovery"] = Math.Round(PositionStatisticGenerator.GetRecovery(dealsArray), 4);
+                stats["payoff_ratio"] = Math.Round(PositionStatisticGenerator.GetPayOffRatio(dealsArray), 4);
+                stats["sharpe_ratio"] = Math.Round(PositionStatisticGenerator.GetSharpRatio(dealsArray, 7), 4);
+                stats["max_drawdown"] = Math.Round(PositionStatisticGenerator.GetMaxDownPercent(dealsArray), 4);
+                stats["commission"] = Math.Round(PositionStatisticGenerator.GetCommissionAmount(dealsArray), 4);
+                stats["winning_trades"] = PositionStatisticGenerator.GetProfitDeal(dealsArray);
+                stats["winning_trades_percent"] = Math.Round(PositionStatisticGenerator.GetProfitDialPercent(dealsArray), 4);
+                stats["average_profit"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInAbsolute(dealsArray), 4);
+                stats["average_profit_percent"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(dealsArray), 4);
+                stats["average_holding_time"] = PositionStatisticGenerator.GetAverageTimeOnPoses(dealsArray);
             }
 
             return stats;
