@@ -243,7 +243,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     string message = "Auto-stop grid by time of day. \n";
                     message += "Current server time: " + time.ToString() + "\n";
-                    message += "New regime: " + StopGridByLifeTimeReaction;
+                    message += "New regime: " + StopGridByTimeOfDayReaction;
                     SendNewLogMessage(message, LogMessageType.Signal);
 
                     return StopGridByTimeOfDayReaction;
