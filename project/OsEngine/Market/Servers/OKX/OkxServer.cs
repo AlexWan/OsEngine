@@ -291,13 +291,13 @@ namespace OsEngine.Market.Servers.OKX
 
         private string _baseUrl = "https://www.okx.com";
 
-        private string _webSocketUrlPublic = "wss://ws.okx.com:8443/ws/v5/public";
+        private string _webSocketUrlPublic = "wss://ws.okx.com/ws/v5/public";
 
-        private string _webSocketUrlPrivate = "wss://ws.okx.com:8443/ws/v5/private";
+        private string _webSocketUrlPrivate = "wss://ws.okx.com/ws/v5/private";
 
-        private string _webSocketUrlPublicDemo = "wss://wspap.okx.com:8443/ws/v5/public";
+        private string _webSocketUrlPublicDemo = "wss://wspap.okx.com/ws/v5/public";
 
-        private string _webSocketUrlPrivateDemo = "wss://wspap.okx.com:8443/ws/v5/private";
+        private string _webSocketUrlPrivateDemo = "wss://wspap.okx.com/ws/v5/private";
 
         private bool _hedgeMode;
 
@@ -2267,7 +2267,7 @@ namespace OsEngine.Market.Servers.OKX
             });
         }
 
-        // diagnostics helper: counts TCP connections to the OKX websocket port on this IP.
+        // diagnostics helper: counts TCP connections to the OKX websocket host on this IP.
         // Includes REST keep-alive connections, other OsEngine instances and other apps,
         // so it is an upper estimate of the per-IP connection budget usage, not an exact number
         private int GetActiveOkxConnectionCount()
@@ -2277,11 +2277,17 @@ namespace OsEngine.Market.Servers.OKX
                 System.Net.NetworkInformation.TcpConnectionInformation[] connections =
                     System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections();
 
+                // OKX websockets use the default https port since port 8443 was retired, so the port alone
+                // would also count every other https connection: match the websocket host's addresses too
+                string webSocketUrl = _demoMode ? _webSocketUrlPublicDemo : _webSocketUrlPublic;
+                HashSet<IPAddress> okxAddresses = new HashSet<IPAddress>(Dns.GetHostAddresses(new Uri(webSocketUrl).Host));
+
                 int count = 0;
 
                 for (int i = 0; i < connections.Length; i++)
                 {
-                    if (connections[i].RemoteEndPoint.Port == 8443)
+                    if (connections[i].RemoteEndPoint.Port == 443
+                        && okxAddresses.Contains(connections[i].RemoteEndPoint.Address))
                     {
                         count++;
                     }
