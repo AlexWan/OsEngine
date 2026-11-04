@@ -37,6 +37,8 @@ namespace OsEngine.OsCapitalAllocation
 
         private bool _syncingToUi;
 
+        private bool _syncingToMaster;
+
         private Forms.DataGridView _gridBots;
 
         private Forms.DataGridView _gridResultCorrelationClustering;
@@ -149,6 +151,11 @@ namespace OsEngine.OsCapitalAllocation
         /// </summary>
         private void Master_StateChanged()
         {
+            if (_syncingToMaster)
+            {
+                return;
+            }
+
             try
             {
                 if (Dispatcher.CheckAccess() == false)
@@ -699,18 +706,27 @@ namespace OsEngine.OsCapitalAllocation
                 return false;
             }
 
-            _master.PeriodType = ComboBoxPeriod.SelectedIndex == 0
-                ? ReturnPeriodType.Week
-                : ReturnPeriodType.Month;
+            _syncingToMaster = true;
 
-            _master.StartTime = DatePickerStart.SelectedDate;
-            _master.EndTime = DatePickerEnd.SelectedDate;
+            try
+            {
+                _master.PeriodType = ComboBoxPeriod.SelectedIndex == 0
+                    ? ReturnPeriodType.Week
+                    : ReturnPeriodType.Month;
 
-            _master.MinCorrelation = ParseMinCorrelation();
+                _master.StartTime = DatePickerStart.SelectedDate;
+                _master.EndTime = DatePickerEnd.SelectedDate;
 
-            _master.LinkageMethod = (LinkageMethod)ComboBoxLinkage.SelectedIndex;
-            _master.CovarianceMethod = (CovarianceMethod)ComboBoxCovariance.SelectedIndex;
-            _master.CorrelationType = (CorrelationType)ComboBoxCorrelation.SelectedIndex;
+                _master.MinCorrelation = ParseMinCorrelation();
+
+                _master.LinkageMethod = (LinkageMethod)ComboBoxLinkage.SelectedIndex;
+                _master.CovarianceMethod = (CovarianceMethod)ComboBoxCovariance.SelectedIndex;
+                _master.CorrelationType = (CorrelationType)ComboBoxCorrelation.SelectedIndex;
+            }
+            finally
+            {
+                _syncingToMaster = false;
+            }
 
             return true;
         }
