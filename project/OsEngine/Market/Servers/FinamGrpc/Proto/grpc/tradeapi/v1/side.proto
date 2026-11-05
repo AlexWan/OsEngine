@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1;
+
+option go_package = "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1";
+option java_multiple_files = true;
+
+// Сторона сделки
+enum Side {
+  // Сторона сделки не указана
+  SIDE_UNSPECIFIED = 0;
+  // Покупка
+  SIDE_BUY = 1;
+  // Продажа
+  SIDE_SELL = 2;
+}
+

@@ -582,12 +582,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (md.Bids.Count > 25 ||
-                md.Asks.Count > 25)
-            {
-                SetNewError("MD Error 40. Count in bids or asks more 25 lines");
-                return;
-            }
+            // проверка на 25 уровней убрана: коннекторы с полным стаканом (Finam и др.) отдают сотни уровней
 
             if (string.IsNullOrEmpty(md.SecurityNameCode))
             {

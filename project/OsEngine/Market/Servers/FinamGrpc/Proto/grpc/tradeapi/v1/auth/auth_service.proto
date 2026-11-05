@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1.auth;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "grpc/gateway/protoc_gen_openapiv2/options/annotations.proto";
+
+option go_package = "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth";
+option java_multiple_files = true;
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  schemes: [
+    HTTP,
+    HTTPS
+  ]
+  info: {
+    title: "Finam Trade-API"
+    description: "API для торговых операций"
+  }
+  responses: [
+    {
+      key: "default"
+      value: {
+        schema: {
+          json_schema: {
+            ref: "googletypeStatus"
+          }
+        }
+      }
+    },
+    {
+      key: "500"
+      value: {
+        description: "Внутренняя ошибка сервиса. Попробуйте позже"
+      }
+    },
+    {
+      key: "503"
+      value: {
+        description: "Сервис на данный момент не доступен. Попробуйте позже"
+      }
+    },
+    {
+      key: "429"
+      value: {
+        description: "Слишком много запросов. Доступный лимит - 200 запросов в минуту"
+      }
+    },
+    {
+      key: "401"
+      value: {
+        description: "Срок действия токена истек или токен недействителен"
+      }
+    },
+    {
+      key: "504"
+      value: {
+        description: "Крайний срок истек до завершения операции"
+      }
+    },
+    {
+      key: "400"
+      value: {
+        description: "Срок действия токена истек или токен недействителен"
+      }
+    }
+  ]
+};
+
+// Сервис аутентификации
+service AuthService {
+  // Получение JWT токена из API токена
+  // Пример HTTP запроса:
+  // POST /v1/sessions
+  // Content-Type: application/json
+  //
+  // {
+  //   "secret": "your-api-secret-key"
+  // }
+  //
+  // Все поля передаются в теле запроса
+  rpc Auth(AuthRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/v1/sessions"
+      body: "*"
+    };
+  };
+
+  // Получение информации о токене сессии
+  // Пример HTTP запроса:
+  // POST /v1/sessions/details
+  // Content-Type: application/json
+  //
+  // {
+  //   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  // }
+  //
+  // Токен передается в теле запроса для безопасности
+  // Получение информации о токене. Также включает список доступных счетов.
+  rpc TokenDetails(TokenDetailsRequest) returns (TokenDetailsResponse) {
+    option (google.api.http) = {
+      post: "/v1/sessions/details"
+      body: "*"
+    };
+  };
+
+  // Подписка на обновление JWT токена. Стрим метод
+  rpc SubscribeJwtRenewal(SubscribeJwtRenewalRequest) returns (stream SubscribeJwtRenewalResponse);
+
+}
+
+// Запрос авторизации
+message AuthRequest {
+  // API токен (secret key)
+  string secret = 1;
+  // Идентификатор приложения-источника запроса
+  string source_app_id = 2;
+}
+
+// Информация об авторизации
+message AuthResponse {
+  // Полученный JWT-токен
+  string token = 1;
+}
+
+// Запрос информации о токене
+message TokenDetailsRequest {
+  // JWT-токен
+  string token = 1;
+}
+
+// Информация о токене
+message TokenDetailsResponse {
+  // Дата и время создания
+  google.protobuf.Timestamp created_at = 1;
+  // Дата и время экспирации
+  google.protobuf.Timestamp expires_at = 2;
+  // Информация о доступе к рыночным данным
+  repeated MDPermission md_permissions = 3;
+  // Идентификаторы аккаунтов
+  repeated string account_ids = 4;
+  // Сессия и торговые счета в токене будут помечены readonly
+  bool readonly = 5;
+}
+
+// Информация о доступе к рыночным данным
+message MDPermission {
+  // Уровень котировок
+  enum QuoteLevel {
+    // Значение не указано
+    QUOTE_LEVEL_UNSPECIFIED = 0;
+    // Последняя цена
+    QUOTE_LEVEL_LAST_PRICE = 1;
+    // Бид аск
+    QUOTE_LEVEL_BEST_BID_OFFER = 2;
+    // Агрегированный стакан
+    QUOTE_LEVEL_DEPTH_OF_MARKET = 3;
+    // Полный стакан
+    QUOTE_LEVEL_DEPTH_OF_BOOK = 4;
+    // Доступ запрещен
+    QUOTE_LEVEL_ACCESS_FORBIDDEN = 5;
+  }
+  // Уровень котировок
+  QuoteLevel quote_level = 1;
+  // Задержка в минутах
+  int32 delay_minutes = 2;
+
+  oneof condition {
+    // Идентификатор биржи mic
+    string mic = 3;
+    // Страна
+    string country = 4;
+    // Континент
+    string continent = 5;
+    // Весь мир
+    bool worldwide = 6;
+  }
+}
+
+// Запрос подписки на обновление JWT токена
+message SubscribeJwtRenewalRequest {
+  // API токен (secret key)
+  string secret = 1;
+  // Идентификатор приложения-источника запроса
+  string source_app_id = 2;
+}
+
+// Обновленный токен. Стрим
+message SubscribeJwtRenewalResponse {
+  // Полученный JWT-токен
+  string token = 1;
+}
+

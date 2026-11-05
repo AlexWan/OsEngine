@@ -161,12 +161,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (md.Bids.Count > 25 ||
-                md.Asks.Count > 25)
-            {
-                SetNewError("MD Error 4. Count in bids or asks more 25 lines");
-                return;
-            }
+            // 5.1.6 больше не актуально: коннекторы с полным стаканом (Finam и др.) отдают сотни уровней
 
             if (string.IsNullOrEmpty(md.SecurityNameCode))
             {

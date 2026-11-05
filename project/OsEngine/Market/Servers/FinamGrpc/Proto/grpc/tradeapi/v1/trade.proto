@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
+import "grpc/tradeapi/v1/side.proto";
+
+option go_package = "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1";
+option java_multiple_files = true;
+
+// Информация о сделке
+message AccountTrade {
+  // Комиссия по сделке
+  message Commission {
+    // Значение комиссии
+    google.type.Decimal value = 1;
+    // Валюта комиссии
+    string currency = 2;
+  }
+  // Идентификатор сделки
+  string trade_id = 1;
+  // Символ инструмента
+  string symbol = 2;
+  // Цена исполнения
+  google.type.Decimal price = 3;
+  // Размер в шт.
+  google.type.Decimal size = 4;
+  // Сторона сделки (long или short)
+  Side side = 5;
+  // Метка времени
+  google.protobuf.Timestamp timestamp = 6;
+  // Идентификатор заявки
+  string order_id = 7;
+  // Идентификатор аккаунта
+  string account_id = 8;
+  // Метка заявки. (максимум 128 символов)
+  string comment = 9;
+  // НКД (заполняется на следующий день после даты совершения сделки)
+  google.type.Decimal accrued_interest = 10;
+  // Валюта цены (например, RUB, USD, EUR)
+  // Примечание: поле заполняется только при использовании метода Trades
+  // Для SubscribeTrades данное поле может быть пустым в связи с различиями в источниках данных. При обработке сделок из подписки рекомендуется учитывать возможность пустого значения.
+  string currency = 11;
+  // Комиссия. Заполняется для исторических сделок
+  Commission commission = 12;
+}
+
