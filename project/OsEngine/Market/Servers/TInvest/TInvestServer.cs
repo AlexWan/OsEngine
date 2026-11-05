@@ -2417,6 +2417,15 @@ namespace OsEngine.Market.Servers.TInvest
                     socketsHandler.SslOptions.CertificateChainPolicy.CustomTrustStore.Add(cert);
                 }
 
+                // gRPC через прокси с авторизацией: при 407 .NET открывает повторное соединение,
+                // которое клиентский балансировщик не может привязать к subchannel.
+                // Отключаем балансировку (внутренний ключ Grpc.Net.Client 2.71.0) — для одного фиксированного хоста она не нужна
+                if (_proxy != null)
+                {
+                    socketsHandler.Properties["__GrpcLoadBalancingDisabled"] = true;
+                    SendLogMessage("T-Invest: client-side gRPC load balancing disabled (proxy connection)", LogMessageType.System);
+                }
+
                 _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
