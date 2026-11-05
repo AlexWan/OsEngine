@@ -1298,7 +1298,7 @@ namespace OsEngine.Robots.SyntheticBond
 
             for (int i = 0; i < positions.Count; i++)
             {
-                if (positions[i].State == PositionStateType.Open
+                if (positions[i].State != PositionStateType.Done
                     && positions[i].Direction == Side.Buy
                     && positions[i].OpenVolume > 0)
                 {
@@ -1332,7 +1332,7 @@ namespace OsEngine.Robots.SyntheticBond
 
                 for (int j = 0; j < positions.Count; j++)
                 {
-                    if (positions[j].State == PositionStateType.Open
+                    if (positions[j].State != PositionStateType.Done
                         && positions[j].Direction == Side.Sell
                         && positions[j].OpenVolume > 0)
                     {
