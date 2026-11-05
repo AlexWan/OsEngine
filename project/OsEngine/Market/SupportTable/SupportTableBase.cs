@@ -28,7 +28,15 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(alor);
 
-            // TODO Добавить Finam gRPC
+            SupportConnection finamGrpc = new SupportConnection()
+            {
+                ServerType = ServerType.FinamGrpc,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Moex\\Finam.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(finamGrpc);
 
             SupportConnection transaq = new SupportConnection()
             {

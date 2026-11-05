@@ -92,9 +92,6 @@
     <Reference Include="cgate_net64">
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
-    <Reference Include="FinamApi">
-      <HintPath>bin\Debug\FinamApi.dll</HintPath>
-    </Reference>
     <Reference Include="Jayrock.Json">
       <HintPath>bin\Debug\Jayrock.Json.dll</HintPath>
     </Reference>
@@ -149,6 +146,7 @@
     </Reference>
     <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
     <PackageReference Include="Google.Protobuf" Version="3.31.0" />
@@ -162,6 +160,17 @@
     <PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
     <PackageReference Include="WTelegramClient" Version="4.3.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\gateway\protoc_gen_openapiv2\options\openapiv2.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="None" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\gateway\protoc_gen_openapiv2\options\annotations.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="None" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\side.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\trade.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\auth\auth_service.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\assets\assets_service.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\accounts\accounts_service.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\orders\orders_service.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
+    <Protobuf Include="Market\Servers\FinamGrpc\Proto\grpc\tradeapi\v1\marketdata\marketdata_service.proto" ProtoRoot="Market\Servers\FinamGrpc\Proto" AdditionalImportDirs="Market\Servers\FinamGrpc\Proto" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <Content Include="bin\$(Configuration)\libcrypto-3-x64.dll">

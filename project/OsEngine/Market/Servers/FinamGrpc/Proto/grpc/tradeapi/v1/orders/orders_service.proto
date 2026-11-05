@@ -1,0 +1,631 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1.orders;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
+import "grpc/tradeapi/v1/side.proto";
+import "grpc/tradeapi/v1/trade.proto";
+import "grpc/gateway/protoc_gen_openapiv2/options/annotations.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders";
+option java_multiple_files = true;
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  schemes: [
+    HTTP,
+    HTTPS
+  ]
+  info: {
+    title: "Finam Trade-API"
+    description: "API для торговых операций"
+  }
+  security_definitions: {
+    security: {
+      key: "Authorization"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "JWT токен авторизации"
+      }
+    }
+  }
+  responses: [
+    {
+      key: "default"
+      value: {
+        schema: {
+          json_schema: {
+            ref: "googletypeStatus"
+          }
+        }
+      }
+    },
+    {
+      key: "500"
+      value: {
+        description: "Внутренняя ошибка сервиса. Попробуйте позже"
+      }
+    },
+    {
+      key: "503"
+      value: {
+        description: "Сервис на данный момент не доступен. Попробуйте позже"
+      }
+    },
+    {
+      key: "429"
+      value: {
+        description: "Слишком много запросов. Доступный лимит - 200 запросов в минуту"
+      }
+    },
+    {
+      key: "401"
+      value: {
+        description: "Срок действия токена истек или токен недействителен"
+      }
+    },
+    {
+      key: "504"
+      value: {
+        description: "Крайний срок истек до завершения операции"
+      }
+    }
+  ]
+};
+
+// Сервис ордеров
+service OrdersService {
+  // Выставление биржевой заявки
+  // Пример HTTP запроса:
+  // POST /v1/accounts/A12345/orders
+  // Content-Type: application/json
+  // Authorization: <token>
+  //
+  // {
+  //   "symbol": "SBER@MISX",
+  //   "quantity": {
+  // 		 "value": "10"
+  // 	 },
+  //   "side": "SIDE_BUY",
+  //   "type": "ORDER_TYPE_LIMIT",
+  //   "time_in_force": "TIME_IN_FORCE_DAY",
+  //   "limit_price": {
+  // 		 "value": "150.50"
+  // 	 }
+  // }
+  //
+  // Поле account_id берется из URL-пути, остальные поля передаются в теле запроса
+  rpc PlaceOrder(Order) returns (OrderState) {
+    option (google.api.http) = {
+      post: "/v1/accounts/{account_id}/orders"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [
+        {
+          security_requirement: {
+            key: "Authorization"
+          }
+        }
+      ]
+      responses: [
+        {
+          key: "404"
+          value: {
+            description: "Счёт или инструмент не были найдены"
+          }
+        },
+        {
+          key: "400"
+          value: {
+            description: "Неверно переданы торговые параметры"
+          }
+        }
+      ]
+    };
+  };
+
+  // Отмена биржевой заявки
+  // Пример HTTP запроса:
+  // DELETE /v1/accounts/A12345/orders/ORD789012
+  // Authorization: <token>
+  rpc CancelOrder(CancelOrderRequest) returns (OrderState) {
+    option (google.api.http) = {
+      delete: "/v1/accounts/{account_id}/orders/{order_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [
+        {
+          security_requirement: {
+            key: "Authorization"
+          }
+        }
+      ]
+      responses: [
+        {
+          key: "404"
+          value: {
+            description: "Счёт или заявка не были найдены"
+          }
+        },
+        {
+          key: "400"
+          value: {
+            description: "Заявка не может быть отменена так как она уже исполнена"
+          }
+        }
+      ]
+    };
+  };
+
+  // Получение списка заявок для аккаунта
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/orders
+  // Authorization: <token>
+  rpc GetOrders(OrdersRequest) returns (OrdersResponse) {
+    option (google.api.http) = {
+      get: "/v1/accounts/{account_id}/orders"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [
+        {
+          security_requirement: {
+            key: "Authorization"
+          }
+        }
+      ]
+      responses: {
+        key: "404"
+        value: {
+          description: "Счёт не был найден"
+        }
+      }
+    };
+  };
+
+  // Получение информации о конкретном ордере
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/orders/ORD789012
+  // Authorization: <token>
+  rpc GetOrder(GetOrderRequest) returns (OrderState) {
+    option (google.api.http) = {
+      get: "/v1/accounts/{account_id}/orders/{order_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [
+        {
+          security_requirement: {
+            key: "Authorization"
+          }
+        }
+      ]
+      responses: {
+        key: "404"
+        value: {
+          description: "Счёт или заявка не были найдены"
+        }
+      }
+    };
+  };
+
+  // Подписка на собственные заявки и сделки. Стрим метод
+  rpc SubscribeOrderTrade(stream OrderTradeRequest) returns (stream OrderTradeResponse) {
+    option deprecated = true;
+  };
+
+  // Подписка на собственные заявки. Стрим метод
+  rpc SubscribeOrders(SubscribeOrdersRequest) returns (stream SubscribeOrdersResponse);
+
+  // Подписка на собственные сделки. Стрим метод
+  rpc SubscribeTrades(SubscribeTradesRequest) returns (stream SubscribeTradesResponse);
+
+  // Выставление SL/TP заявки
+  // Пример HTTP запроса:
+  // POST /v1/accounts/A12345/sltp-orders
+  // Content-Type: application/json
+  // Authorization: <token>
+  //
+  // {
+  //   "symbol": "SBER@MISX",
+  //   "side": "SIDE_BUY",
+  //   "quantity_sl": {
+  //     "value": "10"
+  //   },
+  //   "sl_price": {
+  //     "value": "270.00"
+  //   },
+  //   "limit_price": {
+  //     "value": "269.50"
+  //   },
+  //   "quantity_tp": {
+  //     "value": "10"
+  //   },
+  //   "tp_price": {
+  //     "value": "295.50"
+  //   },
+  //   "tp_guard_spread": {
+  //     "value": "0.5"  },
+  //   "tp_spread_measure": "TP_SPREAD_MEASURE_VALUE",
+  //   "valid_before": "VALID_BEFORE_GOOD_TILL_DATE",
+  //   "valid_expiry_time": "2026-12-31T23:59:59Z",
+  //   "comment": "my SL/TP order"
+  //  }
+  //
+  //  Поле account_id берется из URL-пути, остальные поля передаются в теле запроса
+  rpc PlaceSLTPOrder(SLTPOrder) returns (OrderState) {
+    option (google.api.http) = {
+      post: "/v1/accounts/{account_id}/sltp-orders"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [
+        {
+          security_requirement: {
+            key: "Authorization"
+          }
+        }
+      ]
+      responses: [
+        {
+          key: "404"
+          value: {
+            description: "Счёт или инструмент не были найдены"
+          }
+        },
+        {
+          key: "400"
+          value: {
+            description: "Неверно переданы торговые параметры"
+          }
+        }
+      ]
+    };
+  };
+
+}
+
+// Запрос подписки на собственные заявки и сделки. Стрим
+message OrderTradeRequest {
+  option deprecated = true;
+  // Доступные действия
+  enum Action {
+    // Подписаться
+    ACTION_SUBSCRIBE = 0;
+    // Отписаться
+    ACTION_UNSUBSCRIBE = 1;
+  }
+  // Тип подписки
+  enum DataType {
+    // Все: заявки и сделки
+    DATA_TYPE_ALL = 0;
+    // Заявки
+    DATA_TYPE_ORDERS = 1;
+    // Сделки
+    DATA_TYPE_TRADES = 2;
+  }
+  // Изменение статуса подписки: подписка/отписка
+  Action action = 1;
+  // Подписка только на заявки/ордера или на все сразу
+  DataType data_type = 2;
+  // Идентификатор аккаунта
+  string account_id = 3;
+}
+
+// Список собственных заявок и сделок
+message OrderTradeResponse {
+  option deprecated = true;
+  // Заявки
+  repeated OrderState orders = 1;
+  // Сделки
+  repeated AccountTrade trades = 2;
+}
+
+// Запрос подписки на собственные заявки. Стрим
+message SubscribeOrdersRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+}
+
+// Список собственных заявок
+message SubscribeOrdersResponse {
+  // Заявки
+  repeated OrderState orders = 1;
+}
+
+// Запрос подписки на собственные сделки. Стрим
+message SubscribeTradesRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+}
+
+// Список собственных сделок
+message SubscribeTradesResponse {
+  // Сделки
+  repeated AccountTrade trades = 1;
+}
+
+// Запрос на получение конкретного ордера
+message GetOrderRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Идентификатор заявки
+  string order_id = 2;
+}
+
+// Тип заявки
+enum OrderType {
+  // Значение не указано
+  ORDER_TYPE_UNSPECIFIED = 0;
+  // Рыночная
+  ORDER_TYPE_MARKET = 1;
+  // Лимитная
+  ORDER_TYPE_LIMIT = 2;
+  // Стоп заявка рыночная
+  ORDER_TYPE_STOP = 3;
+  // Стоп заявка лимитная
+  ORDER_TYPE_STOP_LIMIT = 4;
+  // Мульти лег заявка
+  ORDER_TYPE_MULTI_LEG = 5;
+}
+
+// Срок действия заявки
+enum TimeInForce {
+  // Значение не указано
+  TIME_IN_FORCE_UNSPECIFIED = 0;
+  // До конца дня
+  TIME_IN_FORCE_DAY = 1;
+  // Действителен до отмены
+  TIME_IN_FORCE_GOOD_TILL_CANCEL = 2;
+  // Действителен до пересечения
+  TIME_IN_FORCE_GOOD_TILL_CROSSING = 3;
+  // Внебиржевая торговля
+  TIME_IN_FORCE_EXT = 4;
+  // На открытии биржи
+  TIME_IN_FORCE_ON_OPEN = 5;
+  // На закрытии биржи
+  TIME_IN_FORCE_ON_CLOSE = 6;
+  // Исполнить немедленно или отменить
+  TIME_IN_FORCE_IOC = 7;
+  // Исполнить полностью или отменить
+  TIME_IN_FORCE_FOK = 8;
+}
+
+// Условие срабатывания стоп заявки
+enum StopCondition {
+  // Значение не указано
+  STOP_CONDITION_UNSPECIFIED = 0;
+  // Цена срабатывания больше текущей цены
+  STOP_CONDITION_LAST_UP = 1;
+  // Цена срабатывания меньше текущей цены
+  STOP_CONDITION_LAST_DOWN = 2;
+}
+
+// Информация о заявке
+message Order {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Символ инструмента
+  string symbol = 2;
+  // Количество в шт.
+  google.type.Decimal quantity = 3;
+  // Сторона (long или short)
+  Side side = 4;
+  // Тип заявки
+  OrderType type = 5;
+  // Срок действия заявки
+  TimeInForce time_in_force = 6;
+  // Необходимо для лимитной и стоп лимитной заявки
+  google.type.Decimal limit_price = 7;
+  // Необходимо для стоп рыночной и стоп лимитной заявки
+  google.type.Decimal stop_price = 8;
+  // Необходимо для стоп рыночной и стоп лимитной заявки
+  StopCondition stop_condition = 9;
+  // Необходимо для мульти лег заявки
+  repeated Leg legs = 10;
+  // Уникальный идентификатор заявки. Автоматически генерируется, если не отправлен. (максимум 20 символов)
+  string client_order_id = 11;
+  // Срок действия условной заявки. Заполняется для заявок с типом ORDER_TYPE_STOP, ORDER_TYPE_STOP_LIMIT
+  ValidBefore valid_before = 12;
+  // Метка заявки. (максимум 128 символов)
+  string comment = 13;
+}
+
+// Лег
+message Leg {
+  // Символ инструмента
+  string symbol = 1;
+  // Количество
+  google.type.Decimal quantity = 2;
+  // Сторона
+  Side side = 3;
+}
+
+// Статус заявки
+enum OrderStatus {
+  // Неопределенное значение
+  ORDER_STATUS_UNSPECIFIED = 0;
+  // Новая заявка
+  ORDER_STATUS_NEW = 1;
+  // Частично исполненная
+  ORDER_STATUS_PARTIALLY_FILLED = 2;
+  // Исполненная
+  ORDER_STATUS_FILLED = 3;
+  // Действует в течение дня
+  ORDER_STATUS_DONE_FOR_DAY = 4;
+  // Отменена
+  ORDER_STATUS_CANCELED = 5;
+  // Заменена на другую
+  ORDER_STATUS_REPLACED = 6;
+  // Ожидает отмены
+  ORDER_STATUS_PENDING_CANCEL = 7;
+  // Отклонена
+  ORDER_STATUS_REJECTED = 9;
+  // Приостановлена
+  ORDER_STATUS_SUSPENDED = 10;
+  // В ожидании новой
+  ORDER_STATUS_PENDING_NEW = 11;
+  // Истекла
+  ORDER_STATUS_EXPIRED = 13;
+  // Ошибка
+  ORDER_STATUS_FAILED = 16;
+  // Пересылка
+  ORDER_STATUS_FORWARDING = 17;
+  // Ожидает
+  ORDER_STATUS_WAIT = 18;
+  // Отклонено брокером
+  ORDER_STATUS_DENIED_BY_BROKER = 19;
+  // Отклонено биржей
+  ORDER_STATUS_REJECTED_BY_EXCHANGE = 20;
+  // Наблюдение
+  ORDER_STATUS_WATCHING = 21;
+  // Исполнена
+  ORDER_STATUS_EXECUTED = 22;
+  // Отключена
+  ORDER_STATUS_DISABLED = 23;
+  // Ожидание ссылки
+  ORDER_STATUS_LINK_WAIT = 24;
+  // Защитное время SL
+  ORDER_STATUS_SL_GUARD_TIME = 27;
+  // Исполнена по SL
+  ORDER_STATUS_SL_EXECUTED = 28;
+  // Пересылка SL
+  ORDER_STATUS_SL_FORWARDING = 29;
+  // Защитное время TP
+  ORDER_STATUS_TP_GUARD_TIME = 30;
+  // Исполнена по TP
+  ORDER_STATUS_TP_EXECUTED = 31;
+  // Коррекция TP
+  ORDER_STATUS_TP_CORRECTION = 32;
+  // Пересылка TP
+  ORDER_STATUS_TP_FORWARDING = 33;
+  // Коррекция TP в защитное время
+  ORDER_STATUS_TP_CORR_GUARD_TIME = 34;
+}
+
+// Состояние заявки
+message OrderState {
+  // Идентификатор заявки
+  string order_id = 1;
+  // Идентификатор исполнения
+  string exec_id = 2;
+  // Статус заявки
+  OrderStatus status = 3;
+  // Заявка
+  Order order = 4;
+  // Дата и время выставления заявки
+  google.protobuf.Timestamp transact_at = 5;
+  // Дата и время принятия заявки
+  google.protobuf.Timestamp accept_at = 6;
+  // Дата и время  отмены заявки
+  google.protobuf.Timestamp withdraw_at = 7;
+  // Начальный объем (заполняется только для биржевой заявки)
+  google.type.Decimal initial_quantity = 8;
+  // Исполненный объем (заполняется только для биржевой заявки)
+  google.type.Decimal executed_quantity = 9;
+  // Оставшийся объем (заполняется только для биржевой заявки)
+  google.type.Decimal remaining_quantity = 10;
+  // Информация о SL/TP заявке
+  SLTPOrder sltp_order = 11;
+  // Идентификатор биржевой заявки, порожденной в результате срабатывания условия или достижения стоп-цены.
+  string triggered_order_id = 12;
+  // Описание статуса заявки
+  google.protobuf.StringValue status_description = 13;
+}
+
+// Запрос получения списка торговых заявок
+message OrdersRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+}
+
+// Список торговых заявок
+message OrdersResponse {
+  // Заявки
+  repeated OrderState orders = 1;
+}
+
+// Запрос отмены торговой заявки
+message CancelOrderRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Идентификатор заявки
+  string order_id = 2;
+}
+
+// Срок действия условной заявки
+enum ValidBefore {
+  // Значение не указано
+  VALID_BEFORE_UNSPECIFIED = 0;
+  // До конца торгового дня
+  VALID_BEFORE_END_OF_DAY = 1;
+  // До отмены
+  VALID_BEFORE_GOOD_TILL_CANCEL = 2;
+  // До указанной даты-времени. Данный тип поддерживается только при выставлении SL/TP заявок
+  VALID_BEFORE_GOOD_TILL_DATE = 3;
+}
+
+// Информация о SL/TP заявке
+message SLTPOrder {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Символ инструмента
+  string symbol = 2;
+  // Сторона для обеих заявок
+  Side side = 3;
+  // Количество в шт для SL
+  google.type.Decimal quantity_sl = 4;
+  // Параметр условия цены для SL части
+  google.type.Decimal sl_price = 5;
+  // Если указано, после активации SL будет выставлена лимитная заявка с этой ценой
+  google.type.Decimal limit_price = 6;
+  // Количество в шт для TP
+  google.type.Decimal quantity_tp = 10;
+  // Параметр условия цены для TP части
+  google.type.Decimal tp_price = 11;
+  // Если указано, после активации TP будет выставлена лимитная заявка с учетом защитного спрэда
+  google.type.Decimal tp_guard_spread = 12;
+  // Единица измерения величины защитного спреда
+  TPSpreadMeasure tp_spread_measure = 13;
+  // Уникальный идентификатор заявки. Автоматически генерируется, если не отправлен. (максимум 20 символов)
+  string client_order_id = 20;
+  // Срок действия условной заявки. Если не заполнено, то по умолчанию выставляется VALID_BEFORE_GOOD_TILL_CANCEL
+  ValidBefore valid_before = 21;
+  // Временная метка прекращения действия SL/TP заявки
+  google.protobuf.Timestamp valid_expiry_time = 22;
+  // Метка заявки. (максимум 128 символов)
+  string comment = 23;
+  // Единица измерения объёма для Stop Loss части.
+  // Если SLTP_QTY_MEASURE_PERCENT — quantity_sl трактуется как процент (0–100) от позиции на момент исполнения.
+  SLTPQtyMeasure sl_qty_measure = 24;
+  // Единица измерения объёма для Take Profit части.
+  // Если SLTP_QTY_MEASURE_PERCENT — quantity_tp трактуется как процент (0–100) от позиции на момент исполнения.
+  SLTPQtyMeasure tp_qty_measure = 25;
+  // Защитное время StopLoss, в секундах. Допустимы только неотрицательные целочисленные значения. Если поле не указано, значение принимается равным нулю.
+  google.protobuf.Int32Value sl_guard_time = 26;
+  // Защитное время TakeProfit, в секундах. Допустимы только неотрицательные целочисленные значения. Если поле не указано, значение принимается равным нулю.
+  google.protobuf.Int32Value tp_guard_time = 27;
+}
+
+// Единица измерения величины защитного спреда для цены исполнения TP
+enum TPSpreadMeasure {
+  // Значение не указано
+  TP_SPREAD_MEASURE_UNDEFINED = 0;
+  // в единицах цены
+  TP_SPREAD_MEASURE_VALUE = 1;
+  // в процентах, с максимальной точностью до сотых процента
+  TP_SPREAD_MEASURE_PERCENT = 2;
+}
+
+// Единица измерения объёма для SL/TP заявки
+enum SLTPQtyMeasure {
+  // Не определено
+  SLTP_QTY_MEASURE_UNDEFINED = 0;
+  // Количество в единицах (штуках). Значение по умолчанию.
+  SLTP_QTY_MEASURE_VALUE = 1;
+  // Процент от позиции на момент исполнения, точность до сотых процента
+  SLTP_QTY_MEASURE_PERCENT = 2;
+}
+

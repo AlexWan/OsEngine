@@ -1,0 +1,23 @@
+<Window x:Class="OsEngine.Market.Servers.FinamGrpc.FinamGrpcMarketsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Markets and security classes" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Height="610" Width="740" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="5,5,5,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <WindowsFormsHost Name="HostLeft" Grid.Column="0" Margin="0,0,4,0"/>
+            <WindowsFormsHost Name="HostRight" Grid.Column="1" Margin="4,0,0,0"/>
+        </Grid>
+        <Grid Grid.Row="1" Margin="0,5,0,10">
+            <Button Name="ButtonAccept" HorizontalAlignment="Right" Margin="0,0,10,0" Width="110" Height="25"/>
+            <Button Name="ButtonCancel" HorizontalAlignment="Right" Margin="0,0,130,0" Width="110" Height="25"/>
+        </Grid>
+    </Grid>
+</Window>
