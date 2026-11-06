@@ -807,42 +807,52 @@ namespace OsEngine.Market.Servers
 
         private string GetOperationTextEng(ComparePositionsSecurity security)
         {
-            decimal difference = _comparePositionsModule.GetDifferenceToSync(security);
-            string direction = difference > 0 ? "Buy" : "Sell";
+            List<ComparePositionsSyncOrder> orders = _comparePositionsModule.GetSyncOrders(security);
 
-            string action;
-
-            if (_comparePositionsModule.GetConditionTypeToSync(security) == OrderPositionConditionType.Open)
+            if (orders.Count == 0)
             {
-                action = "Position will be opened or increased";
-            }
-            else
-            {
-                action = "Position will be reduced or closed";
+                return security.Security + ". Nothing to trade (robots long " + security.RobotsLong + " short " + security.RobotsShort
+                    + ", portfolio long " + security.PortfolioLong + " short " + security.PortfolioShort + ")";
             }
 
-            return security.Security + ". " + direction + " " + Math.Abs(difference) + ". " + action
-                + " (robots " + security.RobotsCommon + ", portfolio " + security.PortfolioCommon + ")";
+            string result = "";
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                string action = orders[i].Condition == OrderPositionConditionType.Open
+                    ? "Position will be opened or increased"
+                    : "Position will be reduced or closed";
+
+                result += security.Security + ". " + orders[i].Side + " " + orders[i].Volume + ". " + action + "\n";
+            }
+
+            return result + "(robots long " + security.RobotsLong + " short " + security.RobotsShort
+                + ", portfolio long " + security.PortfolioLong + " short " + security.PortfolioShort + ")";
         }
 
         private string GetOperationTextRu(ComparePositionsSecurity security)
         {
-            decimal difference = _comparePositionsModule.GetDifferenceToSync(security);
-            string direction = difference > 0 ? "Buy" : "Sell";
+            List<ComparePositionsSyncOrder> orders = _comparePositionsModule.GetSyncOrders(security);
 
-            string action;
-
-            if (_comparePositionsModule.GetConditionTypeToSync(security) == OrderPositionConditionType.Open)
+            if (orders.Count == 0)
             {
-                action = "Позиция будет открыта или увеличена";
-            }
-            else
-            {
-                action = "Позиция будет уменьшена или закрыта";
+                return security.Security + ". Торговать нечего (роботы лонг " + security.RobotsLong + " шорт " + security.RobotsShort
+                    + ", портфель лонг " + security.PortfolioLong + " шорт " + security.PortfolioShort + ")";
             }
 
-            return security.Security + ". " + direction + " " + Math.Abs(difference) + ". " + action
-                + " (роботы " + security.RobotsCommon + ", портфель " + security.PortfolioCommon + ")";
+            string result = "";
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                string action = orders[i].Condition == OrderPositionConditionType.Open
+                    ? "Позиция будет открыта или увеличена"
+                    : "Позиция будет уменьшена или закрыта";
+
+                result += security.Security + ". " + orders[i].Side + " " + orders[i].Volume + ". " + action + "\n";
+            }
+
+            return result + "(роботы лонг " + security.RobotsLong + " шорт " + security.RobotsShort
+                + ", портфель лонг " + security.PortfolioLong + " шорт " + security.PortfolioShort + ")";
         }
 
         #endregion
