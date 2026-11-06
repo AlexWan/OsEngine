@@ -6136,6 +6136,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            // K1: стопы только свои (фильтр в GetAllActiveStopOrders) — «отменить всё» не трогает ручные/чужие стопы
             List<Order> stopOrders = GetAllActiveStopOrders();
 
             for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
@@ -6162,6 +6163,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            // K1: стопы только свои (фильтр в GetAllActiveStopOrders) — отмена по бумаге не трогает ручные/чужие стопы
             List<Order> stopOrders = GetAllActiveStopOrders();
 
             for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
@@ -6204,6 +6206,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            // K1: чужие стопы не реплеятся в MyOrderEvent (фильтр в GetAllActiveStopOrders)
             List<Order> stopOrders = GetAllActiveStopOrders();
 
             for (int i = 0; stopOrders != null && i < stopOrders.Count; i++)
@@ -7184,9 +7187,9 @@ namespace OsEngine.Market.Servers.TInvest
                                 newOrder.NumberUser = _stopOrderNumbers[stop.StopOrderId];
                             }
                             else
-                            {
-                                newOrder.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
-                                _stopOrderNumbers.Add(stop.StopOrderId, newOrder.NumberUser);
+                            {   // не наш стоп-ордер (ручной или выставленный вне этого экземпляра). Пропускаем только его,
+                                // без фабрики NumberUser и без пополнения _stopOrderNumbers — как обычные заявки
+                                continue;
                             }
                         }
 
@@ -7315,9 +7318,9 @@ namespace OsEngine.Market.Servers.TInvest
                                 newOrder.NumberUser = _stopOrderNumbers[stop.StopOrderId];
                             }
                             else
-                            {
-                                newOrder.NumberUser = NumberGen.GetNumberOrder(StartProgram.IsOsTrader);
-                                _stopOrderNumbers.Add(stop.StopOrderId, newOrder.NumberUser);
+                            {   // не наш стоп-ордер (ручной или выставленный вне этого экземпляра). Пропускаем только его,
+                                // без фабрики NumberUser и без пополнения _stopOrderNumbers — как обычные заявки
+                                continue;
                             }
                         }
 
