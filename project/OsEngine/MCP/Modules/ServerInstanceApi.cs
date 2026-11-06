@@ -511,6 +511,86 @@ namespace OsEngine.MCP.Modules
             return text.Substring(0, 2) + new string('*', text.Length - 4) + text.Substring(text.Length - 2);
         }
 
+        /// <summary>
+        /// Masking of secret values inside a log line before it leaves MCP (BUG-0139).
+        /// Only exact matches of Password-parameter values are masked, longest value first,
+        /// with the MaskSecret canon. Values shorter than 5 symbols are skipped: they are
+        /// indistinguishable from ordinary words. Escaped or transformed occurrences are not covered,
+        /// and a common word or number of 5+ symbols equal to a secret value will be masked.
+        /// </summary>
+        internal static string MaskSecretsInText(string text, List<string> secretValues)
+        {
+            if (string.IsNullOrEmpty(text)
+                || secretValues == null
+                || secretValues.Count == 0)
+            {
+                return text;
+            }
+
+            List<string> ordered = new List<string>(secretValues);
+            ordered.Sort((first, second) => (second?.Length ?? 0).CompareTo(first?.Length ?? 0));
+
+            string result = text;
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                string secret = ordered[i];
+
+                if (string.IsNullOrEmpty(secret)
+                    || secret.Length < 5)
+                {
+                    continue;
+                }
+
+                if (result.IndexOf(secret, StringComparison.Ordinal) >= 0)
+                {
+                    result = result.Replace(secret, MaskSecret(secret));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Secret values of the server instance to mask in logs: only Password-type parameters.
+        /// String parameters holding hand-made tokens cannot be told apart from non-secrets.
+        /// Empty values are dropped, duplicates removed, longest values first.
+        /// </summary>
+        private static List<string> CollectSecretValues(AServer server)
+        {
+            List<string> result = new List<string>();
+
+            if (server?.ServerParameters == null)
+            {
+                return result;
+            }
+
+            for (int i = 0; i < server.ServerParameters.Count; i++)
+            {
+                IServerParameter parameter = server.ServerParameters[i];
+
+                if (parameter == null
+                    || parameter.Type != ServerParameterType.Password)
+                {
+                    continue;
+                }
+
+                string value = ((ServerParameterPassword)parameter).Value;
+
+                if (string.IsNullOrEmpty(value)
+                    || result.Contains(value))
+                {
+                    continue;
+                }
+
+                result.Add(value);
+            }
+
+            result.Sort((first, second) => second.Length.CompareTo(first.Length));
+
+            return result;
+        }
+
         private static object SetServerParams(JsonElement parameters)
         {
             ServerType serverType = ParseServerType(parameters);
@@ -762,7 +842,7 @@ namespace OsEngine.MCP.Modules
                     {
                         type = serverType.ToString(),
                         number = serverNumber,
-                        message = message,
+                        message = MaskSecretsInText(message, CollectSecretValues(server)),
                         messageType = type.ToString()
                     });
                 };
@@ -1031,6 +1111,8 @@ namespace OsEngine.MCP.Modules
 
             List<LogMessage> messages = server.Log?.LoadMessageFromLastDay() ?? new List<LogMessage>();
 
+            List<string> secretValues = CollectSecretValues(server);
+
             if (messages.Count > count)
             {
                 messages = messages.Skip(messages.Count - count).ToList();
@@ -1046,7 +1128,7 @@ namespace OsEngine.MCP.Modules
                 {
                     time = message.Time,
                     type = message.Type.ToString(),
-                    message = message.Message
+                    message = MaskSecretsInText(message.Message, secretValues)
                 });
             }
 

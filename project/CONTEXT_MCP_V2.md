@@ -99,7 +99,7 @@
 | `server_instance_get_status` | Статус подключения экземпляра сервера |
 | `server_instance_get_securities` | Список бумаг экземпляра сервера (фильтры по классу/коду) |
 | `server_instance_get_portfolios` | Список портфелей и позиций экземпляра сервера |
-| `server_instance_get_log` | Журнал экземпляра сервера |
+| `server_instance_get_log` | Журнал экземпляра сервера (значения Password-параметров маскируются, файл лога на диске не меняется) |
 | `wiki_robots_list` | Список доступных роботов: имя класса, описание, источники, индикаторы |
 | `wiki_robot_info` | Подробная информация по одному роботу (live): описание, источники, индикаторы, параметры |
 | `wiki_indicators_list` | Список доступных индикаторов: имя класса, отображаемое имя, описание, параметры, серии |
@@ -311,6 +311,8 @@ curl -N -H "X-Api-Key: osengine-mcp-default-key" -H "Accept: text/event-stream" 
 | `heartbeat` | `notifications/message` (уровень `debug`) |
 
 Формат `notifications/message`: `params.level` (из `LogMessageType`), `params.logger = "osengine"`, `params.data = { event, payload }`.
+
+`server_instance.log` и `server_instance_get_log` маскируют точные совпадения значений Password-параметров коннектора (канон: 2 первых символа + `*` + 2 последних). Значения короче 5 символов не маскируются (неотличимы от обычных слов), String-параметры с кустарными токенами и экранированные вхождения не покрываются.
 
 Пример кадра:
 
