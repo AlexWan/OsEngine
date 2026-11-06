@@ -722,19 +722,54 @@ namespace OsEngine.Market.Servers
         private readonly PositionCreator _dealCreator = new PositionCreator();
 
         /// <summary>
-        /// signed volume to trade to align the portfolio to robots accounting
+        /// market orders that align the portfolio to robots accounting.
+        /// The exchange in hedge mode (long / short are separate rows, there is no net row) is compared by sides,
+        /// like the status in CompareSecurity; otherwise by the net position
         /// </summary>
-        public decimal GetDifferenceToSync(ComparePositionsSecurity security)
+        public List<ComparePositionsSyncOrder> GetSyncOrders(ComparePositionsSecurity security)
         {
-            return security.RobotsCommon - security.PortfolioCommon;
-        }
+            List<ComparePositionsSyncOrder> result = new List<ComparePositionsSyncOrder>();
 
-        /// <summary>
-        /// order condition type for the synchronization order (open or close)
-        /// </summary>
-        public OrderPositionConditionType GetConditionTypeToSync(ComparePositionsSecurity security)
-        {
-            return GetConditionType(security.RobotsCommon - security.PortfolioCommon, security.PortfolioCommon);
+            Security sec = Server.GetSecurityForName(security.Security, string.Empty);
+            int decimals = sec != null ? sec.DecimalsVolume : 8;
+
+            if (security.PortfolioLong != 0 || security.PortfolioShort != 0)
+            {
+                decimal longDiff = Math.Round(security.RobotsLong - security.PortfolioLong, decimals);
+                decimal shortDiff = Math.Round(Math.Abs(security.RobotsShort) - Math.Abs(security.PortfolioShort), decimals);
+
+                if (longDiff > 0)
+                {
+                    result.Add(new ComparePositionsSyncOrder(Side.Buy, longDiff, OrderPositionConditionType.Open));
+                }
+                else if (longDiff < 0)
+                {
+                    result.Add(new ComparePositionsSyncOrder(Side.Sell, -longDiff, OrderPositionConditionType.Close));
+                }
+
+                if (shortDiff > 0)
+                {
+                    result.Add(new ComparePositionsSyncOrder(Side.Sell, shortDiff, OrderPositionConditionType.Open));
+                }
+                else if (shortDiff < 0)
+                {
+                    result.Add(new ComparePositionsSyncOrder(Side.Buy, -shortDiff, OrderPositionConditionType.Close));
+                }
+
+                return result;
+            }
+
+            decimal difference = Math.Round(security.RobotsCommon - security.PortfolioCommon, decimals);
+
+            if (difference != 0)
+            {
+                result.Add(new ComparePositionsSyncOrder(
+                    difference > 0 ? Side.Buy : Side.Sell,
+                    Math.Abs(difference),
+                    GetConditionType(difference, security.PortfolioCommon)));
+            }
+
+            return result;
         }
 
         public List<ComparePositionsSecurity> GetOutOfSyncSecurities(string portfolioName)
@@ -796,13 +831,6 @@ namespace OsEngine.Market.Servers
                     return false;
                 }
 
-                decimal difference = security.RobotsCommon - security.PortfolioCommon;
-
-                if (difference == 0)
-                {
-                    return true;
-                }
-
                 Security sec = Server.GetSecurityForName(security.Security, string.Empty);
 
                 if (sec == null)
@@ -811,33 +839,35 @@ namespace OsEngine.Market.Servers
                     return false;
                 }
 
-                decimal volumeToTrade = Math.Round(difference, sec.DecimalsVolume);
+                List<ComparePositionsSyncOrder> syncOrders = GetSyncOrders(security);
 
-                if (volumeToTrade == 0)
+                if (syncOrders.Count == 0)
                 {
-                    SendLogMessage("Synchronization skipped. Trade volume is zero after rounding. Security " + security.Security, LogMessageType.System);
+                    SendLogMessage("Synchronization skipped. Nothing to trade after rounding. Security " + security.Security, LogMessageType.System);
                     return false;
                 }
 
-                OrderPositionConditionType conditionType = GetConditionType(volumeToTrade, security.PortfolioCommon);
-                Side direction = volumeToTrade > 0 ? Side.Buy : Side.Sell;
-                decimal absVolume = Math.Abs(volumeToTrade);
+                for (int i = 0; i < syncOrders.Count; i++)
+                {
+                    ComparePositionsSyncOrder syncOrder = syncOrders[i];
 
-                Order order = _dealCreator.CreateOrder(
-                    sec, direction, 0, absVolume,
-                    OrderPriceType.Market, TimeSpan.FromSeconds(60),
-                    StartProgram.IsOsTrader, conditionType,
-                    OrderTypeTime.GTC, Server.ServerNameUnique, false, 0);
+                    Order order = _dealCreator.CreateOrder(
+                        sec, syncOrder.Side, 0, syncOrder.Volume,
+                        OrderPriceType.Market, TimeSpan.FromSeconds(60),
+                        StartProgram.IsOsTrader, syncOrder.Condition,
+                        OrderTypeTime.GTC, Server.ServerNameUnique, false, 0);
 
-                order.PortfolioNumber = portfolioName;
+                    order.PortfolioNumber = portfolioName;
 
-                Server.ExecuteOrder(order);
+                    Server.ExecuteOrder(order);
 
-                SendLogMessage(
-                    "Synchronization order sent. Security " + security.Security +
-                    ", direction " + direction + ", volume " + absVolume +
-                    ", robots " + security.RobotsCommon + ", portfolio " + security.PortfolioCommon,
-                    LogMessageType.System);
+                    SendLogMessage(
+                        "Synchronization order sent. Security " + security.Security +
+                        ", direction " + syncOrder.Side + ", " + syncOrder.Condition + ", volume " + syncOrder.Volume +
+                        ", robots long " + security.RobotsLong + " short " + security.RobotsShort + " common " + security.RobotsCommon +
+                        ", portfolio long " + security.PortfolioLong + " short " + security.PortfolioShort + " common " + security.PortfolioCommon,
+                        LogMessageType.System);
+                }
 
                 return true;
             }
@@ -909,6 +939,22 @@ namespace OsEngine.Market.Servers
 
         public List<ComparePositionsSecurity> CompareSecurities = new List<ComparePositionsSecurity>();
 
+    }
+
+    public class ComparePositionsSyncOrder
+    {
+        public ComparePositionsSyncOrder(Side side, decimal volume, OrderPositionConditionType condition)
+        {
+            Side = side;
+            Volume = volume;
+            Condition = condition;
+        }
+
+        public Side Side;
+
+        public decimal Volume;
+
+        public OrderPositionConditionType Condition;
     }
 
     public class ComparePositionsSecurity
