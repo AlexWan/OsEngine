@@ -107,7 +107,9 @@ namespace OsEngine.Market.Servers.Entity
 
             if(timeUntilNextCheck < 0)
             {
-                timeUntilNextCheck = -1;
+                // -1 это Timeout.Infinite: таймер переставал срабатывать навсегда, семафор больше не освобождался,
+                // и все потоки в WaitToProceed вставали намертво. Опоздавшее время выхода надо отработать сразу
+                timeUntilNextCheck = 0;
             }
 
             _exitTimer.Change(timeUntilNextCheck, -1);
