@@ -441,93 +441,130 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void ButtonCloseAtLimit_Click(object sender, RoutedEventArgs e)
         {
-            decimal price = 0;
-
             try
             {
-                price = TextBoxLimitPrice.Text.ToDecimal();
-            }
-            catch (Exception ex)
-            {
-                Tab.SetNewLogMessage(
-                    OsLocalization.Trader.Label390 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal volume = 0;
-
-            try
-            {
-                volume = TextBoxLimitVolumeToClose.Text.ToDecimal();
-            }
-            catch (Exception ex)
-            {
-                Tab.SetNewLogMessage(
-                    OsLocalization.Trader.Label389 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (volume <= 0)
-            {
-                Tab.SetNewLogMessage(
-                 OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (Position.CloseActive == true)
-            {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptAction == false)
+                if (_isDeleted || Tab == null || Position == null)
                 {
                     return;
                 }
-            }
 
-            Tab.CloseAtLimit(Position, price, volume);
+                decimal price = 0;
+
+                try
+                {
+                    price = TextBoxLimitPrice.Text.ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    Tab.SetNewLogMessage(
+                        OsLocalization.Trader.Label390 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
+                    return;
+                }
+
+                decimal volume = 0;
+
+                try
+                {
+                    volume = TextBoxLimitVolumeToClose.Text.ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    Tab.SetNewLogMessage(
+                        OsLocalization.Trader.Label389 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    Tab.SetNewLogMessage(
+                     OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (Position.CloseActive == true)
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+                }
+
+                // диалог качает диспетчер — за время диалога окно могло закрыться (Closed обнуляет Tab/Position), ордер не шлём
+                if (_isDeleted || Tab == null || Position == null)
+                {
+                    return;
+                }
+
+                Tab.CloseAtLimit(Position, price, volume);
+            }
+            catch (Exception ex)
+            {
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonCloseAtMarket_Click(object sender, RoutedEventArgs e)
         {
-            if (Position.CloseActive == true)
+            try
             {
-                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
-                ui.ShowDialog();
-
-                if (ui.UserAcceptAction == false)
+                if (_isDeleted || Tab == null || Position == null)
                 {
                     return;
                 }
-            }
 
-            if (string.IsNullOrEmpty(TextBoxMarketVolumeToClose.Text))
-            {
-                Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
-                return;
-            }
+                if (Position.CloseActive == true)
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
+                    ui.ShowDialog();
 
-            decimal volume = 0;
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+                }
 
-            try
-            {
-                volume = TextBoxMarketVolumeToClose.Text.ToDecimal();
+                // re-check сразу после возвращения из диалога, до веток валидации объёма:
+                // при мёртвом окне они бросили бы NRE во внешний catch и сообщение об объёме потерялось
+                if (_isDeleted || Tab == null || Position == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(TextBoxMarketVolumeToClose.Text))
+                {
+                    Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                    return;
+                }
+
+                decimal volume = 0;
+
+                try
+                {
+                    volume = TextBoxMarketVolumeToClose.Text.ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    Tab.SetNewLogMessage(
+                        OsLocalization.Trader.Label389 + "\n" + ex.ToString(),
+                        Logging.LogMessageType.Error);
+                    return;
+                }
+
+                if (volume <= 0)
+                {
+                    Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
+                    return;
+                }
+
+                Tab.CloseAtMarket(Position, volume);
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(
-                    OsLocalization.Trader.Label389 + "\n" + ex.ToString(),
-                    Logging.LogMessageType.Error);
-                return;
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            if (volume <= 0)
-            {
-                Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
-                return;
-            }
-
-            Tab.CloseAtMarket(Position, volume);
         }
 
         private void ButtonCloseAtStop_Click(object sender, RoutedEventArgs e)
@@ -834,7 +871,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -855,7 +892,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -876,7 +913,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -916,7 +953,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                Tab?.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
