@@ -291,6 +291,33 @@ namespace OsEngine
             _applicationShutdownRequested = true;
         }
 
+        /// <summary>
+        /// Программный грациозный выход. Заменил Application.Shutdown() в путях обновления:
+        /// Shutdown асинхронно перечисляет окна и кидает VerifyNotClosing, если окно уже в Closing.
+        /// Идемпотенен через сторож BeginGracefulShutdown; programmatic=true гасит модные подтверждения закрытия.
+        /// </summary>
+        public void RequestProgrammaticShutdown()
+        {
+            try
+            {
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.Invoke(() => RequestProgrammaticShutdown());
+                    return;
+                }
+
+                _applicationShutdownRequested = true;
+                BeginGracefulShutdown(true);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        /// <summary>Завершение уже инициировано любым путём. Зонд для вызывающих до spawn/Show-операций UI-потока.</summary>
+        public bool ShutdownInProgress => Interlocked.CompareExchange(ref _shutdownRequested, 0, 0) != 0;
+
         /// <summary>Немедленное завершение: из любого потока, без WPF-операций, Kill не ждёт UI-диспетчер.</summary>
         private void TerminateNow()
         {
@@ -494,6 +521,15 @@ namespace OsEngine
         {
             try
             {
+                // HasShutdownStarted одного недостаточен: при броске из DoShutdown он всё ещё false (замерено), сторож начала завершения в условии тоже.
+                if (Dispatcher.HasShutdownStarted || ShutdownInProgress)
+                { // завершение уже идёт: Crash%-отчёт и Reboot не нужны; Handled обязателен —
+                  // иначе WPF перебросит исключение в живой диспетчер уже начатого завершения
+                    e.Handled = true;
+                    ServerMaster.SendNewLogMessage(_startProgram + " Shutdown-phase exception suppressed: " + e.Exception?.Message, Logging.LogMessageType.System);
+                    return;
+                }
+
                 if (e.Exception is OutOfMemoryException)
                 { // фатальное исключение: не строим отчёт, лог и UI-диалог (под OOM это само по себе
                   // рискованно), не выставляем e.Handled и даём процессу завершиться штатным крашем
@@ -2055,7 +2091,10 @@ namespace OsEngine
                 }
                 else
                 {
-                    Show();
+                    if (ShutdownInProgress == false)
+                    { // из окна обновления могло стартовать завершение с AbortAll — не реэкспонировать главное окно
+                        Show();
+                    }
                 }
             }
             catch (Exception error)

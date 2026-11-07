@@ -577,6 +577,11 @@ namespace OsEngine.UpdateModule
         {
             try
             {
+                if ((Application.Current?.MainWindow as MainWindow)?.ShutdownInProgress == true)
+                { // завершение идёт: не плодить второй Updater.exe на тот же PID (probe и spawn атомарны на UI)
+                    return;
+                }
+
                 string currentExePath = "";
 
                 using (Process process = Process.GetCurrentProcess())
@@ -606,9 +611,16 @@ namespace OsEngine.UpdateModule
                 // Запускаем Updater и закрываем текущее приложение
                 Process.Start(startInfo);
 
-                // Закрываем приложение
-                (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
-                Application.Current.Shutdown();
+                // Закрываем приложение программно: Application.Shutdown() асинхронно перечисляет окна
+                // и кидает VerifyNotClosing, если окно уже в Closing
+                MainWindow mainWindow = Application.Current?.MainWindow as MainWindow;
+                mainWindow?.RequestProgrammaticShutdown();
+
+                if (mainWindow == null)
+                { // shortcut: квази-мёртвый путь — MainWindow==null только при уже умирающем приложении;
+                  // Kill обязателен: Updater.exe ждёт освобождения PID
+                    Process.GetCurrentProcess().Kill();
+                }
             }
             catch (Exception ex)
             {
@@ -1420,6 +1432,11 @@ namespace OsEngine.UpdateModule
         {
             try
             {
+                if ((Application.Current?.MainWindow as MainWindow)?.ShutdownInProgress == true)
+                { // завершение идёт: не плодить второй Updater.exe на тот же PID (probe и spawn атомарны на UI)
+                    return;
+                }
+
                 string currentExePath = "";
 
                 using (Process process = Process.GetCurrentProcess())
@@ -1460,9 +1477,14 @@ namespace OsEngine.UpdateModule
 
                     Process.Start(startInfo);
 
-                    // Закрываем OsEngine
-                    (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
-                    Application.Current.Shutdown();
+                    // Закрываем OsEngine программно (см. RollbackChanges)
+                    MainWindow mainWindow = Application.Current?.MainWindow as MainWindow;
+                    mainWindow?.RequestProgrammaticShutdown();
+
+                    if (mainWindow == null)
+                    { // Kill обязателен: Updater.exe ждёт освобождения PID
+                        Process.GetCurrentProcess().Kill();
+                    }
 
                 }
                 catch (Exception innerEx)
@@ -1482,8 +1504,14 @@ namespace OsEngine.UpdateModule
                     };
 
                     Process.Start(cmdStartInfo);
-                    (Application.Current.MainWindow as MainWindow)?.NotifyApplicationShutdownInitiated();
-                    Application.Current.Shutdown();
+                    // Закрываем OsEngine программно (см. RollbackChanges)
+                    MainWindow mainWindow = Application.Current?.MainWindow as MainWindow;
+                    mainWindow?.RequestProgrammaticShutdown();
+
+                    if (mainWindow == null)
+                    { // Kill обязателен: Updater.exe ждёт освобождения PID
+                        Process.GetCurrentProcess().Kill();
+                    }
                 }
             }
             catch (Exception ex)
