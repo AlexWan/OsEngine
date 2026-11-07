@@ -835,7 +835,10 @@ namespace OsEngine.Market.Servers.Tester
                 int stableMs = 0;
                 int waitSeriesMs = 0;
 
-                while ((stableMs < 3000 || _candleManager.ActiveSeriesCount < countSeriesInLastTest)
+                // ожидание «серий сколько в прошлом прогоне» невыполнимо,
+                // когда набор подписок между прогонами сократился (BUG-0187):
+                // ориентируемся на стабильность счётчика, потолок ожидания прежний
+                while (stableMs < 3000
                        && waitSeriesMs < 120000)
                 {
                     int currentCount = _candleManager.ActiveSeriesCount;
