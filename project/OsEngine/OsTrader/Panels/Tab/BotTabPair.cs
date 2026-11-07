@@ -2077,8 +2077,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (column == 3 && row == 0)
                 { // кнопка открытия окна авто генерации пар
+                    // IsLoaded, not IsActive: a deactivated but alive window must not be re-created (crash BUG-0170)
                     if (_autoSelectPairsUi != null
-                        && _autoSelectPairsUi.IsActive == true)
+                        && _autoSelectPairsUi.IsLoaded == true)
                     {
                         _autoSelectPairsUi.Activate();
                         return;
@@ -2195,16 +2196,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _commonSettingsUi_Closed(object sender, EventArgs e)
         {
-            _commonSettingsUi.Closed -= _commonSettingsUi_Closed;
-            _commonSettingsUi = null;
+            BotTabPairCommonSettingsUi ui = (BotTabPairCommonSettingsUi)sender;
+            ui.Closed -= _commonSettingsUi_Closed;
+            if (ReferenceEquals(_commonSettingsUi, ui))
+            {
+                _commonSettingsUi = null;
+            }
         }
 
         BotTabPairAutoSelectPairsUi _autoSelectPairsUi;
 
         private void _autoSelectPairsUi_Closed(object sender, EventArgs e)
         {
-            _autoSelectPairsUi.Closed -= _autoSelectPairsUi_Closed;
-            _autoSelectPairsUi = null;
+            BotTabPairAutoSelectPairsUi ui = (BotTabPairAutoSelectPairsUi)sender;
+            ui.Closed -= _autoSelectPairsUi_Closed;
+            if (ReferenceEquals(_autoSelectPairsUi, ui))
+            {
+                _autoSelectPairsUi = null;
+            }
         }
 
         #endregion
