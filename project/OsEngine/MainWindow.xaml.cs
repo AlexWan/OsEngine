@@ -58,14 +58,8 @@ namespace OsEngine
 
         public MainWindow()
         {
-            Process ps = Process.GetCurrentProcess();
-            ps.PriorityClass = ProcessPriorityClass.RealTime;
-
             InitializeComponent();
 
-            // handover защиты (bug-20261012-005): снимаем стартап-страховку, с этих трёх подписок
-            // работают зрелые обработчики. Наносекундный зазор Detach->+= — документированный residual
-            // (обратный порядок дал бы окно двух подписчиков и двойной отчёт)
             Logging.StartupCrashGuard.Detach();
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -134,6 +128,7 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.Activate();
+            TrySetRealTimePriority();
             SystemUsageAnalyzeMaster.Activate();
 
             Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
@@ -186,6 +181,71 @@ namespace OsEngine
             this.ContentRendered += MainWindow_ContentRendered;
 
             StartButtonBlinkAnimation();
+        }
+
+        // PriorityClass=RealTime без try/catch ронял запуск через XamlParseException (ACCESS_DENIED
+        // в ограниченных средах). Ставится после ServerMaster.Activate(): к этой точке лог жив.
+        private void TrySetRealTimePriority()
+        {
+            try
+            {
+                Process ps = Process.GetCurrentProcess();
+                TryApplyPriorityChain(
+                    p => ps.PriorityClass = p,
+                    () => ps.PriorityClass,
+                    ServerMaster.SendNewLogMessage,
+                    out _);
+            }
+            catch (Exception)
+            {
+                // страховка: сбой установки приоритета не должен рождать краш
+            }
+        }
+
+        // Pure-цепочка с инъектируемыми делегатами (unit-тестируемость): RealTime → High → AboveNormal,
+        // Normal не пробуем — при отказе процесс остаётся в запущенном классе. lastError при успехе
+        // не обнулять: System-текст деградации требует причину.
+        internal static bool TryApplyPriorityChain(
+            Action<ProcessPriorityClass> setPriority,
+            Func<ProcessPriorityClass> getPriority,
+            Action<string, Logging.LogMessageType> log,
+            out Exception lastError)
+        {
+            ProcessPriorityClass[] chain =
+            {
+                ProcessPriorityClass.RealTime,
+                ProcessPriorityClass.High,
+                ProcessPriorityClass.AboveNormal
+            };
+            lastError = null;
+            ProcessPriorityClass? applied = null;
+            for (int i = 0; i < chain.Length; i++)
+            {
+                try
+                {
+                    setPriority(chain[i]);
+                    applied = chain[i];
+                    break;
+                }
+                catch (Exception e)
+                {
+                    lastError = e;
+                }
+            }
+            if (applied == ProcessPriorityClass.RealTime)
+            {
+                return true; // штатный путь — тихо
+            }
+            if (applied != null)
+            {
+                log("Process priority degraded to " + applied + ". " + lastError, Logging.LogMessageType.System);
+                return true;
+            }
+            string actual = "unknown";
+            try { actual = getPriority().ToString(); }
+            catch (Exception) { }
+            log("Process priority could not be set, running as launched (" + actual + "). " + lastError, Logging.LogMessageType.Error);
+            return false;
         }
 
         private int _shutdownRequested;
