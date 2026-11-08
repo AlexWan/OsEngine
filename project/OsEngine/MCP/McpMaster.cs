@@ -1032,6 +1032,10 @@ namespace OsEngine.MCP
                         {
                             WriteMasked(writer, property.Value);
                         }
+                        else if (property.Value.ValueKind == JsonValueKind.String && property.Name.Equals("Text", StringComparison.OrdinalIgnoreCase))
+                        {
+                            writer.WriteStringValue(SanitizeEmbeddedJsonString(property.Value.GetString()));
+                        }
                         else
                         {
                             WriteSanitized(writer, property.Value);
@@ -1068,6 +1072,32 @@ namespace OsEngine.MCP
             }
         }
 
+        // эхо инструментов лежит JSON-строкой в Text: ключи секретов внутри него иначе уходят в дамп открытыми; shortcut: JSON под другими ключами не вскрывается
+        private static string SanitizeEmbeddedJsonString(string text)
+        {
+            string trimmed = text.TrimStart();
+            if (trimmed.Length == 0 || (trimmed[0] != '{' && trimmed[0] != '['))
+            {
+                return text;
+            }
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(text);
+                using MemoryStream stream = new MemoryStream();
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(stream, FullLogWriterOptions))
+                {
+                    WriteSanitized(writer, document.RootElement);
+                }
+
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
+            catch (Exception)
+            {
+                return $"<embedded payload: unparsable, {Encoding.UTF8.GetByteCount(text)} bytes>";
+            }
+        }
+
         // строка — канон MaskSecret (2+2), не-строка под секретным полем — целиком в «****»
         private static void WriteMasked(Utf8JsonWriter writer, JsonElement element)
         {
@@ -1087,11 +1117,15 @@ namespace OsEngine.MCP
                 || name.Equals("apikey", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("api_key", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("token", StringComparison.OrdinalIgnoreCase)
-                || name.Equals("secret", StringComparison.OrdinalIgnoreCase);
+                || name.Equals("secret", StringComparison.OrdinalIgnoreCase)
+                // login прокси-конфига и username-формы уходят в FullLog-дампы открытым текстом (proxy_create/proxy_set_settings)
+                || name.Equals("login", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("username", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("user_name", StringComparison.OrdinalIgnoreCase);
         }
 
         // set_params request: секрет по имени параметра (тип в запросе не приходит); shortcut: неговорящее имя (NinjaTrader «Port») не ловится.
-        // На проводе tool-эхо — строка content[].text (JSON-in-string, не вскрываем, declared): эхо закрывает source-маскирование 0137; type=="Password" — defense-in-depth на прямом result.
+        // На проводе tool-эхо — строка content[].text: JSON-кандидат под ключом Text вскрывается рекурсивно; на source эхо уже маскировано; type=="Password" — defense-in-depth на прямом result.
         private static bool IsSecretParameterObject(JsonElement element)
         {
             if (element.TryGetProperty("type", out JsonElement type)
