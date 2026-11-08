@@ -1307,7 +1307,12 @@ namespace OsEngine.Market.Servers.GateIoData
                 }
                 else
                 {
-                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе только «Error response: 0-»
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                     return null;
                 }
             }
@@ -1346,7 +1351,11 @@ namespace OsEngine.Market.Servers.GateIoData
                 }
                 else
                 {
-                    SendLogMessage($"Сouldn't upload gzip archive. Http status: {response.StatusCode}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Сouldn't upload gzip archive. Http status: {response.StatusCode}. Error: {err}", LogMessageType.Error);
                     return null;
                 }
 
