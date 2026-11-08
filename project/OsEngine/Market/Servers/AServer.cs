@@ -5288,7 +5288,7 @@ namespace OsEngine.Market.Servers
 
         private void _leverageUi_Closed(object sender, EventArgs e)
         {
-            _leverageUi.Closed -= _securitiesUi_Closed;
+            _leverageUi.Closed -= _leverageUi_Closed;
             _leverageUi.SecurityLeverageDataEvent -= _leverageUi_SecurityLeverageDataEvent;
             _leverageUi = null;
         }
