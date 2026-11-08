@@ -225,6 +225,7 @@ namespace OsEngine.Market.Servers.Tester
             ButtonHelpDividends.Click += ButtonHelpDividends_Click;
             ButtonHelpMargin.Click += ButtonHelpMargin_Click;
             ButtonHelpTaxes.Click += ButtonHelpTaxes_Click;
+            ButtonHelpDataType.Click += ButtonHelpDataType_Click;
 
             // data for test
 
@@ -235,6 +236,8 @@ namespace OsEngine.Market.Servers.Tester
             ComboBoxDataType.Items.Add(TesterDataType.MarketDepthOnlyReadyCandle);
             ComboBoxDataType.SelectedItem = _server.TypeTesterData;
             ComboBoxDataType.SelectionChanged += ComboBoxDataType_SelectionChanged;
+
+            CheckDataTypeMatch();
 
             TextBoxDataPath.Text = _server.PathToFolder;
             ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Folder);
@@ -431,6 +434,7 @@ namespace OsEngine.Market.Servers.Tester
                 ButtonHelpDividends.Click -= ButtonHelpDividends_Click;
                 ButtonHelpMargin.Click -= ButtonHelpMargin_Click;
                 ButtonHelpTaxes.Click -= ButtonHelpTaxes_Click;
+                ButtonHelpDataType.Click -= ButtonHelpDataType_Click;
                 CheckBoxSlippageLimitOff.Checked -= CheckBoxSlippageLimitOff_Checked;
                 CheckBoxSlippageLimitOn.Checked -= CheckBoxSlippageLimitOn_Checked;
                 CheckBoxSlippageStopOff.Checked -= CheckBoxSlippageStopOff_Checked;
@@ -523,6 +527,7 @@ namespace OsEngine.Market.Servers.Tester
             _server.TypeTesterData = type;
             _server.Save();
 
+            CheckDataTypeMatch();
             PaintGrid();
         }
 
@@ -650,6 +655,15 @@ namespace OsEngine.Market.Servers.Tester
         private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
             _needToRePaintGrid = true;
+
+            if (Label25.Dispatcher.CheckAccess() == false)
+            {
+                Label25.Dispatcher.Invoke(new Action(CheckDataTypeMatch));
+            }
+            else
+            {
+                CheckDataTypeMatch();
+            }
         }
 
         private void _server_TestingStartEvent()
@@ -2485,6 +2499,102 @@ namespace OsEngine.Market.Servers.Tester
         #endregion
 
         #region Help buttons
+
+        private List<string> _availableDataTypes = new List<string>();
+
+        private SecurityTesterDataType? GetRequiredDataType(TesterDataType type)
+        {
+            if (type == TesterDataType.Candle)
+            {
+                return SecurityTesterDataType.Candle;
+            }
+            if (type == TesterDataType.TickAllCandleState || type == TesterDataType.TickOnlyReadyCandle)
+            {
+                return SecurityTesterDataType.Tick;
+            }
+            if (type == TesterDataType.MarketDepthAllCandleState || type == TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                return SecurityTesterDataType.MarketDepth;
+            }
+            return null;
+        }
+
+        private void CheckDataTypeMatch()
+        {
+            try
+            {
+                if (_server == null)
+                {
+                    return;
+                }
+
+                SecurityTesterDataType? required = GetRequiredDataType(_server.TypeTesterData);
+
+                bool mismatch = false;
+                List<string> available = new List<string>();
+
+                if (required.HasValue && _server.SecuritiesTester != null && _server.SecuritiesTester.Count > 0)
+                {
+                    for (int i = 0; i < _server.SecuritiesTester.Count; i++)
+                    {
+                        string name = _server.SecuritiesTester[i].DataType.ToString();
+                        if (available.Contains(name) == false)
+                        {
+                            available.Add(name);
+                        }
+                    }
+
+                    bool haveRequired = false;
+                    for (int i = 0; i < _server.SecuritiesTester.Count; i++)
+                    {
+                        if (_server.SecuritiesTester[i].DataType == required.Value)
+                        {
+                            haveRequired = true;
+                            break;
+                        }
+                    }
+
+                    mismatch = haveRequired == false;
+                }
+
+                if (mismatch)
+                {
+                    Label25.Foreground = System.Windows.Media.Brushes.Red;
+                    ComboBoxDataType.Foreground = System.Windows.Media.Brushes.Red;
+                    ButtonHelpDataType.Visibility = Visibility.Visible;
+                }
+            else
+            {
+                Label25.ClearValue(System.Windows.Controls.Control.ForegroundProperty);
+                ComboBoxDataType.ClearValue(System.Windows.Controls.Control.ForegroundProperty);
+                ButtonHelpDataType.Visibility = Visibility.Collapsed;
+            }
+
+                _availableDataTypes = available;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonHelpDataType_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string available = string.Join(", ", _availableDataTypes);
+
+                string eng = "The selected transmission type " + _server.TypeTesterData + " does not match the loaded data. The data set contains " + available + ". Switch the transmission type to match the available data.";
+                string ru = "Выбранный тип трансляции " + _server.TypeTesterData + " не соответствует загруженным данным. В выбранном наборе данных есть " + available + ". Переключите тип трансляции на доступный в данных.";
+
+                CustomMessageBoxUi boxUi = new CustomMessageBoxUi(OsLocalization.ConvertToLocString("Eng:" + eng + "_Ru:" + ru + "_"));
+                boxUi.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void ButtonHelpDividends_Click(object sender, RoutedEventArgs e)
         {
