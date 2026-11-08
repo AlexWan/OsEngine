@@ -215,6 +215,18 @@ namespace OsEngine.Language
             "Eng:The academic Lopez de Prado algorithm. Builds a correlation dendrogram and allocates weights inversely to variance. Set linkage, covariance and correlation type, then press Calculate. Dendrogram dots are colored by cluster._" +
             "Ru:Академический алгоритм Лопеса де Прадо. Строит дендрограмму по корреляции и распределяет веса обратно дисперсии. Настройте линковку, ковариацию и тип корреляции, затем нажмите Рассчитать. Точки дендрограммы окрашены по кластерам._");
 
+        public string HelpCorrelationType => OsLocalization.ConvertToLocString(
+            "Eng:How we measure how similarly two bots move. Pearson is the standard linear correlation and fits almost always. Spearman is rank-based and more robust to sharp return spikes._" +
+            "Ru:Способ измерить, насколько похоже двигаются два робота. Pearson — обычная корреляция, подходит почти всегда. Spearman — по рангам, устойчивее к резким скачкам доходности._");
+
+        public string HelpLinkage => OsLocalization.ConvertToLocString(
+            "Eng:How similar bots are joined into a hierarchy tree. Single uses the closest pair, Complete the farthest, Average the mean similarity, Ward makes the tightest groups._" +
+            "Ru:Как собирать похожих роботов в иерархию-дерево. Single — по ближайшей паре, Complete — по самой дальней, Average — по средней похожести, Ward — чтобы группы были максимально плотными._");
+
+        public string HelpCovariance => OsLocalization.ConvertToLocString(
+            "Eng:How we estimate the risk (volatility) of a bot to distribute capital. Sample is the plain estimate from history. Shrinkage is smoothed and more reliable on short history._" +
+            "Ru:Как оценивать риск (волатильность) робота, чтобы распределить капитал. Sample — обычная оценка по истории. Shrinkage — сглаженная, надёжнее на короткой истории._");
+
         public string HelpJournalEquity => OsLocalization.ConvertToLocString(
             "Eng:Cluster equity curve and profit of each deal as bars. Click the chart to show the equity and profit values at a point._" +
             "Ru:Кривая эквити кластера и прибыль каждой сделки в виде столбиков. Клик по графику показывает значение эквити и прибыли в выбранной точке._");

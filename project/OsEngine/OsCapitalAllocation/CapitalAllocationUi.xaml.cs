@@ -93,6 +93,9 @@ namespace OsEngine.OsCapitalAllocation
             ButtonHelpBaseEquity.Click += ButtonHelp_Click;
             ButtonHelpCorrelationClustering.Click += ButtonHelp_Click;
             ButtonHelpHierarchicalRiskParity.Click += ButtonHelp_Click;
+            ButtonHelpCorrelation.Click += ButtonHelp_Click;
+            ButtonHelpLinkage.Click += ButtonHelp_Click;
+            ButtonHelpCovariance.Click += ButtonHelp_Click;
 
             ComboBoxPeriod.Items.Add(OsLocalization.CapitalAllocation.PeriodWeek);
             ComboBoxPeriod.Items.Add(OsLocalization.CapitalAllocation.PeriodMonth);
@@ -251,6 +254,9 @@ namespace OsEngine.OsCapitalAllocation
             ButtonHelpBaseEquity.Tag = OsLocalization.CapitalAllocation.HelpBaseEquity;
             ButtonHelpCorrelationClustering.Tag = OsLocalization.CapitalAllocation.HelpCorrelationClustering;
             ButtonHelpHierarchicalRiskParity.Tag = OsLocalization.CapitalAllocation.HelpHierarchicalRiskParity;
+            ButtonHelpCorrelation.Tag = OsLocalization.CapitalAllocation.HelpCorrelationType;
+            ButtonHelpLinkage.Tag = OsLocalization.CapitalAllocation.HelpLinkage;
+            ButtonHelpCovariance.Tag = OsLocalization.CapitalAllocation.HelpCovariance;
             ButtonRecalculate.Content = OsLocalization.CapitalAllocation.ButtonRecalculate;
 
             LabelPrecision.Content = OsLocalization.CapitalAllocation.LabelPrecision;
@@ -392,6 +398,9 @@ namespace OsEngine.OsCapitalAllocation
                 ButtonHelpBaseEquity.Click -= ButtonHelp_Click;
                 ButtonHelpCorrelationClustering.Click -= ButtonHelp_Click;
                 ButtonHelpHierarchicalRiskParity.Click -= ButtonHelp_Click;
+                ButtonHelpCorrelation.Click -= ButtonHelp_Click;
+                ButtonHelpLinkage.Click -= ButtonHelp_Click;
+                ButtonHelpCovariance.Click -= ButtonHelp_Click;
 
                 _master.StateChangedEvent -= Master_StateChanged;
 

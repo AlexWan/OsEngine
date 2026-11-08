@@ -1,10 +1,10 @@
 <Window x:Class="OsEngine.OsCapitalAllocation.CapitalAllocationUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Capital allocation" Height="640" Width="960"
+        Title="Capital allocation" Height="640" Width="1010"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource WindowStyleCanResize}"
-        MinWidth="940" MinHeight="480"
+        MinWidth="990" MinHeight="480"
         Icon="/Images/OsLogo.ico">
     <Grid>
         <TabControl Name="TabControlPrime" BorderThickness="0" Background="{DynamicResource StandardBackgroundBrush}">
@@ -77,12 +77,15 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,10,10,4">
-                                <Label Name="LabelLinkage" Content="Linkage" VerticalAlignment="Center"/>
-                                <ComboBox Name="ComboBoxLinkage" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                                <Label Name="LabelCovariance" Content="Covariance" VerticalAlignment="Center"/>
-                                <ComboBox Name="ComboBoxCovariance" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
                                 <Label Name="LabelCorrelation" Content="Correlation" VerticalAlignment="Center"/>
-                                <ComboBox Name="ComboBoxCorrelation" Width="110" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                <ComboBox Name="ComboBoxCorrelation" Width="110" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <Button Name="ButtonHelpCorrelation" Content="?" Width="22" Height="22" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <Label Name="LabelLinkage" Content="Linkage" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxLinkage" Width="110" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <Button Name="ButtonHelpLinkage" Content="?" Width="22" Height="22" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <Label Name="LabelCovariance" Content="Covariance" VerticalAlignment="Center"/>
+                                <ComboBox Name="ComboBoxCovariance" Width="110" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                                <Button Name="ButtonHelpCovariance" Content="?" Width="22" Height="22" VerticalAlignment="Center" Margin="0,0,14,0"/>
                                 <Button Name="ButtonCalculateHierarchicalRiskParity" Content="Calculate" Width="120" Height="28" VerticalAlignment="Center"/>
                                 <Button Name="ButtonSaveHierarchicalRiskParity" Content="Save result" Width="120" Height="28" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
