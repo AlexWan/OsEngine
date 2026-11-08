@@ -582,6 +582,13 @@ namespace OsEngine.OsTrader.Panels
             Button button = (Button)sender;
             AMarketDepth indicator = (AMarketDepth)button.Tag;
 
+            if (indicator.CanDelete == false)
+            {
+                MessageBox.Show(OsLocalization.ConvertToLocString(
+                    "Eng:This indicator is used by the robot and cannot be deleted_Ru:Этот индикатор используется роботом и удалить его нельзя_"));
+                return;
+            }
+
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.ConvertToLocString(
                 "Eng:Are you sure you want to delete the indicator?_Ru:Вы уверены что хотите удалить индикатор?_"));
             ui.ShowDialog();
