@@ -21,6 +21,18 @@ namespace OsEngine
             // ServerMaster-лог ещё не активирован, оконного состояния и Reboot нет — рутин самостоятельный
             Logging.StartupCrashGuard.Attach();
 
+            // BUG-0202: дефолтный WinForms ThreadExceptionDialog сам падает в GDI+ MeasureString на
+            // разметке текста исключения (#331), первичная ошибка теряется. CatchException переводит
+            // необработанные WinForms-исключения в Application.ThreadException (хендлер в MainWindow).
+            try
+            { // чужой код мог создать Forms-контекст раньше: режим не выставлен — не роняем старт
+                System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
+            }
+            catch (Exception error)
+            {
+                Logging.StartupCrashGuard.LogStartup("SetUnhandledExceptionMode failed. " + error);
+            }
+
             app = this;
 
             // завершением управляем сами (Kill/Shutdown); авто-завершение по последнему окну
