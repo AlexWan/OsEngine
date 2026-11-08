@@ -1065,12 +1065,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_tabIsLoad == false)
                 {
+                    SendNewLogMessage("Screener tabs reload skipped: tab load not finished", LogMessageType.Error);
                     return;
                 }
 
                 if (TabsReadyToLoad() == false
                     && Tabs.Count == 0)
                 {
+                    string reason = SecuritiesNames.Count == 0 ? "no securities"
+                        : String.IsNullOrEmpty(PortfolioName) ? "no portfolio name"
+                        : "server type is None";
+                    SendNewLogMessage($"Screener tabs reload skipped: {reason}", LogMessageType.Error);
                     return;
                 }
 

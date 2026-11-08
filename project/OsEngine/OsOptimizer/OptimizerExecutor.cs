@@ -814,6 +814,7 @@ namespace OsEngine.OsOptimizer
             if (bot == null)
             {
                 SendLogMessage("Critical Optimizer Error. Robot cannot be created", LogMessageType.Error);
+                RemoveFailedServer(server);
                 return;
             }
 
@@ -828,10 +829,20 @@ namespace OsEngine.OsOptimizer
 
                 if (timeStartWaiting.AddSeconds(2000) < DateTime.Now)
                 {
+                    string diag = "";
+
+                    if (bot.TabsScreener != null && bot.TabsScreener.Count > 0)
+                    {
+                        BotTabScreener scr = bot.TabsScreener[0];
+                        diag = $" Screener Tabs={scr.Tabs.Count}, NeedToReloadTabs={scr.NeedToReloadTabs}, Securities={scr.SecuritiesNames.Count}";
+                    }
 
                     SendLogMessage(
-                        OsLocalization.Optimizer.Message10,
+                        OsLocalization.Optimizer.Message10 +
+                        $" Robot {botName}. Server #{server.NumberServer}." + diag,
                         LogMessageType.Error);
+                    // без удаления сервера дренаж фазы (ожидание _servers.Count==0) не выйдет никогда
+                    RemoveFailedServer(server);
                     return;
                 }
             }
@@ -842,6 +853,21 @@ namespace OsEngine.OsOptimizer
             }
 
             server.TestingStart();
+        }
+
+        /// <summary>
+        /// Remove a server abandoned by StartNewBot/TestBot on failure (timeout or robot create error)
+        /// </summary>
+        private void RemoveFailedServer(OptimizerServer server)
+        {
+            lock (_serverRemoveLocker)
+            {
+                server.TestingEndEvent -= server_TestingEndEvent;
+                server.TestingProgressChangeEvent -= server_TestingProgressChangeEvent;
+                _servers.Remove(server);
+            }
+
+            ServerMaster.RemoveOptimizerServer(server);
         }
 
         private List<BotPanel> _botsInTest = new List<BotPanel>();
@@ -1141,6 +1167,15 @@ namespace OsEngine.OsOptimizer
                         screenerTo.TryReLoadTabs();
                         screenerTo.ReloadIndicatorsOnTabs();
 
+                        // в оптимизаторе перезагрузка вкладок скринера однократная: если вкладки не
+                        // создались при включённых бумагах — робот не подключится никогда, ждём 2000 с зря
+                        if (screenerTo.Tabs.Count == 0
+                            && screenerTo.SecuritiesNames.Exists(s => s.IsOn))
+                        {
+                            SendLogMessage($"Optimizer cannot create screener tabs. Robot {botName}. Tabs=0, active securities={screenerTo.SecuritiesNames.Count}", LogMessageType.Error);
+                            return null;
+                        }
+
 
                     }
                 }
@@ -1311,6 +1346,8 @@ namespace OsEngine.OsOptimizer
                     SendLogMessage(
                         OsLocalization.Optimizer.Message10,
                         LogMessageType.Error);
+                    awaitObj.Dispose();
+                    RemoveFailedServer(server);
                     return null;
                 }
             }
