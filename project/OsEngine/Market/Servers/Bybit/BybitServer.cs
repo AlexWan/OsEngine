@@ -50,8 +50,8 @@ namespace OsEngine.Market.Servers.Bybit
             ServerParameters[2].Comment = OsLocalization.Market.Label248;
             ServerParameters[3].Comment = OsLocalization.Market.Label249;
             ServerParameters[4].Comment = OsLocalization.Market.Label250;
-            ServerParameters[5].Comment = OsLocalization.Market.Label251;
-            ServerParameters[6].Comment = OsLocalization.Market.Label252;
+            ServerParameters[5].Comment = OsLocalization.Market.Label252;
+            ServerParameters[6].Comment = OsLocalization.Market.Label253;
             ServerParameters[7].Comment = OsLocalization.Market.Label324;
         }
 
