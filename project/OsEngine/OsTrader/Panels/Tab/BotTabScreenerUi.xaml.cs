@@ -2181,6 +2181,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             return row;
         }
 
+        private CandleMarketDataType GetCandleMarketDataType(TesterDataType type)
+        {
+            if (type == TesterDataType.MarketDepthAllCandleState
+                || type == TesterDataType.MarketDepthOnlyReadyCandle)
+            {
+                return CandleMarketDataType.MarketDepth;
+            }
+
+            return CandleMarketDataType.Tick;
+        }
+
         private void LoadTimeFrameBox(DataGridViewComboBoxCell box)
         {
             if (ComboBoxCandleCreateMethodType.SelectedItem == null)
@@ -2238,7 +2249,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     box.Items.Add(TimeFrame.Sec2.ToString());
                     box.Items.Add(TimeFrame.Sec1.ToString());
 
-                    ComboBoxCandleMarketDataType.SelectedItem = CandleMarketDataType.Tick.ToString();
+                    TesterDataType testerType = serverTester != null ? serverTester.TypeTesterData : serverOpt.TypeTesterData;
+                    ComboBoxCandleMarketDataType.SelectedItem = GetCandleMarketDataType(testerType).ToString();
                     ComboBoxCandleMarketDataType.IsEnabled = true;
                 }
                 else
