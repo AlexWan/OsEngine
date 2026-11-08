@@ -223,12 +223,12 @@ namespace OsEngine.Robots.Monitors
 
             for (int i = candles.Count - 1; i >= 0 && i > rsiValues.Count - 1 - _candlesToAnalyze.ValueInt; i--)
             {
-                decimal currentValue = rsiValues[i];
-
-                if(currentValue == 0)
+                if (i <= _rsiLength.ValueInt + 1)
                 {
-                    continue;
+                    continue; // недобитые нули серии — прогрев, не данные
                 }
+
+                decimal currentValue = rsiValues[i];
 
                 if (currentValue > maxPrice)
                 {

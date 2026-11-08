@@ -91,9 +91,13 @@ namespace OsEngine.Indicators
             {
                 rsi = 100 * (1 - averageLow / (averageLow + averageHigh));
             }
+            else if (averageHigh == 0 && averageLow != 0)
+            {
+                rsi = 0; // чистое падение: ростов нет, перепроданность полная
+            }
             else
             {
-                rsi = 100;
+                rsi = 100; // чистый рост или флэт — прежнее поведение
             }
 
             _series.Values[index] = Math.Round(rsi, 2);

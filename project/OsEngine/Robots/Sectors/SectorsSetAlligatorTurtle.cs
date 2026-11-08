@@ -853,9 +853,9 @@ namespace OsEngine.Robots.Sectors
                         continue;
                     }
 
-                    decimal lastRsi = rsi.DataSeries[0].Last;
+                    decimal lastRsi = GetLastRsi(tab);
 
-                    if (lastRsi == 0)
+                    if (lastRsi < 0)
                     {
                         continue;
                     }
@@ -894,7 +894,7 @@ namespace OsEngine.Robots.Sectors
 
             decimal tabRsi = GetLastRsi(tab);
 
-            if (tabRsi == 0)
+            if (tabRsi < 0)
             {
                 return false;
             }
@@ -907,7 +907,7 @@ namespace OsEngine.Robots.Sectors
             {
                 decimal rsi = GetLastRsi(sector.Screener.Tabs[i]);
 
-                if (rsi == 0)
+                if (rsi < 0)
                 {
                     continue;
                 }
@@ -944,11 +944,13 @@ namespace OsEngine.Robots.Sectors
             return tabRsi <= minRsi;
         }
 
+        // -1 = «нет прогретых данных» (сентинел). Индикатор пишет с индекса length+2,
+        // поэтому без свечей на прогрев Last может быть нулём серии — не отличить от настоящего 0 RSI
         private decimal GetLastRsi(BotTabSimple tab)
         {
             if (tab.Indicators == null || tab.Indicators.Count < 4)
             {
-                return 0;
+                return -1;
             }
 
             Aindicator rsi = (Aindicator)tab.Indicators[3];
@@ -956,9 +958,11 @@ namespace OsEngine.Robots.Sectors
             if (rsi.DataSeries == null
                 || rsi.DataSeries.Count == 0
                 || rsi.DataSeries[0].Values == null
-                || rsi.DataSeries[0].Values.Count == 0)
+                || rsi.DataSeries[0].Values.Count == 0
+                || tab.CandlesAll == null
+                || tab.CandlesAll.Count < _rsiLength.ValueInt + 3)
             {
-                return 0;
+                return -1;
             }
 
             return rsi.DataSeries[0].Last;
