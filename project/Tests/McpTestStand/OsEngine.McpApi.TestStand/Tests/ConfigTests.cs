@@ -27,6 +27,7 @@ namespace OsEngine.McpApi.TestStand.Tests
 
             TestMcpSettingsGet();
             TestMcpSettingsSetFullLog();
+            TestMcpSettingsApiKeyMasked();
         }
 
         private void TestMcpSettingsGet()
@@ -213,6 +214,135 @@ namespace OsEngine.McpApi.TestStand.Tests
                     // ignore restore error
                 }
             }
+        }
+
+        // BUG-0137: mcp_settings_get/set must never echo the API key in plaintext.
+        // K2: an empty key stays empty (MaskSecret("") == "") — skipped, not failed.
+        private void TestMcpSettingsApiKeyMasked()
+        {
+            const string method = "mcp_settings_get";
+
+            try
+            {
+                _context.PrintRequest(Module, method, new { });
+                string response = _context.Client.ToolsCall(method, new { });
+                _context.PrintResponse(response);
+
+                using (var document = JsonDocument.Parse(response))
+                {
+                    if (!TryExtractSettings(document.RootElement, out JsonElement settings, out string error))
+                    {
+                        _context.RecordFail(Module, method + ".apiKey_masked", error);
+                        return;
+                    }
+
+                    if (!settings.TryGetProperty("apiKey", out JsonElement apiKeyElement))
+                    {
+                        _context.RecordFail(Module, method + ".apiKey_masked", "apiKey field missing in mcp_settings_get (contract)");
+                        return;
+                    }
+
+                    string apiKey = apiKeyElement.ValueKind == JsonValueKind.String
+                        ? apiKeyElement.GetString() ?? string.Empty
+                        : string.Empty;
+
+                    if (apiKey.Length == 0)
+                    {
+                        _context.RecordPass(Module, method + ".apiKey_masked", "SKIP: apiKey is empty, masking not applicable");
+                        return;
+                    }
+
+                    if (!apiKey.Contains("*"))
+                    {
+                        _context.RecordFail(Module, method + ".apiKey_masked", $"apiKey is returned unmasked by mcp_settings_get (length {apiKey.Length}, no '*' in value)");
+                        return;
+                    }
+
+                    // mcp_settings_set echoes the same settings object — check the masking there too.
+                    // Same value is sent back, so nothing changes and no restart is triggered.
+                    bool currentFullLog = false;
+                    TryReadFullLog(out currentFullLog);
+
+                    const string setMethod = "mcp_settings_set";
+                    object request = new { isFullLogEnabled = currentFullLog };
+
+                    _context.PrintRequest(Module, setMethod, request);
+                    string setResponse = _context.Client.ToolsCall(setMethod, request);
+                    _context.PrintResponse(setResponse);
+
+                    using (var setDocument = JsonDocument.Parse(setResponse))
+                    {
+                        if (!TryExtractSettings(setDocument.RootElement, out JsonElement setSettings, out error))
+                        {
+                            _context.RecordFail(Module, setMethod + ".apiKey_masked", error);
+                            return;
+                        }
+
+                        if (setSettings.TryGetProperty("settings", out JsonElement innerSettings))
+                        {
+                            setSettings = innerSettings;
+                        }
+
+                        if (!setSettings.TryGetProperty("apiKey", out JsonElement setApiKeyElement))
+                        {
+                            _context.RecordFail(Module, setMethod + ".apiKey_masked", "apiKey field missing in mcp_settings_set echo (contract)");
+                            return;
+                        }
+
+                        string setApiKey = setApiKeyElement.ValueKind == JsonValueKind.String
+                            ? setApiKeyElement.GetString() ?? string.Empty
+                            : string.Empty;
+
+                        if (setApiKey.Length > 0 && !setApiKey.Contains("*"))
+                        {
+                            _context.RecordFail(Module, setMethod + ".apiKey_masked", $"apiKey is echoed unmasked by mcp_settings_set (length {setApiKey.Length}, no '*' in value)");
+                            return;
+                        }
+                    }
+
+                    _context.RecordPass(Module, method + ".apiKey_masked", "apiKey masked in mcp_settings_get and mcp_settings_set echo");
+                }
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, method + ".apiKey_masked", error.Message);
+            }
+        }
+
+        private static bool TryExtractSettings(JsonElement root, out JsonElement settings, out string error)
+        {
+            settings = default;
+            error = string.Empty;
+
+            if (!root.TryGetProperty("IsError", out JsonElement isError) || isError.GetBoolean())
+            {
+                error = "IsError is true";
+                return false;
+            }
+
+            if (!root.TryGetProperty("Content", out JsonElement content) || content.GetArrayLength() == 0)
+            {
+                error = "Content is empty";
+                return false;
+            }
+
+            string text = content[0].GetProperty("Text").GetString() ?? string.Empty;
+
+            try
+            {
+                using (var innerDocument = JsonDocument.Parse(text))
+                {
+                    settings = innerDocument.RootElement.Clone();
+                }
+            }
+            catch (Exception parseError)
+            {
+                error = $"failed to parse settings JSON: {parseError.Message}";
+                return false;
+            }
+
+            return true;
         }
 
         private bool TryReadFullLog(out bool value)

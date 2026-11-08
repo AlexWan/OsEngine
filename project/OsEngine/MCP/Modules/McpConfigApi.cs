@@ -92,7 +92,8 @@ namespace OsEngine.MCP.Modules
             return new
             {
                 port = McpSettings.Port,
-                apiKey = McpSettings.ApiKey,
+                // never return the key in plaintext, BUG-0137
+                apiKey = ServerInstanceApi.MaskSecret(McpSettings.ApiKey),
                 isEnabled = McpSettings.IsEnabled,
                 isFullLogEnabled = McpSettings.IsFullLogEnabled,
                 allowedIps = McpSettings.AllowedIps.Select(i => new { ip = i.Ip, port = i.Port }).ToList()

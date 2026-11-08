@@ -494,7 +494,7 @@ namespace OsEngine.MCP.Modules
             }
         }
 
-        private static string MaskSecret(object value)
+        internal static string MaskSecret(object value)
         {
             string text = value?.ToString() ?? string.Empty;
 
@@ -569,7 +569,8 @@ namespace OsEngine.MCP.Modules
                 {
                     name = p.Item1.Name,
                     type = p.Item1.Type.ToString(),
-                    value = p.Item2
+                    // Password values masked with the same get_params canon (BUG-0137)
+                    value = p.Item1.Type == ServerParameterType.Password ? MaskSecret(p.Item2) : p.Item2
                 })
             };
         }

@@ -41,6 +41,8 @@ namespace OsEngine.McpApi.TestStand.Tests
 
             TestGetParams();
             TestSetParams();
+            TestSetParamsPasswordMasked();
+            TestSetParamsNonPasswordEchoUnmasked();
             TestCreateAndDeleteInstance();
             TestDeleteInstanceZeroFails();
             TestGetDataAfterConnect();
@@ -270,6 +272,269 @@ namespace OsEngine.McpApi.TestStand.Tests
             {
                 _context.PrintResponse("");
                 _context.RecordFail(Module, setMethod, error.Message);
+            }
+        }
+
+        // BUG-0137: server_instance_set_params must not echo Password-type values in plaintext.
+        // K3: if the test connector has no Password parameter — skipped, not failed.
+        // Runs on a fresh disposable instance so saved connector credentials are never touched.
+        private void TestSetParamsPasswordMasked()
+        {
+            const string getMethod = "server_instance_get_params";
+            const string setMethod = "server_instance_set_params";
+            const string createMethod = "server_instance_create";
+            const string deleteMethod = "server_instance_delete";
+            const string secret = "TEST-MASK-SECRET-0123";
+            string serverType = _serverType;
+            int instanceNumber = -1;
+
+            try
+            {
+                string? targetName = null;
+                object getRequest = new { type = serverType };
+
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                using (var document = JsonDocument.Parse(getResponse))
+                {
+                    if (!TryExtractToolResult(document.RootElement, out JsonElement resultElement, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", error);
+                        return;
+                    }
+
+                    foreach (JsonElement parameterElement in resultElement.EnumerateArray())
+                    {
+                        if (parameterElement.TryGetProperty("type", out JsonElement typeElement)
+                            && typeElement.ValueKind == JsonValueKind.String
+                            && typeElement.GetString() == "Password"
+                            && parameterElement.TryGetProperty("name", out JsonElement nameElement)
+                            && nameElement.ValueKind == JsonValueKind.String)
+                        {
+                            targetName = nameElement.GetString();
+                            break;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(targetName))
+                {
+                    _context.RecordPass(Module, setMethod + ".password_masked", $"SKIP: {serverType} has no Password-type parameters");
+                    return;
+                }
+
+                _context.PrintRequest(Module, createMethod, getRequest);
+                string createResponse = _context.Client.ToolsCall(createMethod, getRequest);
+                _context.PrintResponse(createResponse);
+
+                using (var createDocument = JsonDocument.Parse(createResponse))
+                {
+                    if (!TryExtractToolResult(createDocument.RootElement, out JsonElement createResult, out string error)
+                        || !createResult.TryGetProperty("number", out JsonElement numberElement)
+                        || !numberElement.TryGetInt32(out instanceNumber)
+                        || instanceNumber < 1)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", "failed to create a disposable instance for the password masking test");
+                        return;
+                    }
+                }
+
+                object setRequest = new
+                {
+                    type = serverType,
+                    number = instanceNumber,
+                    parameters = new[]
+                    {
+                        new { name = targetName, value = secret }
+                    }
+                };
+
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                using (var setDocument = JsonDocument.Parse(setResponse))
+                {
+                    if (!TryExtractToolResult(setDocument.RootElement, out JsonElement setResult, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", error);
+                        return;
+                    }
+
+                    if (!setResult.TryGetProperty("success", out JsonElement successElement)
+                        || successElement.ValueKind != JsonValueKind.True)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", "set_params did not return success");
+                        return;
+                    }
+
+                    if (!setResult.TryGetProperty("updated", out JsonElement updatedElement)
+                        || updatedElement.ValueKind != JsonValueKind.Array
+                        || updatedElement.GetArrayLength() != 1)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", "set_params did not return exactly one updated parameter");
+                        return;
+                    }
+
+                    JsonElement entry = updatedElement[0];
+
+                    if (!entry.TryGetProperty("value", out JsonElement valueElement)
+                        || valueElement.ValueKind != JsonValueKind.String)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", "echoed value for Password parameter is not a string");
+                        return;
+                    }
+
+                    string echoed = valueElement.GetString() ?? string.Empty;
+
+                    // MaskSecret canonical (ServerInstanceApi.MaskSecret): 2 head + '*'*(len-4) + 2 tail, <=4 => "****"
+                    string expected = secret.Length <= 4
+                        ? "****"
+                        : secret.Substring(0, 2) + new string('*', secret.Length - 4) + secret.Substring(secret.Length - 2);
+
+                    if (echoed == secret)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", "Password value echoed in plaintext");
+                        return;
+                    }
+
+                    if (echoed != expected)
+                    {
+                        _context.RecordFail(Module, setMethod + ".password_masked", $"echoed value does not match MaskSecret canonical (expected {expected}, got {echoed})");
+                        return;
+                    }
+                }
+
+                _context.RecordPass(Module, setMethod + ".password_masked", $"Password parameter '{targetName}' echoed MaskSecret-canonical on instance #{instanceNumber}");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, setMethod + ".password_masked", error.Message);
+            }
+            finally
+            {
+                if (instanceNumber >= 1)
+                {
+                    try
+                    {
+                        _context.Client.ToolsCall(deleteMethod, new { type = serverType, number = instanceNumber });
+                    }
+                    catch
+                    {
+                        // ignore cleanup errors
+                    }
+                }
+            }
+        }
+
+        // BUG-0137 regression guard: non-Password parameters must keep the raw echo.
+        private void TestSetParamsNonPasswordEchoUnmasked()
+        {
+            const string getMethod = "server_instance_get_params";
+            const string setMethod = "server_instance_set_params";
+            string serverType = _serverType;
+            object getRequest = new { type = serverType };
+
+            try
+            {
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                string? targetName = null;
+                bool originalValue = false;
+
+                using (var document = JsonDocument.Parse(getResponse))
+                {
+                    if (!TryExtractToolResult(document.RootElement, out JsonElement resultElement, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".nonpassword_unmasked", error);
+                        return;
+                    }
+
+                    foreach (JsonElement parameterElement in resultElement.EnumerateArray())
+                    {
+                        if (parameterElement.TryGetProperty("type", out JsonElement typeElement)
+                            && typeElement.ValueKind == JsonValueKind.String
+                            && typeElement.GetString() == "Bool"
+                            && parameterElement.TryGetProperty("name", out JsonElement nameElement)
+                            && nameElement.ValueKind == JsonValueKind.String
+                            && parameterElement.TryGetProperty("value", out JsonElement valueElement)
+                            && (valueElement.ValueKind == JsonValueKind.True || valueElement.ValueKind == JsonValueKind.False))
+                        {
+                            targetName = nameElement.GetString();
+                            originalValue = valueElement.GetBoolean();
+                            break;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(targetName))
+                {
+                    _context.RecordPass(Module, setMethod + ".nonpassword_unmasked", $"SKIP: {serverType} has no Bool parameters to check the echo");
+                    return;
+                }
+
+                bool newValue = !originalValue;
+
+                object setRequest = new
+                {
+                    type = serverType,
+                    parameters = new[]
+                    {
+                        new { name = targetName, value = newValue }
+                    }
+                };
+
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                using (var setDocument = JsonDocument.Parse(setResponse))
+                {
+                    if (!TryExtractToolResult(setDocument.RootElement, out JsonElement setResult, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".nonpassword_unmasked", error);
+                        return;
+                    }
+
+                    if (!setResult.TryGetProperty("updated", out JsonElement updatedElement)
+                        || updatedElement.ValueKind != JsonValueKind.Array
+                        || updatedElement.GetArrayLength() != 1)
+                    {
+                        _context.RecordFail(Module, setMethod + ".nonpassword_unmasked", "set_params did not return exactly one updated parameter");
+                        return;
+                    }
+
+                    JsonElement valueElement = updatedElement[0].GetProperty("value");
+
+                    if (valueElement.ValueKind != (newValue ? JsonValueKind.True : JsonValueKind.False))
+                    {
+                        _context.RecordFail(Module, setMethod + ".nonpassword_unmasked", $"Bool parameter echoed as {valueElement.ValueKind}, expected raw {newValue}");
+                        return;
+                    }
+                }
+
+                object restoreRequest = new
+                {
+                    type = serverType,
+                    parameters = new[]
+                    {
+                        new { name = targetName, value = originalValue }
+                    }
+                };
+
+                _context.Client.ToolsCall(setMethod, restoreRequest);
+
+                _context.RecordPass(Module, setMethod + ".nonpassword_unmasked", $"non-Password '{targetName}' echoed unmasked and restored");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, setMethod + ".nonpassword_unmasked", error.Message);
             }
         }
 
