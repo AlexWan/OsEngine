@@ -64,6 +64,7 @@ namespace OsEngine
 
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            System.Windows.Forms.Application.ThreadException += WinForms_ThreadException; // BUG-0202, см. хендлер
             Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
             this.Closing += MainWindow_Closing;
@@ -480,6 +481,54 @@ namespace OsEngine
                 RobotUiLite.IsRobotUiLightStart)
             {
                 Reboot(message);
+            }
+        }
+
+        // BUG-0202: WinForms-канал необработанных исключений. Механизм ThreadContext покрывает главный
+        // UI-тред; второстепенные Forms-циклы не покрыты осознанно. Метка THREAD/TASK/UI — третья ветка,
+        // антидубль по экземпляру: соседний повтор того же исключения не отчитывается второй раз.
+        // Аргумент делегата живёт в System.Threading (в System.Windows.Forms его нет — CS0234 на net10).
+        private object _lastWinFormsThreadException;
+
+        void WinForms_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            try
+            {
+                Exception ex = e.Exception;
+                if (ex is OutOfMemoryException)
+                { // фатальное: Crash%-отчёт не строим, след по образцу записей гварда в CrashStart.log, затем
+                  // мгновенная смерть: Kill — дом-примитив (:339/:369/:401); Exit не используем — он гоняет
+                  // финализаторы/ProcessExit (риск зависания под OOM), а его бросок CatchException проглотил бы (зомби)
+                    Logging.StartupCrashGuard.LogStartup("WinForms THREAD OOM (not reported), exiting.");
+                    try { Process.GetCurrentProcess().Kill(); } catch { }
+                    return;
+                }
+                if (ex != null && ex.ToString().Contains("(995)"))
+                { // игнорируем прерывания потока за делом по кансел токену
+                    return;
+                }
+                if (ReferenceEquals(Interlocked.Exchange(ref _lastWinFormsThreadException, ex), ex))
+                {
+                    return;
+                }
+                string error = ex.ToString();
+                if (error.Length > 32768)
+                { // хардканим канал: гигантская строка рвёт отчёт (и сам дефолтный диалог до фикса)
+                    int dropped = error.Length - 32768;
+                    error = error.Substring(0, 32768) + " ...[TRUNCATED " + dropped + " chars]";
+                }
+                string message = OsLocalization.MainWindow.Message5 + " WinForms THREAD " + error;
+                message = _startProgram + "  " + message;
+                message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+                _messageToCrashServer = "Crash% " + message;
+                Thread worker = new Thread(SendMessageInCrashServer);
+                worker.Start();
+                ServerMaster.SendNewLogMessage(message, Logging.LogMessageType.Error);
+                return; // политика «продолжить»: дефолтного диалога Continue/Quit больше нет
+            }
+            catch (Exception error2)
+            { // хендлер не бросает никогда: фолбэк на файловый лог, реентранса в диалог нет
+                Logging.StartupCrashGuard.LogStartup("WinForms ThreadException report failed. " + error2);
             }
         }
 
