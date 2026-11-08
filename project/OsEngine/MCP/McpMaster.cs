@@ -47,6 +47,19 @@ namespace OsEngine.MCP
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
+        // BUG-0138: единый вывод FullLog (K4) — кириллица дословно, без \uXXXX-дрифта
+        private static readonly JavaScriptEncoder FullLogEncoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+
+        private static readonly JsonSerializerOptions FullLogJsonOptions = new JsonSerializerOptions
+        {
+            Encoder = FullLogEncoder
+        };
+
+        private static readonly JsonWriterOptions FullLogWriterOptions = new JsonWriterOptions
+        {
+            Encoder = FullLogEncoder
+        };
+
         private HttpListener _listener;
         private CancellationTokenSource _cts;
         private Task _listenerTask;
@@ -899,7 +912,7 @@ namespace OsEngine.MCP
 
             if (McpSettings.IsFullLogEnabled)
             {
-                Log.ProcessMessage($"[FullLog] RPC request body: {body}", LogMessageType.System);
+                Log.ProcessMessage($"[FullLog] RPC request body: {SanitizeSecretsForLog(body)}", LogMessageType.System);
             }
 
             McpJsonRpcResponse rpcResponse = null;
@@ -966,18 +979,143 @@ namespace OsEngine.MCP
 
             if (McpSettings.IsFullLogEnabled)
             {
-                JsonSerializerOptions logOptions = new JsonSerializerOptions
-                {
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
-                string responseJson = JsonSerializer.Serialize(rpcResponse, logOptions);
-                Log.ProcessMessage($"[FullLog] RPC response: {responseJson}", LogMessageType.System);
+                string responseJson = JsonSerializer.Serialize(rpcResponse, FullLogJsonOptions);
+                Log.ProcessMessage($"[FullLog] RPC response: {SanitizeSecretsForLog(responseJson)}", LogMessageType.System);
             }
 
             SendJson(response, 200, rpcResponse, true);
         }
 
         private const string SupportedProtocolVersion = "2024-11-05";
+
+        #region FullLog sanitization
+
+        // BUG-0138: FullLog пишет тела запросов/ответов — секреты маскируются на стороне записи в лог.
+        // Fail-closed: не-JSON/битое/слишком глубокое тело → плейсхолдер с длиной, никогда не raw.
+        // Возвращает тело БЕЗ префикса «[FullLog]» — префикс остаётся в строке лога у колл-сайта.
+        internal static string SanitizeSecretsForLog(string json)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return "<empty body>";
+                }
+
+                using JsonDocument document = JsonDocument.Parse(json);
+                using MemoryStream stream = new MemoryStream();
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(stream, FullLogWriterOptions))
+                {
+                    WriteSanitized(writer, document.RootElement);
+                }
+
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
+            catch (Exception error)
+            {
+                return $"<non-json body: {error.GetType().Name}, {Encoding.UTF8.GetByteCount(json ?? string.Empty)} bytes>";
+            }
+        }
+
+        // JsonDocument+Utf8JsonWriter: дубликаты ключей и порядок сохранены, числа raw-токеном без дрейфа
+        private static void WriteSanitized(Utf8JsonWriter writer, JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    writer.WriteStartObject();
+                    foreach (JsonProperty property in element.EnumerateObject())
+                    {
+                        writer.WritePropertyName(property.Name);
+                        if (IsSecretKey(property.Name)
+                            || (property.NameEquals("value") && IsSecretParameterObject(element)))
+                        {
+                            WriteMasked(writer, property.Value);
+                        }
+                        else
+                        {
+                            WriteSanitized(writer, property.Value);
+                        }
+                    }
+                    writer.WriteEndObject();
+                    break;
+
+                case JsonValueKind.Array:
+                    writer.WriteStartArray();
+                    foreach (JsonElement item in element.EnumerateArray())
+                    {
+                        WriteSanitized(writer, item);
+                    }
+                    writer.WriteEndArray();
+                    break;
+
+                case JsonValueKind.String:
+                    writer.WriteStringValue(element.GetString());
+                    break;
+
+                case JsonValueKind.Number:
+                    writer.WriteRawValue(element.GetRawText());
+                    break;
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    writer.WriteBooleanValue(element.GetBoolean());
+                    break;
+
+                default:
+                    writer.WriteNullValue();
+                    break;
+            }
+        }
+
+        // строка — канон MaskSecret (2+2), не-строка под секретным полем — целиком в «****»
+        private static void WriteMasked(Utf8JsonWriter writer, JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                writer.WriteStringValue(ServerInstanceApi.MaskSecret(element.GetString()));
+            }
+            else
+            {
+                writer.WriteStringValue("****");
+            }
+        }
+
+        private static bool IsSecretKey(string name)
+        {
+            return name.Equals("password", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("apikey", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("api_key", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("token", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("secret", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // set_params request: секрет по имени параметра (тип в запросе не приходит); shortcut: неговорящее имя (NinjaTrader «Port») не ловится.
+        // На проводе tool-эхо — строка content[].text (JSON-in-string, не вскрываем, declared): эхо закрывает source-маскирование 0137; type=="Password" — defense-in-depth на прямом result.
+        private static bool IsSecretParameterObject(JsonElement element)
+        {
+            if (element.TryGetProperty("type", out JsonElement type)
+                && type.ValueKind == JsonValueKind.String
+                && type.GetString() == "Password")
+            {
+                return true;
+            }
+
+            if (element.TryGetProperty("name", out JsonElement name)
+                && name.ValueKind == JsonValueKind.String)
+            {
+                string paramName = name.GetString() ?? string.Empty;
+                return paramName.Contains("password", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("token", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("secret", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("hash", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("passphrase", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
+        }
+
+        #endregion
 
         private void ProcessStreamableHttp(HttpListenerRequest request, HttpListenerResponse response, bool lockedMode = false)
         {
