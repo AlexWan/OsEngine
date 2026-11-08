@@ -236,6 +236,11 @@ namespace OsEngine.Market.Servers.Alor
         private string _apiTokenRefresh;
         private string _apiTokenReal; // life time 30 minutes
 
+        // Alor отдаёт 429 без Retry-After и с пустым телом, поэтому пауза фиксированная экспоненциальная (BUG-0192)
+        private const int SecListRetries = 4;
+        private const int SecListBackoffMs = 2000;
+        private const int SecListPauseMs = 500;
+
         #endregion
 
         #region 3 Securities
@@ -259,18 +264,21 @@ namespace OsEngine.Market.Servers.Alor
 
             if (_useCurrency)
             {
+                Thread.Sleep(SecListPauseMs);
                 apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=CURR&includeOld=false";
                 UpdateSec(apiEndpoint);
             }
 
             if (_useFutures)
             {
+                Thread.Sleep(SecListPauseMs);
                 apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=FORTS&includeOld=false";
                 UpdateSec(apiEndpoint);
             }
 
             if (_useOptions)
             {
+                Thread.Sleep(SecListPauseMs);
                 apiEndpoint = $"/md/v2/Securities/MOEX?format=Simple&market=SPBX&includeOld=false";
                 UpdateSec(apiEndpoint);
             }
@@ -304,17 +312,37 @@ namespace OsEngine.Market.Servers.Alor
                     client.Proxy = _myProxy;
                 }
 
-                IRestResponse response = client.Execute(requestRest);
+                for (int attempt = 0; attempt < SecListRetries; attempt++)
+                {
+                    IRestResponse response = client.Execute(requestRest);
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string content = response.Content;
-                    List<AlorSecurity> securities = JsonConvert.DeserializeAnonymousType(content, new List<AlorSecurity>());
-                    UpdateSecuritiesFromServer(securities);
-                }
-                else
-                {
-                    SendLogMessage("Securities request error. Status: " + response.StatusCode, LogMessageType.Error);
+                    // 429 без Retry-After (диагностика BUG-0192). Прочие non-OK не ретраим: это мёртвый токен или неверный запрос (BUG-0192)
+                    if (response.StatusCode == HttpStatusCode.TooManyRequests
+                        && attempt < SecListRetries - 1)
+                    {
+                        if (ServerStatus != ServerConnectStatus.Connect || IsCompletelyDeleted)
+                        {
+                            return;
+                        }
+
+                        int retryMs = SecListBackoffMs * (1 << attempt);
+                        SendLogMessage("Ответ 429 по пути <<" + endPoint + ">>, повтор через " + (retryMs / 1000) + "с, n=" + (attempt + 1) + "/" + (SecListRetries - 1), LogMessageType.System);
+                        Thread.Sleep(retryMs);
+                        continue;
+                    }
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        string content = response.Content;
+                        List<AlorSecurity> securities = JsonConvert.DeserializeAnonymousType(content, new List<AlorSecurity>());
+                        UpdateSecuritiesFromServer(securities);
+                    }
+                    else
+                    {
+                        SendLogMessage("Securities request error. Status: " + response.StatusCode, LogMessageType.Error);
+                    }
+
+                    return;
                 }
             }
             catch (Exception exception)
