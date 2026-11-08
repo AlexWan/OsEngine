@@ -242,6 +242,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public void GetSecurities()
         {
+            _securities = new List<Security>(); // rebind, не Clear: payload отдаётся подписчикам по ссылке (:284); by-ref ветка AServer :2392 сейчас недостижима — защита держателей ссылки
             //securities?sector=FOND&limit=1000
             _useStock = ((ServerParameterBool)ServerParameters[5]).Value;
             _useFutures = ((ServerParameterBool)ServerParameters[6]).Value;
