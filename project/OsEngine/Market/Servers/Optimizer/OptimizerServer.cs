@@ -3409,8 +3409,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
+            // срез миллисекунд и выдача <= now — формула тестера (SecurityTester.CheckTrades):
+            // тик с ms и out-of-order иначе молча теряется, now всегда целая секунда
             if (LastTrade != null &&
-                LastTrade.Time > now)
+                LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3428,7 +3430,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _lastTradeIndexInArray++;
             }
 
-            if (LastTrade.Time > now)
+            if (LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
                 return;
             }
@@ -3438,7 +3440,7 @@ namespace OsEngine.Market.Servers.Optimizer
             List<Trade> lastTradesSeries = new List<Trade>();
 
             if(LastTrade != null 
-                && LastTrade.Time == now)
+                && LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) <= now)
             {
                 lastTradesSeries.Add(LastTrade);
             }
@@ -3448,7 +3450,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 Trade tradeN = Trades[_lastTradeIndexInArray];
                 _lastTradeIndexInArray++;
 
-                if (tradeN.Time == now)
+                if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
                 {
                     lastTradesSeries.Add(tradeN);
                 }
