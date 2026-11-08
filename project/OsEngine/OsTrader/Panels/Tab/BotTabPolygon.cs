@@ -1607,16 +1607,24 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _commonSettingsUi_Closed(object sender, EventArgs e)
         {
-            _commonSettingsUi.Closed -= _commonSettingsUi_Closed;
-            _commonSettingsUi = null;
+            BotTabPolygonCommonSettingsUi ui = (BotTabPolygonCommonSettingsUi)sender;
+            ui.Closed -= _commonSettingsUi_Closed;
+            if (ReferenceEquals(_commonSettingsUi, ui))
+            {
+                _commonSettingsUi = null;
+            }
         }
 
         BotTabPolygonAutoSelectSequenceUi _autoSelectPairsUi;
 
         private void _autoSelectPairsUi_Closed(object sender, EventArgs e)
         {
-            _autoSelectPairsUi.Closed -= _autoSelectPairsUi_Closed;
-            _autoSelectPairsUi = null;
+            BotTabPolygonAutoSelectSequenceUi ui = (BotTabPolygonAutoSelectSequenceUi)sender;
+            ui.Closed -= _autoSelectPairsUi_Closed;
+            if (ReferenceEquals(_autoSelectPairsUi, ui))
+            {
+                _autoSelectPairsUi = null;
+            }
         }
 
         #endregion
