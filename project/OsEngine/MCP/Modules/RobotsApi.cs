@@ -107,6 +107,10 @@ namespace OsEngine.MCP.Modules
                         response.Result = GetBotSources(request.Params);
                         break;
 
+                    case "bot_get_data_freshness":
+                        response.Result = GetDataFreshness(request.Params);
+                        break;
+
                     case "bot_get_config_tab_simple":
                         response.Result = GetBotConfigTabSimple(request.Params);
                         break;
@@ -345,6 +349,12 @@ namespace OsEngine.MCP.Modules
                         },
                         required = new[] { "bot_id" }
                     }
+                },
+                new McpTool
+                {
+                    Name = "bot_get_data_freshness",
+                    Description = "Data freshness of a robot's Simple tabs: last tick, last candle, age against server time",
+                    InputSchema = new { type = "object", properties = new { bot_id = new { type = "string", description = "Robot number or unique name" }, tab_name = new { type = "string", description = "Optional Simple tab name from bot_get_sources. If omitted, all Simple tabs" } }, required = new[] { "bot_id" } }
                 },
                 new McpTool
                 {
@@ -1721,6 +1731,82 @@ namespace OsEngine.MCP.Modules
                 save_trades_in_candles = connector.SaveTradesInCandles,
                 build_non_trading_candles = buildNonTradingCandles
             };
+        }
+
+        private object GetDataFreshness(JsonElement parameters)
+        {
+            OsTraderMaster master = GetMasterRequired();
+            if (parameters.ValueKind != JsonValueKind.Object)
+            {
+                throw new ArgumentException("Parameters must be an object");
+            }
+            if (!parameters.TryGetProperty("bot_id", out JsonElement botIdElement))
+            {
+                throw new ArgumentException("bot_id is required");
+            }
+            BotPanel bot = FindBot(master, botIdElement);
+
+            List<BotTabSimple> tabs;
+            if (parameters.TryGetProperty("tab_name", out JsonElement tabNameElement))
+            {
+                if (tabNameElement.ValueKind != JsonValueKind.String) { throw new ArgumentException("tab_name must be a string"); }
+                tabs = new List<BotTabSimple> { FindBotTabSimple(bot, tabNameElement.GetString()) };
+            }
+            else
+            {
+                tabs = new List<BotTabSimple>();
+                for (int i = 0; bot.TabsSimple != null && i < bot.TabsSimple.Count; i++)
+                {
+                    if (bot.TabsSimple[i] != null) { tabs.Add(bot.TabsSimple[i]); }
+                }
+            }
+
+            List<object> result = new List<object>();
+            foreach (BotTabSimple tab in tabs)
+            {
+                ConnectorCandles connector = tab.Connector;
+                bool isConnected = tab.IsConnected;
+                // Возраст мерим от ServerTime сервера напрямую: обёртка MarketTime даёт wall-Now без сервера, а у теневых авто-свойств ServerTime штамп не проставляется
+                DateTime timeServer = connector?.MyServer?.ServerTime ?? DateTime.MinValue;
+                // Live-лента AServer: читаем только под гейтом is_connected, иначе GetAllTradesToSecurity сыпет Error в лог движка
+                List<Trade> trades = isConnected ? tab.Trades : null;
+                Trade lastTrade = LastTradeSafe(trades);
+                List<Candle> candles = tab.CandlesAll;
+                Candle lastCandle = LastCandleSafe(candles);
+                double? tickAge = AgeSeconds(timeServer, lastTrade?.Time);
+                double? candleAge = AgeSeconds(timeServer, lastCandle?.TimeStart);
+                double timeFrameSeconds = connector?.TimeFrameTimeSpan.TotalSeconds ?? 0;
+                bool timeframeBased = connector != null && connector.TimeFrame != TimeFrame.Tick && timeFrameSeconds > 0;
+                DataFreshnessVerdict verdict = ClassifyFreshness(isConnected, tab.IsNonTradePeriodInConnector, timeframeBased, timeFrameSeconds, tickAge, candleAge, out string reason);
+                if (!isConnected && reason.Length == 0) { reason = "subscription not active"; }
+                else if (verdict == DataFreshnessVerdict.NoData && timeServer <= DateTime.MinValue) { reason = "no server time stamp"; }
+                result.Add(new
+                {
+                    tab_name = tab.TabName,
+                    security_name = connector?.SecurityName,
+                    security_class = connector?.SecurityClass,
+                    server_status = tab.ServerStatus.ToString(),
+                    is_connected = isConnected,
+                    is_non_trade_period = tab.IsNonTradePeriodInConnector,
+                    time_frame = connector?.TimeFrame.ToString(),
+                    time_frame_seconds = timeFrameSeconds,
+                    timeframe_based = timeframeBased,
+                    candle_series = connector?.TimeFrameBuilder?.CandleSeriesRealization?.GetType().Name,
+                    time_server = timeServer > DateTime.MinValue ? timeServer.ToString("O") : null,
+                    trades_count = isConnected ? trades?.Count : (int?)null,
+                    last_trade_time = lastTrade?.Time.ToString("O"),
+                    last_trade_price = lastTrade?.Price,
+                    last_trade_volume = lastTrade?.Volume,
+                    candles_count = candles?.Count,
+                    last_candle_time_start = lastCandle?.TimeStart.ToString("O"),
+                    last_candle_state = lastCandle?.State.ToString(),
+                    tick_age_seconds = tickAge,
+                    candle_age_seconds = candleAge,
+                    freshness = verdict switch { DataFreshnessVerdict.Disconnected => "disconnected", DataFreshnessVerdict.NoData => "no_data", DataFreshnessVerdict.Stale => "stale", _ => "fresh" },
+                    reason = reason
+                });
+            }
+            return new { bot_name = bot.NameStrategyUniq, tabs = result, count = result.Count };
         }
 
         private object SetBotConfigTabSimple(JsonElement parameters)
@@ -4995,5 +5081,48 @@ namespace OsEngine.MCP.Modules
         }
 
         #endregion
+
+        #region Data freshness
+
+        private static double? AgeSeconds(DateTime serverTime, DateTime? eventTime)
+        {
+            if (serverTime <= DateTime.MinValue || eventTime == null || eventTime <= DateTime.MinValue) return null;
+            double age = (serverTime - eventTime.Value).TotalSeconds;
+            return age < 0 ? 0 : age;
+        }
+
+        private static DataFreshnessVerdict ClassifyFreshness(bool isConnected, bool isNonTradePeriod, bool timeframeBased,
+            double timeFrameSeconds, double? tickAgeSeconds, double? candleAgeSeconds, out string reason)
+        {
+            reason = string.Empty;
+            if (!isConnected) return DataFreshnessVerdict.Disconnected;
+            if (tickAgeSeconds == null && candleAgeSeconds == null) return DataFreshnessVerdict.NoData;
+            double threshold = timeframeBased ? Math.Max(2 * timeFrameSeconds, 30) : 60; // shortcut: порог = 2 пропущенных бара с floor 30с, для не-временных серий фикс. 60с; параметризация при жалобах
+            DataFreshnessVerdict verdict = DataFreshnessVerdict.Fresh;
+            if (tickAgeSeconds > threshold) { reason = $"no ticks for {tickAgeSeconds.Value:F0}s"; verdict = DataFreshnessVerdict.Stale; }
+            else if (timeframeBased && candleAgeSeconds > threshold) { reason = $"last candle not advanced for {candleAgeSeconds.Value:F0}s"; verdict = DataFreshnessVerdict.Stale; }
+            if (isNonTradePeriod) reason = reason.Length == 0 ? "non-trade" : reason + "; non-trade";
+            return verdict;
+        }
+
+        private static Trade LastTradeSafe(List<Trade> trades)
+        {
+            // живой список AServer: только Count + последний индекс, без foreach/копирования; гонка индекса и null-элемент -> null
+            try { return trades == null || trades.Count == 0 ? null : trades[trades.Count - 1]; }
+            catch { return null; }
+        }
+
+        private static Candle LastCandleSafe(List<Candle> candles)
+        {
+            try { return candles == null || candles.Count == 0 ? null : candles[candles.Count - 1]; }
+            catch { return null; }
+        }
+
+        #endregion
     }
+
+    /// <summary>
+    /// Verdict of bot_get_data_freshness for one Simple tab.
+    /// </summary>
+    internal enum DataFreshnessVerdict { Disconnected, NoData, Stale, Fresh }
 }

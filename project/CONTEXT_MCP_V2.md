@@ -132,6 +132,7 @@
 | `bot_set_params` | Установить параметры робота |
 | `bot_click_param_button` | Нажать на Button-параметр робота (`bot_id`, `param_name`) |
 | `bot_get_sources` | Список источников (вкладок) робота |
+| `bot_get_data_freshness` | Свежесть данных вкладок `BotTabSimple` (последний тик/свеча, возраст от времени сервера) |
 | `bot_get_config_tab_simple` | Конфигурация вкладки `BotTabSimple` |
 | `bot_set_config_tab_simple` | Настроить вкладку `BotTabSimple` (сервер, портфель, эмулятор, комиссия, инструмент, свечи) |
 | `bot_get_config_tab_screener` | Конфигурация вкладки `BotTabScreener` |
