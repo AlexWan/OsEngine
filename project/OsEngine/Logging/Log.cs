@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Media;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -1139,6 +1140,12 @@ namespace OsEngine.Logging
         private static bool _errorLogShutDown = false;
 
         /// <summary>
+        /// count of Error messages posted to UI dispatcher but not yet processed
+        /// страховка от наводнения очереди диспетчера при шторме ошибок
+        /// </summary>
+        private static int _errorUiPending = 0;
+
+        /// <summary>
         /// send new error message
         /// выслать новое сообщение об ошибке
         /// </summary>
@@ -1148,9 +1155,20 @@ namespace OsEngine.Logging
             {
                 if (!MainWindow.GetDispatcher.CheckAccess())
                 {
-                    MainWindow.GetDispatcher.Invoke(new Action<LogMessage>(SetNewErrorMessage), message);
+                    // торговый поток не должен ждать очередь UI: блокирующий Invoke при зависании
+                    // диспетчера останавливает поток заявок (риск AB-BA дедлока). Переадресация — через
+                    // BeginInvoke; дроп поверх лимита гасит только строки Error-бокса, файл-лог и LastErrorMessages не затронуты
+                    if (Interlocked.Increment(ref _errorUiPending) > 1000)
+                    {
+                        Interlocked.Decrement(ref _errorUiPending);
+                        return;
+                    }
+                    MainWindow.GetDispatcher.BeginInvoke(new Action<LogMessage>(SetNewErrorMessage), message);
                     return;
                 }
+
+                // освободить слот in-flight до вставки строки
+                Interlocked.Decrement(ref _errorUiPending);
 
                 if (_gridErrorLog.Rows.Count == 500)
                 {
