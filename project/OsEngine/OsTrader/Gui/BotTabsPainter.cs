@@ -1396,9 +1396,13 @@ colum9.HeaderText = "Journal";
         {
             try
             {
-                if (_grid.InvokeRequired)
+                if (_host == null)
                 {
-                    _grid.Invoke(new Action(UpdateTable));
+                    return;
+                }
+                if (!_host.Dispatcher.CheckAccess())
+                {
+                    _host.Dispatcher.Invoke(new Action(UpdateTable));
                     return;
                 }
 
@@ -1570,9 +1574,13 @@ colum9.HeaderText = "Journal";
 
         private int GetGridRowIndexByBot(BotPanel bot)
         {
-            if (_grid.InvokeRequired)
+            if (_host == null)
             {
-                return (int)_grid.Invoke(new Func<BotPanel, int>(GetGridRowIndexByBot), bot);
+                return -1;
+            }
+            if (!_host.Dispatcher.CheckAccess())
+            {
+                return _host.Dispatcher.Invoke(() => GetGridRowIndexByBot(bot));
             }
 
             for (int i = 0; i < _grid.Rows.Count; i++)
@@ -1608,9 +1616,13 @@ colum9.HeaderText = "Journal";
         {
             try
             {
-                if (_grid.InvokeRequired)
+                if (_host == null)
                 {
-                    _grid.Invoke(new Action<System.Drawing.Color>(ColoredRow), color);
+                    return;
+                }
+                if (!_host.Dispatcher.CheckAccess())
+                {
+                    _host.Dispatcher.Invoke(new Action<System.Drawing.Color>(ColoredRow), color);
                     return;
                 }
 

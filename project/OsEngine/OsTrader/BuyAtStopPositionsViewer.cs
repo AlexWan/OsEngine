@@ -196,9 +196,13 @@ namespace OsEngine.OsTrader
 
         private void ColoredRow(Color color)
         {
-            if (_lastClickGrid.InvokeRequired)
+            if (_lastClickGrid == null || _positionHost == null)
             {
-                _lastClickGrid.Invoke(new Action<Color>(ColoredRow), color);
+                return;
+            }
+            if (!_positionHost.Dispatcher.CheckAccess())
+            {
+                _positionHost.Dispatcher.Invoke(new Action<Color>(ColoredRow), color);
                 return;
             }
             try
@@ -360,13 +364,13 @@ namespace OsEngine.OsTrader
 
         private void CheckPosition(DataGridView grid, List<PositionOpenerToStopLimit> positions)
         {
-            if (grid == null)
+            if (grid == null || _positionHost == null)
             {
                 return;
             }
-            if (grid.InvokeRequired)
+            if (!_positionHost.Dispatcher.CheckAccess())
             {
-                grid.Invoke(new Action<DataGridView, List<PositionOpenerToStopLimit>>(CheckPosition), grid, positions);
+                _positionHost.Dispatcher.Invoke(new Action<DataGridView, List<PositionOpenerToStopLimit>>(CheckPosition), grid, positions);
                 return;
             }
             try

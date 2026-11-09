@@ -1702,13 +1702,13 @@ namespace OsEngine.Journal.Internal
 
         private void ClearPositionsGrid()
         {
-            if (_gridOpenDeal == null)
+            if (_gridOpenDeal == null || _hostOpenDeal == null)
             {
                 return;
             }
-            if (_gridOpenDeal.InvokeRequired)
+            if (!_hostOpenDeal.Dispatcher.CheckAccess())
             {
-                _gridOpenDeal.Invoke(new Action(ClearPositionsGrid));
+                _hostOpenDeal.Dispatcher.Invoke(new Action(ClearPositionsGrid));
                 return;
             }
 
@@ -1726,14 +1726,14 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                if (grid == null)
+                if (grid == null || _hostOpenDeal == null)
                 {
                     return;
                 }
 
-                if (grid.InvokeRequired)
+                if (!_hostOpenDeal.Dispatcher.CheckAccess())
                 {
-                    grid.Invoke(new Action<DataGridView, SortedMode>(Sort), grid, sortedMode);
+                    _hostOpenDeal.Dispatcher.Invoke(new Action<DataGridView, SortedMode>(Sort), grid, sortedMode);
                     return;
                 }
 
@@ -2044,14 +2044,14 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                if (_gridOpenDeal == null)
+                if (_gridOpenDeal == null || _hostOpenDeal == null || _hostCloseDeal == null)
                 {
                     return;
                 }
 
-                if (_gridOpenDeal.InvokeRequired)
+                if (!_hostOpenDeal.Dispatcher.CheckAccess())
                 {
-                    _gridOpenDeal.Invoke(new Action<Position>(PaintPosition), position);
+                    _hostOpenDeal.Dispatcher.Invoke(new Action<Position>(PaintPosition), position);
                     return;
                 }
 

@@ -114,9 +114,9 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_gridOpenPoses.InvokeRequired)
+                if (_hostOpenPoses != null && !_hostOpenPoses.Dispatcher.CheckAccess())
                 {
-                    _gridOpenPoses.Invoke(new Action(ClearJournals));
+                    _hostOpenPoses.Dispatcher.Invoke(new Action(ClearJournals));
                     return;
                 }
 
@@ -656,9 +656,13 @@ namespace OsEngine.OsTrader
 
         private void SortRowPosition(DataGridView grid, List<Position> positions, SortedMode sortedMode)
         {
-            if (grid.InvokeRequired)
+            if (_hostOpenPoses == null)
             {
-                grid.Invoke(new Action<DataGridView, List<Position>, SortedMode>(SortRowPosition), grid, positions, sortedMode);
+                return;
+            }
+            if (!_hostOpenPoses.Dispatcher.CheckAccess())
+            {
+                _hostOpenPoses.Dispatcher.Invoke(new Action<DataGridView, List<Position>, SortedMode>(SortRowPosition), grid, positions, sortedMode);
                 return;
             }
 
@@ -1237,9 +1241,10 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (_lastClickGrid.InvokeRequired)
+                WindowsFormsHost host = _lastClickGrid == _gridClosePoses ? _hostClosePoses : _hostOpenPoses;
+                if (host != null && !host.Dispatcher.CheckAccess())
                 {
-                    _lastClickGrid.Invoke(new Action<Color>(ColoredRow), color);
+                    host.Dispatcher.Invoke(new Action<Color>(ColoredRow), color);
                     return;
                 }
 
