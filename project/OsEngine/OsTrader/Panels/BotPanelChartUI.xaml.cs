@@ -333,12 +333,14 @@ namespace OsEngine.OsTrader.Panels
                 {
                     _panel.StopPaint();
                     _stopLimitsViewer.StopPaint();
+                    SetMarketDepthIndicatorChartsVisible(false);
                 }
                 else if (_testerServer.TestingFastIsActivate == false)
                 {
                     StartPaint();
                     _panel.MoveChartToTheRight();
                     _stopLimitsViewer.StartPaint();
+                    SetMarketDepthIndicatorChartsVisible(true);
                 }
             }
             catch (Exception error)
@@ -354,6 +356,7 @@ namespace OsEngine.OsTrader.Panels
                 StartPaint();
                 _panel.MoveChartToTheRight();
                 _stopLimitsViewer.StartPaint();
+                SetMarketDepthIndicatorChartsVisible(true);
             }
             catch (Exception ex)
             {
@@ -428,6 +431,8 @@ namespace OsEngine.OsTrader.Panels
 
         private Dictionary<AMarketDepth, MarketDepthIndicatorChart> _mdIndicatorCharts = new Dictionary<AMarketDepth, MarketDepthIndicatorChart>();
 
+        private Dictionary<AMarketDepth, WindowsFormsHost> _mdIndicatorHosts = new Dictionary<AMarketDepth, WindowsFormsHost>();
+
         private HashSet<MarketDepthIndicatorsMaster> _mdRepaintSubscribedMasters = new HashSet<MarketDepthIndicatorsMaster>();
 
         private bool _ignoreMdTabSelection;
@@ -470,6 +475,7 @@ namespace OsEngine.OsTrader.Panels
             }
 
             _mdIndicatorCharts.Clear();
+            _mdIndicatorHosts.Clear();
         }
 
         private void RebuildMarketDepthIndicatorTabs()
@@ -552,6 +558,7 @@ namespace OsEngine.OsTrader.Panels
             MarketDepthIndicatorChart chart = new MarketDepthIndicatorChart();
             chart.StartPaint(host, TruncateIndicatorName(indicator.Name));
             _mdIndicatorCharts[indicator] = chart;
+            _mdIndicatorHosts[indicator] = host;
 
             Grid.SetRow(topRow, 0);
             Grid.SetRow(host, 1);
@@ -717,8 +724,34 @@ namespace OsEngine.OsTrader.Panels
             _mdRepaintSubscribedMasters.Clear();
         }
 
+        private void SetMarketDepthIndicatorChartsVisible(bool visible)
+        {
+            if (Dispatcher.CheckAccess() == false)
+            {
+                Dispatcher.BeginInvoke(new Action(() => SetMarketDepthIndicatorChartsVisible(visible)));
+                return;
+            }
+
+            foreach (KeyValuePair<AMarketDepth, WindowsFormsHost> pair in _mdIndicatorHosts)
+            {
+                pair.Value.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
+            }
+
+            if (visible)
+            {
+                MarketDepthIndicators_NeedToRePaintEvent();
+            }
+        }
+
         private bool IsMarketDepthAreaVisible()
         {
+            if (_testerServer != null
+                && _testerServer.TestingFastIsActivate
+                && _testerServer.TesterRegime == TesterRegime.Play)
+            {
+                return false;
+            }
+
             if (IsVisible == false)
             {
                 return false;

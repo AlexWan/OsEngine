@@ -9,6 +9,7 @@ using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
 {
@@ -50,7 +51,10 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             {
                 _aggregation = CreateParameterStringCollection("Aggregation", "Volume", new List<string> { "Volume", "Trades" });
                 _delta = CreateSeries("Delta", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
+                _delta.LineWidth = 2;
                 _cvd = CreateSeries("Cvd", Color.DarkOrange, IndicatorChartPaintType.Line, true);
+                _cvd.YAxisType = AxisType.Primary;
+                _cvd.LineWidth = 2;
             }
         }
 
