@@ -9,6 +9,7 @@ using OsEngine.Language;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
 {
@@ -60,9 +61,13 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
                 _depthLevels = CreateParameterInt("Depth", 5);
                 _tradeThreshold = CreateParameterDecimal("TradeThreshold", 100);
 
-                _depthSeries = CreateSeries("Depth", Color.SteelBlue, IndicatorChartPaintType.Column, true);
+                _depthSeries = CreateSeries("Depth", Color.SteelBlue, IndicatorChartPaintType.Line, true);
+                _depthSeries.LineWidth = 2;
                 _resilienceSeries = CreateSeries("Resilience", Color.MediumPurple, IndicatorChartPaintType.Line, true);
-                _shocksSeries = CreateSeries("Shocks", Color.OrangeRed, IndicatorChartPaintType.Column, true);
+                _resilienceSeries.YAxisType = AxisType.Primary;
+                _resilienceSeries.LineWidth = 2;
+                _shocksSeries = CreateSeries("Shocks", Color.OrangeRed, IndicatorChartPaintType.Point, true);
+                _shocksSeries.YAxisType = AxisType.Primary;
             }
         }
 

@@ -69,7 +69,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
                 _minTrades = CreateParameterInt("MinTrades", 3);
 
                 _absorptionAsk = CreateSeries("AbsorptionAsk", Color.OrangeRed, IndicatorChartPaintType.Line, true);
+                _absorptionAsk.LineWidth = 2;
                 _absorptionBid = CreateSeries("AbsorptionBid", Color.SeaGreen, IndicatorChartPaintType.Line, true);
+                _absorptionBid.LineWidth = 2;
             }
         }
 
