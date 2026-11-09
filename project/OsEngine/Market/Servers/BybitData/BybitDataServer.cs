@@ -34,13 +34,73 @@ namespace OsEngine.Market.Servers.BybitData
     {
         #region 1 Constructor, Status, Connection
 
+        private const string TempRoot = @"Data\Temp\BybitDataTempFiles\";
+
+        private static readonly TimeSpan StaleRunAge = TimeSpan.FromMinutes(60);
+
         public BybitDataServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (!Directory.Exists(@"Data\Temp\BybitDataTempFiles\"))
+            if (!Directory.Exists(TempRoot))
             {
-                Directory.CreateDirectory(@"Data\Temp\BybitDataTempFiles\");
+                Directory.CreateDirectory(TempRoot);
+            }
+            else
+            {
+                PurgeStaleRuns();
+            }
+        }
+
+        // leftover run_* folders from interrupted runs, older than StaleRunAge.
+        // younger run_* may belong to a live run of another instance - skip.
+        // never throws: runs from ctor before LogMessageEvent is wired (B1 review-20261109-001)
+        private void PurgeStaleRuns()
+        {
+            try
+            {
+                foreach (string dir in Directory.GetDirectories(TempRoot, "run_*"))
+                {
+                    string[] files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories);
+
+                    DateTime newest;
+                    if (files.Length == 0)
+                    {
+                        newest = Directory.GetLastWriteTime(dir);
+                    }
+                    else
+                    {
+                        newest = File.GetLastWriteTime(files[0]);
+                        foreach (string file in files)
+                        {
+                            DateTime writeTime = File.GetLastWriteTime(file);
+                            if (writeTime > newest)
+                            {
+                                newest = writeTime;
+                            }
+                        }
+                    }
+
+                    if (DateTime.Now - newest <= StaleRunAge)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                    }
+                    catch (IOException ex)
+                    {
+                        SendLogMessage("Purge skipped busy run_ folder: " + Path.GetFileName(dir) + " " + ex.Message, LogMessageType.System);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // UnauthorizedAccessException (read-only files inside run_), DirectoryNotFoundException
+                // (race of two purges) — purge never breaks server construction, skip round only
+                SendLogMessage("Purge aborted: " + ex.Message, LogMessageType.System);
             }
         }
 
@@ -436,8 +496,13 @@ namespace OsEngine.Market.Servers.BybitData
                 secGroup = "trading/";
             }
 
+            string runDir = null;
+
             try
             {
+                runDir = TempRoot + "run_" + Path.GetRandomFileName() + @"\";
+                Directory.CreateDirectory(runDir);
+
                 (List<string> archivesNames, DateTime earliest, DateTime latest) = ParseFilesByDate($"{_mainFtpUrl}{secGroup}{security.NameFull}/", startTime, endTime);
 
                 if (archivesNames != null && (earliest != DateTime.MinValue || latest != DateTime.MinValue))
@@ -473,15 +538,46 @@ namespace OsEngine.Market.Servers.BybitData
                 {
                     string archivePath = $"{_mainFtpUrl}{secGroup}{security.NameFull}/{archivesNames[i]}";
 
-                    string gzipArchivePath = DownloadGZipArchive(archivePath);
+                    string gzipArchivePath = DownloadGZipArchive(archivePath, runDir);
 
                     if (gzipArchivePath != null)
                     {
-                        string csvFilePath = GetSCVFileFromArchive(gzipArchivePath);
+                        string csvFilePath = GetSCVFileFromArchive(gzipArchivePath, runDir);
+
+                        if (csvFilePath == null)
+                        {
+                            SendLogMessage("Trades data downloading error: csv file path was null", LogMessageType.Error);
+                            continue;
+                        }
 
                         trades.AddRange(ParseCsvFileToTrades(csvFilePath, security));
 
                         SendLogMessage($"Load data. File: " + archivesNames[i], LogMessageType.System);
+
+                        // B2 review-20261109-001: own files die per archive — temp peak O(1 archive), not O(range)
+                        try
+                        {
+                            if (File.Exists(gzipArchivePath))
+                            {
+                                File.Delete(gzipArchivePath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Per-archive gz cleanup skipped: " + ex.Message, LogMessageType.System);
+                        }
+
+                        try
+                        {
+                            if (File.Exists(csvFilePath))
+                            {
+                                File.Delete(csvFilePath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage("Per-archive csv cleanup skipped: " + ex.Message, LogMessageType.System);
+                        }
                     }
                     else
                     {
@@ -503,13 +599,32 @@ namespace OsEngine.Market.Servers.BybitData
                 SendLogMessage($"Trades data downloading error: {error}", LogMessageType.Error);
                 return null;
             }
+            finally
+            {
+                // insurance cleanup: per-archive deletes cover the normal path; this runs on exception, null-returns and empty result
+                if (runDir != null)
+                {
+                    try
+                    {
+                        Directory.Delete(runDir, true);
+                    }
+                    catch (IOException ex)
+                    {
+                        SendLogMessage("Run temp folder cleanup failed (file busy): " + Path.GetFileName(runDir) + " " + ex.Message, LogMessageType.System);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Run temp folder cleanup error: " + ex, LogMessageType.Error);
+                    }
+                }
+            }
         }
 
-        private string DownloadGZipArchive(string path)
+        private string DownloadGZipArchive(string path, string runDir)
         {
             try
             {
-                string tempGzipPath = @"Data\Temp\ByBitDataTempFiles\" + Path.GetRandomFileName();
+                string tempGzipPath = runDir + Path.GetRandomFileName();
 
                 ConfigureHttpClientForFile();
 
@@ -534,30 +649,26 @@ namespace OsEngine.Market.Servers.BybitData
             }
         }
 
-        private string GetSCVFileFromArchive(string tempGzipPath)
+        private string GetSCVFileFromArchive(string tempGzipPath, string runDir)
         {
-            string extractPath = @"Data\Temp\ByBitDataTempFiles\";
+            ExtractGZip(tempGzipPath, runDir);
 
-            ExtractGZip(tempGzipPath, extractPath);
+            // known deterministic path — never enumerate the folder (a leftover from another run must not be read)
+            string csvFilePath = runDir + Path.GetFileName(tempGzipPath) + ".csv";
 
-            // search first CSV file in archive
-            string[] csvFiles = Directory.GetFiles(extractPath, "*.csv");
-
-            if (csvFiles.Length == 0)
+            if (!File.Exists(csvFilePath) || new FileInfo(csvFilePath).Length == 0)
             {
                 SendLogMessage("The CSV file was not found in the archive", LogMessageType.Error);
                 return null;
             }
-            else
-            {
-                string csvFilePath = csvFiles[0];
-                return csvFilePath;
-            }
+
+            return csvFilePath;
         }
 
         public void ExtractGZip(string gzPath, string extractPath)
         {
-            string csvFilePath = extractPath + "temp.csv";
+            // csv name is derived from the archive — caller knows the path without enumerating the folder
+            string csvFilePath = extractPath + Path.GetFileName(gzPath) + ".csv";
 
             try
             {
@@ -568,11 +679,34 @@ namespace OsEngine.Market.Servers.BybitData
                     decompressionStream.CopyTo(decompressedFileStream);
                 }
             }
-            catch (InvalidDataException ex)
+            catch (Exception ex)
             {
                 SendLogMessage($"Couldn't extract archive\n" + ex, LogMessageType.Error);
 
-                File.Delete(gzPath);
+                // remove gz and the partial csv BEFORE the caller checks it; a throw here must not kill the run
+                try
+                {
+                    if (File.Exists(gzPath))
+                    {
+                        File.Delete(gzPath);
+                    }
+                }
+                catch (Exception deleteError)
+                {
+                    SendLogMessage("Couldn't delete broken archive: " + deleteError.Message, LogMessageType.System);
+                }
+
+                try
+                {
+                    if (File.Exists(csvFilePath))
+                    {
+                        File.Delete(csvFilePath);
+                    }
+                }
+                catch (Exception deleteError)
+                {
+                    SendLogMessage("Couldn't delete partial csv after extraction failure: " + deleteError.Message, LogMessageType.System);
+                }
             }
         }
 
@@ -668,16 +802,36 @@ namespace OsEngine.Market.Servers.BybitData
 
             string[] lines = File.ReadAllLines(csvFilePath);
 
+            int skippedTradesLines = 0;
+            bool firstSkipLogged = false;
+
             for (int i = 0; i < lines.Length; i++)
             {
+                if (lines[i].Trim().Length == 0)
+                    continue;
+
                 if (char.IsLetter(lines[i][0]))
                     continue;
 
                 string[] tradeParts = lines[i].Split(',', StringSplitOptions.RemoveEmptyEntries);
 
+                bool isSpot = security.SecurityType == SecurityType.CurrencyPair;
+
+                // short row would IndexOutOfRange below — skip with one log per file + counter
+                if ((isSpot && tradeParts.Length < 5) || (!isSpot && tradeParts.Length < 7))
+                {
+                    skippedTradesLines++;
+                    if (!firstSkipLogged)
+                    {
+                        SendLogMessage($"Skipping malformed trade line #{i} in {Path.GetFileName(csvFilePath)}", LogMessageType.Error);
+                        firstSkipLogged = true;
+                    }
+                    continue;
+                }
+
                 Trade trade = new Trade();
 
-                if (security.SecurityType == SecurityType.CurrencyPair)
+                if (isSpot)
                 {
                     string newId = DateTime.UtcNow.Ticks.ToString();
 
@@ -703,16 +857,12 @@ namespace OsEngine.Market.Servers.BybitData
                 trades.Add(trade);
             }
 
-            string[] files = Directory.GetFiles(@"Data\Temp\ByBitDataTempFiles\");
-
-            if (files.Length > 0)
+            if (skippedTradesLines > 0)
             {
-                for (int i = 0; i < files.Length; i++)
-                {
-                    File.Delete(files[i]);
-                }
+                SendLogMessage($"Skipped {skippedTradesLines} malformed/short trade lines in {Path.GetFileName(csvFilePath)}", LogMessageType.System);
             }
 
+            // no folder cleanup here — own files are deleted per archive by the caller, run-folder finally is insurance
             return trades;
         }
 
@@ -823,7 +973,11 @@ namespace OsEngine.Market.Servers.BybitData
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            LogMessageEvent(message, messageType);
+            // ctor purge logs before AServer wires the event (registration happens after ctor) — guard like AServer.SendLogMessage
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, messageType);
+            }
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
