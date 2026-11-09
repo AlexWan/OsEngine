@@ -299,7 +299,7 @@ namespace OsEngine.Robots.NewsBots
         {
             string[] secAndDir = secDir.Split(',');
 
-            BotTabSimple tab = _tabScreener.Tabs.Find(p => p.Security.Name.Contains(secAndDir[0]));
+            BotTabSimple tab = _tabScreener.Tabs.Find(p => p.Security.Name == secAndDir[0].Trim());
 
             if (tab != null)
             {

@@ -188,7 +188,7 @@ namespace OsEngine.Robots.NewsBots
         /// <param name="signal">transaction parameters from the message</param>
         private void FindAndMakeDeal(TradeSignal signal)
         {
-            BotTabSimple tab = _tabScreener.Tabs.Find(p => p.Security.Name.Contains(signal.SecName));
+            BotTabSimple tab = _tabScreener.Tabs.Find(p => p.Security.Name == signal.SecName);
 
             if (tab != null)
             {
@@ -360,7 +360,7 @@ namespace OsEngine.Robots.NewsBots
             {
                 BotTabSimple tab = _tabScreener.Tabs[i];
 
-                if (tab.Security.Name.Contains(_securityForManagement.ValueString))
+                if (tab.Security.Name == _securityForManagement.ValueString.Trim())
                 {
                     Position pos = tab.PositionsLast;
 
