@@ -799,6 +799,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ((TesterServer)servers[0]).TestingStartEvent -= BotTabScreener_TestingStartEvent;
                     ((TesterServer)servers[0]).TestingEndEvent -= BotTabScreener_TestingEndEvent;
+                    ((TesterServer)servers[0]).EndNextMinuteWithCandlesEvent -= BotTabScreener_EndNextMinuteWithCandlesEvent;
                 }
             }
 
