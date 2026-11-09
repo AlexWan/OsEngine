@@ -395,9 +395,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 rsi = 100 * (1 - averageLow / (averageLow + averageHigh));
                 //rsi = 100 - 100 / (1 + averageHigh / averageLow);
             }
+            else if (averageHigh == 0 && averageLow != 0)
+            {
+                rsi = 0; // чистое падение: ростов нет, перепроданность полная
+            }
             else
             {
-                rsi = 100;
+                rsi = 100; // чистый рост или флэт — прежнее поведение
             }
 
             return Math.Round(rsi, 2);
