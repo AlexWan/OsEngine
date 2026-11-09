@@ -19,5 +19,8 @@ namespace OsEngine.Market.Servers.TInvest.Entity
         public DateTime LastMessageTime { get; set; }
         public string Name { get; set; } // For logging purposes
         public Task ReadingTask { get; set; }
+
+        // время запроса GetMySubscriptions для реконсиляции подписок (минимальное значение - не запрошено)
+        public DateTime ReconcileRequestTime { get; set; }
     }
 }
