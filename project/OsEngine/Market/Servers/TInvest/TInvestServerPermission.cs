@@ -130,6 +130,9 @@ namespace OsEngine.Market.Servers.TInvest
 
         public bool IsCanChangeOrderPrice
         {
+            // ReplaceOrder у Т-Инвест не атомарен на быстрой серии перестановок
+            // (середина цепочки остаётся жить у брокера). Движок надёжнее делает
+            // cancel + новая заявка. Оставлено выключенным
             get { return false; }
         }
 
@@ -150,13 +153,13 @@ namespace OsEngine.Market.Servers.TInvest
         private TimeFramePermission _tradeTimeFramePermission
     = new TimeFramePermission()
     {
-        TimeFrameSec1IsOn = false,
-        TimeFrameSec2IsOn = false,
-        TimeFrameSec5IsOn = false,
-        TimeFrameSec10IsOn = false,
-        TimeFrameSec15IsOn = false,
-        TimeFrameSec20IsOn = false,
-        TimeFrameSec30IsOn = false,
+        TimeFrameSec1IsOn = true,
+        TimeFrameSec2IsOn = true,
+        TimeFrameSec5IsOn = true,
+        TimeFrameSec10IsOn = true,
+        TimeFrameSec15IsOn = true,
+        TimeFrameSec20IsOn = true,
+        TimeFrameSec30IsOn = true,
         TimeFrameMin1IsOn = true,
         TimeFrameMin2IsOn = true,
         TimeFrameMin3IsOn = true,
