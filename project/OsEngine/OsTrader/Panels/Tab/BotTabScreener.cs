@@ -1054,6 +1054,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private object _reloadTabsLocker = new object();
 
+        // живой скринер-воркер (:140-144) дёргает TryReLoadTabs каждые 500 мс: Error о пропуске — только при смене причины
+        private string _lastSkipReason = null;
+
         private void TryReLoadTabsLocked()
         {
             try
@@ -1065,14 +1068,30 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_tabIsLoad == false)
                 {
+                    if (_lastSkipReason != "tab load not finished")
+                    {
+                        _lastSkipReason = "tab load not finished";
+                        SendNewLogMessage("Screener tabs reload skipped: tab load not finished", LogMessageType.Error);
+                    }
                     return;
                 }
 
                 if (TabsReadyToLoad() == false
                     && Tabs.Count == 0)
                 {
+                    string reason = SecuritiesNames.Count == 0 ? "no securities"
+                        : String.IsNullOrEmpty(PortfolioName) ? "no portfolio name"
+                        : "server type is None";
+                    if (_lastSkipReason != reason)
+                    {
+                        _lastSkipReason = reason;
+                        SendNewLogMessage($"Screener tabs reload skipped: {reason}", LogMessageType.Error);
+                    }
                     return;
                 }
+
+                // прошли гейты: следующая остановка на гейте — снова новость
+                _lastSkipReason = null;
 
                 // 1 remove unwanted tabs
 
