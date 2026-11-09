@@ -342,7 +342,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             //TypePointsToSearch = VolumeOscillatorTypePoints.Typical;
 
 
-            if ((index < Length1) || (index < Length2))
+            if (Length1 < 1 || Length2 < 1 || (index < Length1) || (index < Length2))
             {
                 return 0;
             }
@@ -361,6 +361,11 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             var ma2 = sum2 / Length2;
 
+            if (ma1 == 0)
+            {
+                // нулевой объём в окне (неликвид/паузы/провайдеры без объёма): decimal-деление бросает. Сентинель как у непрогретого окна
+                return 0;
+            }
             var vo = (100 * (ma2 - ma1) / ma1);
             return Math.Round(vo, 5);
 
