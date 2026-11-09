@@ -38,7 +38,6 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             if (depth.Bids == null || depth.Bids.Count == 0
                 || depth.Asks == null || depth.Asks.Count == 0)
             {
-                SetValue(_series, 0);
                 return;
             }
 
@@ -49,7 +48,6 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
             if (bidPrice <= 0 || askPrice <= 0 || bidVolume + askVolume <= 0)
             {
-                SetValue(_series, 0);
                 return;
             }
 
