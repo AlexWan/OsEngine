@@ -128,7 +128,7 @@ namespace OsEngine.OsTrader.Grids
 
                 TryFindNoFundsError(position, false);
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -156,7 +156,7 @@ namespace OsEngine.OsTrader.Grids
                     FailOpenOrdersCountFact++;
                 }
 
-                TryFindNoFundsError(position,true);
+                TryFindNoFundsError(position, true);
             }
             catch (Exception error)
             {
@@ -168,14 +168,14 @@ namespace OsEngine.OsTrader.Grids
 
         public bool TryResetErrorsAtStartOfDay(DateTime time)
         {
-            if(_lastResetTime.Date == time.Date)
+            if (_lastResetTime.Date == time.Date)
             {
                 return false;
             }
 
             _lastResetTime = time;
 
-            if(FailOpenOrdersCountFact != 0 
+            if (FailOpenOrdersCountFact != 0
                 || FailCancelOrdersCountFact != 0)
             {
                 FailOpenOrdersCountFact = 0;
@@ -199,12 +199,12 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if(_myGrid.Tab.StartProgram != StartProgram.IsOsTrader)
+                if (_myGrid.Tab.StartProgram != StartProgram.IsOsTrader)
                 {
                     return;
                 }
 
-                if(ReduceOrdersCountInMarketOnNoFundsError == false)
+                if (ReduceOrdersCountInMarketOnNoFundsError == false)
                 {
                     return;
                 }
@@ -216,26 +216,40 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                AServer tInvest = (AServer)server;
+                // ошибка берётся из самой упавшей заявки (коннектор кладёт туда
+                // текст ответа брокера), а не из общего лога коннектора:
+                // чужие роботы, другие бумаги и старые ошибки не срабатывают
+                Order lastOrder = null;
 
-                List<LogMessage> messages = tInvest.Log.LastErrorMessages;
-
-                bool haveNoFundsError = false;
-
-                for (int i = 0; i < messages.Count; i++)
+                if (isOpenOrder == true)
                 {
-                    string message = messages[i].Message;
-
-                    if(message.Contains(OsLocalization.Market.Label301))
+                    if (position.OpenOrders != null
+                        && position.OpenOrders.Count > 0)
                     {
-                        haveNoFundsError = true;
-                        break;
+                        lastOrder = position.OpenOrders[position.OpenOrders.Count - 1];
+                    }
+                }
+                else
+                {
+                    if (position.CloseOrders != null
+                        && position.CloseOrders.Count > 0)
+                    {
+                        lastOrder = position.CloseOrders[position.CloseOrders.Count - 1];
                     }
                 }
 
-                if(haveNoFundsError == true)
+                if (lastOrder == null
+                    || lastOrder.State != OrderStateType.Fail
+                    || string.IsNullOrEmpty(lastOrder.Comment))
                 {
-                    if(isOpenOrder == true 
+                    return;
+                }
+
+                bool haveNoFundsError = lastOrder.Comment.Contains(OsLocalization.Market.Label301);
+
+                if (haveNoFundsError == true)
+                {
+                    if (isOpenOrder == true
                         && _myGrid.MaxOpenOrdersInMarket > 1)
                     {
                         _myGrid.MaxOpenOrdersInMarket--;
@@ -247,7 +261,7 @@ namespace OsEngine.OsTrader.Grids
                         message += "New value open orders in market: " + _myGrid.MaxOpenOrdersInMarket;
                         SendNewLogMessage(message, LogMessageType.Error);
                     }
-                    else if( isOpenOrder == false
+                    else if (isOpenOrder == false
                         && _myGrid.MaxCloseOrdersInMarket > 1)
                     {
                         _myGrid.MaxCloseOrdersInMarket--;
@@ -260,9 +274,9 @@ namespace OsEngine.OsTrader.Grids
                     }
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -272,15 +286,15 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridRegime GetReactionOnErrors(TradeGrid grid)
         {
-            if(FailOpenOrdersReactionIsOn == false 
+            if (FailOpenOrdersReactionIsOn == false
                 && FailCancelOrdersReactionIsOn == false)
             {
                 return TradeGridRegime.On;
             }
 
-            if(FailOpenOrdersReactionIsOn == true)
+            if (FailOpenOrdersReactionIsOn == true)
             {
-                if(FailOpenOrdersCountFact >= FailOpenOrdersCountToReaction)
+                if (FailOpenOrdersCountFact >= FailOpenOrdersCountToReaction)
                 {
                     string message = "ERROR on open orders. \n";
                     message += "Errors count: " + FailOpenOrdersCountFact.ToString() + "\n";
@@ -291,7 +305,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            if(FailCancelOrdersReactionIsOn == true)
+            if (FailCancelOrdersReactionIsOn == true)
             {
                 if (FailCancelOrdersCountFact >= FailCancelOrdersCountToReaction)
                 {
@@ -318,12 +332,12 @@ namespace OsEngine.OsTrader.Grids
                 return false;
             }
 
-            if(WaitSecondsOnStartConnector <= 0)
+            if (WaitSecondsOnStartConnector <= 0)
             {
                 return false;
             }
 
-            if(server.LastStartServerTime.AddSeconds(WaitSecondsOnStartConnector) > DateTime.Now)
+            if (server.LastStartServerTime.AddSeconds(WaitSecondsOnStartConnector) > DateTime.Now)
             {
                 return true;
             }

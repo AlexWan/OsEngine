@@ -2036,6 +2036,10 @@ namespace OsEngine.Language
             "Eng:Full logging of user's orders and trades_" +
             "Ru:Полное логирование ордеров и трейдов пользователя_");
 
+        public string FullLogConnectorDescription => OsLocalization.ConvertToLocString(
+            "Eng:Logs all connector events including every order and trade update_" +
+            "Ru:Полное логирование всех событий коннектора включая все обновления ордеров и сделок_");
+
         public string ReconnectingAfterNoneOrder => OsLocalization.ConvertToLocString(
             "Eng:Reconnecting after a None order_" +
             "Ru:Переподключение после None ордера_");

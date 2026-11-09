@@ -65,9 +65,11 @@ namespace OsEngine.Market.Servers.TInvest
             ServerParameterBool ignoreMorningAuction = CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
             ignoreMorningAuction.Comment = OsLocalization.Market.IgnoreMorningAuctionTradesDescription;
 
-            CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false);
+            ServerParameterBool fullLog = CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false);
+            fullLog.Comment = OsLocalization.Market.FullLogConnectorDescription;
 
-            CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "10", "20", "50" });
+            ServerParameterEnum depthParam = CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "10", "20", "50" });
+            depthParam.Comment = OsLocalization.Market.SetDepthLevelsDescription;
         }
 
         private void UseSector_ValueChange()
@@ -148,6 +150,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
 
                 _pollSubscribedSecurities.Clear();
+                _subscribeRetryCounts.Clear();
 
                 // сброс троттлинга портфелей: первая загрузка после Connect
                 // обязана пройти, иначе при быстром реконнекте портфели останутся пустыми
@@ -356,6 +359,12 @@ namespace OsEngine.Market.Servers.TInvest
                         if (_lastTimeGetPortfolio.AddSeconds(10) < DateTime.Now)
                         {
                             GetPortfolios();
+                        }
+
+                        if (_lastSubscriptionsReconcile.AddMinutes(2) < DateTime.Now)
+                        {
+                            _lastSubscriptionsReconcile = DateTime.Now;
+                            RequestMySubscriptions();
                         }
 
                         Thread.Sleep(5000);
@@ -2784,16 +2793,23 @@ namespace OsEngine.Market.Servers.TInvest
                     streamWrapper.IsConnected = true;
                     streamWrapper.LastMessageTime = DateTime.UtcNow;
 
-                    // просим сервер пинговать каждые 5 секунд - быстрый детект мёртвого стрима
-                    MarketDataRequest pingSettingsRequest = new MarketDataRequest();
-                    pingSettingsRequest.PingSettings = new PingDelaySettings { PingDelayMs = 5000 };
-
-                    Task pingWriteTask = streamWrapper.StreamClient.RequestStream.WriteAsync(pingSettingsRequest);
-                    if (pingWriteTask.Wait(_streamWaitTimeout) == false)
+                    // просим сервер пинговать каждые 5 секунд - быстрый детект мёртвого стрима.
+                    // Нефатально: если запись не прошла - стрим живёт без ускоренных пингов
+                    try
                     {
-                        ObserveTaskFault(pingWriteTask);
-                        streamWrapper.IsConnected = false;
-                        return false;
+                        MarketDataRequest pingSettingsRequest = new MarketDataRequest();
+                        pingSettingsRequest.PingSettings = new PingDelaySettings { PingDelayMs = 5000 };
+
+                        Task pingWriteTask = streamWrapper.StreamClient.RequestStream.WriteAsync(pingSettingsRequest);
+                        if (pingWriteTask.Wait(_streamWaitTimeout) == false)
+                        {
+                            ObserveTaskFault(pingWriteTask);
+                            SendLogMessage("Ping settings write timeout on " + streamWrapper.Name, LogMessageType.System);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage("Ping settings write failed on " + streamWrapper.Name + ": " + ex.Message, LogMessageType.System);
                     }
 
                     if (streamWrapper.Subscriptions.Count > 0)
@@ -2878,8 +2894,9 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                SendLogMessage("Reconnect data stream failed: " + streamWrapper.Name + ". " + ex.ToString(), LogMessageType.System);
                 return false;
             }
 
@@ -2979,7 +2996,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectDataStream(streamWrapperCommon) == false)
                         {
-                            SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.Error);
+                            SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.System);
                             return;
                         }
 
@@ -3015,7 +3032,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectDataStream(streamWrapperMarketDepth) == false)
                         {
-                            SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.Error);
+                            SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.System);
                             return;
                         }
 
@@ -3394,7 +3411,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     _lastMarketDataTime = DateTime.UtcNow;
                     streamWrapper.LastMessageTime = _lastMarketDataTime;
-                    ProcessMarketDataResponse(marketData);
+                    ProcessMarketDataResponse(marketData, streamWrapper);
                 }
 
                 // сервер штатно закрыл стрим без исключения
@@ -3432,7 +3449,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private void ProcessMarketDataResponse(MarketDataResponse marketData)
+        private void ProcessMarketDataResponse(MarketDataResponse marketData, MarketDataStreamWrapper streamWrapper)
         {
             try
             {
@@ -3637,6 +3654,9 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 Security security = GetSecurityByIdFast(sub.InstrumentUid);
                                 SendLogMessage($"Failed to subscribe to trades for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+
+                                string uid = sub.InstrumentUid;
+                                Task.Run(() => RetryFailedSubscription(uid, "trades"));
                             }
                         }
                     }
@@ -3648,6 +3668,9 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 Security security = GetSecurityByIdFast(sub.InstrumentUid);
                                 SendLogMessage($"Failed to subscribe to order book for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+
+                                string uid = sub.InstrumentUid;
+                                Task.Run(() => RetryFailedSubscription(uid, "order book"));
                             }
                         }
                     }
@@ -3659,6 +3682,9 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 Security security = GetSecurityByIdFast(sub.InstrumentUid);
                                 SendLogMessage($"Failed to subscribe to last price for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+
+                                string uid = sub.InstrumentUid;
+                                Task.Run(() => RetryFailedSubscription(uid, "last price"));
                             }
                         }
                     }
@@ -3670,8 +3696,19 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 Security security = GetSecurityByIdFast(sub.InstrumentUid);
                                 SendLogMessage($"Failed to subscribe to candles for {security?.Name}. Status: {sub.SubscriptionStatus}", LogMessageType.Error);
+
+                                string uid = sub.InstrumentUid;
+                                Task.Run(() => RetryFailedSubscription(uid, "candles"));
                             }
                         }
+                    }
+
+                    // реконсиляция: ответ на наш GetMySubscriptions - сверяем списки
+                    if (streamWrapper != null
+                        && streamWrapper.ReconcileRequestTime != DateTime.MinValue)
+                    {
+                        streamWrapper.ReconcileRequestTime = DateTime.MinValue;
+                        ReconcileSubscriptions(streamWrapper, marketData);
                     }
                 }
             }
@@ -3683,6 +3720,189 @@ namespace OsEngine.Market.Servers.TInvest
 
         // Чудо-поток для опроса последних цен инструментов и эмуляции стакана L1.
         // Работает только если количество подписок превышает лимит gRPC-потока
+
+        private ConcurrentDictionary<string, int> _subscribeRetryCounts = new ConcurrentDictionary<string, int>();
+
+        // повторная подписка при отказе или потере подписки (максимум 3 попытки на бумагу)
+        private void RetryFailedSubscription(string instrumentUid, string what)
+        {
+            try
+            {
+                Security security = GetSecurityByIdFast(instrumentUid);
+
+                if (security == null)
+                {
+                    return;
+                }
+
+                int count = _subscribeRetryCounts.AddOrUpdate(instrumentUid, 1, (key, value) => value + 1);
+
+                if (count > 3)
+                {
+                    SendLogMessage("Subscribe retry limit reached for " + security.Name + " " + what, LogMessageType.Error);
+                    return;
+                }
+
+                SendLogMessage("Retrying failed subscription: " + security.Name + " " + what + " (attempt " + count + ")", LogMessageType.System);
+
+                lock (_marketDataStreamLocker)
+                {
+                    if (_securityStreamMap.ContainsKey(security.NameId))
+                    {
+                        _securityStreamMap.Remove(security.NameId);
+                    }
+                }
+
+                SubscribeLoop(0, security);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error retrying subscription: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        // сверка наших подписок стрима с ответом на GetMySubscriptions:
+        // чего сервер не подтвердил - переподписываем
+        private void ReconcileSubscriptions(MarketDataStreamWrapper streamWrapper, MarketDataResponse response)
+        {
+            try
+            {
+                HashSet<string> tradesOk = new HashSet<string>();
+                HashSet<string> orderBookOk = new HashSet<string>();
+                HashSet<string> lastPriceOk = new HashSet<string>();
+
+                if (response.SubscribeTradesResponse != null)
+                {
+                    foreach (TradeSubscription sub in response.SubscribeTradesResponse.TradeSubscriptions)
+                    {
+                        if (sub.SubscriptionStatus == SubscriptionStatus.Success)
+                        {
+                            tradesOk.Add(sub.InstrumentUid);
+                        }
+                    }
+                }
+
+                if (response.SubscribeOrderBookResponse != null)
+                {
+                    foreach (OrderBookSubscription sub in response.SubscribeOrderBookResponse.OrderBookSubscriptions)
+                    {
+                        if (sub.SubscriptionStatus == SubscriptionStatus.Success)
+                        {
+                            orderBookOk.Add(sub.InstrumentUid);
+                        }
+                    }
+                }
+
+                if (response.SubscribeLastPriceResponse != null)
+                {
+                    foreach (LastPriceSubscription sub in response.SubscribeLastPriceResponse.LastPriceSubscriptions)
+                    {
+                        if (sub.SubscriptionStatus == SubscriptionStatus.Success)
+                        {
+                            lastPriceOk.Add(sub.InstrumentUid);
+                        }
+                    }
+                }
+
+                List<MarketDataRequest> subs;
+
+                lock (_marketDataStreamLocker)
+                {
+                    subs = new List<MarketDataRequest>(streamWrapper.Subscriptions);
+                }
+
+                for (int i = 0; i < subs.Count; i++)
+                {
+                    MarketDataRequest request = subs[i];
+
+                    if (request.SubscribeTradesRequest != null
+                        && response.SubscribeTradesResponse != null)
+                    {
+                        foreach (TradeInstrument instrument in request.SubscribeTradesRequest.Instruments)
+                        {
+                            if (tradesOk.Contains(instrument.InstrumentId) == false)
+                            {
+                                string uid = instrument.InstrumentId;
+                                Task.Run(() => RetryFailedSubscription(uid, "trades (reconcile)"));
+                            }
+                        }
+                    }
+                    else if (request.SubscribeOrderBookRequest != null
+                        && response.SubscribeOrderBookResponse != null)
+                    {
+                        foreach (OrderBookInstrument instrument in request.SubscribeOrderBookRequest.Instruments)
+                        {
+                            if (orderBookOk.Contains(instrument.InstrumentId) == false)
+                            {
+                                string uid = instrument.InstrumentId;
+                                Task.Run(() => RetryFailedSubscription(uid, "order book (reconcile)"));
+                            }
+                        }
+                    }
+                    else if (request.SubscribeLastPriceRequest != null
+                        && response.SubscribeLastPriceResponse != null)
+                    {
+                        foreach (LastPriceInstrument instrument in request.SubscribeLastPriceRequest.Instruments)
+                        {
+                            if (lastPriceOk.Contains(instrument.InstrumentId) == false)
+                            {
+                                string uid = instrument.InstrumentId;
+                                Task.Run(() => RetryFailedSubscription(uid, "last price (reconcile)"));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error reconciling subscriptions: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DateTime _lastSubscriptionsReconcile = DateTime.MinValue;
+
+        // штатная реконсиляция подписок по докам: спрашиваем у каждого стрима его список,
+        // ответы приходят в стрим как Subscribe*Response и сверяются с нашим списком
+        private void RequestMySubscriptions()
+        {
+            try
+            {
+                if (_marketDataStreams == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _marketDataStreams.Count; i++)
+                {
+                    MarketDataStreamWrapper stream = _marketDataStreams[i];
+
+                    if (stream.IsConnected == false
+                        || stream.Subscriptions.Count == 0
+                        || stream.StreamClient == null)
+                    {
+                        continue;
+                    }
+
+                    MarketDataRequest request = new MarketDataRequest();
+                    request.GetMySubscriptions = new GetMySubscriptions();
+
+                    lock (_marketDataStreamLocker)
+                    {
+                        stream.ReconcileRequestTime = DateTime.UtcNow;
+
+                        Task writeTask = stream.StreamClient.RequestStream.WriteAsync(request);
+                        if (writeTask.Wait(_streamWaitTimeout) == false)
+                        {
+                            ObserveTaskFault(writeTask);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Error requesting subscriptions: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         private void LastPricesPoller()
         {
@@ -3948,8 +4168,30 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectPortfolioStream() == true)
                         {
+                            _portfolioReconnectFails = 0;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nPortfolio", LogMessageType.System);
                             Thread.Sleep(1000);
+                            continue;
+                        }
+
+                        _portfolioReconnectFails++;
+
+                        if (_portfolioReconnectFails >= 3)
+                        {
+                            // мягкий реконнект не выходит - проверяем, жив ли сам канал
+                            _portfolioReconnectFails = 0;
+
+                            if (IsChannelAlive() == true)
+                            {
+                                // канал жив, мёртв только стрим - ждём и пробуем снова
+                                SendLogMessage("Stream reconnect deferred. Portfolio stream", LogMessageType.System);
+                                Thread.Sleep(10000);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(10000);
                             continue;
                         }
                     }
@@ -3964,6 +4206,27 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     Thread.Sleep(5000);
                 }
+            }
+        }
+
+        private int _portfolioReconnectFails = 0;
+
+        private int _positionsReconnectFails = 0;
+
+        private int _ordersReconnectFails = 0;
+
+        // проверка живости канала дешёвым unary-вызовом:
+        // стрим мёртв != канал мёртв
+        private bool IsChannelAlive()
+        {
+            try
+            {
+                _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -4127,8 +4390,30 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectPositionsStream() == true)
                         {
+                            _positionsReconnectFails = 0;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nPositions", LogMessageType.System);
                             Thread.Sleep(1000);
+                            continue;
+                        }
+
+                        _positionsReconnectFails++;
+
+                        if (_positionsReconnectFails >= 3)
+                        {
+                            // мягкий реконнект не выходит - проверяем, жив ли сам канал
+                            _positionsReconnectFails = 0;
+
+                            if (IsChannelAlive() == true)
+                            {
+                                // канал жив, мёртв только стрим - ждём и пробуем снова
+                                SendLogMessage("Stream reconnect deferred. Positions stream", LogMessageType.System);
+                                Thread.Sleep(10000);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(10000);
                             continue;
                         }
                     }
@@ -4388,6 +4673,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectOrdersStream() == true)
                         {
+                            _ordersReconnectFails = 0;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nOrders", LogMessageType.System);
 
                             if (ForceCheckOrdersAfterReconnectEvent != null)
@@ -4396,6 +4682,27 @@ namespace OsEngine.Market.Servers.TInvest
                             }
 
                             Thread.Sleep(1000);
+                            continue;
+                        }
+
+                        _ordersReconnectFails++;
+
+                        if (_ordersReconnectFails >= 3)
+                        {
+                            // мягкий реконнект не выходит - проверяем, жив ли сам канал
+                            _ordersReconnectFails = 0;
+
+                            if (IsChannelAlive() == true)
+                            {
+                                // канал жив, мёртв только стрим - ждём и пробуем снова
+                                SendLogMessage("Stream reconnect deferred. Orders stream", LogMessageType.System);
+                                Thread.Sleep(10000);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(10000);
                             continue;
                         }
                     }
@@ -4994,9 +5301,16 @@ namespace OsEngine.Market.Servers.TInvest
         // Сервис стоп-ордеров: лимит 50 запр/мин суммарно по всем методам и счетам. Держим 45 с запасом
         private RateGate _rateGateStopOrders = new RateGate(45, TimeSpan.FromMinutes(1));
 
-        // единая точка отказа по заявке: статус Fail + событие, чтобы робот не ждал её вечно
-        private void CreateOrderFail(Order order)
+        // единая точка отказа по заявке: статус Fail + событие, чтобы робот не ждал её вечно.
+        // Текст ошибки прикладываем к самой заявке (Comment) - роботам не нужно
+        // искать причину в общем логе коннектора
+        private void CreateOrderFail(Order order, string brokerMessage = null)
         {
+            if (string.IsNullOrEmpty(brokerMessage) == false)
+            {
+                order.Comment = brokerMessage;
+            }
+
             order.State = OrderStateType.Fail;
 
             LogOrderInFullLog(order);
@@ -5040,14 +5354,14 @@ namespace OsEngine.Market.Servers.TInvest
                 if (security == null)
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\nSecurity not found: " + order.SecurityNameCode, LogMessageType.Error);
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, "Security not found: " + order.SecurityNameCode);
                     return;
                 }
 
                 if (order.Volume <= 0)
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\nVolume is zero: " + order.SecurityNameCode, LogMessageType.Error);
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, "Volume is zero: " + order.SecurityNameCode);
                     return;
                 }
 
@@ -5055,7 +5369,7 @@ namespace OsEngine.Market.Servers.TInvest
                     && order.Price == 0)
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\nPrice is zero: " + order.SecurityNameCode, LogMessageType.Error);
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, "Price is zero: " + order.SecurityNameCode);
                     return;
                 }
 
@@ -5145,7 +5459,7 @@ namespace OsEngine.Market.Servers.TInvest
                             + ", " + OsLocalization.Market.Label303 + " " + order.Price + " " + order.Side
                             , LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, message);
 
                     return;
                 }
@@ -5153,14 +5467,14 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception.Message, LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, exception.Message);
 
                     return;
                 }
 
                 if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
                 {
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, response.Message);
                 }
                 else
                 {
@@ -5186,7 +5500,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
 
-                CreateOrderFail(order);
+                CreateOrderFail(order, exception.Message);
             }
         }
 
@@ -5549,6 +5863,14 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    // без биржевого номера отзывать нечего - брокеру не зовём
+                    SendLogMessage("Can't cancel order without market number. " + order.SecurityNameCode
+                        + " " + order.NumberUser, LogMessageType.System);
+                    return false;
+                }
+
                 lock (_cancelOrdersLocker)
                 {
                     int countTryRevokeOrder = 0;
@@ -5784,6 +6106,25 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex)
                 {
                     string message = GetGRPCErrorMessage(ex);
+
+                    if (message.Contains("Order not found"))
+                    {
+                        // брокер однозначно: такой заявки нет - финализируем её в движке
+                        // как отменённую, иначе хаб будет опрашивать её вечно
+                        SendLogMessage("Order not found on broker, marking as cancelled: " + order.SecurityNameCode
+                            + " " + order.NumberMarket, LogMessageType.System);
+
+                        order.State = OrderStateType.Cancel;
+                        order.TimeCancel = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone);
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+
+                        return OrderStateType.Cancel;
+                    }
+
                     SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.System);
 
                     Thread.Sleep(1);
@@ -6387,7 +6728,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\nSecurity not found: " + order.SecurityNameCode, LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, "Security not found: " + order.SecurityNameCode);
 
                     return;
                 }
@@ -6396,7 +6737,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\nVolume is zero: " + order.SecurityNameCode, LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, "Volume is zero: " + order.SecurityNameCode);
 
                     return;
                 }
@@ -6486,7 +6827,7 @@ namespace OsEngine.Market.Servers.TInvest
                             + ", " + OsLocalization.Market.Label303 + " " + order.Price + " " + order.Side
                             , LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, message);
 
                     return;
                 }
@@ -6494,7 +6835,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception.Message, LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    CreateOrderFail(order, exception.Message);
 
                     return;
                 }
@@ -6524,7 +6865,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage(OsLocalization.Market.Label291 + "\n" + exception, LogMessageType.Error);
 
-                CreateOrderFail(order);
+                CreateOrderFail(order, exception.Message);
             }
         }
 
