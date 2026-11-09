@@ -68,6 +68,8 @@ namespace OsEngine.IndicatorMarketDepth
 
         public void Delete()
         {
+            CloseSettingsUi();
+
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
                 DeleteFile(@"Engine\" + Name + @"MarketDepthParametrs.txt");
@@ -122,9 +124,74 @@ namespace OsEngine.IndicatorMarketDepth
 
         public void ShowDialog()
         {
-            MarketDepthIndicatorUi ui = new MarketDepthIndicatorUi(this);
-            ui.ShowDialog();
+            try
+            {
+                if (System.Windows.Application.Current != null
+                    && System.Windows.Application.Current.Dispatcher.CheckAccess() == false)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(ShowDialog));
+                    return;
+                }
+
+                if (_marketDepthIndicatorUi != null)
+                {
+                    if (_marketDepthIndicatorUi.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _marketDepthIndicatorUi.WindowState = System.Windows.WindowState.Normal;
+                    }
+
+                    _marketDepthIndicatorUi.Activate();
+                    return;
+                }
+
+                _marketDepthIndicatorUi = new MarketDepthIndicatorUi(this);
+                _marketDepthIndicatorUi.Closed += MarketDepthIndicatorUi_Closed;
+                _marketDepthIndicatorUi.Show();
+            }
+            catch (Exception error)
+            {
+                ServerMaster.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
+
+        private void MarketDepthIndicatorUi_Closed(object sender, EventArgs e)
+        {
+            MarketDepthIndicatorUi ui = sender as MarketDepthIndicatorUi;
+
+            if (ui == null)
+            {
+                return;
+            }
+
+            ui.Closed -= MarketDepthIndicatorUi_Closed;
+
+            if (ReferenceEquals(_marketDepthIndicatorUi, ui))
+            {
+                _marketDepthIndicatorUi = null;
+            }
+        }
+
+        private void CloseSettingsUi()
+        {
+            MarketDepthIndicatorUi ui = _marketDepthIndicatorUi;
+            _marketDepthIndicatorUi = null;
+
+            if (ui == null)
+            {
+                return;
+            }
+
+            if (ui.Dispatcher.CheckAccess())
+            {
+                ui.Close();
+            }
+            else
+            {
+                ui.Dispatcher.Invoke(new Action(ui.Close));
+            }
+        }
+
+        private MarketDepthIndicatorUi _marketDepthIndicatorUi;
 
         private void DeleteFile(string path)
         {

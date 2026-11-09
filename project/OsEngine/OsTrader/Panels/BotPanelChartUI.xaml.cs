@@ -138,6 +138,14 @@ namespace OsEngine.OsTrader.Panels
 
                 UnsubscribeAllMdRepaint();
 
+                if (_marketDepthIndicatorCreateUi != null)
+                {
+                    MarketDepthIndicatorCreateUi ui = _marketDepthIndicatorCreateUi;
+                    _marketDepthIndicatorCreateUi = null;
+                    _marketDepthIndicatorCreateTab = null;
+                    ui.Close();
+                }
+
                 if (_panel != null)
                 {
                     _panel.StopPaint();
@@ -433,6 +441,10 @@ namespace OsEngine.OsTrader.Panels
 
         private Dictionary<AMarketDepth, WindowsFormsHost> _mdIndicatorHosts = new Dictionary<AMarketDepth, WindowsFormsHost>();
 
+        private MarketDepthIndicatorCreateUi _marketDepthIndicatorCreateUi;
+
+        private BotTabSimple _marketDepthIndicatorCreateTab;
+
         private HashSet<MarketDepthIndicatorsMaster> _mdRepaintSubscribedMasters = new HashSet<MarketDepthIndicatorsMaster>();
 
         private bool _ignoreMdTabSelection;
@@ -637,6 +649,18 @@ namespace OsEngine.OsTrader.Panels
                 return;
             }
 
+            if (_marketDepthIndicatorCreateUi != null)
+            {
+                if (_marketDepthIndicatorCreateUi.WindowState == WindowState.Minimized)
+                {
+                    _marketDepthIndicatorCreateUi.WindowState = WindowState.Normal;
+                }
+
+                _marketDepthIndicatorCreateUi.Activate();
+                ResetMdTabSelection();
+                return;
+            }
+
             BotTabSimple tab = GetActiveSimpleTab();
 
             if (tab == null || tab.MarketDepthIndicators == null)
@@ -652,31 +676,49 @@ namespace OsEngine.OsTrader.Panels
                 existingNames.Add(tab.MarketDepthIndicators.Indicators[i].Name);
             }
 
-            MarketDepthIndicatorCreateUi ui = new MarketDepthIndicatorCreateUi(existingNames);
-            ui.ShowDialog();
+            _marketDepthIndicatorCreateTab = tab;
+            _marketDepthIndicatorCreateUi = new MarketDepthIndicatorCreateUi(existingNames);
+            _marketDepthIndicatorCreateUi.Closed += MarketDepthIndicatorCreateUi_Closed;
+            _marketDepthIndicatorCreateUi.Show();
+            ResetMdTabSelection();
+        }
 
-            if (ui.IsAccepted == false)
+        private void MarketDepthIndicatorCreateUi_Closed(object sender, EventArgs e)
+        {
+            MarketDepthIndicatorCreateUi ui = sender as MarketDepthIndicatorCreateUi;
+
+            if (ui == null)
             {
-                ResetMdTabSelection();
+                return;
+            }
+
+            ui.Closed -= MarketDepthIndicatorCreateUi_Closed;
+
+            if (ReferenceEquals(_marketDepthIndicatorCreateUi, ui))
+            {
+                _marketDepthIndicatorCreateUi = null;
+            }
+
+            BotTabSimple tab = _marketDepthIndicatorCreateTab;
+            _marketDepthIndicatorCreateTab = null;
+
+            if (ui.IsAccepted == false || tab == null || tab.MarketDepthIndicators == null)
+            {
                 return;
             }
 
             AMarketDepth indicator = tab.MarketDepthIndicators.CreateIndicator(ui.IndicatorType, ui.IndicatorName);
 
-            TabItem createdTab = null;
-
-            if (indicator != null)
+            if (indicator == null || ReferenceEquals(GetActiveSimpleTab(), tab) == false)
             {
-                createdTab = AddMarketDepthIndicatorTab(indicator);
+                return;
             }
+
+            TabItem createdTab = AddMarketDepthIndicatorTab(indicator);
 
             if (createdTab != null)
             {
                 SelectMdTab(createdTab);
-            }
-            else
-            {
-                ResetMdTabSelection();
             }
         }
 
