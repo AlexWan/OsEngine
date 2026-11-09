@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
 {
@@ -39,9 +40,13 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             {
                 _levels = CreateParameterInt("Levels", 20);
                 _bidWall = CreateSeries("BidWall", Color.Green, IndicatorChartPaintType.Column, true);
-                _bidWallPrice = CreateSeries("BidWallPrice", Color.Green, IndicatorChartPaintType.Line, true);
+                _bidWallPrice = CreateSeries("BidWallPrice", Color.DeepSkyBlue, IndicatorChartPaintType.Line, true);
+                _bidWallPrice.YAxisType = AxisType.Primary;
+                _bidWallPrice.LineWidth = 2;
                 _askWall = CreateSeries("AskWall", Color.Red, IndicatorChartPaintType.Column, true);
-                _askWallPrice = CreateSeries("AskWallPrice", Color.Red, IndicatorChartPaintType.Line, true);
+                _askWallPrice = CreateSeries("AskWallPrice", Color.Orange, IndicatorChartPaintType.Line, true);
+                _askWallPrice.YAxisType = AxisType.Primary;
+                _askWallPrice.LineWidth = 2;
             }
         }
 

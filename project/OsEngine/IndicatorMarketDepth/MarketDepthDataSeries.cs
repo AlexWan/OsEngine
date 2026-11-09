@@ -7,6 +7,7 @@ using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.IndicatorMarketDepth
 {
@@ -40,6 +41,8 @@ namespace OsEngine.IndicatorMarketDepth
 
             result += ZeroIsGap + "&";
 
+            result += YAxisType + "&";
+
             return result;
         }
 
@@ -70,6 +73,13 @@ namespace OsEngine.IndicatorMarketDepth
             {
                 ZeroIsGap = false;
             }
+
+            YAxisType = AxisType.Secondary;
+
+            if (array.Length > 6)
+            {
+                Enum.TryParse(array[6], out YAxisType);
+            }
         }
 
         public void Clear()
@@ -89,6 +99,8 @@ namespace OsEngine.IndicatorMarketDepth
         public Color Color;
 
         public IndicatorChartPaintType ChartPaintType;
+
+        public AxisType YAxisType = AxisType.Secondary;
 
         public bool IsPaint;
 

@@ -69,8 +69,10 @@ namespace OsEngine.Charts.MarketDepthChart
             area.AxisX.IntervalType = DateTimeIntervalType.Auto;
             area.AxisY.Title = "";
             area.AxisY.TitleForeColor = _colorKeeper.ColorText;
+            area.AxisY.LabelStyle.Font = new Font("Arial", 7f);
             area.AxisY2.Title = "";
             area.AxisY2.TitleForeColor = _colorKeeper.ColorText;
+            area.AxisY2.LabelStyle.Font = new Font("Arial", 7f);
 
             _chart.ChartAreas.Add(area);
 
@@ -143,17 +145,11 @@ namespace OsEngine.Charts.MarketDepthChart
 
             ChartArea area = FindAreaByNameSafe("Prime");
 
-            if (area != null)
-            {
-                area.AxisY.Enabled = AxisEnabled.False;
-                area.AxisY2.Enabled = AxisEnabled.True;
-            }
-
             List<MarketDepthDataSeries> seriesToPaint = series;
 
             if (seriesToPaint != null)
             {
-                AutoScaleY2(area, seriesToPaint);
+                AutoScaleAxes(area, seriesToPaint);
             }
 
             for (int i = 0; series != null && i < series.Count; i++)
@@ -165,15 +161,15 @@ namespace OsEngine.Charts.MarketDepthChart
 
                 if (series[i].ChartPaintType == IndicatorChartPaintType.Line)
                 {
-                    PaintLine(series[i], AxisType.Secondary);
+                    PaintLine(series[i], series[i].YAxisType);
                 }
                 else if (series[i].ChartPaintType == IndicatorChartPaintType.Column)
                 {
-                    PaintColumn(series[i], AxisType.Secondary);
+                    PaintColumn(series[i], series[i].YAxisType);
                 }
                 else if (series[i].ChartPaintType == IndicatorChartPaintType.Point)
                 {
-                    PaintPoint(series[i], AxisType.Secondary);
+                    PaintPoint(series[i], series[i].YAxisType);
                 }
             }
         }
@@ -258,12 +254,12 @@ namespace OsEngine.Charts.MarketDepthChart
                             continue;
                         }
 
-                        title += "   " + dataSeries.Name + ": " + dataSeries.Values[index].ToString("N" + _labelDecimals);
+                        title += "   " + dataSeries.Name + ": " + dataSeries.Values[index].ToString("N" + GetLabelDecimals(dataSeries.YAxisType));
                     }
                 }
                 else
                 {
-                    title += "   " + y.ToString("N" + _labelDecimals);
+                    title += "   " + y.ToString("N" + GetLabelDecimals(hit.Series.YAxisType));
                 }
 
                 _valueTitle.Text = title;
@@ -273,7 +269,7 @@ namespace OsEngine.Charts.MarketDepthChart
                 if (area != null)
                 {
                     area.CursorX.Position = x;
-                    area.CursorY.AxisType = AxisType.Secondary;
+                    area.CursorY.AxisType = hit.Series.YAxisType;
                     area.CursorY.Position = y;
                 }
             }
@@ -306,21 +302,36 @@ namespace OsEngine.Charts.MarketDepthChart
             }
         }
 
-        private void AutoScaleY2(ChartArea area, List<MarketDepthDataSeries> series)
+        private void AutoScaleAxes(ChartArea area, List<MarketDepthDataSeries> series)
         {
             if (area == null)
             {
                 return;
             }
 
-            double min = double.MaxValue;
-            double max = double.MinValue;
+            double minPrimary = double.MaxValue;
+            double maxPrimary = double.MinValue;
+            double minSecondary = double.MaxValue;
+            double maxSecondary = double.MinValue;
+            bool hasPrimary = false;
+            bool hasSecondary = false;
 
             for (int i = 0; series != null && i < series.Count; i++)
             {
                 if (series[i].IsPaint == false)
                 {
                     continue;
+                }
+
+                bool isPrimary = series[i].YAxisType == AxisType.Primary;
+
+                if (isPrimary)
+                {
+                    hasPrimary = true;
+                }
+                else
+                {
+                    hasSecondary = true;
                 }
 
                 for (int j = 0; j < series[i].Values.Count; j++)
@@ -332,18 +343,43 @@ namespace OsEngine.Charts.MarketDepthChart
                         continue;
                     }
 
-                    if (value < min)
+                    if (isPrimary)
                     {
-                        min = value;
+                        if (value < minPrimary)
+                        {
+                            minPrimary = value;
+                        }
+                        if (value > maxPrimary)
+                        {
+                            maxPrimary = value;
+                        }
                     }
-                    if (value > max)
+                    else
                     {
-                        max = value;
+                        if (value < minSecondary)
+                        {
+                            minSecondary = value;
+                        }
+                        if (value > maxSecondary)
+                        {
+                            maxSecondary = value;
+                        }
                     }
                 }
             }
 
-            if (min == double.MaxValue)
+            area.AxisY.Enabled = hasPrimary ? AxisEnabled.True : AxisEnabled.False;
+            area.AxisY2.Enabled = hasSecondary ? AxisEnabled.True : AxisEnabled.False;
+            area.AxisY.MajorGrid.Enabled = hasPrimary;
+            area.AxisY2.MajorGrid.Enabled = hasPrimary == false;
+
+            ApplyAxisScale(area.AxisY, AxisType.Primary, minPrimary, maxPrimary);
+            ApplyAxisScale(area.AxisY2, AxisType.Secondary, minSecondary, maxSecondary);
+        }
+
+        private void ApplyAxisScale(Axis axis, AxisType axisType, double min, double max)
+        {
+            if (axis == null || min == double.MaxValue)
             {
                 return;
             }
@@ -361,31 +397,38 @@ namespace OsEngine.Charts.MarketDepthChart
                 }
             }
 
-            area.AxisY2.Minimum = min - margin;
-            area.AxisY2.Maximum = max + margin;
+            axis.Minimum = min - margin;
+            axis.Maximum = max + margin;
 
-            SetLabelDecimals(area, min, max);
+            SetLabelDecimals(axis, axisType, min, max);
         }
 
-        private int _labelDecimals = 4;
+        private int _labelDecimalsPrimary = 4;
 
-        private void SetLabelDecimals(ChartArea area, double min, double max)
+        private int _labelDecimalsSecondary = 4;
+
+        private int GetLabelDecimals(AxisType axisType)
+        {
+            return axisType == AxisType.Primary ? _labelDecimalsPrimary : _labelDecimalsSecondary;
+        }
+
+        private void SetLabelDecimals(Axis axis, AxisType axisType, double min, double max)
         {
             double maxAbs = Math.Max(Math.Abs(min), Math.Abs(max));
+            int decimals = Math.Max(0, 5 - (int)Math.Floor(Math.Log10(maxAbs)));
 
-            if (maxAbs < 1)
+            if (axisType == AxisType.Primary)
             {
-                int leadingZeros = (int)Math.Max(0, -Math.Floor(Math.Log10(maxAbs)) - 1);
-                _labelDecimals = Math.Max(4, leadingZeros + 5);
+                _labelDecimalsPrimary = decimals;
             }
             else
             {
-                _labelDecimals = 4;
+                _labelDecimalsSecondary = decimals;
             }
 
-            if (area != null)
+            if (axis != null)
             {
-                area.AxisY2.LabelStyle.Format = "N" + _labelDecimals;
+                axis.LabelStyle.Format = "N" + decimals;
             }
         }
 
@@ -418,7 +461,7 @@ namespace OsEngine.Charts.MarketDepthChart
             {
                 DataPoint point = new DataPoint(GetX(dataSeries, i, useTime), (double)dataSeries.Values[i]);
 
-                point.ToolTip = GetToolTip(dataSeries, i, useTime, _labelDecimals);
+                point.ToolTip = GetToolTip(dataSeries, i, useTime, GetLabelDecimals(axis));
 
                 if (dataSeries.Values[i] == 0 && dataSeries.ZeroIsGap)
                 {
@@ -460,7 +503,7 @@ namespace OsEngine.Charts.MarketDepthChart
             for (int i = 0; i < dataSeries.Values.Count; i++)
             {
                 DataPoint point = new DataPoint(GetX(dataSeries, i, useTime), (double)dataSeries.Values[i]);
-                point.ToolTip = GetToolTip(dataSeries, i, useTime, _labelDecimals);
+                point.ToolTip = GetToolTip(dataSeries, i, useTime, GetLabelDecimals(axis));
                 series.Points.Add(point);
             }
         }
@@ -489,7 +532,7 @@ namespace OsEngine.Charts.MarketDepthChart
             for (int i = 0; i < dataSeries.Values.Count; i++)
             {
                 DataPoint point = new DataPoint(GetX(dataSeries, i, useTime), (double)dataSeries.Values[i]);
-                point.ToolTip = GetToolTip(dataSeries, i, useTime, _labelDecimals);
+                point.ToolTip = GetToolTip(dataSeries, i, useTime, GetLabelDecimals(axis));
                 series.Points.Add(point);
             }
         }
