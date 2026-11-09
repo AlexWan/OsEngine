@@ -46,7 +46,7 @@ namespace OsEngine.Indicators
 
         private decimal GetValueVolumeOscillator(List<Candle> candles, int index)
         {
-            if ((index < _length1.ValueInt) || (index < _length2.ValueInt))
+            if (_length1.ValueInt < 1 || _length2.ValueInt < 1 || (index < _length1.ValueInt) || (index < _length2.ValueInt))
             {
                 return 0;
             }
@@ -65,6 +65,11 @@ namespace OsEngine.Indicators
             }
             var ma2 = sum2 / _length2.ValueInt;
 
+            if (ma1 == 0)
+            {
+                // нулевой объём в окне (неликвид/паузы/провайдеры без объёма): decimal-деление бросает. Сентинель как у непрогретого окна
+                return 0;
+            }
             var vo = (100 * (ma2 - ma1) / ma1);
             return Math.Round(vo, 5);
 
