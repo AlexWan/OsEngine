@@ -86,70 +86,92 @@ namespace OsEngine.OsOptimizer
 
         private void PrimeThreadWorkerPlace()
         {
-            ReportsToFazes = new List<OptimizerFazeReport>();
+            // readyFired=true строго перед каждым invoke — иначе бросок хендлера на штатном
+            // invoke утонет в этом catch и даст второй invoke
+            bool readyFired = false;
 
-            int countBots = BotCountOneFaze(_parameters, _parametersOn);
-
-            _countAllServersMax = countBots * (_master.IterationCount * 2);
-
-            if (_master.LastInSample)
+            try
             {
-                _countAllServersMax = _countAllServersMax - countBots;
+                ReportsToFazes = new List<OptimizerFazeReport>();
+
+                int countBots = BotCountOneFaze(_parameters, _parametersOn);
+
+                _countAllServersMax = countBots * (_master.IterationCount * 2);
+
+                if (_master.LastInSample)
+                {
+                    _countAllServersMax = _countAllServersMax - countBots;
+                }
+
+                SendLogMessage(OsLocalization.Optimizer.Message4 + _countAllServersMax, LogMessageType.System);
+
+                DateTime timeStart = DateTime.Now;
+
+                for (int i = 0; i < _master.Fazes.Count; i++)
+                {
+                    if (_needToStop)
+                    {
+                        _primeThreadWorker = null;
+                        readyFired = true;
+                        TestReadyEvent?.Invoke(ReportsToFazes);
+                        return;
+                    }
+
+                    if (_master.Fazes[i].TypeFaze == OptimizerFazeType.InSample)
+                    {
+                        OptimizerFazeReport report = new OptimizerFazeReport();
+                        report.Faze = _master.Fazes[i];
+
+                        ReportsToFazes.Add(report);
+
+                        StartAsuncBotFactoryInSample(countBots, _master.StrategyName, _master.IsScript, "InSample");
+
+                        StartOptimizeFazeInSample(_master.Fazes[i], report, _parameters, _parametersOn);
+
+                        EndOfFazeFiltration(ReportsToFazes[ReportsToFazes.Count - 1]);
+                    }
+                    else
+                    {
+
+                        SendLogMessage("ReportsCount " + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(), LogMessageType.System);
+
+                        OptimizerFazeReport report = new OptimizerFazeReport();
+                        report.Faze = _master.Fazes[i];
+
+                        ReportsToFazes.Add(report);
+
+                        StartAsuncBotFactoryOutOfSample(ReportsToFazes[ReportsToFazes.Count - 2], _master.StrategyName, _master.IsScript, "OutOfSample");
+
+                        StartOptimizeFazeOutOfSample(report, ReportsToFazes[ReportsToFazes.Count - 2]);
+                    }
+                }
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                TimeSpan time = DateTime.Now - timeStart;
+
+                SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
+                SendLogMessage("Total test time = " + time.ToString(), LogMessageType.System);
+
+                readyFired = true;
+                TestReadyEvent?.Invoke(ReportsToFazes);
+                _primeThreadWorker = null;
             }
-
-            SendLogMessage(OsLocalization.Optimizer.Message4 + _countAllServersMax, LogMessageType.System);
-
-            DateTime timeStart = DateTime.Now;
-
-            for (int i = 0; i < _master.Fazes.Count; i++)
+            catch (Exception ex)
             {
-                if (_needToStop)
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                _primeThreadWorker = null;
+                if (!readyFired)
                 {
-                    _primeThreadWorker = null;
-                    TestReadyEvent?.Invoke(ReportsToFazes);
-                    return;
-                }
-
-                if (_master.Fazes[i].TypeFaze == OptimizerFazeType.InSample)
-                {
-                    OptimizerFazeReport report = new OptimizerFazeReport();
-                    report.Faze = _master.Fazes[i];
-
-                    ReportsToFazes.Add(report);
-
-                    StartAsuncBotFactoryInSample(countBots, _master.StrategyName, _master.IsScript, "InSample");
-
-                    StartOptimizeFazeInSample(_master.Fazes[i], report, _parameters, _parametersOn);
-
-                    EndOfFazeFiltration(ReportsToFazes[ReportsToFazes.Count - 1]);
-                }
-                else
-                {
-
-                    SendLogMessage("ReportsCount " + ReportsToFazes[ReportsToFazes.Count - 1].Reports.Count.ToString(), LogMessageType.System);
-
-                    OptimizerFazeReport report = new OptimizerFazeReport();
-                    report.Faze = _master.Fazes[i];
-
-                    ReportsToFazes.Add(report);
-
-                    StartAsuncBotFactoryOutOfSample(ReportsToFazes[ReportsToFazes.Count - 2], _master.StrategyName, _master.IsScript, "OutOfSample");
-
-                    StartOptimizeFazeOutOfSample(report, ReportsToFazes[ReportsToFazes.Count - 2]);
+                    // доставка частичных результатов по образцу выхода по Stop(); бросок хендлера
+                    // из catch наружу не выпускаем
+                    readyFired = true;
+                    try { TestReadyEvent?.Invoke(ReportsToFazes); }
+                    catch { }
                 }
             }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            TimeSpan time = DateTime.Now - timeStart;
-
-            SendLogMessage(OsLocalization.Optimizer.Message7, LogMessageType.System);
-            SendLogMessage("Total test time = " + time.ToString(), LogMessageType.System);
-
-            TestReadyEvent?.Invoke(ReportsToFazes);
-            _primeThreadWorker = null;
 
             return;
         }
