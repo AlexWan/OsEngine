@@ -45,7 +45,7 @@
 
 `Description` требует непустое описание, `SeriesPresence` — хотя бы одну серию, `ParameterNames` — уникальные непустые имена параметров, `NoExceptions` — отсутствие ошибок во время расчёта (базовый класс `AMarketDepth` оборачивает `OnProcess`/`OnProcessTrade`/`OnStateChange` в `try/catch` и фиксирует `ErrorCount`/`LastError`).
 
-Профили диапазона и эталонного значения реализованы для `OrderBookImbalance`, `DepthVolume`, `Spread`, `Delta`, `SpeedOfTape`, `Rvol`, `MicroPrice`, `Ofi`, `LiquidityWalls`, `ExpectedSlippage`, `TradeSizeAnalytics`. Для `Spoofing` проверяется диапазон `0..1`, эталон не задан. Для типов без профиля тест `ValueRange` помечается как `SKIP`, а `ReferenceValue` — для типов без эталона.
+Профили диапазона и эталонного значения реализованы для `OrderBookImbalance`, `DepthVolume`, `Spread`, `DeltaCvd`, `SpeedOfTape`, `Rvol`, `MicroPrice`, `Ofi`, `LiquidityWalls`, `ExpectedSlippage`, `TradeSizeAnalytics`. Для `Spoofing` проверяется диапазон `0..1`, эталон не задан. Для типов без профиля тест `ValueRange` помечается как `SKIP`, а `ReferenceValue` — для типов без эталона.
 
 ### 4.1 Модуль `RobotLayer` — роботный слой на BotTabSimple (12 проверок)
 

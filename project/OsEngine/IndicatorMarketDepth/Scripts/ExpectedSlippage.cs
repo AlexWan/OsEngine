@@ -36,7 +36,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             {
                 _volume = CreateParameterDecimal("Volume", 100);
                 _slippageBuy = CreateSeries("SlippageBuy", Color.Green, IndicatorChartPaintType.Line, true);
+                _slippageBuy.LineWidth = 2;
                 _slippageSell = CreateSeries("SlippageSell", Color.Red, IndicatorChartPaintType.Line, true);
+                _slippageSell.LineWidth = 2;
             }
         }
 

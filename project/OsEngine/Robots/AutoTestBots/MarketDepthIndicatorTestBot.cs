@@ -719,7 +719,7 @@ namespace OsEngine.Robots.AutoTestBots
         {
             string type = _main.GetType().Name;
 
-            if (type == "Delta")
+            if (type == "DeltaCvd")
             {
                 _referenceSamples++;
 
@@ -1627,7 +1627,7 @@ namespace OsEngine.Robots.AutoTestBots
             return type == "OrderBookImbalance"
                 || type == "DepthVolume"
                 || type == "Spread"
-                || type == "Delta"
+                || type == "DeltaCvd"
                 || type == "SpeedOfTape"
                 || type == "Rvol"
                 || type == "MicroPrice"

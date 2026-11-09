@@ -438,9 +438,9 @@ SpoofScore = 1, если объём уровня был ≥ Threshold на пр�
 
 ---
 
-## 9. Delta — Дельта / CVD
+## 9. DeltaCvd — Дельта / CVD
 
-**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/Delta.cs`
+**Файл:** `OsEngine/IndicatorMarketDepth/Scripts/DeltaCvd.cs`
 **Вход:** лента сделок (`Trade`)
 
 ### Суть

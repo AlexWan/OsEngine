@@ -276,7 +276,7 @@
 | `Scripts/OrderBookImbalance.cs` | Одна серия, параметр глубины, защита от деления на ноль |
 | `Scripts/DepthVolume.cs` | Две выходные серии и отдельный расчёт Bid/Ask |
 | `Custom\IndicatorsMarketDepth\Scripts\Spread.cs` | Строковый параметр с коллекцией значений и проверка лучших цен (custom) |
-| `Scripts/Delta.cs` | Тиковый вход, две серии, накопление за секунду и дневной сброс |
+| `Scripts/DeltaCvd.cs` | Тиковый вход, две серии, накопление за секунду и дневной сброс |
 | `Scripts/SpeedOfTape.cs` | Тиковый вход, счётчик сделок в секунду |
 | `Scripts/Rvol.cs` | Тиковый вход, буфер секунд и относительный объём |
 | `Scripts/MicroPrice.cs` | Взвешенная по объёму цена лучших уровней |

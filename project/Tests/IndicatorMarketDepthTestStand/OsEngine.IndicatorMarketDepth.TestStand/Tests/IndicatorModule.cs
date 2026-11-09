@@ -241,7 +241,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand.Tests
 
         private bool IsTradeIndicator(string indicatorType)
         {
-            return indicatorType == "Delta"
+            return indicatorType == "DeltaCvd"
                 || indicatorType == "SpeedOfTape"
                 || indicatorType == "Rvol"
                 || indicatorType == "TradeSizeAnalytics";

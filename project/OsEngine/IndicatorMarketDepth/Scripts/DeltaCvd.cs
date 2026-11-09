@@ -12,7 +12,7 @@ using System.Drawing;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
 {
-    public class Delta : AMarketDepth
+    public class DeltaCvd : AMarketDepth
     {
         public override string Description
         {

@@ -263,7 +263,7 @@ namespace OsEngine.IndicatorMarketDepth.TestStand
                 TimeoutSeconds = 60,
                 NoWait = false,
                 OsEngineArgs = "-testerlight",
-                Indicators = new List<string> { "OrderBookImbalance", "DepthVolume", "Spread", "Delta", "SpeedOfTape", "Rvol" },
+                Indicators = new List<string> { "OrderBookImbalance", "DepthVolume", "Spread", "DeltaCvd", "SpeedOfTape", "Rvol" },
                 Security = "SBER"
             };
 
