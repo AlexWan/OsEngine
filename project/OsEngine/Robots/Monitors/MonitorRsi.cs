@@ -223,9 +223,9 @@ namespace OsEngine.Robots.Monitors
 
             for (int i = candles.Count - 1; i >= 0 && i > rsiValues.Count - 1 - _candlesToAnalyze.ValueInt; i--)
             {
-                if (i <= _rsiLength.ValueInt + 1)
+                if (i < _rsiLength.ValueInt + 21)
                 {
-                    continue; // недобитые нули серии — прогрев, не данные
+                    continue; // ниже first-write RSI (len+21, RSI.cs константа 20) — padding серии, не данные
                 }
 
                 decimal currentValue = rsiValues[i];

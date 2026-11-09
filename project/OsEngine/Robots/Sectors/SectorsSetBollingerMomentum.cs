@@ -939,8 +939,8 @@ namespace OsEngine.Robots.Sectors
             return tabRsi <= minRsi;
         }
 
-        // -1 = «нет прогретых данных» (сентинел). Индикатор пишет с индекса length+2,
-        // поэтому без свечей на прогрев Last может быть нулём серии — не отличить от настоящего 0 RSI
+        // -1 = «нет прогретых данных» (сентинел). First-write RSI — индекс length+21:
+        // в RSI.cs окно прогрева с константой 20, ниже порога Last = padding-0 серии — не отличить от настоящего 0 RSI
         private decimal GetLastRsi(BotTabSimple tab)
         {
             if (tab.Indicators == null || tab.Indicators.Count < 3)
@@ -955,7 +955,7 @@ namespace OsEngine.Robots.Sectors
                 || rsi.DataSeries[0].Values == null
                 || rsi.DataSeries[0].Values.Count == 0
                 || tab.CandlesAll == null
-                || tab.CandlesAll.Count < _rsiLength.ValueInt + 3)
+                || tab.CandlesAll.Count < _rsiLength.ValueInt + 22)
             {
                 return -1;
             }

@@ -282,7 +282,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if (rsi.DataSeries[0].Values.Count == 0
                 || tab.CandlesAll == null
-                || tab.CandlesAll.Count < _rsiLen.ValueInt + 3) // непрогрев: Last может быть нулём серии, не данные
+                || tab.CandlesAll.Count < _rsiLen.ValueInt + 22) // непрогрев: first-write RSI на len+21 (RSI.cs, константа 20), ниже Last — padding-0
             {
                 return -1;
             }
