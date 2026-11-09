@@ -56,6 +56,10 @@ namespace OsEngine.Robots.AutoTestBots
 
         private int _prevControlCount;
 
+        private DateTime _prevMainSlotTime = DateTime.MinValue;
+
+        private DateTime _prevMainDepthSlotTime = DateTime.MinValue;
+
         private DateTime _lastAcceptedDepthTime = DateTime.MinValue;
 
         private DateTime _lastAcceptedTradeTime = DateTime.MinValue;
@@ -175,6 +179,10 @@ namespace OsEngine.Robots.AutoTestBots
             _isDeployed = true;
             _prevMainCount = _main.DataSeries.Count > 0 ? _main.DataSeries[0].Values.Count : 0;
             _prevControlCount = _control.DataSeries.Count > 0 ? _control.DataSeries[0].Values.Count : 0;
+            _prevMainSlotTime = _main.DataSeries.Count > 0 && _main.DataSeries[0].Times.Count > 0
+                ? _main.DataSeries[0].Times[_main.DataSeries[0].Times.Count - 1]
+                : DateTime.MinValue;
+            _prevMainDepthSlotTime = _prevMainSlotTime;
 
             int seriesCount = _main.DataSeries.Count;
 
@@ -254,7 +262,8 @@ namespace OsEngine.Robots.AutoTestBots
             CheckStorageAndHistory(depth.Time);
 
             int count = _main.DataSeries[0].Values.Count;
-            bool accepted = count > _prevMainCount;
+            DateTime depthSlotTime = _main.DataSeries[0].Times[_main.DataSeries[0].Times.Count - 1];
+            bool accepted = depthSlotTime != _prevMainDepthSlotTime;
 
             if (accepted)
             {
@@ -278,6 +287,7 @@ namespace OsEngine.Robots.AutoTestBots
             }
 
             _prevMainCount = count;
+            _prevMainDepthSlotTime = depthSlotTime;
             _prevControlCount = _control.DataSeries[0].Values.Count;
         }
 
@@ -299,7 +309,8 @@ namespace OsEngine.Robots.AutoTestBots
             CheckStorageAndHistory(trade.Time);
 
             int count = _main.DataSeries[0].Values.Count;
-            bool newSecond = count > _prevMainCount;
+            DateTime slotTime = _main.DataSeries[0].Times[_main.DataSeries[0].Times.Count - 1];
+            bool newSecond = slotTime != _prevMainSlotTime;
 
             if (newSecond)
             {
@@ -323,6 +334,7 @@ namespace OsEngine.Robots.AutoTestBots
             }
 
             _prevMainCount = count;
+            _prevMainSlotTime = slotTime;
             _prevControlCount = _control.DataSeries[0].Values.Count;
         }
 

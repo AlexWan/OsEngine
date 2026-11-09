@@ -37,7 +37,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private MarketDepthDataSeries _cvd;
 
-        private int _lastCount = -1;
+        private DateTime _lastSlotTime = DateTime.MinValue;
 
         private decimal _perSecondSigned;
 
@@ -64,8 +64,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         public override void OnProcessTrade(Trade trade)
         {
-            bool newSecond = _delta.Values.Count != _lastCount;
-            _lastCount = _delta.Values.Count;
+            DateTime slotTime = _delta.Times[_delta.Times.Count - 1];
+            bool newSecond = slotTime != _lastSlotTime;
+            _lastSlotTime = slotTime;
 
             if (newSecond)
             {

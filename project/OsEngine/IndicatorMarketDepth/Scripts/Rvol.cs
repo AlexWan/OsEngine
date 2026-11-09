@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -33,7 +34,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private MarketDepthDataSeries _rvol;
 
-        private int _lastCount = -1;
+        private DateTime _lastSlotTime = DateTime.MinValue;
 
         private decimal _perSecondVolume;
 
@@ -47,6 +48,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
             {
                 _period = CreateParameterInt("Period", 10);
                 _rvol = CreateSeries("Rvol", Color.MediumPurple, IndicatorChartPaintType.Line, true);
+                _rvol.LineWidth = 3;
             }
         }
 
@@ -56,8 +58,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         public override void OnProcessTrade(Trade trade)
         {
-            bool newSecond = _rvol.Values.Count != _lastCount;
-            _lastCount = _rvol.Values.Count;
+            DateTime slotTime = _rvol.Times[_rvol.Times.Count - 1];
+            bool newSecond = slotTime != _lastSlotTime;
+            _lastSlotTime = slotTime;
 
             if (newSecond)
             {

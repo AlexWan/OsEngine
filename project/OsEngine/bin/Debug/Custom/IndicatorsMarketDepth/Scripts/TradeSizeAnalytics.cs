@@ -6,8 +6,10 @@
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
 {
@@ -37,7 +39,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private MarketDepthDataSeries _largeTradeShare;
 
-        private int _lastCount = -1;
+        private DateTime _lastSlotTime = DateTime.MinValue;
 
         private decimal _secVolume;
 
@@ -61,6 +63,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
                 _largeThreshold = CreateParameterDecimal("LargeThreshold", 1000);
                 _avgTradeSize = CreateSeries("AvgTradeSize", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
                 _largeTradeShare = CreateSeries("LargeTradeShare", Color.Orange, IndicatorChartPaintType.Line, true);
+                _largeTradeShare.YAxisType = AxisType.Primary;
             }
         }
 
@@ -70,8 +73,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         public override void OnProcessTrade(Trade trade)
         {
-            bool newSecond = _avgTradeSize.Values.Count != _lastCount;
-            _lastCount = _avgTradeSize.Values.Count;
+            DateTime slotTime = _avgTradeSize.Times[_avgTradeSize.Times.Count - 1];
+            bool newSecond = slotTime != _lastSlotTime;
+            _lastSlotTime = slotTime;
 
             if (newSecond)
             {

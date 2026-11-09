@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
+using System;
 using System.Drawing;
 
 namespace OsEngine.IndicatorMarketDepth.Scripts
@@ -30,7 +31,7 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         private MarketDepthDataSeries _speed;
 
-        private int _lastCount = -1;
+        private DateTime _lastSlotTime = DateTime.MinValue;
 
         private int _perSecondCount;
 
@@ -48,8 +49,9 @@ namespace OsEngine.IndicatorMarketDepth.Scripts
 
         public override void OnProcessTrade(Trade trade)
         {
-            bool newSecond = _speed.Values.Count != _lastCount;
-            _lastCount = _speed.Values.Count;
+            DateTime slotTime = _speed.Times[_speed.Times.Count - 1];
+            bool newSecond = slotTime != _lastSlotTime;
+            _lastSlotTime = slotTime;
 
             if (newSecond)
             {
