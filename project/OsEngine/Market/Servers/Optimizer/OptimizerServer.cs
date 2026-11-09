@@ -241,6 +241,9 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _dataIsActive = false;
 
+            // mirror of TesterServer: reset the minute-boundary gate so a repeat run on this reused server is not suppressed
+            _timeLastEventNextMinute = DateTime.MinValue;
+
             _lastTimeStartTest = DateTime.Now;
 
             _testerRegime = TesterRegime.Play;
@@ -581,11 +584,27 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 EndNextMinuteWithCandlesEvent();
             }
+
+            // Sub-minute regimes (ticks, market depth, sub-minute candles): the old candle gate never fires there — no candle pipeline (ticks, depth) or candles built sub-minute so _timeLastCandle never matches the minute boundary. Raise the event once at each minute boundary; readiness criterion is delivered data. FiveMinute is excluded — it goes through the candle gate above.
+            if (EndNextMinuteWithCandlesEvent != null
+                && _timeAddType != TimeAddInTestType.Minute
+                && _timeAddType != TimeAddInTestType.FiveMinute
+                && _dataIsActive)
+            {
+                DateTime minuteNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, TimeNow.Hour, TimeNow.Minute, 0);
+                if (minuteNow > _timeLastEventNextMinute)
+                {
+                    _timeLastEventNextMinute = minuteNow;
+                    EndNextMinuteWithCandlesEvent();
+                }
+            }
         }
 
         public event Action EndNextMinuteWithCandlesEvent;
 
         private DateTime _timeLastCandle;
+
+        private DateTime _timeLastEventNextMinute;
 
         #endregion
 

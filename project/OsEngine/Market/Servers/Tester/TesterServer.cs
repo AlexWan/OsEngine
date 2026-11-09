@@ -904,6 +904,9 @@ namespace OsEngine.Market.Servers.Tester
 
                 _dataIsActive = false;
 
+                // the tester server is a reusable singleton: a stale gate from the previous run would suppress the event for the whole repeat run
+                _timeLastEventNextMinute = DateTime.MinValue;
+
                 if (resumeFromPause == false)
                 {
                     NumberGen.ResetToZeroInTester();
@@ -1345,9 +1348,24 @@ namespace OsEngine.Market.Servers.Tester
             {
                 EndNextMinuteWithCandlesEvent();
             }
+
+            // Sub-minute regimes (ticks, market depth, sub-minute candles): the old candle gate never fires there — no candle pipeline (ticks, depth) or candles built sub-minute so _timeLastCandle never matches the minute boundary. Raise the event once at each minute boundary; readiness criterion is delivered data.
+            if (EndNextMinuteWithCandlesEvent != null
+                && _timeAddType != TimeAddInTestType.Minute
+                && _dataIsActive)
+            {
+                DateTime minuteNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, TimeNow.Hour, TimeNow.Minute, 0);
+                if (minuteNow > _timeLastEventNextMinute)
+                {
+                    _timeLastEventNextMinute = minuteNow;
+                    EndNextMinuteWithCandlesEvent();
+                }
+            }
         }
 
         private DateTime _timeLastCandle;
+
+        private DateTime _timeLastEventNextMinute;
 
         public event Action EndNextMinuteWithCandlesEvent;
 
