@@ -105,6 +105,8 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             // обозначаем рабочему потоку что надо за собой почистить
             _cleared = true;
+            // wake a worker parked in WaitOne after Pause (crash-end included), so it sees _cleared and releases resources
+            _manualReset?.Set();
         }
         private bool _cleared;
 
@@ -403,6 +405,23 @@ namespace OsEngine.Market.Servers.Optimizer
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
+                    // Crash in test thread: report end once, otherwise OptimizerExecutor keeps the bot forever. Never while _cleared: the server is being torn down (phantom end).
+                    try
+                    {
+                        if (_testerRegime == TesterRegime.Play && !_cleared)
+                        {
+                            _testerRegime = TesterRegime.Pause;
+                            SendLogMessage(OsLocalization.ConvertToLocString("Eng:Test stopped. Critical error in test thread_Ru:Тест остановлен. Критическая ошибка в потоке теста_"), LogMessageType.Error);
+                            if (TestingEndEvent != null)
+                            {
+                                TestingEndEvent(NumberServer, DateTime.Now - _lastTimeStartTest);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     Thread.Sleep(1000);
                 }
             }

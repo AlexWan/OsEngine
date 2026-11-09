@@ -1182,6 +1182,23 @@ namespace OsEngine.Market.Servers.Tester
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
+                    // Crash in test thread: finish the run once, otherwise it hangs in Play forever.
+                    try
+                    {
+                        if (TesterRegime == TesterRegime.Play)
+                        {
+                            TesterRegime = TesterRegime.Pause;
+                            SendLogMessage(OsLocalization.ConvertToLocString("Eng:Test stopped. Critical error in test thread_Ru:Тест остановлен. Критическая ошибка в потоке теста_"), LogMessageType.Error);
+                            if (TestingEndEvent != null)
+                            {
+                                TestingEndEvent();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                     Thread.Sleep(1000);
                 }
             }
