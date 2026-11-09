@@ -215,6 +215,13 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 Values.Clear();
             }
+            // сталые протоки отравляют окно новой серии: инкремент после Clear читал бы старые записи по новым индексам свечей
+            if (_tp != null)
+            {
+                _tp.Clear();
+                _fp.Clear();
+                _fn.Clear();
+            }
             _myCandles = null;
         }
 
