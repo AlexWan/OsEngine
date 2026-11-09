@@ -1792,12 +1792,21 @@ namespace OsEngine.Market.Servers.TInvest
                     tradeRequest.SubscribeTradesRequest = subscribeTradesRequest;
 
                     _rateGateSubscribe.WaitToProceed();
-                    Task writeTradesTask = streamWrapperCommon.StreamClient.RequestStream.WriteAsync(tradeRequest);
-                    if (writeTradesTask.Wait(_streamWaitTimeout) == false)
+
+                    try
                     {
-                        ObserveTaskFault(writeTradesTask);
+                        Task writeTradesTask = streamWrapperCommon.StreamClient.RequestStream.WriteAsync(tradeRequest);
+                        if (writeTradesTask.Wait(_streamWaitTimeout) == false)
+                        {
+                            ObserveTaskFault(writeTradesTask);
+                            throw new TimeoutException("Market data stream write timeout");
+                        }
+                    }
+                    catch
+                    {
+                        // мёртвый стрим не должен выбираться до реакции читателя
                         streamWrapperCommon.IsConnected = false;
-                        throw new TimeoutException("Market data stream write timeout");
+                        throw;
                     }
 
                     streamWrapperCommon.Subscriptions.Add(tradeRequest);
@@ -1815,17 +1824,24 @@ namespace OsEngine.Market.Servers.TInvest
                     orderBookRequest.SubscribeOrderBookRequest = subscribeOrderBookRequest;
 
                     _rateGateSubscribe.WaitToProceed();
-                    Task writeMdTask = streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(orderBookRequest);
-                    if (writeMdTask.Wait(_streamWaitTimeout) == false)
-                    {
-                        ObserveTaskFault(writeMdTask);
-                        streamWrapperMarketDepth.IsConnected = false;
 
+                    try
+                    {
+                        Task writeMdTask = streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(orderBookRequest);
+                        if (writeMdTask.Wait(_streamWaitTimeout) == false)
+                        {
+                            ObserveTaskFault(writeMdTask);
+                            throw new TimeoutException("Market data stream write timeout");
+                        }
+                    }
+                    catch
+                    {
                         // откатываем тиковую подписку — иначе реконнект
                         // воскресит её сиротой (в map запись не попадёт)
+                        streamWrapperMarketDepth.IsConnected = false;
                         streamWrapperCommon.Subscriptions.Remove(tradeRequest);
 
-                        throw new TimeoutException("Market data stream write timeout");
+                        throw;
                     }
 
                     streamWrapperMarketDepth.Subscriptions.Add(orderBookRequest);
@@ -1903,12 +1919,22 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 _rateGateSubscribe.WaitToProceed();
 
-                                Task writeTask = stream.StreamClient.RequestStream.WriteAsync(sub);
-
-                                if (writeTask.Wait(_streamWaitTimeout) == false)
+                                try
                                 {
-                                    ObserveTaskFault(writeTask);
+                                    Task writeTask = stream.StreamClient.RequestStream.WriteAsync(sub);
+
+                                    if (writeTask.Wait(_streamWaitTimeout) == false)
+                                    {
+                                        ObserveTaskFault(writeTask);
+                                        stream.IsConnected = false;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // тайм-аут-семантика: стрим в труп, цикл продолжается —
+                                    // гарантированно доходим до RemoveAt
                                     stream.IsConnected = false;
+                                    SendLogMessage("Autofollow. Unsubscribe write failed " + stream.Name + " " + ex.ToString(), LogMessageType.Error);
                                 }
                             }
 
