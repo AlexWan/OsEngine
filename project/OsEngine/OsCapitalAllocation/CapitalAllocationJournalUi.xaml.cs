@@ -306,7 +306,7 @@ namespace OsEngine.OsCapitalAllocation
                 return;
             }
 
-            for (int i = 0; i < 31 && i < statistic.Count; i++)
+            for (int i = 0; i < 32 && i < statistic.Count; i++)
             {
                 _gridStatistics.Rows[i].Cells[2].Value = statistic[i];
             }

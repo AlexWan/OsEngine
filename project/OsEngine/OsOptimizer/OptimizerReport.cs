@@ -353,6 +353,7 @@ namespace OsEngine.OsOptimizer
                 tab.PayOffRatio = PositionStatisticGenerator.GetPayOffRatio(posesArray);
                 tab.SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray, 7);
                 tab.AverageTimeInPosition = PositionStatisticGenerator.GetAverageTimeOnPoses(posesArray);
+                tab.CapitalUtilizationPercent = PositionStatisticGenerator.GetCapitalUtilizationPercent(posesArray);
                 tab.TabType = tabsSimple[i].GetType().Name;
             }
 
@@ -378,6 +379,7 @@ namespace OsEngine.OsOptimizer
                 PayOffRatio = TabsReports[0].PayOffRatio;
                 SharpRatio = TabsReports[0].SharpRatio;
                 AverageTimeInPosition = TabsReports[0].AverageTimeInPosition;
+                CapitalUtilizationPercent = TabsReports[0].CapitalUtilizationPercent;
             }
             else
             {
@@ -397,6 +399,7 @@ namespace OsEngine.OsOptimizer
                 PayOffRatio = PositionStatisticGenerator.GetPayOffRatio(posesArray);
                 SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray, 7);
                 AverageTimeInPosition = PositionStatisticGenerator.GetAverageTimeOnPoses(posesArray);
+                CapitalUtilizationPercent = PositionStatisticGenerator.GetCapitalUtilizationPercent(posesArray);
             }
         }
 
@@ -421,6 +424,8 @@ namespace OsEngine.OsOptimizer
         public decimal Recovery;
 
         public decimal SharpRatio;
+
+        public decimal CapitalUtilizationPercent;
 
         public string AverageTimeInPosition;
 
@@ -507,6 +512,8 @@ namespace OsEngine.OsOptimizer
 
             result.Append(reportTabs + "@");
 
+            result.Append(CapitalUtilizationPercent + "@");
+
             return result;
         }
 
@@ -552,6 +559,12 @@ namespace OsEngine.OsOptimizer
                 faze.LoadFromSaveString(reportTabs[i]);
                 TabsReports.Add(faze);
             }
+
+            if (str.Length > 13
+                && string.IsNullOrEmpty(str[13]) == false)
+            {
+                CapitalUtilizationPercent = str[13].ToDecimal();
+            }
         }
     }
 
@@ -583,6 +596,8 @@ namespace OsEngine.OsOptimizer
 
         public decimal SharpRatio;
 
+        public decimal CapitalUtilizationPercent;
+
         public string AverageTimeInPosition;
 
         public string GetSaveString()
@@ -603,6 +618,7 @@ namespace OsEngine.OsOptimizer
             result += SharpRatio + "*";
             result += ProfitPositionPercent + "*";
             result += AverageTimeInPosition + "*";
+            result += CapitalUtilizationPercent + "*";
             
             return result;
         }
@@ -637,6 +653,19 @@ namespace OsEngine.OsOptimizer
             catch
             {
                 // ignore
+            }
+
+            if (save.Length > 14
+                && string.IsNullOrEmpty(save[14]) == false)
+            {
+                try
+                {
+                    CapitalUtilizationPercent = save[14].ToDecimal();
+                }
+                catch
+                {
+                    // ignore
+                }
             }
         }
     }

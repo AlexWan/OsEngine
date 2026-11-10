@@ -379,7 +379,8 @@ namespace OsEngine.Language
             OsLocalization.ConvertToLocString("Eng:Max in a row_Ru:Максимум подряд_"),
             "",
             OsLocalization.ConvertToLocString("Eng:Max drawdown % capital_Ru:Макс просадка % капитал_"),
-            OsLocalization.ConvertToLocString("Eng:Commission volume_Ru:Объём комиссии_")
+            OsLocalization.ConvertToLocString("Eng:Commission volume_Ru:Объём комиссии_"),
+            OsLocalization.ConvertToLocString("Eng:Capital utilization %_Ru:Использование капитала %_")
         };
     }
 }

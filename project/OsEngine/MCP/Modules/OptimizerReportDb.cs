@@ -100,11 +100,11 @@ namespace OsEngine.MCP.Modules
                                     "INSERT INTO reports (run_id, faze_type, faze_index, time_start, time_end, days, " +
                                     "bot_name, positions_count, profit_position_percent, total_profit, total_profit_percent, " +
                                     "max_draw_down, average_profit, average_profit_percent_one_contract, profit_factor, " +
-                                    "pay_off_ratio, recovery, sharp_ratio, average_time_in_position, report_save) " +
+                                    "pay_off_ratio, recovery, sharp_ratio, average_time_in_position, capital_utilization_percent, report_save) " +
                                     "VALUES (@run_id, @faze_type, @faze_index, @time_start, @time_end, @days, " +
                                     "@bot_name, @positions_count, @profit_position_percent, @total_profit, @total_profit_percent, " +
                                     "@max_draw_down, @average_profit, @average_profit_percent_one_contract, @profit_factor, " +
-                                    "@pay_off_ratio, @recovery, @sharp_ratio, @average_time_in_position, @report_save);";
+                                    "@pay_off_ratio, @recovery, @sharp_ratio, @average_time_in_position, @capital_utilization_percent, @report_save);";
 
                                 command.Parameters.AddWithValue("@run_id", runId);
                                 command.Parameters.AddWithValue("@faze_type", faze.TypeFaze.ToString());
@@ -125,6 +125,7 @@ namespace OsEngine.MCP.Modules
                                 command.Parameters.AddWithValue("@recovery", Convert.ToDouble(report.Recovery));
                                 command.Parameters.AddWithValue("@sharp_ratio", Convert.ToDouble(report.SharpRatio));
                                 command.Parameters.AddWithValue("@average_time_in_position", report.AverageTimeInPosition ?? string.Empty);
+                                command.Parameters.AddWithValue("@capital_utilization_percent", Convert.ToDouble(report.CapitalUtilizationPercent));
                                 command.Parameters.AddWithValue("@report_save", report.GetSaveString().ToString());
 
                                 command.ExecuteNonQuery();
@@ -381,7 +382,7 @@ namespace OsEngine.MCP.Modules
             sql.Append("SELECT bot_name, faze_type, faze_index, positions_count, profit_position_percent, ");
             sql.Append("total_profit, total_profit_percent, max_draw_down, average_profit, ");
             sql.Append("average_profit_percent_one_contract, profit_factor, pay_off_ratio, ");
-            sql.Append("recovery, sharp_ratio, average_time_in_position ");
+            sql.Append("recovery, sharp_ratio, average_time_in_position, capital_utilization_percent ");
             sql.Append("FROM reports WHERE run_id = @run_id");
 
             if (string.IsNullOrEmpty(fazeType) == false)
@@ -437,6 +438,7 @@ namespace OsEngine.MCP.Modules
                             row.Recovery = Convert.ToDouble(reader.GetValue(12));
                             row.SharpRatio = Convert.ToDouble(reader.GetValue(13));
                             row.AverageTimeInPosition = reader.GetString(14);
+                            row.CapitalUtilizationPercent = reader.IsDBNull(15) ? 0 : Convert.ToDouble(reader.GetValue(15));
                             result.Add(row);
                         }
                     }
@@ -570,6 +572,7 @@ namespace OsEngine.MCP.Modules
                         "recovery REAL, " +
                         "sharp_ratio REAL, " +
                         "average_time_in_position TEXT, " +
+                        "capital_utilization_percent REAL, " +
                         "report_save TEXT);" +
 
                         "CREATE INDEX IF NOT EXISTS idx_reports_run_id ON reports(run_id);" +
@@ -586,6 +589,22 @@ namespace OsEngine.MCP.Modules
                         "CREATE INDEX IF NOT EXISTS idx_reports_sharp_ratio ON reports(sharp_ratio);";
 
                     command.ExecuteNonQuery();
+                }
+
+                // миграция: колонка добавлена после первой версии схемы
+                using (SqliteCommand migration = connection.CreateCommand())
+                {
+                    migration.CommandText =
+                        "SELECT COUNT(*) FROM pragma_table_info('reports') WHERE name = 'capital_utilization_percent';";
+
+                    long hasColumn = (long)migration.ExecuteScalar();
+
+                    if (hasColumn == 0)
+                    {
+                        migration.CommandText =
+                            "ALTER TABLE reports ADD COLUMN capital_utilization_percent REAL DEFAULT 0;";
+                        migration.ExecuteNonQuery();
+                    }
                 }
             }
         }
@@ -693,5 +712,6 @@ namespace OsEngine.MCP.Modules
         public double Recovery;
         public double SharpRatio;
         public string AverageTimeInPosition = string.Empty;
+        public double CapitalUtilizationPercent;
     }
 }

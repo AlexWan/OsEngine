@@ -1156,7 +1156,8 @@ namespace OsEngine.MCP.Modules
                 ["winning_trades_percent"] = 0m,
                 ["average_profit"] = 0m,
                 ["average_profit_percent"] = 0m,
-                ["average_holding_time"] = null
+                ["average_holding_time"] = null,
+                ["capital_utilization_percent"] = 0m
             };
 
             if (positions != null && positions.Count > 0)
@@ -1184,6 +1185,7 @@ namespace OsEngine.MCP.Modules
                 stats["average_profit"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInAbsolute(dealsArray), 4);
                 stats["average_profit_percent"] = Math.Round(PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(dealsArray), 4);
                 stats["average_holding_time"] = PositionStatisticGenerator.GetAverageTimeOnPoses(dealsArray);
+                stats["capital_utilization_percent"] = Math.Round(PositionStatisticGenerator.GetCapitalUtilizationPercent(dealsArray), 4);
             }
 
             return stats;

@@ -153,7 +153,7 @@
 | `bot_journal_set_settings` | Установить настройки журнала |
 | `bot_journal_get_summary` | Сводка журнала (прибыль, диапазон дат, сделки) |
 | `bot_journal_get_equity` | Кривая эквити |
-| `bot_journal_get_statistics` | Статистика журнала |
+| `bot_journal_get_statistics` | Статистика журнала (в т.ч. `capital_utilization_percent` — среднее по времени использование капитала, %) |
 | `bot_journal_get_drawdown` | Кривая просадки |
 | `bot_journal_get_volume` | Объёмы торговли по бумагам/плечу |
 | `bot_journal_get_open_positions` | Открытые позиции |
@@ -165,7 +165,7 @@
 | `tester_portfolio_get_config` / `tester_portfolio_set_config` | Стартовый портфель и расчёт портфеля |
 | `tester_start` / `tester_pause` / `tester_fast_forward` / `tester_step_forward` / `tester_stop` | Управление прогоном тестера |
 | `tester_get_status` | Статус тестера: режим, текущее время, начало/конец, fast-forward, прогресс |
-| `tester_get_report` | Полный отчёт прогона: `date`, `robots` (имя + параметры + источники с бумагой/ТФ/портфелем/комиссией/сопровождением), `data_set`, `tester_settings`, `statistics_full`, `robot_results`, `positions`, `cash_flows` (налоги/маржа/дивиденды) |
+| `tester_get_report` | Полный отчёт прогона: `date`, `robots` (имя + параметры + источники с бумагой/ТФ/портфелем/комиссией/сопровождением), `data_set`, `tester_settings`, `statistics_full` (в т.ч. `capital_utilization_percent`), `robot_results`, `positions`, `cash_flows` (налоги/маржа/дивиденды) |
 | `system_load_get_current` | Последние точки загруженности системы (RAM, CPU, очереди) |
 | `system_load_get_history` | История точек загруженности по типу (`Ram`, `Cpu`, `Ecq`, `Moq`) |
 | `system_load_get_settings` | Настройки сбора загруженности |

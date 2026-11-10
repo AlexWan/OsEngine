@@ -887,7 +887,7 @@ namespace OsEngine.Journal
                 column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 _gridStatistics.Columns.Add(column3);
 
-                for (int i = 0; i < 31; i++)
+                for (int i = 0; i < 32; i++)
                 {
                     _gridStatistics.Rows.Add(); //string addition/ добавление строки
                 }
@@ -928,6 +928,7 @@ namespace OsEngine.Journal
                 _gridStatistics.Rows[28].Cells[0].Value = "";
                 _gridStatistics.Rows[29].Cells[0].Value = OsLocalization.Journal.GridRow15;
                 _gridStatistics.Rows[30].Cells[0].Value = OsLocalization.Journal.GridRow16;
+                _gridStatistics.Rows[31].Cells[0].Value = OsLocalization.Journal.GridRow19;
 
                 // ячейки созданы из шаблона колонки — присваиваем актуальный стиль темы принудительно
                 for (int i = 0; i < _gridStatistics.Rows.Count; i++)
@@ -981,28 +982,28 @@ namespace OsEngine.Journal
 
                 if (positionsAllState == null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         _gridStatistics.Rows[i].Cells[1].Value = "";
                     }
                 }
                 if (positionsLongState == null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         _gridStatistics.Rows[i].Cells[2].Value = "";
                     }
                 }
                 if (positionsShortState == null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         _gridStatistics.Rows[i].Cells[3].Value = "";
                     }
                 }
                 if (positionsLongState != null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         string value = positionsLongState[i].ToString();
 
@@ -1016,7 +1017,7 @@ namespace OsEngine.Journal
                 }
                 if (positionsShortState != null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         string value = positionsShortState[i].ToString();
 
@@ -1030,7 +1031,7 @@ namespace OsEngine.Journal
                 }
                 if (positionsAllState != null)
                 {
-                    for (int i = 0; i < 31; i++)
+                    for (int i = 0; i < 32; i++)
                     {
                         string value = positionsAllState[i].ToString();
 

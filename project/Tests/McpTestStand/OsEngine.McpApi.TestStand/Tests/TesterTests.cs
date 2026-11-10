@@ -2679,7 +2679,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                 return false;
             }
 
-            string[] statFields = new[] { "net_profit", "net_profit_percent", "deals_count", "average_holding_time", "sharpe", "profit_factor", "recovery", "profitable_deals", "losing_deals", "max_drawdown_percent", "commission" };
+            string[] statFields = new[] { "net_profit", "net_profit_percent", "deals_count", "average_holding_time", "sharpe", "profit_factor", "recovery", "profitable_deals", "losing_deals", "max_drawdown_percent", "commission", "capital_utilization_percent" };
             foreach (string field in statFields)
             {
                 if (!statistics.TryGetProperty(field, out _))

@@ -251,7 +251,7 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 1. `osengine_bot_get_list` → взять реальное имя бота (в примерах ниже `ParabolicBollinger` — условный, подставляй своё).
 2. `osengine_bot_journal_get_summary` `{"bot_name":"..."}` — сводка (прибыль абс/%, диапазон дат, число сделок). Пустая строка `{"bot_name":""}` — по всем роботам.
 3. `osengine_bot_journal_get_equity` `{"bot_name":"...","chart_type":"DepositPercent"}`. `chart_type`: `Absolute` (абс. прибыль), `Percent1Contract` (% на сделку), `DepositPercent` (% на депозит).
-4. `osengine_bot_journal_get_statistics` `{"bot_name":"...","side":"All"}`. `side`: `All`, `Long`, `Short`. Ключевые поля: `net_profit`, `deals_count`, `profit_factor`, `max_drawdown_percent`, `sharpe`, `recovery`, `profitable_deals`/`losing_deals`.
+4. `osengine_bot_journal_get_statistics` `{"bot_name":"...","side":"All"}`. `side`: `All`, `Long`, `Short`. Ключевые поля: `net_profit`, `deals_count`, `profit_factor`, `max_drawdown_percent`, `sharpe`, `recovery`, `profitable_deals`/`losing_deals`, `capital_utilization_percent` (средневзвешенное по времени использование капитала, %).
 5. `osengine_bot_journal_get_drawdown` `{"bot_name":"..."}` — просадка.
 6. `osengine_bot_journal_get_closed_positions` `{"bot_name":"...","include_failed":false,"limit":100,"offset":0}`.
 7. `osengine_bot_journal_get_open_positions` `{"bot_name":"...","limit":100,"offset":0}`.
@@ -335,7 +335,7 @@ data: {"jsonrpc":"2.0","method":"notifications/message","params":{"level":"notic
 10. (Опц.) Торговые/исполнительные настройки через `osengine_optimizer_trade_settings_get` / `_set`: комиссия, тип исполнения, проскальзывания, депозит, а также `clearing` (отзыв ордеров внутри дня, массив `{ time: "HH:mm", is_on }`) и `non_trade_periods` (неторговые периоды, массив `{ date_start, date_end, is_on }`). Оба списка **заменяются целиком** при `set`; `is_on` опционален, по умолчанию `false`. Кеширование индикаторов — отдельной парой `osengine_optimizer_cache_get` / `_set` (`cache_indicators_is_on`).
 11. `osengine_optimizer_start` → `started: true`; если `started: false` — в `errors` список проблем готовности.
 12. Ждать `osengine_optimizer_get_status` (раз в 30–60 c) / SSE `optimizer.test.progress`, `.finished`. Досрочно — `osengine_optimizer_stop` (`is_partial: true`).
-13. `osengine_optimizer_get_report` → `fazes[].reports[]`: `parameters`, `total_profit`, `total_profit_percent`, `max_draw_down`, `profit_factor`, `sharp_ratio`, `positions_count`. Сохранить: `osengine_optimizer_save_report` `{"path":"..."}`.
+13. `osengine_optimizer_get_report` → `fazes[].reports[]`: `parameters`, `total_profit`, `total_profit_percent`, `max_draw_down`, `profit_factor`, `sharp_ratio`, `positions_count`, `capital_utilization_percent`. Сохранить: `osengine_optimizer_save_report` `{"path":"..."}`.
 14. Сообщить итоги: лучший бот, параметры и метрики на InSample/OutOfSample.
 15. Вернуть изменённые настройки (сет, даты, робот, фильтры), закрыть терминал.
 

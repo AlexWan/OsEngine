@@ -291,6 +291,10 @@ namespace OsEngine.Language
             "Eng:Sharpe ratio_" +
             "Ru:Sharpe ratio_");
 
+        public string GridRow19 => OsLocalization.ConvertToLocString(
+            "Eng:Capital utilization %_" +
+            "Ru:Использование капитала %_");
+
         public string NotAvailable => OsLocalization.ConvertToLocString(
             "Eng:n/a_" +
             "Ru:н/д_");

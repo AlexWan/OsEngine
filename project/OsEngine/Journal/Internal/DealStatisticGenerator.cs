@@ -112,6 +112,8 @@ namespace OsEngine.Journal.Internal
 
             report.Add(Math.Round(GetCommissionAmount(deals), 6).ToString(new CultureInfo("ru-RU"))); //комиссия
 
+            report.Add(Math.Round(GetCapitalUtilizationPercent(deals), 6).ToString(new CultureInfo("ru-RU"))); // среднее использование капитала, %
+
             /*report += Math.Round(GetSharp(), 2).ToString(new CultureInfo("ru-RU"));
             */
             return report;
@@ -1146,6 +1148,150 @@ namespace OsEngine.Journal.Internal
             if (profit != 0 && maxDownAbs != 0) recovery = profit / Math.Abs(maxDownAbs);
 
             return Round(recovery);
+        }
+
+        /// <summary>
+        /// Average time-weighted capital utilization, %. 0 = always flat, 100 = always fully invested
+        /// </summary>
+        public static decimal GetCapitalUtilizationPercent(Position[] deals)
+        {
+            if (deals == null
+                || deals.Length == 0)
+            {
+                return 0;
+            }
+
+            List<DateTime> allChange = new List<DateTime>();
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                Position pos = deals[i];
+
+                if (pos == null
+                    || IsServiceDeal(pos)
+                    || pos.MaxVolume == 0)
+                {
+                    continue;
+                }
+
+                if (allChange.Contains(pos.TimeCreate) == false)
+                {
+                    allChange.Add(pos.TimeCreate);
+                }
+
+                if (pos.State == PositionStateType.Done
+                    && allChange.Contains(pos.TimeClose) == false)
+                {
+                    allChange.Add(pos.TimeClose);
+                }
+            }
+
+            if (allChange.Count < 2)
+            {
+                return 0;
+            }
+
+            allChange = allChange.OrderBy(x => x).ToList();
+
+            decimal[] volume = new decimal[allChange.Count];
+            decimal[] deposit = new decimal[allChange.Count];
+
+            for (int i = 0; i < deals.Length; i++)
+            {
+                Position pos = deals[i];
+
+                if (pos == null
+                    || IsServiceDeal(pos)
+                    || pos.MaxVolume == 0)
+                {
+                    continue;
+                }
+
+                decimal volumeInPos = GetCapitalInPosition(pos);
+
+                int indexOpen = allChange.IndexOf(pos.TimeCreate);
+
+                if (indexOpen != -1)
+                {
+                    volume[indexOpen] += volumeInPos;
+                    deposit[indexOpen] = pos.PortfolioValueOnOpenPosition;
+                }
+
+                if (pos.State == PositionStateType.Done)
+                {
+                    int indexClose = allChange.IndexOf(pos.TimeClose);
+
+                    if (indexClose != -1)
+                    {
+                        volume[indexClose] -= volumeInPos;
+                        deposit[indexClose] = pos.PortfolioValueOnOpenPosition;
+                    }
+                }
+            }
+
+            // бегущая сумма задействованного капитала, депозит — последний известный.
+            // Незакрытые позиции держат капитал занятым до конца шкалы
+            decimal currentVolume = 0;
+            decimal currentDeposit = 0;
+            decimal weightedSum = 0;
+
+            for (int i = 0; i < allChange.Count - 1; i++)
+            {
+                currentVolume += volume[i];
+
+                if (deposit[i] != 0)
+                {
+                    currentDeposit = deposit[i];
+                }
+
+                if (currentDeposit == 0)
+                {
+                    continue;
+                }
+
+                TimeSpan duration = allChange[i + 1] - allChange[i];
+
+                weightedSum += (currentVolume / currentDeposit) * (decimal)duration.TotalSeconds;
+            }
+
+            decimal totalSeconds = (decimal)(allChange[allChange.Count - 1] - allChange[0]).TotalSeconds;
+
+            if (totalSeconds == 0)
+            {
+                return 0;
+            }
+
+            return weightedSum / totalSeconds * 100;
+        }
+
+        // задействованный капитал позиции в валюте портфеля.
+        // Формула повторяет чарт Volume -> To portfolio в JournalUi2
+        private static decimal GetCapitalInPosition(Position pos)
+        {
+            decimal volumeInPos = pos.MaxVolume * pos.EntryPrice;
+
+            // для фьючерсов цена в пунктах — пересчитываем объём в валюту
+            if (pos.PriceStep != 0 && pos.PriceStepCost != 0)
+            {
+                volumeInPos = (volumeInPos / pos.PriceStep) * pos.PriceStepCost;
+            }
+
+            if (pos.Direction == Side.Buy && pos.MarginBuy != 0)
+            {
+                volumeInPos = pos.MaxVolume * pos.MarginBuy;
+            }
+
+            if (pos.Direction == Side.Sell && pos.MarginSell != 0)
+            {
+                volumeInPos = pos.MaxVolume * pos.MarginSell;
+            }
+
+            if (pos.Lots != 0 && pos.Lots != 1)
+            {
+                volumeInPos = volumeInPos * pos.Lots;
+            }
+
+            return volumeInPos;
         }
 
         public static List<Position> SortByTime(List<Position> positionsAll)

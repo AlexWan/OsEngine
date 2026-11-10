@@ -2501,7 +2501,8 @@ namespace OsEngine.MCP.Modules
                 pay_off_ratio = report.PayOffRatio,
                 recovery = report.Recovery,
                 sharp_ratio = report.SharpRatio,
-                average_time_in_position = report.AverageTimeInPosition
+                average_time_in_position = report.AverageTimeInPosition,
+                capital_utilization_percent = report.CapitalUtilizationPercent
             };
         }
 
@@ -2793,7 +2794,8 @@ namespace OsEngine.MCP.Modules
                     pay_off_ratio = row.PayOffRatio,
                     recovery = row.Recovery,
                     sharp_ratio = row.SharpRatio,
-                    average_time_in_position = row.AverageTimeInPosition
+                    average_time_in_position = row.AverageTimeInPosition,
+                    capital_utilization_percent = row.CapitalUtilizationPercent
                 });
             }
 

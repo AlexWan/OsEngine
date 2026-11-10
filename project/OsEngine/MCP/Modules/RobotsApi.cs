@@ -4534,7 +4534,8 @@ namespace OsEngine.MCP.Modules
                     profitable_deals = 0,
                     losing_deals = 0,
                     max_drawdown_percent = 0m,
-                    commission = 0m
+                    commission = 0m,
+                    capital_utilization_percent = 0m
                 };
             }
 
@@ -4552,7 +4553,8 @@ namespace OsEngine.MCP.Modules
                 profitable_deals = PositionStatisticGenerator.GetProfitDeal(dealsArray),
                 losing_deals = deals.Count - PositionStatisticGenerator.GetProfitDeal(dealsArray),
                 max_drawdown_percent = Math.Round(PositionStatisticGenerator.GetMaxDownPercent(dealsArray), 4),
-                commission = Math.Round(PositionStatisticGenerator.GetCommissionAmount(dealsArray), 4)
+                commission = Math.Round(PositionStatisticGenerator.GetCommissionAmount(dealsArray), 4),
+                capital_utilization_percent = Math.Round(PositionStatisticGenerator.GetCapitalUtilizationPercent(dealsArray), 4)
             };
         }
 
