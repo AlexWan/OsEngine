@@ -149,7 +149,10 @@ namespace OsEngine.Market.Servers.TInvest
                     // ignore
                 }
 
-                _pollSubscribedSecurities.Clear();
+                lock (_pollLocker)
+                {
+                    _pollSubscribedSecurities.Clear();
+                }
                 _subscribeRetryCounts.Clear();
 
                 // сброс троттлинга портфелей: первая загрузка после Connect
@@ -490,7 +493,10 @@ namespace OsEngine.Market.Servers.TInvest
                 _myOrderStateDataStream = null;
                 _marketDataStreams?.Clear();
                 _securityStreamMap?.Clear();
-                _pollSubscribedSecurities.Clear();
+                lock (_pollLocker)
+                {
+                    _pollSubscribedSecurities.Clear();
+                }
                 _stopOrderExecutions = new ConcurrentQueue<StopOrderExecution>();
                 _myPortfolios.Clear();
                 _newsIsSubscribed = false;
@@ -2942,6 +2948,8 @@ namespace OsEngine.Market.Servers.TInvest
         private List<MarketDataStreamWrapper> _marketDataStreams;
         private Dictionary<string, MarketDataStreamWrapper> _securityStreamMap;
         List<Security> _pollSubscribedSecurities = new List<Security>();
+        // Отдельный от _marketDataStreamLocker замок: под ним только списочные операции, без I/O и чужих локов
+        private readonly object _pollLocker = new object();
         private bool _useStreamForMarketData = true;
 
         private DateTime _lastMarketDataTime = DateTime.MinValue;
@@ -2988,8 +2996,13 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 tryCount++;
 
-                if (_securityStreamMap.ContainsKey(security.NameId) ||
-                    _pollSubscribedSecurities.Any(s => s.Name == security.Name))
+                bool alreadyInPollList;
+                lock (_pollLocker)
+                {
+                    alreadyInPollList = _pollSubscribedSecurities.Any(s => s.Name == security.Name);
+                }
+
+                if (_securityStreamMap.ContainsKey(security.NameId) || alreadyInPollList)
                 {
                     return;
                 }
@@ -3031,7 +3044,10 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _useStreamForMarketData = false;
                         SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
-                        _pollSubscribedSecurities.Add(security);
+                        lock (_pollLocker)
+                        {
+                            _pollSubscribedSecurities.Add(security);
+                        }
                         return;
                     }
                 }
@@ -3073,7 +3089,10 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _useStreamForMarketData = false;
                         SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
-                        _pollSubscribedSecurities.Add(security);
+                        lock (_pollLocker)
+                        {
+                            _pollSubscribedSecurities.Add(security);
+                        }
                         return;
                     }
                 }
@@ -3190,7 +3209,10 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 else
                 {
-                    _pollSubscribedSecurities.Add(security);
+                    lock (_pollLocker)
+                    {
+                        _pollSubscribedSecurities.Add(security);
+                    }
                     return;
                 }
             }
@@ -4066,8 +4088,27 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect ||
-                        _pollSubscribedSecurities.Count == 0)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    // Один lock: снапшот под ним; сетевые вызовы (isTodayATradingDayForSecurity, GetLastPrices) вне лока
+                    List<Security> snapshot;
+                    lock (_pollLocker)
+                    {
+                        if (_pollSubscribedSecurities.Count == 0)
+                        {
+                            snapshot = null;
+                        }
+                        else
+                        {
+                            snapshot = new List<Security>(_pollSubscribedSecurities);
+                        }
+                    }
+
+                    if (snapshot == null)
                     {
                         Thread.Sleep(1000);
                         continue;
@@ -4077,17 +4118,13 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_filterOutDealerData)
                     {
-                        if (_pollSubscribedSecurities.Count == 0)
-                        {
-                            continue;
-                        }
-                        if (isTodayATradingDayForSecurity(_pollSubscribedSecurities[0]) == false)
+                        if (isTodayATradingDayForSecurity(snapshot[0]) == false)
                             continue;
                     }
                     //var watch = System.Diagnostics.Stopwatch.StartNew();
                     //SendLogMessage($"Polling for {_pollSubscribedSecurities.Count} securities.", LogMessageType.System);
 
-                    UpdateLastPrices(_pollSubscribedSecurities);
+                    UpdateLastPrices(snapshot);
 
                     //watch.Stop();
                     //SendLogMessage($"Polling for {_pollSubscribedSecurities.Count} securities completed in {watch.ElapsedMilliseconds} ms.", LogMessageType.System);
@@ -5496,7 +5533,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (security == null)
                 {
-                    security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    lock (_pollLocker)
+                    {
+                        security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    }
                 }
 
                 if (security == null)
@@ -5850,7 +5890,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (security == null)
                 {
-                    security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    lock (_pollLocker)
+                    {
+                        security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    }
                 }
 
                 if (security == null)
@@ -6858,7 +6901,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (security == null)
                 {
-                    security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    lock (_pollLocker)
+                    {
+                        security = _pollSubscribedSecurities.Find((sec) => sec.Name == order.SecurityNameCode);
+                    }
                 }
 
                 if (security == null)
