@@ -272,14 +272,16 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (streamsIsLost)
                     {
+                        if (_isDisposedNow == true)
+                        {
+                            // коннектор выключается: стримы мертвы штатно, не шумим и не крутимся без паузы
+                            Thread.Sleep(1000);
+                            continue;
+                        }
+
                         SendLogMessage(
                             "Stream is lost. ConnectionCheckThread(). stream = "
                             + lostStreamName, LogMessageType.System);
-
-                        if (_isDisposedNow == true)
-                        {
-                            continue;
-                        }
 
                         if (lostStreamName == "Order state data stream")
                         {
@@ -332,6 +334,19 @@ namespace OsEngine.Market.Servers.TInvest
                             MarketDataStreamWrapper streamToReconnect = _marketDataStreams.FirstOrDefault(s => s.Name == lostStreamName);
                             if (streamToReconnect != null)
                             {
+                                if (streamToReconnect.Subscriptions.Count == 0)
+                                {
+                                    // пустой стрим сервер гарантированно завершает (ошибка 80004).
+                                    // Воскрешать бессмысленно - удаляем, пересоздастся по требованию при новой подписке
+                                    lock (_marketDataStreamLocker)
+                                    {
+                                        _marketDataStreams.Remove(streamToReconnect);
+                                    }
+                                    SendLogMessage(streamToReconnect.Name + " has no subscriptions. Stream removed.", LogMessageType.System);
+                                    Thread.Sleep(2000);
+                                    continue;
+                                }
+
                                 if (TryReconnectDataStream(streamToReconnect) == true)
                                 {
                                     streamToReconnect.LastMessageTime = DateTime.UtcNow;
@@ -547,6 +562,10 @@ namespace OsEngine.Market.Servers.TInvest
         // лимит стримов маркет-даты: обновляется из тарифа пользователя (GetUserTariff)
         private int _maxMarketDataStreams = 16;
 
+        // единый deadline для unary-вызовов: на мёртвом канале вызов обязан упасть
+        // за секунды (DeadlineExceeded), а не висеть до TCP-таймаута
+        private static readonly TimeSpan _unaryTimeout = TimeSpan.FromSeconds(15);
+
         #endregion
 
         #region 3 Securities
@@ -580,7 +599,7 @@ namespace OsEngine.Market.Servers.TInvest
                     try
                     {
                         _rateGateInstruments.WaitToProceed();
-                        CurrenciesResponse currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata);
+                        CurrenciesResponse currenciesResponse = _instrumentsClient.Currencies(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                         if (UpdateCurrenciesFromServer(currenciesResponse))
                         {
@@ -598,7 +617,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _rateGateInstruments.WaitToProceed();
 
-                            SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata);
+                            SharesResponse result = _instrumentsClient.Shares(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                             if (UpdateSharesFromServer(result))
                             {
@@ -617,7 +636,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _rateGateInstruments.WaitToProceed();
 
-                            FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata);
+                            FuturesResponse result = _instrumentsClient.Futures(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                             if (UpdateFuturesFromServer(result))
                             {
@@ -641,7 +660,7 @@ namespace OsEngine.Market.Servers.TInvest
                         //OptionsResponse result = null;
                         //try
                         //{
-                        //    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata);
+                        //    result = _instrumentsClient.Options(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                         //}
                         //catch (RpcException ex)
                         //{
@@ -662,7 +681,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _rateGateInstruments.WaitToProceed();
 
-                            BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata);
+                            BondsResponse result = _instrumentsClient.Bonds(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                             if (UpdateBondsFromServer(result))
                             {
@@ -678,7 +697,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _rateGateInstruments.WaitToProceed();
 
-                            EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata);
+                            EtfsResponse etfs = _instrumentsClient.Etfs(new InstrumentsRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                             if (UpdateEtfsFromServer(etfs))
                             {
@@ -694,7 +713,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             _rateGateInstruments.WaitToProceed();
 
-                            IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata);
+                            IndicativesResponse indicatives = _instrumentsClient.Indicatives(new IndicativesRequest(), headers: _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                             if (UpdateIndicativesFromServer(indicatives))
                             {
@@ -1304,7 +1323,7 @@ namespace OsEngine.Market.Servers.TInvest
                 instrumentRequest.Id = instrumentUid;
                 instrumentRequest.IdType = InstrumentIdType.Uid;
 
-                InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                InstrumentResponse instrument = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                 if (instrument != null
                     && instrument.Instrument != null)
@@ -1394,7 +1413,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 _lastTimeGetPortfolio = DateTime.Now;
 
-                GetAccountsResponse accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
+                GetAccountsResponse accountsResponse = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                 if (accountsResponse.Accounts.Count == 0)
                 {
@@ -1435,7 +1454,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         try
                         {
-                            portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata);
+                            portfolioResponse = _operationsClient.GetPortfolio(portfolioRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                         }
                         catch (Exception ex)
                         {
@@ -1449,7 +1468,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                             try
                             {
-                                marginAttributes = _usersClient.GetMarginAttributes(new GetMarginAttributesRequest() { AccountId = account.Id }, _gRpcMetadata);
+                                marginAttributes = _usersClient.GetMarginAttributes(new GetMarginAttributesRequest() { AccountId = account.Id }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                             }
                             catch (Exception ex)
                             {
@@ -1603,7 +1622,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    posData = _operationsClient.GetPositions(positionsRequest, _gRpcMetadata);
+                    posData = _operationsClient.GetPositions(positionsRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -1866,7 +1885,7 @@ namespace OsEngine.Market.Servers.TInvest
             request.InstrumentId.Add(tickerId);
             request.LastPriceType = _filterOutDealerData ? LastPriceType.LastPriceExchange : LastPriceType.LastPriceUnspecified;
 
-            GetLastPricesResponse response = _marketDataServiceClient.GetLastPrices(request, _gRpcMetadata);
+            GetLastPricesResponse response = _marketDataServiceClient.GetLastPrices(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
             if (response == null
                 || response.LastPrices == null
@@ -2069,7 +2088,7 @@ namespace OsEngine.Market.Servers.TInvest
                     // отбрасываем на клиенте по их тегу источника (см. ConvertToOsEngineCandles)
                     getCandlesRequest.CandleSourceType = GetCandlesRequest.Types.CandleSource.IncludeWeekend;
 
-                    candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
+                    candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -2173,7 +2192,7 @@ namespace OsEngine.Market.Servers.TInvest
                 try
                 {
                     _rateGateInstruments.WaitToProceed();
-                    thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata);
+                    thisDaySchedules = _instrumentsClient.TradingSchedules(tradingSchedulesRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -2336,7 +2355,7 @@ namespace OsEngine.Market.Servers.TInvest
             GetUserTariffResponse response = null;
             try
             {
-                response = _usersClient.GetUserTariff(request, _gRpcMetadata);
+                response = _usersClient.GetUserTariff(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
             }
             catch (RpcException ex)
             {
@@ -2996,6 +3015,12 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectDataStream(streamWrapperCommon) == false)
                         {
+                            // откатываем необжитую обёртку: пустой стрим сервер всё равно завершит (ошибка 80004),
+                            // а зомби в списке заставит watchdog воскрешать его бесконечно
+                            lock (_marketDataStreamLocker)
+                            {
+                                _marketDataStreams.Remove(streamWrapperCommon);
+                            }
                             SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.System);
                             return;
                         }
@@ -3032,6 +3057,12 @@ namespace OsEngine.Market.Servers.TInvest
 
                         if (TryReconnectDataStream(streamWrapperMarketDepth) == false)
                         {
+                            // откатываем необжитую обёртку: пустой стрим сервер всё равно завершит (ошибка 80004),
+                            // а зомби в списке заставит watchdog воскрешать его бесконечно
+                            lock (_marketDataStreamLocker)
+                            {
+                                _marketDataStreams.Remove(streamWrapperMarketDepth);
+                            }
                             SendLogMessage("Failed to create market data stream for " + security.Name, LogMessageType.System);
                             return;
                         }
@@ -3053,6 +3084,13 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         tradesStream = streamWrapperCommon;
                         depthStream = streamWrapperMarketDepth;
+
+                        // та же бумага могла подписаться параллельным потоком, пока мы ждали лок
+                        // (движок + RetryFailedSubscription). Повторная подписка задвоит ленту/стакан
+                        if (_securityStreamMap.ContainsKey(security.NameId))
+                        {
+                            return;
+                        }
 
                         // стрим мог быть закрыт реконнектом/Dispose между выбором обёртки и входом в лок
                         if (streamWrapperCommon.StreamClient == null
@@ -3267,7 +3305,7 @@ namespace OsEngine.Market.Servers.TInvest
                 NewsRequest request = new NewsRequest();
                 request.Limit = 100;
 
-                response = _instrumentsClient.News(request, _gRpcMetadata);
+                response = _instrumentsClient.News(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
             }
             catch (RpcException ex)
             {
@@ -3424,6 +3462,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 bool isCancelled =
                     ex is OperationCanceledException
+                    || ex is ObjectDisposedException // старый читатель после реконнекта - штатно, не шумим
                     || (ex is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled);
 
                 if (ReferenceEquals(streamWrapper.StreamClient, myClient) == false)
@@ -3658,6 +3697,11 @@ namespace OsEngine.Market.Servers.TInvest
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "trades"));
                             }
+                            else
+                            {
+                                // успех сбрасывает счётчик ретраев: лимит «3» - это 3 подряд, а не 3 за сессию
+                                _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                            }
                         }
                     }
                     if (marketData.SubscribeOrderBookResponse != null)
@@ -3671,6 +3715,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "order book"));
+                            }
+                            else
+                            {
+                                _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
                             }
                         }
                     }
@@ -3686,6 +3734,10 @@ namespace OsEngine.Market.Servers.TInvest
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "last price"));
                             }
+                            else
+                            {
+                                _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                            }
                         }
                     }
                     if (marketData.SubscribeCandlesResponse != null)
@@ -3699,6 +3751,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "candles"));
+                            }
+                            else
+                            {
+                                _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
                             }
                         }
                     }
@@ -3722,6 +3778,87 @@ namespace OsEngine.Market.Servers.TInvest
         // Работает только если количество подписок превышает лимит gRPC-потока
 
         private ConcurrentDictionary<string, int> _subscribeRetryCounts = new ConcurrentDictionary<string, int>();
+
+        // удаление всех записей бумаги из списка подписок стрима.
+        // Запрос без инструментов выкидываем целиком. Звать только под _marketDataStreamLocker
+        private void RemoveSubscriptionUnsafe(MarketDataStreamWrapper streamWrapper, string instrumentUid)
+        {
+            List<MarketDataRequest> subscriptions = streamWrapper.Subscriptions;
+
+            for (int j = subscriptions.Count - 1; j >= 0; j--)
+            {
+                MarketDataRequest request = subscriptions[j];
+
+                if (request.SubscribeTradesRequest != null)
+                {
+                    RepeatedField<TradeInstrument> instruments = request.SubscribeTradesRequest.Instruments;
+
+                    for (int k = instruments.Count - 1; k >= 0; k--)
+                    {
+                        if (instruments[k].InstrumentId == instrumentUid)
+                        {
+                            instruments.RemoveAt(k);
+                        }
+                    }
+
+                    if (instruments.Count == 0)
+                    {
+                        subscriptions.RemoveAt(j);
+                    }
+                }
+                else if (request.SubscribeOrderBookRequest != null)
+                {
+                    RepeatedField<OrderBookInstrument> instruments = request.SubscribeOrderBookRequest.Instruments;
+
+                    for (int k = instruments.Count - 1; k >= 0; k--)
+                    {
+                        if (instruments[k].InstrumentId == instrumentUid)
+                        {
+                            instruments.RemoveAt(k);
+                        }
+                    }
+
+                    if (instruments.Count == 0)
+                    {
+                        subscriptions.RemoveAt(j);
+                    }
+                }
+                else if (request.SubscribeLastPriceRequest != null)
+                {
+                    RepeatedField<LastPriceInstrument> instruments = request.SubscribeLastPriceRequest.Instruments;
+
+                    for (int k = instruments.Count - 1; k >= 0; k--)
+                    {
+                        if (instruments[k].InstrumentId == instrumentUid)
+                        {
+                            instruments.RemoveAt(k);
+                        }
+                    }
+
+                    if (instruments.Count == 0)
+                    {
+                        subscriptions.RemoveAt(j);
+                    }
+                }
+                else if (request.SubscribeCandlesRequest != null)
+                {
+                    RepeatedField<CandleInstrument> instruments = request.SubscribeCandlesRequest.Instruments;
+
+                    for (int k = instruments.Count - 1; k >= 0; k--)
+                    {
+                        if (instruments[k].InstrumentId == instrumentUid)
+                        {
+                            instruments.RemoveAt(k);
+                        }
+                    }
+
+                    if (instruments.Count == 0)
+                    {
+                        subscriptions.RemoveAt(j);
+                    }
+                }
+            }
+        }
 
         // повторная подписка при отказе или потере подписки (максимум 3 попытки на бумагу)
         private void RetryFailedSubscription(string instrumentUid, string what)
@@ -3751,6 +3888,14 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _securityStreamMap.Remove(security.NameId);
                     }
+
+                    // вычищаем прежние записи бумаги из всех стримов: запрос добавляется
+                    // в Subscriptions до записи в канал и при failure-статусе сервера локально
+                    // не откатывается - без чистки батч-переподписка при реконнекте подпишет её дважды
+                    for (int i = 0; i < _marketDataStreams.Count; i++)
+                    {
+                        RemoveSubscriptionUnsafe(_marketDataStreams[i], instrumentUid);
+                    }
                 }
 
                 SubscribeLoop(0, security);
@@ -3761,8 +3906,11 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        // сверка наших подписок стрима с ответом на GetMySubscriptions:
-        // чего сервер не подтвердил - переподписываем
+        // сверка наших подписок стрима с ответом на GetMySubscriptions.
+        // ТОЛЬКО мониторинг, без авто-переподписок: ответ на GetMySubscriptions нельзя надёжно отличить
+        // от обычных подтверждений подписок (по протоколу приходит по сообщению на тип), и в шторм
+        // сверка с частичным ответом давала массовые ложные ретраи - бумаги выжигали лимит попыток
+        // и оставались без данных. Реальные отказы ловит прямой путь: failure-статус в ответе на подписку
         private void ReconcileSubscriptions(MarketDataStreamWrapper streamWrapper, MarketDataResponse response)
         {
             try
@@ -3811,6 +3959,10 @@ namespace OsEngine.Market.Servers.TInvest
                     subs = new List<MarketDataRequest>(streamWrapper.Subscriptions);
                 }
 
+                int tradesMissing = 0;
+                int orderBookMissing = 0;
+                int lastPriceMissing = 0;
+
                 for (int i = 0; i < subs.Count; i++)
                 {
                     MarketDataRequest request = subs[i];
@@ -3822,8 +3974,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             if (tradesOk.Contains(instrument.InstrumentId) == false)
                             {
-                                string uid = instrument.InstrumentId;
-                                Task.Run(() => RetryFailedSubscription(uid, "trades (reconcile)"));
+                                tradesMissing++;
                             }
                         }
                     }
@@ -3834,8 +3985,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             if (orderBookOk.Contains(instrument.InstrumentId) == false)
                             {
-                                string uid = instrument.InstrumentId;
-                                Task.Run(() => RetryFailedSubscription(uid, "order book (reconcile)"));
+                                orderBookMissing++;
                             }
                         }
                     }
@@ -3846,11 +3996,15 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             if (lastPriceOk.Contains(instrument.InstrumentId) == false)
                             {
-                                string uid = instrument.InstrumentId;
-                                Task.Run(() => RetryFailedSubscription(uid, "last price (reconcile)"));
+                                lastPriceMissing++;
                             }
                         }
                     }
+                }
+
+                if (tradesMissing + orderBookMissing + lastPriceMissing > 0)
+                {
+                    SendLogMessage($"Subscriptions reconcile on {streamWrapper.Name}: not confirmed by server - trades {tradesMissing}, order book {orderBookMissing}, last price {lastPriceMissing}", LogMessageType.System);
                 }
             }
             catch (Exception ex)
@@ -3987,7 +4141,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     InstrumentId = { instrumentIds },
                     LastPriceType = _filterOutDealerData ? LastPriceType.LastPriceExchange : LastPriceType.LastPriceUnspecified
-                }, _gRpcMetadata);
+                }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
             }
             catch (RpcException ex)
             {
@@ -4221,7 +4375,7 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata);
+                _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 return true;
             }
             catch
@@ -5203,7 +5357,7 @@ namespace OsEngine.Market.Servers.TInvest
                 stateRequest.OrderId = stopFromServer.ExchangeOrderId;
                 stateRequest.AccountId = order.PortfolioNumber;
 
-                OrderState state = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata);
+                OrderState state = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                 if (state == null)
                 {
@@ -5481,13 +5635,6 @@ namespace OsEngine.Market.Servers.TInvest
                     order.State = OrderStateType.Active;
                     order.NumberMarket = response.OrderId;
 
-                    if (_lastMyOrderStateDataTime.AddSeconds(5) < DateTime.UtcNow)
-                    {   // Сбрасываем счётчики жизни потока принимающего статусы ордеров
-                        // если он отсох, надо чтобы через 3 секунды уже переподключался.
-                        _lastMyOrderStateDataTime = DateTime.UtcNow.AddSeconds(-177);
-                        _lastTryReconnectOrdersStream = DateTime.Now.AddMinutes(-1);
-                    }
-
                     LogOrderInFullLog(order);
 
                     if (MyOrderEvent != null)
@@ -5555,7 +5702,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
-                response = _ordersClient.PostOrder(request, metaData);
+                response = _ordersClient.PostOrder(request, metaData, deadline: DateTime.UtcNow + _unaryTimeout);
             }
             catch (RpcException ex)
             {
@@ -5625,7 +5772,7 @@ namespace OsEngine.Market.Servers.TInvest
                 stateRequest.OrderId = oldNumberMarket;
                 stateRequest.AccountId = accountId;
 
-                OrderState oldState = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata);
+                OrderState oldState = _ordersClient.GetOrderState(stateRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                 if (oldState == null)
                 {
@@ -5646,7 +5793,7 @@ namespace OsEngine.Market.Servers.TInvest
                     cancelRequest.OrderId = oldNumberMarket;
                     cancelRequest.AccountId = accountId;
 
-                    _ordersClient.CancelOrder(cancelRequest, _gRpcMetadata);
+                    _ordersClient.CancelOrder(cancelRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
             }
             catch (Exception ex)
@@ -5786,7 +5933,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    response = _ordersClient.ReplaceOrder(request, _gRpcMetadata);
+                    response = _ordersClient.ReplaceOrder(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -5921,7 +6068,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    response = _ordersClient.CancelOrder(request, metaData);
+                    response = _ordersClient.CancelOrder(request, metaData, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -5936,13 +6083,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response != null)
                 {
-                    if (_lastMyOrderStateDataTime.AddSeconds(5) < DateTime.UtcNow)
-                    {   // Сбрасываем счётчики жизни потока принимающего статусы ордеров
-                        // если он отсох, надо чтобы через 3 секунды уже переподключался.
-                        _lastMyOrderStateDataTime = DateTime.UtcNow.AddSeconds(-177);
-                        _lastTryReconnectOrdersStream = DateTime.Now.AddMinutes(-1);
-                    }
-
                     return true;
                 }
 
@@ -6101,7 +6241,7 @@ namespace OsEngine.Market.Servers.TInvest
                 OrderState state = null;
                 try
                 {
-                    state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata);
+                    state = _ordersClient.GetOrderState(getOrderStateRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -6314,7 +6454,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    GetOrdersResponse response = _ordersClient.GetOrders(getOrdersRequest, _gRpcMetadata);
+                    GetOrdersResponse response = _ordersClient.GetOrders(getOrdersRequest, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
                     if (historyFilters
                         && response != null
@@ -6796,7 +6936,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 try
                 {
-                    response = _stopOrdersClient.PostStopOrder(request, _gRpcMetadata);
+                    response = _stopOrdersClient.PostStopOrder(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
                 }
                 catch (RpcException ex)
                 {
@@ -6881,7 +7021,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             try
             {
-                response = _stopOrdersClient.CancelStopOrder(request, _gRpcMetadata);
+                response = _stopOrdersClient.CancelStopOrder(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
             }
             catch (RpcException ex)
             {
@@ -7250,7 +7390,7 @@ namespace OsEngine.Market.Servers.TInvest
             request.AccountId = accountId;
             request.Status = status;
 
-            GetStopOrdersResponse response = _stopOrdersClient.GetStopOrders(request, _gRpcMetadata);
+            GetStopOrdersResponse response = _stopOrdersClient.GetStopOrders(request, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
             if (response == null)
             {
