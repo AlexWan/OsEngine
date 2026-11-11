@@ -13,6 +13,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.TInvest.Entity;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -1547,7 +1548,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _instrumentsClient = new InstrumentsService.InstrumentsServiceClient(_channel);
 
                 _marketDataStreams = new List<MarketDataStreamWrapper>();
-                _securityStreamMap = new Dictionary<string, MarketDataStreamWrapper>();
+                _securityStreamMap = new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
@@ -1697,8 +1698,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<MarketDataStreamWrapper> _marketDataStreams = new List<MarketDataStreamWrapper>();
 
-        private Dictionary<string, MarketDataStreamWrapper> _securityStreamMap =
-            new Dictionary<string, MarketDataStreamWrapper>();
+        private ConcurrentDictionary<string, MarketDataStreamWrapper> _securityStreamMap =
+            new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
         private string _marketDataStreamLocker = "_marketDataStreamLockerTInvestAutoFollow";
 
@@ -1846,7 +1847,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     streamWrapperMarketDepth.Subscriptions.Add(orderBookRequest);
 
-                    _securityStreamMap.Add(security.NameId, streamWrapperMarketDepth);
+                    _securityStreamMap.TryAdd(security.NameId, streamWrapperMarketDepth);
                 }
             }
             catch (Exception ex)
@@ -1879,7 +1880,7 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
 
-                    _securityStreamMap.Remove(security.NameId);
+                    _securityStreamMap.TryRemove(security.NameId, out _);
 
                     for (int i = 0; i < _marketDataStreams.Count; i++)
                     {
