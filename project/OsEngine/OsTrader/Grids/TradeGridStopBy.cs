@@ -112,7 +112,9 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[16], out StopGridByTimeOfDayReaction);
 
                 // слоты 17..20 добавлены позже остальных, в старых файлах их нет или они пусты.
-                // Битый текст цены -> 0 (ToDecimal-конвенция), условие выключено. Пустая реакция -> дефолт
+                // Битый текст цены -> 0 (ToDecimal-конвенция), условие выключено.
+                // Пустой слот реакции не перечитывается (остаётся начальное CloseForced);
+                // битый непустой текст реакции -> 0 (Off), так работает Enum.TryParse
 
                 if (values.Length > 17
                     && string.IsNullOrEmpty(values[17]) == false)

@@ -146,14 +146,14 @@
                     <ComboBox Name="ComboBoxStopGridByTimeOfDayReaction" Margin="162,234,14,0" VerticalAlignment="Top"/>
 
                     <Label Name="LabelStopGridByPriceUpValue" Content="Stop by price up" HorizontalAlignment="Left" Margin="10,261,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByPriceUpValue" Margin="180,261,14,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByPriceUpValue" Margin="180,261,60,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
                     <Label Name="LabelStopGridByPriceUpReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,284,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopGridByPriceUpReaction" Margin="162,284,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByPriceUpReaction" Margin="162,284,60,0" VerticalAlignment="Top"/>
 
                     <Label Name="LabelStopGridByPriceDownValue" Content="Stop by price down" HorizontalAlignment="Left" Margin="10,311,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByPriceDownValue" Margin="180,311,14,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByPriceDownValue" Margin="180,311,60,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
                     <Label Name="LabelStopGridByPriceDownReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,334,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopGridByPriceDownReaction" Margin="162,334,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByPriceDownReaction" Margin="162,334,60,0" VerticalAlignment="Top"/>
                     <Button Name="ButtonStopTrading"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonStopTrading_Click">
                         <Grid>
                             <Image Name="PostGreenStopTrading" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />
