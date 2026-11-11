@@ -160,9 +160,11 @@ namespace OsEngine.Connectors.TestStand
                 {
                     if (!process.HasExited)
                     {
-                        _stopReason = 1;
                         Console.WriteLine($"[Proc] pid={_launchPid} STOP requested at={NowStamp()}");
                         process.Kill();
+                        // stand_kill — только после подтверждённого Kill(): иначе гонка
+                        // «само-смерть между HasExited и Kill» дала бы ложный stand_kill.
+                        _stopReason = 1;
 
                         if (!process.WaitForExit(5000))
                         {
@@ -173,17 +175,21 @@ namespace OsEngine.Connectors.TestStand
                     {
                         Console.WriteLine($"[Proc] pid={_launchPid} already exited exit={ExitCodeText(process)}");
                     }
-
-                    // Запись о гибели пишет событие Exited; ждём его кратко и, если не дождались,
-                    // пишем сами — строка гибели не должна теряться из-за гонки с Dispose().
-                    if (!WaitDeathLogged(500))
-                    {
-                        LogDeath(process, _launchPid, _launchTime, _stopReason == 1 ? "stand_kill" : "self_exit");
-                    }
                 }
                 catch (Exception error)
                 {
                     Console.WriteLine($"Failed to stop OsEngine: {error.Message}");
+                }
+                finally
+                {
+                    // Запись о гибели — на любой выход из Stop(), включая исключение Kill
+                    // (смерть в микроокне HasExited→Kill, отказ доступа): событие Exited пишет
+                    // её само; коротко ждём и, если не дождались, пишем сами — строка гибели
+                    // не должна теряться (инвариант BUG-0280).
+                    if (!WaitDeathLogged(500))
+                    {
+                        LogDeath(process, _launchPid, _launchTime, _stopReason == 1 ? "stand_kill" : "self_exit");
+                    }
                 }
 
                 UnsubscribeExited(process);
@@ -212,10 +218,17 @@ namespace OsEngine.Connectors.TestStand
             _stopReason = 0;
             _deathLogged = 0;
             _launchTime = startTime;
-            _launchPid = pid;
+            Volatile.Write(ref _launchPid, pid);
 
             _exitedHandler = delegate
             {
+                // Событие Exited от опоздавшего старого запуска не должно доставляться в слот
+                // нового: не писать EXITED чужого pid, не глушить его сэмплер, не красть слот гибели.
+                if (Volatile.Read(ref _launchPid) != pid)
+                {
+                    return;
+                }
+
                 LogDeath(launch, pid, startTime, _stopReason == 1 ? "stand_kill" : "self_exit");
                 StopSampler();
                 UnsubscribeExited(launch);
@@ -223,8 +236,10 @@ namespace OsEngine.Connectors.TestStand
 
             try
             {
-                launch.EnableRaisingEvents = true;
+                // Сначала подписка, потом EnableRaisingEvents: иначе гибель в зазоре между
+                // включением событий и подпиской обработчика осталась бы незамеченной.
                 launch.Exited += _exitedHandler;
+                launch.EnableRaisingEvents = true;
             }
             catch (Exception error)
             {
