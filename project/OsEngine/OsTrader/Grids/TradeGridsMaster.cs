@@ -484,9 +484,18 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if (_gridViewInstances.InvokeRequired)
+                // InvokeRequired лжёт без хендла DataGridView в WindowsFormsHost; хост в локаль — StopPaint на UI-треде может обнулить поле между чтениями
+                WindowsFormsHost host = _hostGrid;
+
+                if (host == null)
                 {
-                    _gridViewInstances.Invoke(new Action(PaintGridView));
+                    // грид не размещён в UI — рисовать нечего; следующий StartPaint перерисует
+                    return;
+                }
+
+                if (host.Dispatcher.CheckAccess() == false)
+                {
+                    host.Dispatcher.Invoke(new Action(PaintGridView));
                     return;
                 }
 
