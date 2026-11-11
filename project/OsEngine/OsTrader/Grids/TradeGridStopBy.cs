@@ -39,6 +39,13 @@ namespace OsEngine.OsTrader.Grids
         public int StopGridByTimeOfDaySecond = 0;
         public TradeGridRegime StopGridByTimeOfDayReaction = TradeGridRegime.CloseForced;
 
+        // цена 0 = условие выключено, старых конфигов этих полей просто нет
+        public decimal StopGridByPriceUpValue = 0;
+        public TradeGridRegime StopGridByPriceUpReaction = TradeGridRegime.CloseForced;
+
+        public decimal StopGridByPriceDownValue = 0;
+        public TradeGridRegime StopGridByPriceDownReaction = TradeGridRegime.CloseForced;
+
         public string GetSaveString()
         {
             string result = "";
@@ -65,11 +72,11 @@ namespace OsEngine.OsTrader.Grids
             result += StopGridByTimeOfDaySecond + "@";
             result += StopGridByTimeOfDayReaction + "@";
 
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@"; // пять пустых полей в резерв
+            result += StopGridByPriceUpValue + "@";
+            result += StopGridByPriceUpReaction + "@";
+            result += StopGridByPriceDownValue + "@";
+            result += StopGridByPriceDownReaction + "@";
+            result += "@"; // пустой резервный слот
 
             return result;
         }
@@ -103,6 +110,41 @@ namespace OsEngine.OsTrader.Grids
                 StopGridByTimeOfDayMinute = Convert.ToInt32(values[14]);
                 StopGridByTimeOfDaySecond = Convert.ToInt32(values[15]);
                 Enum.TryParse(values[16], out StopGridByTimeOfDayReaction);
+
+                // слоты 17..20 добавлены позже остальных, в старых файлах их нет или они пусты.
+                // Битый текст цены -> 0 (ToDecimal-конвенция), условие выключено. Пустая реакция -> дефолт
+
+                if (values.Length > 17
+                    && string.IsNullOrEmpty(values[17]) == false)
+                {
+                    StopGridByPriceUpValue = values[17].ToDecimal();
+                }
+                else
+                {
+                    StopGridByPriceUpValue = 0;
+                }
+
+                if (values.Length > 18
+                    && string.IsNullOrEmpty(values[18]) == false)
+                {
+                    Enum.TryParse(values[18], out StopGridByPriceUpReaction);
+                }
+
+                if (values.Length > 19
+                    && string.IsNullOrEmpty(values[19]) == false)
+                {
+                    StopGridByPriceDownValue = values[19].ToDecimal();
+                }
+                else
+                {
+                    StopGridByPriceDownValue = 0;
+                }
+
+                if (values.Length > 20
+                    && string.IsNullOrEmpty(values[20]) == false)
+                {
+                    Enum.TryParse(values[20], out StopGridByPriceDownReaction);
+                }
             }
             catch (Exception e)
             {
@@ -114,13 +156,59 @@ namespace OsEngine.OsTrader.Grids
 
         #region Logic
 
+        /// <summary>
+        /// Срез данных сетки и вкладки, нужный условиям авто-стопа. Собран BuildStopContext
+        /// </summary>
+        public struct StopByContext
+        {
+            public int OpenPositionsCount;
+            public decimal FirstGridPrice;
+            public DateTime FirstTradeTime;
+            public bool HasCandles;
+            public decimal LastPrice;
+            public DateTime ServerTime;
+        }
+
         public TradeGridRegime GetRegime(TradeGrid grid, BotTabSimple tab)
         {
-            if(StopGridByMoveUpIsOn == false
-                &&  StopGridByMoveDownIsOn == false
-                && StopGridByPositionsCountIsOn == false
-                && StopGridByLifeTimeIsOn == false
-                && StopGridByTimeOfDayIsOn == false)
+            if (AllStopConditionsAreOff() == true)
+            {
+                return TradeGridRegime.On;
+            }
+
+            return GetRegime(BuildStopContext(grid, tab));
+        }
+
+        /// <summary>
+        /// Единственное место, читающее grid и tab. Виртуален для подмены в тестах
+        /// </summary>
+        protected virtual StopByContext BuildStopContext(TradeGrid grid, BotTabSimple tab)
+        {
+            StopByContext ctx = new StopByContext();
+
+            ctx.OpenPositionsCount = grid.OpenPositionsCount;
+            ctx.FirstGridPrice = grid.FirstPriceReal;
+            ctx.FirstTradeTime = grid.FirstTradeTime;
+
+            List<Candle> candles = tab.CandlesAll;
+            ctx.HasCandles = candles != null
+                && candles.Count > 0;
+
+            ctx.LastPrice = 0;
+
+            if (ctx.HasCandles == true)
+            {
+                ctx.LastPrice = candles[candles.Count - 1].Close;
+            }
+
+            ctx.ServerTime = tab.TimeServerCurrent;
+
+            return ctx;
+        }
+
+        public TradeGridRegime GetRegime(StopByContext ctx)
+        {
+            if (AllStopConditionsAreOff() == true)
             {
                 return TradeGridRegime.On;
             }
@@ -128,9 +216,9 @@ namespace OsEngine.OsTrader.Grids
             // 1 смена режима по кол-ву закрытых позиций
             if (StopGridByPositionsCountIsOn == true)
             {
-                int openPositionsCount = grid.OpenPositionsCount;
+                int openPositionsCount = ctx.OpenPositionsCount;
 
-                if(openPositionsCount >= StopGridByPositionsCountValue)
+                if (openPositionsCount >= StopGridByPositionsCountValue)
                 {
                     string message = "Auto-stop grid by positions count. \n";
                     message += "Open positions in grid: " + openPositionsCount + "\n";
@@ -143,28 +231,26 @@ namespace OsEngine.OsTrader.Grids
             }
 
             // 2 смена режима по движению от первой цены сетки
-            if (StopGridByMoveUpIsOn == true 
+            if (StopGridByMoveUpIsOn == true
                 || StopGridByMoveDownIsOn == true)
             {
-                List<Candle> candles = tab.CandlesAll;
-
-                if(candles.Count == 0)
+                if (ctx.HasCandles == false)
                 {
                     return TradeGridRegime.On;
                 }
 
-                decimal lastSecurityPrice = candles[candles.Count - 1].Close;
+                decimal lastSecurityPrice = ctx.LastPrice;
 
-                decimal firstGridPrice = grid.FirstPriceReal;
+                decimal firstGridPrice = ctx.FirstGridPrice;
 
-                if(lastSecurityPrice != 0 
+                if (lastSecurityPrice != 0
                     && firstGridPrice != 0)
                 {
                     if (StopGridByMoveUpIsOn)
                     {
                         decimal upLimit = firstGridPrice + firstGridPrice * (StopGridByMoveUpValuePercent / 100);
 
-                        if(lastSecurityPrice >= upLimit)
+                        if (lastSecurityPrice >= upLimit)
                         {
                             string message = "Auto-stop grid by move Up. \n";
                             message += "First real price in grid: " + firstGridPrice + "\n";
@@ -196,16 +282,46 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
+            // 2.1 смена режима по абсолютному уровню цены вверх
+            if (StopGridByPriceUpValue > 0
+                && ctx.HasCandles == true
+                && ctx.LastPrice != 0
+                && ctx.LastPrice >= StopGridByPriceUpValue)
+            {
+                string message = "Auto-stop grid by price Up. \n";
+                message += "Up price limit: " + StopGridByPriceUpValue + "\n";
+                message += "Last price: " + ctx.LastPrice + "\n";
+                message += "New regime: " + StopGridByPriceUpReaction;
+                SendNewLogMessage(message, LogMessageType.Signal);
+
+                return StopGridByPriceUpReaction;
+            }
+
+            // 2.2 смена режима по абсолютному уровню цены вниз
+            if (StopGridByPriceDownValue > 0
+                && ctx.HasCandles == true
+                && ctx.LastPrice != 0
+                && ctx.LastPrice <= StopGridByPriceDownValue)
+            {
+                string message = "Auto-stop grid by price Down. \n";
+                message += "Down price limit: " + StopGridByPriceDownValue + "\n";
+                message += "Last price: " + ctx.LastPrice + "\n";
+                message += "New regime: " + StopGridByPriceDownReaction;
+                SendNewLogMessage(message, LogMessageType.Signal);
+
+                return StopGridByPriceDownReaction;
+            }
+
             // 3 смена режима по времени жизни
             if (StopGridByLifeTimeIsOn
-                && grid.FirstTradeTime != DateTime.MinValue)
+                && ctx.FirstTradeTime != DateTime.MinValue)
             {
-                DateTime time = tab.TimeServerCurrent;
+                DateTime time = ctx.ServerTime;
 
-                if (grid.FirstTradeTime.AddSeconds(StopGridByLifeTimeSecondsToLife) < time)
+                if (ctx.FirstTradeTime.AddSeconds(StopGridByLifeTimeSecondsToLife) < time)
                 {
                     string message = "Auto-stop grid by life time. \n";
-                    message += "First order time in grid: " + grid.FirstTradeTime.ToString() + "\n";
+                    message += "First order time in grid: " + ctx.FirstTradeTime.ToString() + "\n";
                     message += "Seconds to life: " + StopGridByLifeTimeSecondsToLife + "\n";
                     message += "Time now: " + time.ToString(OsLocalization.CurCulture) + "\n";
                     message += "New regime: " + StopGridByLifeTimeReaction;
@@ -219,7 +335,7 @@ namespace OsEngine.OsTrader.Grids
             // 4 смена режима по времени внутри дня
             if (StopGridByTimeOfDayIsOn)
             {
-                DateTime time = tab.TimeServerCurrent;
+                DateTime time = ctx.ServerTime;
 
                 bool isActivate = false;
 
@@ -239,7 +355,7 @@ namespace OsEngine.OsTrader.Grids
                     isActivate = true;
                 }
 
-                if(isActivate == true)
+                if (isActivate == true)
                 {
                     string message = "Auto-stop grid by time of day. \n";
                     message += "Current server time: " + time.ToString() + "\n";
@@ -251,6 +367,22 @@ namespace OsEngine.OsTrader.Grids
             }
 
             return TradeGridRegime.On;
+        }
+
+        private bool AllStopConditionsAreOff()
+        {
+            if (StopGridByMoveUpIsOn == false
+                && StopGridByMoveDownIsOn == false
+                && StopGridByPositionsCountIsOn == false
+                && StopGridByLifeTimeIsOn == false
+                && StopGridByTimeOfDayIsOn == false
+                && StopGridByPriceUpValue == 0
+                && StopGridByPriceDownValue == 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         #endregion
