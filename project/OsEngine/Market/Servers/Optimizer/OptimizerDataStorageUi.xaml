@@ -40,6 +40,9 @@
                         <Label Name = "Label34" Content="Order execution" HorizontalAlignment="Left" Margin="544,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
                         <ComboBox Name = "ComboBoxOrderActivationType" HorizontalAlignment="Left" Margin="626,0,0,0" VerticalAlignment="Center" Width="111" Height="23"/>
                         <Label Name = "LabelOrderActivationType" Content="Activation" HorizontalAlignment="Left" Margin="544,0,0,0" VerticalAlignment="Center" Height="24" Width="82"/>
+                        <CheckBox Name="CheckBoxRemovePassedTrades" Content="Remove passed trades" HorizontalAlignment="Left" Margin="544,70,0,0" VerticalAlignment="Top" Height="23"/>
+                        <Label Name="LabelTradesInMemory" Content="Trades in memory" HorizontalAlignment="Left" Margin="544,94,0,0" VerticalAlignment="Top" Height="26" Width="130"/>
+                        <TextBox Name="TextBoxTradesInMemory" Margin="679,96,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="65" Height="23"/>
                     </Grid>
                     <Grid Grid.Row="1" >
                         <Grid.ColumnDefinitions>

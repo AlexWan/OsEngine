@@ -453,10 +453,30 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 return;
             }
+
+            // FEATURE-0107: windowed tick storage is created fresh on every call (it holds its own file cursor),
+            // so repeated requests for the same key (security + timeframe + period) are dropped by key
+            // before the file is opened and counted
+
+            if (_storagePrime.RemoveTradesFromMemory == true)
+            {
+                DataStorage already = _storages.Find(s => s.TradeAccess != null &&
+                                                          s.Security.Name == security.Name &&
+                                                          s.TimeFrame == timeFrame &&
+                                                          s.TimeStart == timeStart &&
+                                                          s.TimeEnd == timeEnd);
+
+                if (already != null)
+                {
+                    return;
+                }
+            }
             
+            DataStorage newStorage = null;
+
             try
             {
-                DataStorage newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
+                newStorage = _storagePrime.GetStorageToSecurity(security, timeFrame, timeStart, timeEnd);
 
                 if (newStorage == null)
                 {
@@ -469,7 +489,12 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
 
-                if (_storages.Find(s => s.Security.Name == newStorage.Security.Name &&
+                // FEATURE-0107: windowed storages carry no lists, so the reference match below would falsely
+                // unite them across different periods and leak the just-created file cursor on return.
+                // Windowed duplicates are caught by the key guard above, so they never reach this legacy match
+
+                if (newStorage.TradeAccess == null &&
+                    _storages.Find(s => s.Security.Name == newStorage.Security.Name &&
                                         s.Candles == newStorage.Candles &&
                                         s.TimeFrame == newStorage.TimeFrame &&
                                         s.Trades == newStorage.Trades &&
@@ -507,11 +532,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     securityOpt.DataType = SecurityTesterDataType.Tick;
                     securityOpt.Trades = _storages[_storages.Count - 1].Trades;
+                    securityOpt.TradeAccess = _storages[_storages.Count - 1].TradeAccess;
                 }
                 else if (_storages[_storages.Count - 1].StorageType == TesterDataType.TickAllCandleState)
                 {
                     securityOpt.DataType = SecurityTesterDataType.Tick;
                     securityOpt.Trades = _storages[_storages.Count - 1].Trades;
+                    securityOpt.TradeAccess = _storages[_storages.Count - 1].TradeAccess;
                 }
                 else if (_storages[_storages.Count - 1].StorageType == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
@@ -531,6 +558,20 @@ namespace OsEngine.Market.Servers.Optimizer
             catch(Exception error)
             {
                 SendLogMessage(error.ToString(),LogMessageType.Error);
+
+                // FEATURE-0107: never leave a half-initialized storage with a disposed access in the list,
+                // the key guard would hand it out as healthy; then release the file if no SecurityOptimizer took it over
+
+                if (newStorage != null)
+                {
+                    _storages.Remove(newStorage);
+
+                    if (newStorage.TradeAccess != null &&
+                        _candleSeriesTesterActivate.Find(s => s.TradeAccess == newStorage.TradeAccess) == null)
+                    {
+                        newStorage.TradeAccess.Dispose();
+                    }
+                }
             }
         }
 
@@ -3194,6 +3235,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 _lastCandleIndex = 0;
                 _lastMarketDepthIndex = 0;
                 Candles = null;
+
+                if (TradeAccess != null)
+                {
+                    TradeAccess.Dispose();
+                    TradeAccess = null;
+                }
+
                 Trades = null;
                 LastTradeSeries = null;
                 MarketDepths = null;
@@ -3427,6 +3475,35 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public List<Trade> Trades;
 
+        /// <summary>FEATURE-0107. Windowed tick access when RemoveTradesFromMemory is on; Trades is used otherwise.</summary>
+        public ITradeAccess TradeAccess;
+
+        private int TickCount
+        {
+            get
+            {
+                if (TradeAccess != null)
+                {
+                    return TradeAccess.Count;
+                }
+                if (Trades != null)
+                {
+                    return Trades.Count;
+                }
+                return 0;
+            }
+        }
+
+        private Trade TickAt(int index)
+        {
+            if (TradeAccess != null)
+            {
+                TradeAccess.EnsureLoaded(index);
+                return TradeAccess.At(index);
+            }
+            return Trades[index];
+        }
+
         public Trade LastTrade;
 
         private int _lastTradeIndexInArray;
@@ -3455,7 +3532,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            if (_lastTradeIndexInArray >= Trades.Count)
+            if (_lastTradeIndexInArray >= TickCount)
             {
                 return;
             }
@@ -3464,7 +3541,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (LastTrade == null)
             {
-                LastTrade = Trades[_lastTradeIndexInArray];
+                LastTrade = TickAt(_lastTradeIndexInArray);
                 _lastTradeIndexInArray++;
             }
 
@@ -3483,9 +3560,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 lastTradesSeries.Add(LastTrade);
             }
 
-            while (_lastTradeIndexInArray < Trades.Count)
+            while (_lastTradeIndexInArray < TickCount)
             {
-                Trade tradeN = Trades[_lastTradeIndexInArray];
+                Trade tradeN = TickAt(_lastTradeIndexInArray);
                 _lastTradeIndexInArray++;
 
                 if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
@@ -3517,12 +3594,19 @@ namespace OsEngine.Market.Servers.Optimizer
                 List<Trade> trades = new List<Trade>() { lastTradesSeries[i] };
                 LastTradeSeries = trades;
                 NeedToCheckOrders();
-                NewTradesEvent(trades, _lastTradeIndexInArray, Trades.Count);
+                NewTradesEvent(trades, _lastTradeIndexInArray, TickCount);
             }
 
             if (lastTradesSeries.Count > 0)
             {
                 LastTradeTime = lastTradesSeries[^1].Time;
+            }
+
+            // FEATURE-0107: everything before the next unread tick is already dispatched, release it
+
+            if (TradeAccess != null)
+            {
+                TradeAccess.TrimBefore(_lastTradeIndexInArray);
             }
         }
 
