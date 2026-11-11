@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using OsEngine.Entity;
@@ -105,8 +106,33 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             // обозначаем рабочему потоку что надо за собой почистить
             _cleared = true;
-            // wake a worker parked in WaitOne after Pause (crash-end included), so it sees _cleared and releases resources
-            _manualReset?.Set();
+
+            // FEATURE-0089: разбудить припаркованный на паузе поток, чтобы он увидел
+            // _cleared и завершился штатно, а не простоял в WaitOne до конца процесса.
+            // После штатного cleanup поля уже null — будить некого, это не ошибка.
+            try
+            {
+                _manualReset?.Set();
+            }
+            catch (ObjectDisposedException)
+            {
+                // поток уже вышел — будить некого
+            }
+
+            // Watchdog снятого сервера больше не нужен; Dispose не ждёт колбэки и не бросает
+            try
+            {
+                Timer timer = Interlocked.Exchange(ref _watchdogTimer, null);
+
+                if (timer != null)
+                {
+                    timer.Dispose();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage("TestingWatchdog: " + error, LogMessageType.Error);
+            }
         }
         private bool _cleared;
 
@@ -248,6 +274,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _lastTimeStartTest = DateTime.Now;
 
+            // FEATURE-0089: новый прогон — сброс guard'ов, heartbeat и watchdog-таймер
+            ResetTestingEndGuard();
+            TouchTestProgress();
+            StartWatchdogTimer();
+
             _testerRegime = TesterRegime.Play;
             _manualReset.Set();
         }
@@ -257,6 +288,263 @@ namespace OsEngine.Market.Servers.Optimizer
         public event Action TestingStartEvent;
 
         public event Action<int, TimeSpan> TestingEndEvent;
+
+        #region Hanged test watchdog (FEATURE-0089)
+
+        /// <summary>
+        /// Таймаут зависшего прогона, секунд (30/60/120 из настроек оптимизатора).
+        /// &lt;=0 — watchdog служебно выключен; OptimizerMaster пробрасывает настройку
+        /// в каждый сервер, поэтому не в конструкторе: N принадлежит оптимизатору.
+        /// </summary>
+        public int WatchdogTimeoutSeconds = 60;
+
+        private Timer _watchdogTimer;
+
+        private long _lastTestProgressUtcTicks;
+
+        private int _playIterations;
+
+        private int _testingEndRaised;
+
+        private int _hangedPhaseDone;
+
+        private int _hangedPhaseFailedAttempts;
+
+        private long _testEpoch;
+
+        /// <summary>
+        /// Точка прогресса прогона для watchdog. Virtual — чтобы тест-стенд считал
+        /// фактические точки; public — чтобы тест читал heartbeat без ожидания N секунд.
+        /// </summary>
+        public virtual void TouchTestProgress()
+        {
+            Interlocked.Exchange(ref _lastTestProgressUtcTicks, TestingWatchdog.UtcNowProvider().Ticks);
+        }
+
+        public DateTime LastTestProgressUtc
+        {
+            get { return new DateTime(Interlocked.Read(ref _lastTestProgressUtcTicks), DateTimeKind.Utc); }
+        }
+
+        public TesterRegime CurrentTesterRegime
+        {
+            get { return _testerRegime; }
+        }
+
+        /// <summary>
+        /// Завершение прогона ровно один раз за TestingStart: один Interlocked-guard на
+        /// подъём TestingEndEvent. Поздний естественный подъём после watchdog подавляется (AC5).
+        /// Public как тестовый seam; штатные пути вызывают только через этот метод.
+        /// </summary>
+        public void RaiseTestingEnd()
+        {
+            if (Interlocked.CompareExchange(ref _testingEndRaised, 1, 0) != 0)
+            {
+                return;
+            }
+
+            if (TestingEndEvent != null)
+            {
+                TestingEndEvent(NumberServer, DateTime.Now - _lastTimeStartTest);
+            }
+        }
+
+        /// <summary>
+        /// Сброс guard'ов однократности перед новым прогоном; вызывается из TestingStart.
+        /// </summary>
+        public void ResetTestingEndGuard()
+        {
+            Interlocked.Increment(ref _testEpoch);
+            Volatile.Write(ref _testingEndRaised, 0);
+            Volatile.Write(ref _hangedPhaseDone, 0);
+            Volatile.Write(ref _playIterations, 0);
+            Volatile.Write(ref _hangedPhaseFailedAttempts, 0);
+        }
+
+        /// <summary>
+        /// Принудительное завершение зависшего прогона: «Error-лог -&gt; Pause -&gt;
+        /// TestingEndEvent -&gt; минидамп» под одним Interlocked-guard (R2, R5).
+        /// Дамп — detached-задача после снятия: MiniDumpWriteDump суспендирует все
+        /// потоки и при зависшем локе сам может не завершиться (R5). true — фазу
+        /// выполнил этот вызов. Дальнейшее освобождение делает обработчик
+        /// TestingEndEvent (bot.Delete, ServerMaster.RemoveOptimizerServer -&gt; ClearDelete).
+        /// </summary>
+        public bool TryCompleteHangedTest()
+        {
+            return TryCompleteHangedTest(Volatile.Read(ref _testEpoch));
+        }
+
+        /// <summary>
+        /// То же для колбэка таймера: epoch — эпоха прогона на входе в колбэк.
+        /// Epoch разошёлся (в фазе стартовал новый прогон), event уже поднят или сервер
+        /// снят — фаза откатывается и старый колбэк не снимает чужой прогон (R4).
+        /// Сбой диагностики откатывает гейт для retry на следующем тике; после двух
+        /// сбоев фазы завершение идёт без диагностического лога (R3).
+        /// </summary>
+        public bool TryCompleteHangedTest(long epoch)
+        {
+            if (Interlocked.CompareExchange(ref _hangedPhaseDone, 1, 0) != 0)
+            {
+                return false;
+            }
+
+            if (Volatile.Read(ref _testEpoch) != epoch
+                || Volatile.Read(ref _testingEndRaised) != 0
+                || _cleared)
+            {
+                Volatile.Write(ref _hangedPhaseDone, 0);
+                return false;
+            }
+
+            if (Volatile.Read(ref _hangedPhaseFailedAttempts) < 2)
+            {
+                try
+                {
+                    int fired = TestingWatchdog.RegisterFire();
+
+                    DateTime timeEnd = DateTime.MinValue;
+
+                    if (_storages != null && _storages.Count > 0)
+                    {
+                        timeEnd = _storages[0].TimeEndAddDay;
+                    }
+
+                    using (Process process = Process.GetCurrentProcess())
+                    {
+                        SendLogMessage(TestingWatchdogDump.BuildDiagnostic(
+                                NumberServer,
+                                _testerRegime,
+                                TimeNow,
+                                timeEnd,
+                                (TestingWatchdog.UtcNowProvider() - LastTestProgressUtc).TotalSeconds,
+                                DateTime.Now - _lastTimeStartTest,
+                                process.Threads.Count,
+                                ThreadPool.ThreadCount,
+                                fired),
+                            LogMessageType.Error);
+                    }
+                }
+                catch (Exception error)
+                {
+                    // R3: фаза не «сгорает»: гейт откатан, следующий тик повторит;
+                    // после двух сбоев диагностика пропускается и завершение идёт безусловно
+                    Interlocked.Increment(ref _hangedPhaseFailedAttempts);
+                    Volatile.Write(ref _hangedPhaseDone, 0);
+                    // канал лога мог сломаться сам — повторная запись только in-proc, без броска
+                    try
+                    {
+                        SendLogMessage("TestingWatchdog: diagnostics failed, retry next tick: " + error,
+                            LogMessageType.Error);
+                    }
+                    catch (Exception)
+                    {
+                        // лог-подписчик бросает и здесь — watchdog живёт дальше, повторная запись бессмысленна
+                    }
+
+                    return false;
+                }
+            }
+
+            // Страховка (ОдФ): epoch мог разойтись во время диагностики — старый колбэк
+            // не имеет права снимать уже новый прогон
+            if (Volatile.Read(ref _testEpoch) != epoch)
+            {
+                Volatile.Write(ref _hangedPhaseDone, 0);
+                return false;
+            }
+
+            // Pause, а не NotActive: цикл WorkThreadArea при NotActive крутит busy-spin (AC9)
+            _testerRegime = TesterRegime.Pause;
+
+            RaiseTestingEnd();
+
+            // R5: дамп после снятия и вне фазы — сбой или подвисание дампа не задерживает
+            // снятие и освобождение робота; лог записи дампа тоже под guard'ом: бросок
+            // лог-подписчика не должен вывалиться неукроченным исключением на ThreadPool
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try
+                {
+                    string path = TestingWatchdogDump.TryWriteDump(NumberServer);
+
+                    try
+                    {
+                        if (path != null)
+                        {
+                            SendLogMessage("TestingWatchdog: dump written " + path, LogMessageType.System);
+                        }
+                        else
+                        {
+                            SendLogMessage("TestingWatchdog: dump failed, win32="
+                                + TestingWatchdogDump.LastWin32Error, LogMessageType.Error);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // результат дампа уже на диске; канал лога сломан — за борт колбэка не бросаем
+                    }
+                }
+                catch (Exception error)
+                {
+                    try
+                    {
+                        SendLogMessage("TestingWatchdog: " + error, LogMessageType.Error);
+                    }
+                    catch (Exception)
+                    {
+                        // лог-канал сломан и здесь — колбэк пула не обязан ронять процесс
+                    }
+                }
+            });
+
+            return true;
+        }
+
+        private void StartWatchdogTimer()
+        {
+            Timer old = Interlocked.Exchange(ref _watchdogTimer, null);
+
+            if (old != null)
+            {
+                old.Dispose();
+            }
+
+            _watchdogTimer = new Timer(WatchdogTimerCallback, null,
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        }
+
+        private void WatchdogTimerCallback(object state)
+        {
+            try
+            {
+                // epoch читаем до предиката: фаза сверит её с текущей (R4)
+                long epoch = Volatile.Read(ref _testEpoch);
+
+                if (TestingWatchdog.ShouldFire(_testerRegime,
+                        LastTestProgressUtc,
+                        TestingWatchdog.UtcNowProvider(),
+                        WatchdogTimeoutSeconds,
+                        Volatile.Read(ref _testingEndRaised) != 0,
+                        _cleared))
+                {
+                    TryCompleteHangedTest(epoch);
+                }
+            }
+            catch (Exception error)
+            {
+                // Фоновый entry point: ошибка watchdog идёт в лог, не глотаем
+                try
+                {
+                    SendLogMessage("TestingWatchdog: " + error, LogMessageType.Error);
+                }
+                catch (Exception)
+                {
+                    // лог-канал сломан — таймер не должен ронять процесс повторным броском
+                }
+            }
+        }
+
+        #endregion
 
         public event Action<int, int, int> TestingProgressChangeEvent;
 
@@ -390,6 +678,13 @@ namespace OsEngine.Market.Servers.Optimizer
                     if (_testerRegime == TesterRegime.Pause)
                     {
                         _manualReset.WaitOne();
+                        // R4: после реальной паузы heartbeat не должен выглядеть зависанием.
+                        // Только если прогон уже шёл: на старте поток проходит WaitOne
+                        // по сигналу конструктора и не должен затирать heartbeat тестовых часов
+                        if (Volatile.Read(ref _playIterations) > 0)
+                        {
+                            TouchTestProgress();
+                        }
                         continue;
                     }
 
@@ -400,6 +695,9 @@ namespace OsEngine.Market.Servers.Optimizer
                         CheckOrders();
                         CheckDividends(_serverTime);
                         CheckMarginAndTaxes(_serverTime);
+                        // Полная точка прогресса итерации для watchdog (P4)
+                        Interlocked.Increment(ref _playIterations);
+                        TouchTestProgress();
                     }
                 }
                 catch (Exception error)
@@ -412,10 +710,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         {
                             _testerRegime = TesterRegime.Pause;
                             SendLogMessage(OsLocalization.ConvertToLocString("Eng:Test stopped. Critical error in test thread_Ru:Тест остановлен. Критическая ошибка в потоке теста_"), LogMessageType.Error);
-                            if (TestingEndEvent != null)
-                            {
-                                TestingEndEvent(NumberServer, DateTime.Now - _lastTimeStartTest);
-                            }
+                            RaiseTestingEnd();
                         }
                     }
                     catch (Exception ex)
@@ -536,7 +831,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public DateTime TimeNow;
 
-        private void LoadNextData()
+        /// <summary>
+        /// Загрузка следующего шага данных. Public как тестовый seam (юниты H03/P7);
+        /// штатно вызывается только из WorkThreadArea.
+        /// </summary>
+        public void LoadNextData()
         {
             for (int i = 0; i < _storages.Count; i++)
             {
@@ -545,12 +844,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     _testerRegime = TesterRegime.Pause;
 
                     SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
-                    if (TestingEndEvent != null)
-                    {
-                        TimeSpan testLiveTime = DateTime.Now - _lastTimeStartTest;
-
-                        TestingEndEvent(NumberServer, testLiveTime);
-                    }
+                    RaiseTestingEnd();
                     return;
                 }
             }
@@ -562,12 +856,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 SendLogMessage(OsLocalization.Market.Message38,
                     LogMessageType.System);
-                if (TestingEndEvent != null)
-                {
-                    TimeSpan testLiveTime = DateTime.Now - _lastTimeStartTest;
-
-                    TestingEndEvent(NumberServer, testLiveTime);
-                }
+                RaiseTestingEnd();
                 return;
             }
 
@@ -595,6 +884,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     continue;
                 }
                 _candleSeriesTesterActivate[i].Load(TimeNow);
+                // Heartbeat на каждом инструменте: легитимно долгая итерация
+                // из нескольких инструментов не накапливает бездействие (P7)
+                TouchTestProgress();
             }
 
             if (EndNextMinuteWithCandlesEvent != null
@@ -1920,6 +2212,15 @@ namespace OsEngine.Market.Servers.Optimizer
         #region Subscribe securities to robots
 
         private List<SecurityOptimizer> _candleSeriesTesterActivate;
+
+        /// <summary>
+        /// Активные серии прогона. Getter как тестовый seam (юнит H03 добавляет серии);
+        /// свойства не вводит — список мутируется штатными путями этого класса.
+        /// </summary>
+        public List<SecurityOptimizer> CandleSeriesTesterActivate
+        {
+            get { return _candleSeriesTesterActivate; }
+        }
 
         private CandleManager _candleManager;
 
