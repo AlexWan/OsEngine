@@ -3210,7 +3210,9 @@ namespace OsEngine.Market.Servers.TInvest
 
             for (int i = 0; i < response.Exchanges.Count; i++)
             {
-                if (response.Exchanges[i].Exchange != exchange)
+                // R5: live API returns schedule scheme names here ("MOEX_PLUS_WEEKEND"), not the bare venue code
+                string scheduleName = response.Exchanges[i].Exchange;
+                if (scheduleName != exchange && !scheduleName.StartsWith(exchange + "_", StringComparison.Ordinal))
                     continue;
 
                 // R1: today is picked by its date, not Days[0] — the window spans two days and at night Days[0] is yesterday
