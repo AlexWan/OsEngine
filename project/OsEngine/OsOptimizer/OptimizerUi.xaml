@@ -47,6 +47,8 @@
                         <Button Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" Height="28" />
                         <Button Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,83,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategyReload_Click"/>
                         <CheckBox Name="CheckBoxCacheIndicatorsIsOn" Content="Cache indicators" HorizontalAlignment="Left" Margin="431,192,0,0" VerticalAlignment="Top"/>
+                        <Label Name="LabelHangingTestTimeout" Content="Hanged test timeout, s" HorizontalAlignment="Left" Margin="735,195,0,0" VerticalAlignment="Top"/>
+                        <ComboBox Name="ComboBoxHangingTestTimeout" HorizontalAlignment="Left" Margin="640,192,0,0" VerticalAlignment="Top" Width="90" Height="28"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParameters" Header="Parameters" FontSize="14" Width="120">

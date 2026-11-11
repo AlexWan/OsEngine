@@ -906,6 +906,9 @@ namespace OsEngine.OsOptimizer
             server.SlippageToStopOrder = _master.SlippageToStopOrder;
             server.ClearingTimes = _master.ClearingTimes;
             server.NonTradePeriods = _master.NonTradePeriods;
+            // FEATURE-0089: настройка принадлежит оптимизатору, поэтому проброска здесь,
+            // а не в конструкторе сервера (его создаёт ServerMaster без знания о мастере)
+            server.WatchdogTimeoutSeconds = _master.HangingTestTimeoutSeconds;
 
             lock (_serverRemoveLocker)
             {

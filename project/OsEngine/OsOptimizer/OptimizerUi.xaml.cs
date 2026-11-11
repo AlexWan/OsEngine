@@ -66,6 +66,12 @@ namespace OsEngine.OsOptimizer
             CreateThreadsProgressBars();
             ComboBoxThreadsCount.SelectionChanged += ComboBoxThreadsCount_SelectionChanged;
 
+            ComboBoxHangingTestTimeout.Items.Add(30);
+            ComboBoxHangingTestTimeout.Items.Add(60);
+            ComboBoxHangingTestTimeout.Items.Add(120);
+            ComboBoxHangingTestTimeout.SelectedItem = _master.HangingTestTimeoutSeconds;
+            ComboBoxHangingTestTimeout.SelectionChanged += ComboBoxHangingTestTimeout_SelectionChanged;
+
             TextBoxStartPortfolio.Text = _master.StartDeposit.ToString();
             TextBoxStartPortfolio.TextChanged += TextBoxStartPortfolio_TextChanged;
 
@@ -238,6 +244,8 @@ namespace OsEngine.OsOptimizer
                 _master.StrategyChangedEvent -= _master_StrategyChangedEvent;
 
                 ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;
+
+                ComboBoxHangingTestTimeout.SelectionChanged -= ComboBoxHangingTestTimeout_SelectionChanged;
 
                 TextBoxStartPortfolio.TextChanged -= TextBoxStartPortfolio_TextChanged;
                 CommissionTypeComboBox.SelectionChanged -= CommissionTypeComboBoxOnSelectionChanged;
@@ -728,6 +736,17 @@ namespace OsEngine.OsOptimizer
             {
                 _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void ComboBoxHangingTestTimeout_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ComboBoxHangingTestTimeout.SelectedItem == null)
+            {
+                return;
+            }
+
+            // Сеттер мастера сохраняет значение в Engine\OptimizerSettings.txt (AC6)
+            _master.HangingTestTimeoutSeconds = (int)ComboBoxHangingTestTimeout.SelectedItem;
         }
 
         private List<ProgressBar> _progressBars;

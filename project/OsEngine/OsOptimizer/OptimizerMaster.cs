@@ -131,6 +131,9 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_slippageToStopOrder);
                     writer.WriteLine(_cacheIndicatorsIsOn);
 
+                    // FEATURE-0089: строка 26 — таймаут зависшего прогона; аддитивно в конец
+                    writer.WriteLine(_hangingTestTimeoutSeconds);
+
                     writer.Close();
                 }
             }
@@ -142,6 +145,10 @@ namespace OsEngine.OsOptimizer
 
         private void Load()
         {
+            // FEATURE-0089: таймаут зависшего прогона — позиция 26; в поле, а не через
+            // сеттер, чтобы загрузка не триггерила Save(). Нет строки/файла/битое — 60.
+            _hangingTestTimeoutSeconds = ReadHangingTestTimeout(@"Engine\OptimizerSettings.txt");
+
             if (!File.Exists(@"Engine\OptimizerSettings.txt"))
             {
                 return;
@@ -306,6 +313,68 @@ namespace OsEngine.OsOptimizer
         #endregion
 
         #region Management
+
+        /// <summary>
+        /// Таймаут зависшего прогона по умолчанию, секунд (FEATURE-0089, AC6).
+        /// </summary>
+        public const int HangingTestTimeoutDefault = 60;
+
+        /// <summary>
+        /// Через сколько секунд бездействия Play-пота принудительно снимать прогон (30/60/120 в UI).
+        /// </summary>
+        public int HangingTestTimeoutSeconds
+        {
+            get { return _hangingTestTimeoutSeconds; }
+            set
+            {
+                _hangingTestTimeoutSeconds = value;
+                Save();
+            }
+        }
+        private int _hangingTestTimeoutSeconds = HangingTestTimeoutDefault;
+
+        /// <summary>
+        /// Прочитать таймаут зависшего прогона из OptimizerSettings.txt (позиция 26).
+        /// Старый файл без строки, отсутствие файла, пустое или битое значение —
+        /// 60 без исключения (AC7). Лишние строки после значения игнорируются.
+        /// </summary>
+        public static int ReadHangingTestTimeout(string settingsFilePath)
+        {
+            try
+            {
+                if (File.Exists(settingsFilePath) == false)
+                {
+                    return HangingTestTimeoutDefault;
+                }
+
+                using (StreamReader reader = new StreamReader(settingsFilePath))
+                {
+                    for (int i = 0; i < 25; i++)
+                    {
+                        if (reader.ReadLine() == null)
+                        {
+                            return HangingTestTimeoutDefault;
+                        }
+                    }
+
+                    string line = reader.ReadLine();
+
+                    int value;
+
+                    if (line == null
+                        || int.TryParse(line.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out value) == false)
+                    {
+                        return HangingTestTimeoutDefault;
+                    }
+
+                    return value;
+                }
+            }
+            catch (Exception)
+            {
+                return HangingTestTimeoutDefault;
+            }
+        }
 
         public int ThreadsCount
         {
