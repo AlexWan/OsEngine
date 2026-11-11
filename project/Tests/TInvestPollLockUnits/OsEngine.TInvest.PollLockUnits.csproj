@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- BUG-0097 V-2 юниты U-9'/U-11' (см. Program.cs). Не входит в OsEngine.sln: собирается отдельно.
+       EngineBin — каталог bin движка; ПЕРЕСОБЕРИТЕ OsEngine перед прогоном (в git bin\Debug отстаёт от исходников). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>OsEngine.TInvest.PollLockUnits</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EngineBin>$(MSBuildThisFileDirectory)..\..\OsEngine\bin\Debug</EngineBin>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OsEngine"><HintPath>$(EngineBin)\OsEngine.dll</HintPath></Reference>
+    <Reference Include="TInvestApi"><HintPath>$(EngineBin)\TInvestApi.dll</HintPath></Reference>
+    <Reference Include="Google.Protobuf"><HintPath>$(EngineBin)\Google.Protobuf.dll</HintPath></Reference>
+    <Reference Include="Grpc.Core.Api"><HintPath>$(EngineBin)\Grpc.Core.Api.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>
