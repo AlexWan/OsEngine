@@ -633,6 +633,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void _server_ConnectStatusChangeEvent(string status)
         {
+            if (_uiIsClosed || _server == null) { return; }
             if (!LabelStatus.Dispatcher.CheckAccess())
             {
                 LabelStatus.Dispatcher.Invoke(new Action<string>(_server_ConnectStatusChangeEvent), status);
@@ -668,6 +669,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void _server_TestingStartEvent()
         {
+            if (_uiIsClosed || _server == null) { return; }
             _chartActive = true;
             CreateChart();
             PaintPausePlayButtonByActualServerState();
@@ -680,11 +682,13 @@ namespace OsEngine.Market.Servers.Tester
 
         private void _server_TestRegimeChangeEvent(TesterRegime regime)
         {
+            if (_uiIsClosed || _server == null) { return; }
             PaintPausePlayButtonByActualServerState();
         }
 
         private void _server_TestingFastEvent()
         {
+            if (_uiIsClosed || _server == null) { return; }
             PaintPausePlayButtonByActualServerState();
         }
 
