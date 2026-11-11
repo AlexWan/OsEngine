@@ -3206,16 +3206,39 @@ namespace OsEngine.Market.Servers.TInvest
             if (sec == null || string.IsNullOrEmpty(sec.Exchange))
                 return null;
 
-            string exchange = sec.Exchange.Split('_')[0];
+            return SelectObTradingDay(response, sec.Exchange, mskDate);
+        }
 
+        // R6: live Instrument.exchange holds lower-case SCHEDULE scheme names ("moex_mrng_evng_e_wknd_dlr"),
+        // while TradingSchedules answers upper-case - so matching is case-insensitive. Three passes, most
+        // specific first, each scanning ALL entries: API entry order is not a guarantee, one combined pass
+        // would let MOEX_PLUS win over MOEX for exchange "MOEX". No match (incl. exchange "unknown")
+        // returns null - fail-closed by design.
+        private TradingDay SelectObTradingDay(TradingSchedulesResponse response, string rawExchange, DateTime mskDate)
+        {
+            string root = rawExchange.Split('_')[0];
+
+            TradingDay day = PickDayForSchedule(response, mskDate,
+                scheduleName => scheduleName.Equals(rawExchange, StringComparison.OrdinalIgnoreCase));
+            if (day == null)
+                day = PickDayForSchedule(response, mskDate,
+                    scheduleName => scheduleName.Equals(root, StringComparison.OrdinalIgnoreCase));
+            if (day == null)
+                // shortcut: prefix fallback is the least exact answer, only for exchange values that are not scheme names
+                day = PickDayForSchedule(response, mskDate,
+                    scheduleName => scheduleName.StartsWith(root + "_", StringComparison.OrdinalIgnoreCase));
+
+            return day;
+        }
+
+        // R1: today is picked by its date, not Days[0] — the window spans two days and at night Days[0] is yesterday
+        private TradingDay PickDayForSchedule(TradingSchedulesResponse response, DateTime mskDate, Func<string, bool> scheduleMatches)
+        {
             for (int i = 0; i < response.Exchanges.Count; i++)
             {
-                // R5: live API returns schedule scheme names here ("MOEX_PLUS_WEEKEND"), not the bare venue code
-                string scheduleName = response.Exchanges[i].Exchange;
-                if (scheduleName != exchange && !scheduleName.StartsWith(exchange + "_", StringComparison.Ordinal))
+                if (!scheduleMatches(response.Exchanges[i].Exchange))
                     continue;
 
-                // R1: today is picked by its date, not Days[0] — the window spans two days and at night Days[0] is yesterday
                 for (int d = 0; d < response.Exchanges[i].Days.Count; d++)
                 {
                     TradingDay day = response.Exchanges[i].Days[d];
