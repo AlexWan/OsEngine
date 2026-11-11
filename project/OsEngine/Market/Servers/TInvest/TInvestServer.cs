@@ -4761,6 +4761,8 @@ namespace OsEngine.Market.Servers.TInvest
                                  OrderExecutionReportStatus.ExecutionReportStatusRejected)
                         {
                             order.State = OrderStateType.Fail;
+
+                            SendLogMessage($"Order rejected. Security: {order.SecurityNameCode}, NumberUser: {order.NumberUser}, NumberMarket: {order.NumberMarket}, Side: {order.Side}, Volume: {order.Volume}, Price: {order.Price}, Cause: {state.StatusInfo}", LogMessageType.Error);
                         }
                         else if (state.ExecutionReportStatus ==
                                  OrderExecutionReportStatus.ExecutionReportStatusCancelled)
@@ -5677,6 +5679,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
                 {
+                    // отказ в приёме заявки: причина видна только здесь - пишем Error до сворачивания в Fail
+                    SendLogMessage($"Order rejected by broker. Security: {order.SecurityNameCode}, NumberUser: {order.NumberUser}, Side: {order.Side}, Volume: {order.Volume}, Price: {order.Price}. Message: {response.Message}", LogMessageType.Error);
+
                     CreateOrderFail(order, response.Message);
                 }
                 else
