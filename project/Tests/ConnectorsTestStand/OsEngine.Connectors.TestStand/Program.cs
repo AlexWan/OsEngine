@@ -117,8 +117,10 @@ namespace OsEngine.Connectors.TestStand
                 MultiTextWriter multiWriter = new MultiTextWriter(originalOut, consoleOut, fileWriter);
                 MultiTextWriter multiError = new MultiTextWriter(originalError, consoleError, fileWriter);
 
-                Console.SetOut(multiWriter);
-                Console.SetError(multiError);
+                // Synchronized: строки телеметрии пишутся с пула (сэмплер, событие Exited)
+                // и не должны перемешиваться с выводом тестов. Общего локера out/err у TextWriter нет.
+                Console.SetOut(TextWriter.Synchronized(multiWriter));
+                Console.SetError(TextWriter.Synchronized(multiError));
 
                 Console.WriteLine($"Log file: {logPath}");
 

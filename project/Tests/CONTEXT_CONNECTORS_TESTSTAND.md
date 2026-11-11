@@ -115,6 +115,19 @@ OsEngine.Connectors.TestStand.exe --connector BinanceFutures --security ETHUSDT 
 - Отчёт каждого теста — в логе робота (`Engine\Log\*ConnectorsTesterBot*Log_*.txt`
   в папке OsEngine): `REPORT <Класс>` + `STATUS: OK|FAIL` + ошибки + service info.
 
+## Телеметрия
+
+- Каждые 10 с — строка `[Mem] pid=… ws=…MB private=…MB peakWS=…MB gcStand=…MB gen0/1/2=n/n/n`:
+  память OsEngine по данным ОС (рабочий набор, приватные байты, пик) + память самого стенда
+  (`gcStand` — GC-метрики оболочки, к движку отношения не имеют).
+- Гибель процесса — `[Proc] pid=… EXITED exit=0x…… (n) at=… uptime=…s reason=… peakWS=… lastWS=…`;
+  `reason=stand_kill`, если убил стенд, иначе `reason=self_exit` (тихая смерть без WER различима
+  только косвенно — по `peakWS` и наличию кода).
+- `Stop()` пишет `[Proc] … STOP requested at=…` перед `Kill()`, `STILL RUNNING after 5000ms` при
+  таймауте ожидания и `already exited exit=…`, если процесс умер до остановки. Две `[Proc]`-строки
+  на одну гибель (`EXITED` из события + `already exited` из `Stop()`) — норма.
+- Всё пишется в штатный лог стенда через `Console`; отдельных файлов телеметрии нет.
+
 ## Длительность
 
 - Модуль без стриминга (Securities, Portfolio): ~3–5 мин (подъём OsEngine + коннект).
