@@ -160,7 +160,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _lastTimeGetPortfolio = DateTime.MinValue;
 
                 _marketDataStreams = new List<MarketDataStreamWrapper>();
-                _securityStreamMap = new Dictionary<string, MarketDataStreamWrapper>();
+                _securityStreamMap = new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
                 lock (_stopOrdersLocker)
                 {
@@ -2946,7 +2946,7 @@ namespace OsEngine.Market.Servers.TInvest
         // Для всех типов подписок в методе установлены ограничения максимального количества запросов на подписку. Если количество запросов за минуту превысит 100, то для всех элементов будет установлен статус SUBSCRIPTION_STATUS_TOO_MANY_REQUESTS.
         // мы подписываемся на стаканы+сделки, поэтому лимит пополам
         private List<MarketDataStreamWrapper> _marketDataStreams;
-        private Dictionary<string, MarketDataStreamWrapper> _securityStreamMap;
+        private ConcurrentDictionary<string, MarketDataStreamWrapper> _securityStreamMap;
         List<Security> _pollSubscribedSecurities = new List<Security>();
         // Отдельный от _marketDataStreamLocker замок: под ним только списочные операции, без I/O и чужих локов
         private readonly object _pollLocker = new object();
@@ -3204,7 +3204,9 @@ namespace OsEngine.Market.Servers.TInvest
                                 throw new TimeoutException("Market data stream write timeout");
                             }
                         }
-                        _securityStreamMap.Add(security.NameId, streamWrapperMarketDepth);
+                        // Add через ICollection: дубль ключа -> ArgumentException, как у Dictionary
+                        ((ICollection<KeyValuePair<string, MarketDataStreamWrapper>>)_securityStreamMap)
+                            .Add(new KeyValuePair<string, MarketDataStreamWrapper>(security.NameId, streamWrapperMarketDepth));
                     }
                 }
                 else
@@ -3242,7 +3244,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_securityStreamMap.ContainsKey(security.NameId))
                     {
-                        _securityStreamMap.Remove(security.NameId);
+                        _securityStreamMap.TryRemove(security.NameId, out _);
                     }
                 }
 
@@ -3908,7 +3910,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (_securityStreamMap.ContainsKey(security.NameId))
                     {
-                        _securityStreamMap.Remove(security.NameId);
+                        _securityStreamMap.TryRemove(security.NameId, out _);
                     }
 
                     // вычищаем прежние записи бумаги из всех стримов: запрос добавляется
