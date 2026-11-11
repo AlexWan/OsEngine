@@ -29,8 +29,9 @@ namespace OsEngine.Market.Servers.Optimizer
     }
 
     /// <summary>
-    /// FEATURE-0107, mode "RemoveTradesFromMemory = false". Wrapper over the list loaded as before,
-    /// so the default behaviour stays exactly as it was: no trimming, no file handles.
+    /// FEATURE-0107. Contract/tests-only wrapper over the list loaded as before (the runtime path with
+    /// RemoveTradesFromMemory = false keeps using DataStorage.Trades directly). It pins the ITradeAccess
+    /// semantics of the default behaviour: no trimming, no file handles, indices as in the list.
     /// </summary>
     public sealed class TradeListAccess : ITradeAccess
     {
@@ -115,6 +116,9 @@ namespace OsEngine.Market.Servers.Optimizer
 
         /// <summary>Exact tick count of the period. Taken once by counting scan in the constructor.</summary>
         private int _count;
+
+        /// <summary>Number of full counting scans performed. The design guarantees one per access.</summary>
+        private int _scans;
 
         private long _nextTradeId;
 
@@ -231,6 +235,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private int CountTradesInPeriod()
         {
+            _scans++;
+
             int count = 0;
 
             // one probe instance because only the Time of the line matters here

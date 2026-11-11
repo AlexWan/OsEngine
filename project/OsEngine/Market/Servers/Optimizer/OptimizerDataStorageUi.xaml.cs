@@ -191,6 +191,13 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             try
             {
+                // FEATURE-0107: close with focus inside the N box must not lose the input — commit it first
+
+                if (_server != null && TextBoxTradesInMemory != null)
+                {
+                    TextBoxTradesInMemory_LostFocus(null, null);
+                }
+
                 ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
                 ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
                 ComboBoxOrderActivationType.SelectionChanged -= ComboBoxOrderActivationType_SelectionChanged;

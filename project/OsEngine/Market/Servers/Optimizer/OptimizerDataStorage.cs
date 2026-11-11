@@ -2104,7 +2104,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         // FEATURE-0107: window access holds its own file cursor, so such storage is not cached.
                         // Repeated requests for the same key are filtered in OptimizerServer.GetDataToSecurity
 
-                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeStart, timeEnd);
+                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeFrame, timeStart, timeEnd);
 
                         if (windowStorage == null)
                         {
@@ -2145,7 +2145,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         // FEATURE-0107: see comment in TickOnlyReadyCandle branch
 
-                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeStart, timeEnd);
+                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeFrame, timeStart, timeEnd);
 
                         if (windowStorage == null)
                         {
@@ -2336,7 +2336,7 @@ namespace OsEngine.Market.Servers.Optimizer
             return null;
         }
 
-        private DataStorage CreateWindowTradeStorage(Security security, DateTime timeStart, DateTime timeEnd)
+        private DataStorage CreateWindowTradeStorage(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
             try
             {
@@ -2360,6 +2360,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 DataStorage storage = new DataStorage();
                 storage.Security = security;
+                storage.TimeFrame = timeFrame; // the dedup key in OptimizerServer.GetDataToSecurity matches on it
                 storage.TimeEnd = timeEnd;
                 storage.TimeStart = timeStart;
                 storage.TradeAccess = access;

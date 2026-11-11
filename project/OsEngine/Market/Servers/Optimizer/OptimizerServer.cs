@@ -455,7 +455,8 @@ namespace OsEngine.Market.Servers.Optimizer
             }
 
             // FEATURE-0107: windowed tick storage is created fresh on every call (it holds its own file cursor),
-            // so repeated requests for the same key are dropped by key before the file is opened
+            // so repeated requests for the same key (security + timeframe + period) are dropped by key
+            // before the file is opened and counted
 
             if (_storagePrime.RemoveTradesFromMemory == true)
             {
@@ -488,7 +489,12 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
 
-                if (_storages.Find(s => s.Security.Name == newStorage.Security.Name &&
+                // FEATURE-0107: windowed storages carry no lists, so the reference match below would falsely
+                // unite them across different periods and leak the just-created file cursor on return.
+                // Windowed duplicates are caught by the key guard above, so they never reach this legacy match
+
+                if (newStorage.TradeAccess == null &&
+                    _storages.Find(s => s.Security.Name == newStorage.Security.Name &&
                                         s.Candles == newStorage.Candles &&
                                         s.TimeFrame == newStorage.TimeFrame &&
                                         s.Trades == newStorage.Trades &&
@@ -553,12 +559,18 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 SendLogMessage(error.ToString(),LogMessageType.Error);
 
-                // FEATURE-0107: if setup broke before SecurityOptimizer took the window access over, release the file
+                // FEATURE-0107: never leave a half-initialized storage with a disposed access in the list,
+                // the key guard would hand it out as healthy; then release the file if no SecurityOptimizer took it over
 
-                if (newStorage != null && newStorage.TradeAccess != null &&
-                    _candleSeriesTesterActivate.Find(s => s.TradeAccess == newStorage.TradeAccess) == null)
+                if (newStorage != null)
                 {
-                    newStorage.TradeAccess.Dispose();
+                    _storages.Remove(newStorage);
+
+                    if (newStorage.TradeAccess != null &&
+                        _candleSeriesTesterActivate.Find(s => s.TradeAccess == newStorage.TradeAccess) == null)
+                    {
+                        newStorage.TradeAccess.Dispose();
+                    }
                 }
             }
         }
