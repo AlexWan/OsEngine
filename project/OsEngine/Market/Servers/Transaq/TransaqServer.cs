@@ -2201,6 +2201,10 @@ namespace OsEngine.Market.Servers.Transaq
                     }
                 }
 
+                // bug-0058: одна строка на фактическую отправку, после всех гейтов сборки команды
+                SendLogMessage("SendOrder. NumberUser " + order.NumberUser + ", Seccode " + needSec.Name
+                    + ", " + side + " " + order.TypeOrder + ", Volume " + volume, LogMessageType.System);
+
                 // sending command / отправка команды
                 string res = ConnectorSendCommand(cmd);
 
@@ -2226,6 +2230,9 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     // NumberUser вызывающей заявки не мутируем (bug-0058): transactionid живёт только в маппинге
                     RegisterOrderKey(result.TransactionId, order);
+
+                    SendLogMessage("SendOrder accepted. NumberUser " + order.NumberUser
+                        + ", Transactionid " + result.TransactionId, LogMessageType.System);
                 }
 
                 order.TimeCallBack = ServerTime;
@@ -2376,6 +2383,9 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
+                SendLogMessage("CancelOrder. NumberUser " + order.NumberUser + ", NumberMarket " + order.NumberMarket
+                    + ", Seccode " + order.SecurityNameCode, LogMessageType.System);
+
                 if (TryGetTransactionId(order, out int transactionId) == false)
                 {
                     SendLogMessage("CancelOrder. Transactionid not found. NumberUser: " + order.NumberUser + ", NumberMarket: " + order.NumberMarket, LogMessageType.Error);
@@ -2395,6 +2405,9 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 else
                 {
+                    SendLogMessage("CancelOrder sent. NumberUser " + order.NumberUser
+                        + ", Transactionid " + transactionId, LogMessageType.System);
+
                     return true;
                 }
             }
@@ -2412,6 +2425,9 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
+                SendLogMessage("ChangeOrderPrice. NumberUser " + order.NumberUser + ", NumberMarket " + order.NumberMarket
+                    + ", Seccode " + order.SecurityNameCode + ", new Price " + newPrice, LogMessageType.System);
+
                 _rateGateChangePriceOrder.WaitToProceed();
 
                 if (TryGetTransactionId(order, out int transactionId) == false)
@@ -2449,6 +2465,11 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 else
                 {
+                    SendLogMessage("ChangeOrderPrice accepted. NumberUser " + order.NumberUser
+                        + ", new Transactionid " + result.TransactionId
+                        + ", OrderKey relocated " + (result.TransactionId != 0 && result.TransactionId != transactionId),
+                        LogMessageType.System);
+
                     // moveorder выдаёт новый transactionid — перекладываем пару и чиним запись _activeOrders по старому tid
                     if (result.TransactionId != 0)
                     {
@@ -2478,43 +2499,69 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
+        // bug-0058: заглушки Transaq молчали — вызов виден РОВНО ОДИН раз за процесс на метод (флаг-гейт)
+        private readonly HashSet<string> _unsupportedWarned = new HashSet<string>();
+
+        private readonly object _unsupportedWarnedLocker = new object();
+
+        private void LogUnsupportedOnce(string methodName)
+        {
+            lock (_unsupportedWarnedLocker)
+            {
+                if (_unsupportedWarned.Contains(methodName))
+                {
+                    return;
+                }
+
+                _unsupportedWarned.Add(methodName);
+            }
+
+            SendLogMessage(methodName + ". Метод не поддерживается коннектором Transaq", LogMessageType.Warning);
+        }
+
         public void CancelAllOrders()
         {
-
+            LogUnsupportedOnce("CancelAllOrders");
         }
 
         public void GetOrdersState(List<Order> orders)
         {
-
+            LogUnsupportedOnce("GetOrdersState");
         }
 
         public void ResearchTradesToOrders(List<Order> orders)
         {
-
+            LogUnsupportedOnce("ResearchTradesToOrders");
         }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-
+            LogUnsupportedOnce("CancelAllOrdersToSecurity");
         }
 
         public void GetAllActivOrders()
         {
-
+            LogUnsupportedOnce("GetAllActivOrders");
         }
 
         public OrderStateType GetOrderStatus(Order order)
         {
+            LogUnsupportedOnce("GetOrderStatus");
+
             return OrderStateType.None;
         }
 
         public List<Order> GetActiveOrders(int startIndex, int count)
         {
+            LogUnsupportedOnce("GetActiveOrders");
+
             return null;
         }
 
         public List<Order> GetHistoricalOrders(int startIndex, int count)
         {
+            LogUnsupportedOnce("GetHistoricalOrders");
+
             return null;
         }
 
@@ -3748,8 +3795,16 @@ namespace OsEngine.Market.Servers.Transaq
         /// <returns>result of sending command/результат отправки команды</returns>
         public string ConnectorSendCommand(string command)
         {
+            // bug-0058 R1: тела connect и change_pass несут логин/пароль — в лог только id команды, даже под _fullLog
+            string commandForLog = CommandForLog(command);
+
             try
             {
+                if (_fullLog)
+                {
+                    SendLogMessage("ConnectorSendCommand. Команда: " + commandForLog, LogMessageType.System);
+                }
+
                 lock (_commandLocker)
                 {
                     IntPtr pData = MarshalUtf8.StringToHGlobalUtf8(command);
@@ -3760,12 +3815,23 @@ namespace OsEngine.Market.Servers.Transaq
                     Marshal.FreeHGlobal(pData);
                     FreeMemory(pResult);
 
+                    if (_fullLog)
+                    {
+                        // эхо пароля в тексте ошибки не исключено — ответ на кред-команду тоже не печатаем
+                        SendLogMessage("ConnectorSendCommand. Ответ сервера: "
+                            + (commandForLog == command ? result : "<скрыто, кредитная команда>"),
+                            LogMessageType.System);
+                    }
+
                     return result;
                 }
             }
             catch (AccessViolationException)
             {
-                // no message
+                // bug-0058: раньше молча. shortcut: в net10 без legacy-политики ThrowOnAccessViolation этот catch не срабатывает — AV роняет процесс раньше лога
+                SendLogMessage("ConnectorSendCommand. AccessViolation при отправке команды: " + commandForLog,
+                    LogMessageType.Error);
+
                 return null;
             }
             catch (Exception e)
@@ -3775,7 +3841,33 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        public void SetLeverage(Security security, decimal leverage) { }
+        /// <summary>
+        /// command text safe for log / текст команды, безопасный для лога (bug-0058 R1)
+        /// </summary>
+        private static string CommandForLog(string command)
+        {
+            if (string.IsNullOrEmpty(command))
+            {
+                return "<empty>";
+            }
+
+            if (command.StartsWith("<command id=\"connect\""))
+            {
+                return "<command id=\"connect\" тело скрыто (креды)/hidden>";
+            }
+
+            if (command.StartsWith("<command id=\"change_pass\""))
+            {
+                return "<command id=\"change_pass\" тело скрыто (креды)/hidden>";
+            }
+
+            return command;
+        }
+
+        public void SetLeverage(Security security, decimal leverage)
+        {
+            LogUnsupportedOnce("SetLeverage");
+        }
 
         #endregion
 
