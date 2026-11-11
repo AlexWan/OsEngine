@@ -113,6 +113,16 @@ namespace OsEngine.Market.Servers.Optimizer
             TextBoxSlippageStop.Text = master.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
             TextBoxSlippageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
+            // FEATURE-0107. Removing passed trades from memory
+
+            CheckBoxRemovePassedTrades.IsChecked = _server.RemoveTradesFromMemory;
+            CheckBoxRemovePassedTrades.Checked += CheckBoxRemovePassedTrades_Checked;
+            CheckBoxRemovePassedTrades.Unchecked += CheckBoxRemovePassedTrades_Unchecked;
+
+            TextBoxTradesInMemory.Text = _server.TradesInMemoryCount.ToString(_currentCulture);
+            TextBoxTradesInMemory.IsEnabled = _server.RemoveTradesFromMemory;
+            TextBoxTradesInMemory.LostFocus += TextBoxTradesInMemory_LostFocus;
+
             LabelTabItemAccrualsAndCharge.Header = OsLocalization.Market.LabelAccrualsAndCharges;
             LabelTabItemDividends.Header = OsLocalization.Market.LabelTabItemDividends;
             LabelDividendsPaymentTableHeader.Content = OsLocalization.Market.Label332;
@@ -166,6 +176,8 @@ namespace OsEngine.Market.Servers.Optimizer
             CheckBoxSlippageLimitOn.Content = OsLocalization.Market.Label36;
             CheckBoxSlippageStopOn.Content = OsLocalization.Market.Label36;
             LabelOrderActivationType.Content = OsLocalization.Market.Label148;
+            CheckBoxRemovePassedTrades.Content = OsLocalization.Optimizer.LabelRemovePassedTrades;
+            LabelTradesInMemory.Content = OsLocalization.Optimizer.LabelTradesInMemory;
             LabelClearing.Content = OsLocalization.Market.Label150;
             LabelNonTradePeriod.Content = OsLocalization.Market.Label151;
 
@@ -191,6 +203,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 CheckBoxSlippageLimitOn.Checked -= CheckBoxSlippageLimitOn_Checked;
                 CheckBoxSlippageStopOff.Checked -= CheckBoxSlippageStopOff_Checked;
                 CheckBoxSlippageStopOn.Checked -= CheckBoxSlippageStopOn_Checked;
+
+                CheckBoxRemovePassedTrades.Checked -= CheckBoxRemovePassedTrades_Checked;
+                CheckBoxRemovePassedTrades.Unchecked -= CheckBoxRemovePassedTrades_Unchecked;
+                TextBoxTradesInMemory.LostFocus -= TextBoxTradesInMemory_LostFocus;
 
                 ButtonSetDataFromPath.Click -= ButtonSetDataFromPath_Click;
 
@@ -495,6 +511,49 @@ namespace OsEngine.Market.Servers.Optimizer
         #endregion
 
         #region Slippage and orders execution settings
+
+        private void CheckBoxRemovePassedTrades_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_server == null)
+            {
+                return;
+            }
+
+            _server.RemoveTradesFromMemory = true;
+            TextBoxTradesInMemory.IsEnabled = true;
+        }
+
+        private void CheckBoxRemovePassedTrades_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_server == null)
+            {
+                return;
+            }
+
+            _server.RemoveTradesFromMemory = false;
+            TextBoxTradesInMemory.IsEnabled = false;
+        }
+
+        private void TextBoxTradesInMemory_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_server == null)
+            {
+                return;
+            }
+
+            // window size must be an integer from 100 to 1 000 000, otherwise roll back to the default
+
+            int tradesInMemoryCount;
+            if (int.TryParse(TextBoxTradesInMemory.Text, NumberStyles.Integer, _currentCulture, out tradesInMemoryCount) == false
+                || tradesInMemoryCount < 100
+                || tradesInMemoryCount > 1000000)
+            {
+                tradesInMemoryCount = 1000;
+            }
+
+            _server.TradesInMemoryCount = tradesInMemoryCount;
+            TextBoxTradesInMemory.Text = tradesInMemoryCount.ToString(_currentCulture);
+        }
 
         private void CheckBoxSlippageLimitOff_Checked(object sender, RoutedEventArgs e)
         {

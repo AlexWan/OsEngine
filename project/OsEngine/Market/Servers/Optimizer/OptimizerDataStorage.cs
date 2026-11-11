@@ -143,6 +143,39 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private bool _taxesIsOn;
 
+        /// <summary>FEATURE-0107. Keep only a window of N not-yet-read ticks per security in tick mode.</summary>
+        public bool RemoveTradesFromMemory
+        {
+            get { return _removeTradesFromMemory; }
+            set
+            {
+                if (value == _removeTradesFromMemory)
+                {
+                    return;
+                }
+
+                _removeTradesFromMemory = value;
+                Save();
+            }
+        }
+        private bool _removeTradesFromMemory;
+
+        public int TradesInMemoryCount
+        {
+            get { return _tradesInMemoryCount; }
+            set
+            {
+                if (value == _tradesInMemoryCount)
+                {
+                    return;
+                }
+
+                _tradesInMemoryCount = value;
+                Save();
+            }
+        }
+        private int _tradesInMemoryCount = 1000;
+
         private void Load()
         {
             if (!File.Exists(@"Engine\" + _name + @"OptimizerDataStorage.txt"))
@@ -174,6 +207,21 @@ namespace OsEngine.Market.Servers.Optimizer
                         _taxesIsOn = Convert.ToBoolean(reader.ReadLine());
                     }
 
+                    if (reader.EndOfStream == false)
+                    {
+                        _removeTradesFromMemory = Convert.ToBoolean(reader.ReadLine());
+                    }
+
+                    if (reader.EndOfStream == false)
+                    {
+                        int tradesInMemoryCount;
+                        if (int.TryParse(reader.ReadLine(), out tradesInMemoryCount) == true &&
+                            tradesInMemoryCount > 0)
+                        {
+                            _tradesInMemoryCount = tradesInMemoryCount;
+                        }
+                    }
+
                     reader.Close();
                 }
             }
@@ -196,6 +244,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     writer.WriteLine(_dividendsIsOn);
                     writer.WriteLine(_marginRegime);
                     writer.WriteLine(_taxesIsOn);
+                    writer.WriteLine(_removeTradesFromMemory);
+                    writer.WriteLine(_tradesInMemoryCount);
                     writer.Close();
                 }
             }
@@ -2048,6 +2098,24 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         return storage;
                     }
+
+                    if (_removeTradesFromMemory == true)
+                    {
+                        // FEATURE-0107: window access holds its own file cursor, so such storage is not cached.
+                        // Repeated requests for the same key are filtered in OptimizerServer.GetDataToSecurity
+
+                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeStart, timeEnd);
+
+                        if (windowStorage == null)
+                        {
+                            SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
+                            return null;
+                        }
+
+                        windowStorage.StorageType = TesterDataType.TickOnlyReadyCandle;
+                        return windowStorage;
+                    }
+
                     storage = LoadTradesFromFolder(security, timeStart, timeEnd);
                     storage.StorageType = TesterDataType.TickOnlyReadyCandle;
 
@@ -2071,6 +2139,22 @@ namespace OsEngine.Market.Servers.Optimizer
                     if (storage != null)
                     {
                         return storage;
+                    }
+
+                    if (_removeTradesFromMemory == true)
+                    {
+                        // FEATURE-0107: see comment in TickOnlyReadyCandle branch
+
+                        DataStorage windowStorage = CreateWindowTradeStorage(security, timeStart, timeEnd);
+
+                        if (windowStorage == null)
+                        {
+                            SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
+                            return null;
+                        }
+
+                        windowStorage.StorageType = TesterDataType.TickAllCandleState;
+                        return windowStorage;
                     }
 
                     storage = LoadTradesFromFolder(security, timeStart, timeEnd);
@@ -2252,6 +2336,44 @@ namespace OsEngine.Market.Servers.Optimizer
             return null;
         }
 
+        private DataStorage CreateWindowTradeStorage(Security security, DateTime timeStart, DateTime timeEnd)
+        {
+            try
+            {
+                SecurityTester sec = SecuritiesTester.Find(
+                    s => s.Security.Name == security.Name && s.DataType == SecurityTesterDataType.Tick);
+
+                if (sec == null)
+                {
+                    return null;
+                }
+
+                TradeFileWindowAccess access = new TradeFileWindowAccess(security, sec.FileAddress,
+                    timeStart, timeEnd, _tradesInMemoryCount,
+                    message => SendLogMessage(message, LogMessageType.Error));
+
+                if (access.Count == 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Message34 + timeStart.ToShortDateString() +
+                                   OsLocalization.Market.Message33 + timeEnd.ToShortDateString() + OsLocalization.Market.Message14 + security.Name, LogMessageType.Error);
+                }
+
+                DataStorage storage = new DataStorage();
+                storage.Security = security;
+                storage.TimeEnd = timeEnd;
+                storage.TimeStart = timeStart;
+                storage.TradeAccess = access;
+
+                return storage;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            return null;
+        }
+
         private DataStorage LoadMarketDepthFromFolder(Security security, DateTime timeStart, DateTime timeEnd)
         {
             try
@@ -2342,6 +2464,9 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public List<Trade> Trades;
 
+        /// <summary>FEATURE-0107. Access to ticks instead of the Trades list when RemoveTradesFromMemory is on.</summary>
+        public ITradeAccess TradeAccess;
+
         public List<MarketDepth> MarketDepths;
 
         public TimeFrame TimeFrame;
@@ -2378,6 +2503,12 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 Trades.Clear();
                 Trades = null;
+            }
+
+            if (TradeAccess != null)
+            {
+                TradeAccess.Dispose();
+                TradeAccess = null;
             }
 
             if (MarketDepths != null)

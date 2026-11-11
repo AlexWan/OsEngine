@@ -486,5 +486,13 @@ namespace OsEngine.Language
         public string LabelReportTitle => OsLocalization.ConvertToLocString(
            "Eng:Optimizer Report_" +
            "Ru:Отчёт оптимизатора_");
+
+        public string LabelRemovePassedTrades => OsLocalization.ConvertToLocString(
+           "Eng:Remove passed trades from memory_" +
+           "Ru:Удалять пройденные трейды из памяти_");
+
+        public string LabelTradesInMemory => OsLocalization.ConvertToLocString(
+           "Eng:Trades in memory_" +
+           "Ru:Трейдов в памяти_");
     }
 }
