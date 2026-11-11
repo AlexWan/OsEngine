@@ -2982,6 +2982,22 @@ namespace OsEngine.Market.Servers.TInvest
             SubscribeLoop(0, security);
         }
 
+        // Проверка и добавление в poll-список атомарны: с #2052 SubscribeLoop может идти
+        // из потоков ретрая мимо гейда запуска, отдельная проверка Any пропускала гонку дублей
+        private bool TryAddToPollSubscribed(Security security)
+        {
+            lock (_pollLocker)
+            {
+                if (_securityStreamMap.ContainsKey(security.NameId)
+                    || _pollSubscribedSecurities.Any(s => s.Name == security.Name))
+                {
+                    return false;
+                }
+                _pollSubscribedSecurities.Add(security);
+                return true;
+            }
+        }
+
         private void SubscribeLoop(int tryCount, Security security)
         {
             // запросы, добавленные на этом вызове - для полного отката при ошибке
@@ -3044,10 +3060,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _useStreamForMarketData = false;
                         SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
-                        lock (_pollLocker)
-                        {
-                            _pollSubscribedSecurities.Add(security);
-                        }
+                        TryAddToPollSubscribed(security);
                         return;
                     }
                 }
@@ -3089,10 +3102,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         _useStreamForMarketData = false;
                         SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
-                        lock (_pollLocker)
-                        {
-                            _pollSubscribedSecurities.Add(security);
-                        }
+                        TryAddToPollSubscribed(security);
                         return;
                     }
                 }
@@ -3211,10 +3221,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 else
                 {
-                    lock (_pollLocker)
-                    {
-                        _pollSubscribedSecurities.Add(security);
-                    }
+                    TryAddToPollSubscribed(security);
                     return;
                 }
             }
