@@ -1448,7 +1448,8 @@ namespace OsEngine.Market.Servers.Transaq
             // stopped or disconnected — don't send command and don't raise Error (server stop is a routine, not a failure)
             if (ServerStatus != ServerConnectStatus.Connect)
             {
-                SendLogMessage($"Candle history request for {security.Name} skipped: not connected.", LogMessageType.System);
+                // security?.Name: this log runs outside try, a raw NRE here would escape the method (master threw inside try -> Error + null)
+                SendLogMessage($"Candle history request for {security?.Name} skipped: not connected.", LogMessageType.System);
                 return null;
             }
 
