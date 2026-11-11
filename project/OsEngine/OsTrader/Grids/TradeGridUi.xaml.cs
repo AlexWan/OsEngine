@@ -226,6 +226,28 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxStopGridByTimeOfDayReaction.SelectedItem = tradeGrid.StopBy.StopGridByTimeOfDayReaction.ToString();
             ComboBoxStopGridByTimeOfDayReaction.SelectionChanged += ComboBoxStopGridByTimeOfDayReaction_SelectionChanged;
 
+            TextBoxStopGridByPriceUpValue.Text = tradeGrid.StopBy.StopGridByPriceUpValue == 0
+                ? ""
+                : tradeGrid.StopBy.StopGridByPriceUpValue.ToString();
+            TextBoxStopGridByPriceUpValue.TextChanged += TextBoxStopGridByPriceUpValue_TextChanged;
+            ComboBoxStopGridByPriceUpReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxStopGridByPriceUpReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByPriceUpReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByPriceUpReaction.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxStopGridByPriceUpReaction.SelectedItem = tradeGrid.StopBy.StopGridByPriceUpReaction.ToString();
+            ComboBoxStopGridByPriceUpReaction.SelectionChanged += ComboBoxStopGridByPriceUpReaction_SelectionChanged;
+
+            TextBoxStopGridByPriceDownValue.Text = tradeGrid.StopBy.StopGridByPriceDownValue == 0
+                ? ""
+                : tradeGrid.StopBy.StopGridByPriceDownValue.ToString();
+            TextBoxStopGridByPriceDownValue.TextChanged += TextBoxStopGridByPriceDownValue_TextChanged;
+            ComboBoxStopGridByPriceDownReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxStopGridByPriceDownReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByPriceDownReaction.Items.Add(TradeGridRegime.OffAndCancelOrders.ToString());
+            ComboBoxStopGridByPriceDownReaction.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxStopGridByPriceDownReaction.SelectedItem = tradeGrid.StopBy.StopGridByPriceDownReaction.ToString();
+            ComboBoxStopGridByPriceDownReaction.SelectionChanged += ComboBoxStopGridByPriceDownReaction_SelectionChanged;
+
             // grid lines creation
 
             ComboBoxGridSide.Items.Add(Side.Buy.ToString());
@@ -594,6 +616,10 @@ namespace OsEngine.OsTrader.Grids
             LabelStopGridByTimeOfDayHour.Content = OsLocalization.Trader.Label527 + ":";
             LabelStopGridByTimeOfDayMinute.Content = OsLocalization.Trader.Label528 + ":";
             LabelStopGridByTimeOfDaySecond.Content = OsLocalization.Trader.Label529 + ":";
+            LabelStopGridByPriceUpValue.Content = OsLocalization.Trader.Label782;
+            LabelStopGridByPriceUpReaction.Content = OsLocalization.Trader.Label484;
+            LabelStopGridByPriceDownValue.Content = OsLocalization.Trader.Label783;
+            LabelStopGridByPriceDownReaction.Content = OsLocalization.Trader.Label484;
 
             // grid lines creation
 
@@ -818,6 +844,11 @@ namespace OsEngine.OsTrader.Grids
                 TextBoxStopGridByTimeOfDayMinute.TextChanged -= TextBoxStopGridByTimeOfDayMinute_TextChanged;
                 TextBoxStopGridByTimeOfDaySecond.TextChanged -= TextBoxStopGridByTimeOfDaySecond_TextChanged;
                 ComboBoxStopGridByTimeOfDayReaction.SelectionChanged -= ComboBoxStopGridByTimeOfDayReaction_SelectionChanged;
+
+                TextBoxStopGridByPriceUpValue.TextChanged -= TextBoxStopGridByPriceUpValue_TextChanged;
+                ComboBoxStopGridByPriceUpReaction.SelectionChanged -= ComboBoxStopGridByPriceUpReaction_SelectionChanged;
+                TextBoxStopGridByPriceDownValue.TextChanged -= TextBoxStopGridByPriceDownValue_TextChanged;
+                ComboBoxStopGridByPriceDownReaction.SelectionChanged -= ComboBoxStopGridByPriceDownReaction_SelectionChanged;
 
                 ComboBoxGridSide.SelectionChanged -= ComboBoxGridSide_SelectionChanged;
                 TextBoxFirstPrice.TextChanged -= TextBoxFirstPrice_TextChanged;
@@ -2497,6 +2528,75 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 Enum.TryParse(ComboBoxStopGridByTimeOfDayReaction.SelectedItem.ToString(), out TradeGrid.StopBy.StopGridByTimeOfDayReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxStopGridByPriceUpValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                // пустое поле = условие выключено, битый текст по ToDecimal-конвенции даёт 0
+                if (string.IsNullOrEmpty(TextBoxStopGridByPriceUpValue.Text))
+                {
+                    TradeGrid.StopBy.StopGridByPriceUpValue = 0;
+                }
+                else
+                {
+                    TradeGrid.StopBy.StopGridByPriceUpValue = TextBoxStopGridByPriceUpValue.Text.ToDecimal();
+                }
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxStopGridByPriceUpReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopGridByPriceUpReaction.SelectedItem.ToString(), out TradeGrid.StopBy.StopGridByPriceUpReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxStopGridByPriceDownValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopGridByPriceDownValue.Text))
+                {
+                    TradeGrid.StopBy.StopGridByPriceDownValue = 0;
+                }
+                else
+                {
+                    TradeGrid.StopBy.StopGridByPriceDownValue = TextBoxStopGridByPriceDownValue.Text.ToDecimal();
+                }
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxStopGridByPriceDownReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopGridByPriceDownReaction.SelectedItem.ToString(), out TradeGrid.StopBy.StopGridByPriceDownReaction);
                 TradeGrid.Save();
             }
             catch (Exception ex)

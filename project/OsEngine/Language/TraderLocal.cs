@@ -2946,5 +2946,13 @@ namespace OsEngine.Language
         public string Label781 => OsLocalization.ConvertToLocString(
            "Eng:Server time is not received yet_" +
            "Ru:Время сервера не получено_");
+
+        public string Label782 => OsLocalization.ConvertToLocString(
+           "Eng:Stop by price up_" +
+           "Ru:По достижении цены вверх_");
+
+        public string Label783 => OsLocalization.ConvertToLocString(
+           "Eng:Stop by price down_" +
+           "Ru:По достижении цены вниз_");
     }
 }
