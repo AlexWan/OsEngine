@@ -488,8 +488,8 @@ namespace OsEngine.Language
            "Ru:Отчёт оптимизатора_");
 
         public string LabelRemovePassedTrades => OsLocalization.ConvertToLocString(
-           "Eng:Remove passed trades from memory_" +
-           "Ru:Удалять пройденные трейды из памяти_");
+           "Eng:Remove passed trades_" +
+           "Ru:Удалять пройденные трейды_");
 
         public string LabelTradesInMemory => OsLocalization.ConvertToLocString(
            "Eng:Trades in memory_" +
