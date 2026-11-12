@@ -19,39 +19,50 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             myServer.LogMessageEvent += MyServer_LogMessageEvent;
 
-            if (myServer.ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                myServer.StartServer();
-            }
-            else if (myServer.ServerStatus == ServerConnectStatus.Connect)
-            {
-                myServer.StopServer();
-                WaitStatusChange(myServer, ServerConnectStatus.Connect, StatusChangeTimeoutMs);
-                myServer.StartServer();
-            }
+            // bug-0281: отписка от всех подписок в finally — обработчики не утекают
+            // в переиспользуемый инстанс AServer между тестами
 
-            DateTime endWaitTime = DateTime.Now.AddMinutes(2);
-
-            while (_startSubscribe == false)
+            try
             {
-                if (endWaitTime < DateTime.Now)
+                if (myServer.ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    break;
+                    myServer.StartServer();
+                }
+                else if (myServer.ServerStatus == ServerConnectStatus.Connect)
+                {
+                    myServer.StopServer();
+                    WaitStatusChange(myServer, ServerConnectStatus.Connect, StatusChangeTimeoutMs);
+                    myServer.StartServer();
                 }
 
-                Thread.Sleep(50);
-            }
+                DateTime endWaitTime = DateTime.Now.AddMinutes(2);
 
-            if (_startSubscribe == false)
-            {
-                this.SetNewError(
-                  "Error 1. ServerStatus don`t be Connect by the 2 minutes ");
+                while (_startSubscribe == false)
+                {
+                    if (endWaitTime < DateTime.Now)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(50);
+                }
+
+                if (_startSubscribe == false)
+                {
+                    this.SetNewError(
+                      "Error 1. ServerStatus don`t be Connect by the 2 minutes ");
+                    TestEnded();
+                    return;
+                }
+
+                Test();
                 TestEnded();
-                return;
             }
-
-            Test();
-            TestEnded();
+            finally
+            {
+                myServer.ConnectStatusChangeEvent -= MyServer_ConnectStatusChangeEvent;
+                myServer.LogMessageEvent -= MyServer_LogMessageEvent;
+            }
         }
 
         private const int StatusChangeTimeoutMs = 30000;
@@ -81,6 +92,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         private void MyServer_LogMessageEvent(string arg1, Logging.LogMessageType arg2)
         {
             if (arg2 != Logging.LogMessageType.Error)
+            {
+                return;
+            }
+
+            // bug-0281: серверная Error считается только впервые наблюдавшейся
+            // в окне этого теста; остаток прошлого теста глушит гейт ([Isolation] пишет сам)
+
+            if (!ShouldCountServerError(arg1, out _))
             {
                 return;
             }

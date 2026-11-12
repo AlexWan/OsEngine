@@ -1594,6 +1594,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         public void Start()
         {
+            WindowStartUtc = DateTime.UtcNow;
+            WindowClosed = false;
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
         }
@@ -1679,8 +1681,88 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
         }
 
+        /// <summary>
+        /// bug-0281: начало окна теста — момент перед запуском потока тестера в Start().
+        /// Серверная Error, впервые наблюдавшаяся раньше этой границы, — остаток предыдущего теста.
+        /// </summary>
+        protected DateTime WindowStartUtc;
+
+        /// <summary>
+        /// bug-0281: окно закрыто в TestEnded(). Поздние колбэки после этой точки не считаются:
+        /// отчёт уже сформирован.
+        /// </summary>
+        protected volatile bool WindowClosed;
+
+        /// <summary>
+        /// bug-0281: атрибуция серверных Error по окну теста. true — ошибка считается текущему
+        /// тесту (первое наблюдение или повтор внутри моего окна). false на закрытом окне —
+        /// без записей, отчёт готов. false на остатке прошлого окна — ≥1 [Isolation]-строка
+        /// в SERVICE INFO и лог, по числу подавленных вызовов (единственное место их записи),
+        /// вердикт не меняется.
+        /// </summary>
+        protected bool ShouldCountServerError(string message, out string reason)
+        {
+            if (WindowClosed)
+            {
+                reason = "window closed";
+                return false;
+            }
+
+            // bug-0281 (дельта): fingerprint = ВЕСЬ payload как есть, без обрезки. Обрезка до
+            // 300 символов склеивала разные ошибки с общим префиксом в одну запись (U9).
+            // null — отдельный sentinel-ключ, различимый с "" (U14).
+
+            string fingerprint = message ?? "\u0000<null-server-payload>";
+
+            bool firstObservation;
+            (DateTime First, string Tester) entry;
+
+            lock (ServerErrorAttribution.Sync)
+            {
+                if (!ServerErrorAttribution.FirstSeen.TryGetValue(fingerprint, out entry))
+                {
+                    entry = (DateTime.UtcNow, GetType().Name);
+                    ServerErrorAttribution.FirstSeen[fingerprint] = entry;
+                    ServerErrorAttribution.Fifo.Enqueue(fingerprint);
+                    firstObservation = true;
+
+                    if (ServerErrorAttribution.FirstSeen.Count > ServerErrorAttribution.Cap)
+                    {
+                        ServerErrorAttribution.EvictOldest();
+                    }
+                }
+                else
+                {
+                    firstObservation = false;
+                }
+            }
+
+            if (firstObservation || entry.First >= WindowStartUtc)
+            {
+                reason = null;
+                return true;
+            }
+
+            reason = "first seen " + entry.First.ToString("HH:mm:ss") + " by " + entry.Tester;
+
+            string display = message == null
+                ? "<null>"
+                : (message.Length > 200 ? message.Substring(0, 200) : message);
+
+            string isolation = "[Isolation] residual server error suppressed (" + reason + "): " + display;
+
+            SetNewServiceInfo(isolation);
+            SendLogMessage(isolation, LogMessageType.System);
+            return false;
+        }
+
         public void TestEnded()
         {
+            // bug-0281: окно теста закрыто до генерации TestEndEvent,
+            // поздние серверные колбэки больше не меняют вердикт
+
+            WindowClosed = true;
+
             if (TestEndEvent != null)
             {
                 TestEndEvent(this);
@@ -1702,6 +1784,35 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             price = Math.Round(price / security.PriceStep) * security.PriceStep;
             return Math.Round(price, security.Decimals);
+        }
+    }
+
+    /// <summary>
+    /// bug-0281: реестр первого наблюдения серверных Error по процессу. Нужен, чтобы тестер
+    /// атрибутировал колбэки своему окну теста и не FAIL-ился на остатке предыдущего теста
+    /// (BUG-0056, evidence -06). Один lock — атомарный check-and-insert; cap 200 с FIFO-
+    /// вытеснением oldest — память ограничена, «забытый» остаток засчитывается (fail-safe).
+    /// </summary>
+    public static class ServerErrorAttribution
+    {
+        internal static readonly Dictionary<string, (DateTime First, string Tester)> FirstSeen =
+            new Dictionary<string, (DateTime First, string Tester)>();
+
+        internal static readonly object Sync = new object();
+
+        internal static readonly Queue<string> Fifo = new Queue<string>();
+
+        internal static readonly int Cap = 200;
+
+        /// <summary> Вызывать только под Sync. </summary>
+        internal static void EvictOldest()
+        {
+            int toRemove = Cap / 2;
+
+            while (toRemove-- > 0 && Fifo.Count > 0)
+            {
+                FirstSeen.Remove(Fifo.Dequeue());
+            }
         }
     }
 }
