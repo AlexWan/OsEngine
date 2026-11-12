@@ -715,6 +715,12 @@ namespace OsEngine.Logging
 
         public List<LogMessage> LastErrorMessages = new List<LogMessage>();
 
+        /// <summary>
+        /// guard for LastErrorMessages ring: ProcessMessage writes it on the publishing thread
+        /// защита кольца LastErrorMessages: ProcessMessage пишет его на потоке издателя
+        /// </summary>
+        private readonly object _lastErrorMessagesLock = new object();
+
         private int MaxMessagesCount
         {
             get
@@ -768,11 +774,16 @@ namespace OsEngine.Logging
                 LogMessage messageLog = new LogMessage { Message = message, Time = DateTime.Now, Type = type };
                 SetNewErrorMessage(messageLog);
 
-                LastErrorMessages.Add(messageLog);
-
-                while (LastErrorMessages.Count > 20)
+                // BUG-0321: кольцо пишется на потоке издателя — Add/trim под локом;
+                // SetNewErrorMessage остаётся вне лока (UI BeginInvoke, нота AB-BA BUG-0176)
+                lock (_lastErrorMessagesLock)
                 {
-                    LastErrorMessages.RemoveAt(0);
+                    LastErrorMessages.Add(messageLog);
+
+                    while (LastErrorMessages.Count > 20)
+                    {
+                        LastErrorMessages.RemoveAt(0);
+                    }
                 }
             }
         }
