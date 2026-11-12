@@ -5302,9 +5302,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.ProfitOrderIsActive = false;
 
 
-                CancelWorkingOrders(position.OpenOrders, order => order.State == OrderStateType.Active);
+                CancelWorkingOrders(position.OpenOrders, IsWorkingOrder);
 
-                CancelWorkingOrders(position.CloseOrders, order => order.State == OrderStateType.Active);
+                CancelWorkingOrders(position.CloseOrders, IsWorkingOrder);
             }
             catch (Exception error)
             {
@@ -6028,6 +6028,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     continue;
                 }
 
+                // Deliberately broader than the cancel loop below: Pending/None orders are not
+                // in the order book yet, so cancelling them would be premature and the whole
+                // run is a no-op while only such orders are alive. Do not symmetrise the
+                // cancel loop to this state set, see IsWorkingOrder
                 if (order.State == OrderStateType.Active ||
                     order.State == OrderStateType.Pending ||
                     order.State == OrderStateType.None ||
@@ -6044,7 +6048,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             CancelWorkingOrders(position.CloseOrders,
-                order => IsServerStopOrder(order) && order.State == OrderStateType.Active);
+                order => IsServerStopOrder(order) && IsWorkingOrder(order));
         }
 
         #endregion
