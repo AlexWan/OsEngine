@@ -689,7 +689,11 @@ namespace OsEngine.Market.AutoFollow
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                // context in the log: without it a lost order update was invisible (BUG-0291)
+                SendLogMessage("Error in MyCopyServer_NewOrderIncomeEvent. NumberUser: "
+                    + (order == null ? "null" : order.NumberUser.ToString())
+                    + ". Sec name: " + (order == null ? "null" : order.SecurityNameCode)
+                    + ". " + ex.ToString(), LogMessageType.Error);
             }
         }
 

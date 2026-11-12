@@ -525,39 +525,31 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
                 _ordersNeedToCreate.RemoveAt(0);
 
-                if (_type == IcebergType.Open)
+                // Single add point through the journal wrapper under lock(_dealsLocker):
+                // the previous direct AddNewOpenOrder/AddNewCloseOrder raced with journal
+                // readers (BUG-0291). The mapping keeps full parity with the previous
+                // branching on every cell, including None combinations (Side/Direction
+                // default to None): Modify* go to the open list only on Buy/Buy or Sell/Sell,
+                // every other pair, (None,None) included, goes to the close list.
+                bool isCloseOrder = _type == IcebergType.Close
+                    || ((_type == IcebergType.ModifyBuy || _type == IcebergType.ModifySell)
+                        && !((_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy)
+                            || (_position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell)));
+
+                Journal.Journal journal = _bot == null ? null : _bot._journal;
+
+                if (journal == null
+                    || journal.AddIcebergOrderToPosition(_position, _ordersInSystem, isCloseOrder) == false)
                 {
-                    _position.AddNewOpenOrder(_ordersInSystem);
-                }
-                else if(_type == IcebergType.Close)
-                {
-                    _position.AddNewCloseOrder(_ordersInSystem);
-                }
-                else if (_type == IcebergType.ModifyBuy)
-                {
-                    if ((_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy)
-                        ||
-                        (_position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell))
-                    {
-                        _position.AddNewOpenOrder(_ordersInSystem);
-                    }
-                    else
-                    {
-                        _position.AddNewCloseOrder(_ordersInSystem);
-                    }
-                }
-                else if (_type == IcebergType.ModifySell)
-                {
-                    if ((_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy)
-                        ||
-                        (_position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell))
-                    {
-                        _position.AddNewOpenOrder(_ordersInSystem);
-                    }
-                    else
-                    {
-                        _position.AddNewCloseOrder(_ordersInSystem);
-                    }
+                    // Delta vs old behavior: an exception in the direct Add killed the
+                    // WorkerPlace thread; now it is an Error log and the order is not sent.
+                    // _lastSendOrderTime stays as is. _ordersInSystem is reset below: the gate
+                    // above opens only on null/Done/Cancel, so without the reset the leftover
+                    // in-system order with _lastOrderState=None stalls the iceberg silently.
+                    ServerMaster.SendNewLogMessage("Iceberg order was not added to the position, not sent. NumberUser "
+                        + _ordersInSystem.NumberUser, Logging.LogMessageType.Error);
+                    _ordersInSystem = null;
+                    return;
                 }
 
                 if (NewOrderNeedToExecute != null)

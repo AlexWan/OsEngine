@@ -489,11 +489,21 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_openOrders != null 
-                    && _openOrders.Count != 0
-                    && _openOrders[0] != null)
+                try
                 {
-                    return _openOrders[0].SecurityNameCode;
+                    if (_openOrders != null 
+                        && _openOrders.Count != 0
+                        && _openOrders[0] != null)
+                    {
+                        return _openOrders[0].SecurityNameCode;
+                    }
+                }
+                catch (ArgumentOutOfRangeException error)
+                {
+                    // _openOrders can shrink to empty between the Count guard and the indexer
+                    // (Iceberg and UI add/remove paths without lock(_dealsLocker)).
+                    // Degrade to _securityName, the same value as the no-orders case.
+                    ServerMaster.SendNewLogMessage("SecurityName read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
                 }
                 return _securityName;
             }
