@@ -338,8 +338,6 @@ namespace OsEngine.Market.Servers.Transaq
                     _allCandleSeries?.Clear();
                 }
 
-                _allTicks?.Clear();
-
                 _newMessage = new ConcurrentQueue<string>();
 
                 _transaqSecuritiesInString = new ConcurrentQueue<string>();
@@ -371,8 +369,6 @@ namespace OsEngine.Market.Servers.Transaq
                 _clientInfoQueue = new ConcurrentQueue<string>();
 
                 _candlesQueue = new ConcurrentQueue<string>();
-
-                _historicalTradesQueue = new ConcurrentQueue<string>();
 
                 _activeOrders = new List<InfoActiveOrder>();
 
@@ -1911,8 +1907,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private readonly object _allCandleSeriesLocker = new object();
 
-        private List<Tick> _allTicks = new List<Tick>();
-
         #endregion
 
         #region 7 Security subscribe
@@ -2442,10 +2436,6 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 _tradesQueue.Enqueue(data);
                             }
-                            else if (data.StartsWith("<ticks>"))
-                            {
-                                _historicalTradesQueue.Enqueue(data);
-                            }
                             else if (data.StartsWith("<pits>"))
                             {
                                 continue;
@@ -2608,8 +2598,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _candlesQueue = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<string> _historicalTradesQueue = new ConcurrentQueue<string>();
-
         private ConcurrentQueue<string> _securityInfoUpdQueue = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> _securityInfoQueue = new ConcurrentQueue<string>();
@@ -2644,17 +2632,6 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 MergeCandleSeries(newCandles);
                             }
-                        }
-                    }
-                    else if (_historicalTradesQueue.IsEmpty == false)
-                    {
-                        string data = null;
-
-                        if (_historicalTradesQueue.TryDequeue(out data))
-                        {
-                            List<Tick> newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
-
-                            _allTicks.AddRange(newTicks);
                         }
                     }
                     else if (_newsIdQueue.IsEmpty == false)
