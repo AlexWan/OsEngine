@@ -74,10 +74,18 @@ namespace OsEngine.OsTrader
             if (_startProgram == StartProgram.IsTester)
             {
                 _typeWorkKeeper = ConnectorWorkType.Tester;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingStartEvent += StrategyKeeper_TestingStartEvent;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingFastEvent += StrategyKeeper_TestingFastEvent;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
-
+                // servers are kept in creation order, a live server can be created before the Tester server. So TesterServer is found by type, not by index 0
+                TesterServer testerServer = (TesterServer)ServerMaster.GetServers()?.Find(server => server.ServerType == ServerType.Tester);
+                if (testerServer != null)
+                {
+                    testerServer.TestingStartEvent += StrategyKeeper_TestingStartEvent;
+                    testerServer.TestingFastEvent += StrategyKeeper_TestingFastEvent;
+                    testerServer.TestingEndEvent += StrategyKeeper_TestingEndEvent;
+                }
+                else
+                {
+                    SendNewLogMessage("Tester server not found. Tester events are not subscribed.", LogMessageType.Error);
+                }
             }
 
             if (_startProgram == StartProgram.IsOsTrader)
@@ -185,9 +193,18 @@ namespace OsEngine.OsTrader
             if (_startProgram == StartProgram.IsTester)
             {
                 _typeWorkKeeper = ConnectorWorkType.Tester;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingStartEvent += StrategyKeeper_TestingStartEvent;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingFastEvent += StrategyKeeper_TestingFastEvent;
-                ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
+                // servers are kept in creation order, a live server can be created before the Tester server. So TesterServer is found by type, not by index 0
+                TesterServer testerServer = (TesterServer)ServerMaster.GetServers()?.Find(server => server.ServerType == ServerType.Tester);
+                if (testerServer != null)
+                {
+                    testerServer.TestingStartEvent += StrategyKeeper_TestingStartEvent;
+                    testerServer.TestingFastEvent += StrategyKeeper_TestingFastEvent;
+                    testerServer.TestingEndEvent += StrategyKeeper_TestingEndEvent;
+                }
+                else
+                {
+                    SendNewLogMessage("Tester server not found. Tester events are not subscribed.", LogMessageType.Error);
+                }
             }
 
             if (_startProgram != StartProgram.IsTester)
@@ -1978,7 +1995,16 @@ namespace OsEngine.OsTrader
                 }
                 if (PanelsArray != null)
                 {
-                    ((TesterServer)ServerMaster.GetServers()[0]).SynchSecurities(PanelsArray.ToList());
+                    // servers are kept in creation order, TesterServer is not necessarily index 0 when a live server was created earlier
+                    TesterServer testerServer = (TesterServer)ServerMaster.GetServers()?.Find(server => server.ServerType == ServerType.Tester);
+                    if (testerServer == null)
+                    {
+                        SendNewLogMessage("Tester server not found. Securities are not synchronized.", LogMessageType.Error);
+                    }
+                    else
+                    {
+                        testerServer.SynchSecurities(PanelsArray.ToList());
+                    }
                 }
             }
             catch (Exception error)
