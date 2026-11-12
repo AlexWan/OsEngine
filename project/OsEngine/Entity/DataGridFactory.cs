@@ -1088,5 +1088,60 @@ positionOpener.LifeTimeType
             return myGridView;
         }
 
+        // shortcut: кэш иконки инструкции на век процесса: грузится один раз, никогда не диспозится.
+        // Явный диспоуз (Rows.Clear/Dispose) дал бы ObjectDisposedException на репейнте у прежних держателей.
+        // Инициализация возможна с painter-потока (Pair/Polygon пересобирают таблицу с фонового цикла),
+        // поэтому DCL под приватным gate обязателен; под локом только file I/O + resize, без вызовов наружу.
+        // Трап _loadFailed кэширует неудачу: повторного file I/O и Error-лога на каждый репейнт нет.
+        private static readonly object _instructionPostGate = new object();
+        private static Bitmap _instructionPost;
+        private static bool _instructionPostLoadFailed;
+
+        /// <summary>
+        /// Общая иконка инструкций 25x20 (Images\InstructionPosts\GreenPostCollection.png).
+        /// null, если файла нет или он битый — коллер оставляет image-ячейку пустой, как сейчас при отсутствии файла
+        /// </summary>
+        public static Bitmap GetInstructionPostImage()
+        {
+            if (_instructionPost == null && _instructionPostLoadFailed == false)
+            {
+                lock (_instructionPostGate)
+                {
+                    if (_instructionPost == null && _instructionPostLoadFailed == false)
+                    {
+                        string path = Path.Combine(Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
+                        try
+                        {
+                            if (File.Exists(path))
+                            {
+                                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+                                {
+                                    Image originalImage = Image.FromStream(fs);
+                                    try
+                                    {
+                                        _instructionPost = new Bitmap(originalImage, new Size(25, 20));
+                                    }
+                                    finally
+                                    {
+                                        originalImage.Dispose(); // оригинал не отдаётся наружу
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _instructionPostLoadFailed = true; // нет файла — не повторяем проверку на каждый репейнт
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            _instructionPostLoadFailed = true; // битый файл: шторм-защита, без Error-лога на каждый репейнт
+                        }
+                    }
+                }
+            }
+
+            return _instructionPost;
+        }
+
     }
 }

@@ -1192,7 +1192,7 @@ namespace OsEngine.Market.Servers
                 nRow.Cells[1].Value = value;
 
                 DataGridViewImageCell imageCell = new DataGridViewImageCell();
-                Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\eye.png");
+                Bitmap bmp = GetEyeImage();
                 imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 imageCell.Value = bmp;
 
@@ -1211,6 +1211,29 @@ namespace OsEngine.Market.Servers
             }
 
             return nRow;
+        }
+
+        // shortcut: кэш иконки eye на век процесса: грузится один раз, никогда не диспозится
+        // (явный диспоуз дал бы ObjectDisposedException на репейнте у прежних держателей).
+        // Паттерн 0098: репейн только с UI-потока диалога, локи не нужны; неудача кэшируется.
+        private static Bitmap _eyeImage;
+        private static bool _eyeLoadFailed;
+
+        private static Bitmap GetEyeImage()
+        {
+            if (_eyeImage == null && _eyeLoadFailed == false)
+            {
+                try
+                {
+                    _eyeImage = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\eye.png");
+                }
+                catch (Exception)
+                {
+                    _eyeLoadFailed = true; // неудача кэшируется, повторного file I/O нет
+                }
+            }
+
+            return _eyeImage;
         }
 
         private DataGridViewRow GetPathParamRow(ServerParameterPath param)

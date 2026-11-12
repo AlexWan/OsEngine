@@ -259,17 +259,7 @@ namespace OsEngine.Market.AutoFollow
                 row.Cells.Add(imageCell);
                 imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                string altPath = Path.Combine(System.Windows.Forms.Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
-
-                if (File.Exists(altPath))
-                {
-                    using (FileStream fs = new FileStream(altPath, FileMode.Open, FileAccess.Read))
-                    {
-                        Image originalImage = Image.FromStream(fs);
-                        Image resizedImage = new Bitmap(originalImage, new System.Drawing.Size(25, 20));
-                        row.Cells[1].Value = resizedImage;
-                    }
-                }
+                row.Cells[1].Value = DataGridFactory.GetInstructionPostImage(); // общий кэш; null -> пустая ячейка, как при отсутствии файла
             }
             catch (Exception ex)
             {

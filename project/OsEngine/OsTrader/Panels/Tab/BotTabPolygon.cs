@@ -1382,17 +1382,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 row.Cells.Add(imageCell);
                 imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                string altPath = Path.Combine(Application.StartupPath, @"Images\InstructionPosts\GreenPostCollection.png");
-
-                if (File.Exists(altPath))
-                {
-                    using (FileStream fs = new FileStream(altPath, FileMode.Open, FileAccess.Read))
-                    {
-                        Image originalImage = Image.FromStream(fs);
-                        Image resizedImage = new Bitmap(originalImage, new Size(25, 20));
-                        row.Cells[4].Value = resizedImage;
-                    }
-                }
+                row.Cells[4].Value = DataGridFactory.GetInstructionPostImage(); // общий кэш; null -> пустая ячейка, как при отсутствии файла
             }
             catch (Exception error)
             {
