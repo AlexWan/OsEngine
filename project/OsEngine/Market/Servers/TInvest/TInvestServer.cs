@@ -6982,16 +6982,10 @@ namespace OsEngine.Market.Servers.TInvest
                     request.PriceType = PriceType.Point;
                 }
 
-                // генерируем новый номер ордера и добавляем его в словарь
+                // Клиентский GUID нужен только для request.OrderId: рабочий маппинг стопа — _stopOrderNumbers по StopOrderId,
+                // в _orderNumbers/_orderPrices GUID стоп-заявки не читается ни на одном пути и оседал навсегда (BUG-0306)
                 Guid newUid = Guid.NewGuid();
                 string orderId = newUid.ToString();
-
-                lock (_orderNumbersLocker)
-                {
-                    _orderNumbers.Add(orderId, order.NumberUser);
-                }
-
-                _orderPrices[orderId] = order.Price;
 
                 request.OrderId = orderId;
 
