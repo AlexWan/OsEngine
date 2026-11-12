@@ -193,7 +193,20 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                if (_grid.InvokeRequired)
+                WindowsFormsHost host = _host;
+                if (host != null)
+                {
+                    // BUG-0282: Control.InvokeRequired лжёт на grid с несозданным handle (скрытая вкладка) —
+                    // маршалинг через Dispatcher WPF-хоста, как в StartPaint
+                    System.Windows.Threading.Dispatcher dispatcher = host.Dispatcher;
+                    if (dispatcher != null
+                        && !dispatcher.CheckAccess())
+                    {
+                        dispatcher.Invoke(new Action(Log_ThemeChangedEvent));
+                        return;
+                    }
+                }
+                else if (_grid.InvokeRequired)
                 {
                     _grid.Invoke(new Action(Log_ThemeChangedEvent));
                     return;
@@ -494,8 +507,20 @@ namespace OsEngine.Logging
         /// </summary>
         public void Clear()
         {
-            if (_grid != null &&
-                _grid.InvokeRequired)
+            WindowsFormsHost host = _host;
+            if (host != null)
+            {
+                // BUG-0282: InvokeRequired лжёт на grid с несозданным handle — маршалинг через Dispatcher хоста
+                System.Windows.Threading.Dispatcher dispatcher = host.Dispatcher;
+                if (dispatcher != null
+                    && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(new Action(Clear));
+                    return;
+                }
+            }
+            else if (_grid != null
+                && _grid.InvokeRequired)
             {
                 _grid.Invoke(new Action(Clear));
                 return;
@@ -785,16 +810,56 @@ namespace OsEngine.Logging
                     return;
                 }
 
-                if (_grid != null
-                    && _grid.InvokeRequired)
-                {
-                    _grid.Invoke(new Action<LogMessage>(PaintMessage), messageLog);
-                    return;
-                }
-
+                // BUG-0282 R1: очередь файла вне UI-гейта — файл цел, даже если UI не стартовал
+                // или поток не UI; в grid сообщение донесёт маршалинг ниже
                 if (messageLog.Type != LogMessageType.OldSession)
                 {
                     _messagesToSaveInFile.Enqueue(messageLog);
+                }
+
+                if (_grid == null)
+                {
+                    return;
+                }
+
+                WindowsFormsHost host = _host;
+                if (host == null)
+                {
+                    // StartPaint ещё не было: на экране grid не виден и измерен быть не может,
+                    // но и лезть в него с чужого потока незачем — ждём StartPaint
+                    return;
+                }
+
+                // BUG-0282: Control.InvokeRequired лжёт на grid с несозданным handle (скрытая вкладка
+                // WindowsFormsHost) — маршалинг через Dispatcher WPF-хоста, как в StartPaint
+                System.Windows.Threading.Dispatcher dispatcher = host.Dispatcher;
+                if (dispatcher != null
+                    && !dispatcher.CheckAccess())
+                {
+                    LogMessage message = messageLog;
+                    dispatcher.Invoke(new Action(delegate ()
+                    {
+                        PaintMessageGrid(message);
+                    }));
+                    return;
+                }
+
+                PaintMessageGrid(messageLog);
+            }
+            catch (Exception error)
+            {
+                System.Diagnostics.Debug.WriteLine("Log paint error: " + error.ToString());
+            }
+        }
+
+        // BUG-0282: grid-часть вынесена, чтобы ре-ентр на UI не дублировал Enqueue в очередь файла
+        private void PaintMessageGrid(LogMessage messageLog)
+        {
+            try
+            {
+                if (_isDelete == true)
+                {
+                    return;
                 }
 
                 if (_grid != null
@@ -824,7 +889,7 @@ namespace OsEngine.Logging
             }
             catch (Exception error)
             {
-                System.Diagnostics.Debug.WriteLine("Log paint error: " + error.ToString());
+                System.Diagnostics.Debug.WriteLine("Log paint grid error: " + error.ToString());
             }
         }
 

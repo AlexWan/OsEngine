@@ -259,6 +259,15 @@ namespace OsEngine.OsTrader.ServerAvailability
         {
             try
             {
+                // BUG-0282: PingChangeEvent всплывает на потоке пингера; InvokeRequired лжёт на grid
+                // с несозданным handle (вкладка не показана) — маршалинг через Dispatcher WPF-элемента
+                if (HostActiveConnections != null
+                    && !HostActiveConnections.Dispatcher.CheckAccess())
+                {
+                    HostActiveConnections.Dispatcher.Invoke(new Action(UpdateGrid));
+                    return;
+                }
+
                 if (_dataGridConnector.InvokeRequired || _dataGridPingValue.InvokeRequired)
                 {
                     _dataGridConnector.Invoke(new Action(UpdateGrid));

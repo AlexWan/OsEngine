@@ -597,6 +597,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void Server_SecuritiesChangeEvent(List<Security> securities)
         {
+            // BUG-0282: raise идёт на потоке опроса сервера (LowPriorityDataThreadArea); ниже —
+            // InitializeUaGrid (Rows.Clear/Add) и работа с контролами, где InvokeRequired лжёт
+            // при несозданном handle. Маршалим весь обработчик на UI целиком
+            System.Windows.Threading.Dispatcher dispatcher =
+                System.Windows.Application.Current == null ? null : System.Windows.Application.Current.Dispatcher;
+            if (dispatcher != null
+                && !dispatcher.CheckAccess())
+            {
+                List<Security> list = securities;
+                dispatcher.Invoke(new Action<List<Security>>(Server_SecuritiesChangeEvent), list);
+                return;
+            }
+
             List<IServer> servers = ServerMaster.GetServers();
             IServer server = null;
             if (servers != null)

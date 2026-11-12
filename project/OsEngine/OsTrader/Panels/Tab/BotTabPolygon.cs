@@ -984,9 +984,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (_grid.InvokeRequired)
+                // BUG-0282: Control.InvokeRequired лжёт на grid с несозданным handle (скрытая вкладка) —
+                // маршалинг через Dispatcher WPF-хоста
+                WindowsFormsHost host = _host;
+                if (host == null)
                 {
-                    _grid.Invoke(new Action(RePaintGrid));
+                    return;
+                }
+                if (!host.Dispatcher.CheckAccess())
+                {
+                    host.Dispatcher.Invoke(new Action(RePaintGrid));
                     return;
                 }
 
@@ -1026,6 +1033,19 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                // BUG-0282: вызывается потоком-отрисовщиком с пула — гард на входе, ДО GetRowsToGrid
+                // и сверки rows.Count с _grid.Rows (иначе само чтение структуры идёт с чужого потока)
+                WindowsFormsHost host = _host;
+                if (host == null)
+                {
+                    return;
+                }
+                if (!host.Dispatcher.CheckAccess())
+                {
+                    host.Dispatcher.Invoke(new Action(TryRePaintGrid));
+                    return;
+                }
+
                 List<DataGridViewRow> rows = GetRowsToGrid();
 
                 if (rows == null)
@@ -1090,9 +1110,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void TryRePaintRow(DataGridViewRow rowInGrid, DataGridViewRow rowInArray)
         {
-            if (_grid.InvokeRequired)
+            // BUG-0282: маршалинг через Dispatcher хоста (InvokeRequired лжёт при несозданном handle)
+            WindowsFormsHost host = _host;
+            if (host != null
+                && !host.Dispatcher.CheckAccess())
             {
-                _grid.Invoke(new Action<DataGridViewRow, DataGridViewRow>(TryRePaintRow), rowInGrid, rowInArray);
+                host.Dispatcher.Invoke(new Action<DataGridViewRow, DataGridViewRow>(TryRePaintRow), rowInGrid, rowInArray);
                 return;
             }
 
