@@ -16,36 +16,49 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             myServer.ServerRealization.DisconnectEvent += ServerRealization_DisconnectEvent;
             myServer.ServerRealization.LogMessageEvent += ServerRealization_LogMessageEvent;
 
-            ServerConnectStatus _lastStatus = ServerConnectStatus.Disconnect;
+            // bug-0281: отписка от всех подписок в finally — обработчики не утекают
+            // в переиспользуемый инстанс AServer между тестами
 
-            for(int i = 0;i < 5;i++)
+            try
             {
-                Thread.Sleep(1000);
+                ServerConnectStatus _lastStatus = ServerConnectStatus.Disconnect;
 
-                if(i != 0 && _lastStatus == myServer.ServerStatus)
+                for(int i = 0;i < 5;i++)
                 {
-                    this.SetNewError(
-                        "Error 1. ServerStatus had not changed 10 seconds after it was started/stopped. Iteration: " + i);
-                    TestEnded();
-                    return;
+                    Thread.Sleep(1000);
+
+                    if(i != 0 && _lastStatus == myServer.ServerStatus)
+                    {
+                        this.SetNewError(
+                            "Error 1. ServerStatus had not changed 10 seconds after it was started/stopped. Iteration: " + i);
+                        TestEnded();
+                        return;
+                    }
+
+                    if (myServer.ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        _lastStatus = ServerConnectStatus.Disconnect;
+                        myServer.StartServer();
+                        WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
+                    }
+
+                    if (myServer.ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        _lastStatus = ServerConnectStatus.Connect;
+                        myServer.StopServer();
+                        WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
+                    }
                 }
 
-                if (myServer.ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    _lastStatus = ServerConnectStatus.Disconnect;
-                    myServer.StartServer();
-                    WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
-                }
-
-                if (myServer.ServerStatus == ServerConnectStatus.Connect)
-                {
-                    _lastStatus = ServerConnectStatus.Connect;
-                    myServer.StopServer();
-                    WaitStatusChange(myServer, _lastStatus, StatusChangeTimeoutMs);
-                }
+                TestEnded();
             }
-
-            TestEnded();
+            finally
+            {
+                myServer.ConnectStatusChangeEvent -= MyServer_ConnectStatusChangeEvent;
+                myServer.ServerRealization.ConnectEvent -= ServerRealization_ConnectEvent;
+                myServer.ServerRealization.DisconnectEvent -= ServerRealization_DisconnectEvent;
+                myServer.ServerRealization.LogMessageEvent -= ServerRealization_LogMessageEvent;
+            }
         }
 
         private const int StatusChangeTimeoutMs = 30000;
@@ -64,6 +77,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if(logType == Logging.LogMessageType.Error)
             {
+                // bug-0281: серверная Error считается только впервые наблюдавшейся
+                // в окне этого теста; остаток прошлого теста глушит гейт ([Isolation] пишет сам)
+
+                if (!ShouldCountServerError(message, out _))
+                {
+                    return;
+                }
+
                 this.SetNewError("Error 2. Server has ERROR in log " + message);
                 return;
             }

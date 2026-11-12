@@ -28,8 +28,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             myServer.LogMessageEvent += MyServer_LogMessageEvent;
 
-            Test();
-            TestEnded();
+            // bug-0281: отписка подписки в finally — обработчик не утекает
+            // в переиспользуемый инстанс AServer между тестами
+
+            try
+            {
+                Test();
+                TestEnded();
+            }
+            finally
+            {
+                myServer.LogMessageEvent -= MyServer_LogMessageEvent;
+            }
         }
 
         private const int StatusChangeTimeoutMs = 30000;
@@ -71,6 +81,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         private void MyServer_LogMessageEvent(string arg1, Logging.LogMessageType arg2)
         {
             if (arg2 != Logging.LogMessageType.Error)
+            {
+                return;
+            }
+
+            // bug-0281: серверная Error считается только впервые наблюдавшейся
+            // в окне этого теста; остаток прошлого теста глушит гейт ([Isolation] пишет сам)
+
+            if (!ShouldCountServerError(arg1, out _))
             {
                 return;
             }
