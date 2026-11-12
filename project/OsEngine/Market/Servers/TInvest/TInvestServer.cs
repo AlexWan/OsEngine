@@ -5651,6 +5651,10 @@ namespace OsEngine.Market.Servers.TInvest
                             order.State == OrderStateType.Cancel)
                         {
                             _orderPrices.TryRemove(state.OrderRequestId, out _);
+                            lock (_orderNumbersLocker)
+                            {
+                                _orderNumbers.Remove(state.OrderRequestId);
+                            }
                         }
 
                         if (orderStateResponse.OrderState.Trades != null)
@@ -6540,6 +6544,14 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // отказ в приёме заявки: причина видна только здесь - пишем Error до сворачивания в Fail
                     SendLogMessage($"Order rejected by broker. Security: {order.SecurityNameCode}, NumberUser: {order.NumberUser}, Side: {order.Side}, Volume: {order.Volume}, Price: {order.Price}. Message: {response.Message}", LogMessageType.Error);
+
+                    // синхронный отказ терминален, маппинг больше не нужен
+                    lock (_orderNumbersLocker)
+                    {
+                        _orderNumbers.Remove(orderId);
+                    }
+
+                    _orderPrices.TryRemove(orderId, out _);
 
                     CreateOrderFail(order, response.Message);
                 }
