@@ -337,7 +337,21 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            if (_securitiesToTrade.ValueString.Contains(tab.Security.Name) == false)
+            // Точное совпадение токена вместо подстроки: Contains пропускал T внутри VTBR, SBER внутри SBERP
+            string[] list = _securitiesToTrade.ValueString
+                .Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            bool inList = false;
+            for (int i = 0; i < list.Length; i++)
+            {
+                if (list[i] == tab.Security.Name)
+                {
+                    inList = true;
+                    break;
+                }
+            }
+
+            if (inList == false)
             {
                 return;
             }
