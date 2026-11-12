@@ -303,6 +303,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                // BUG-0282: InvokeRequired лжёт на grid с несозданным handle — маршалинг через Dispatcher WPF-Host
+                WindowsFormsHost host = Host;
+                if (host != null
+                    && !host.Dispatcher.CheckAccess())
+                {
+                    host.Dispatcher.Invoke(new Action(ClearGrid));
+                    return;
+                }
+
                 if (_grid.InvokeRequired)
                 {
                     _grid.Invoke(new Action(ClearGrid));
@@ -321,6 +330,15 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                // BUG-0282: InvokeRequired лжёт на grid с несозданным handle — маршалинг через Dispatcher WPF-Host
+                WindowsFormsHost host = Host;
+                if (host != null
+                    && !host.Dispatcher.CheckAccess())
+                {
+                    host.Dispatcher.Invoke(new Action(DeleteGridsToPaint));
+                    return;
+                }
+
                 if (_grid.InvokeRequired)
                 {
                     _grid.Invoke(new Action(DeleteGridsToPaint));
@@ -357,6 +375,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                // BUG-0282: RaiseNewsEvent всплывает на потоке коннектора; InvokeRequired лжёт при
+                // несозданном handle. Гард на входе — ДО структурных чтений grid (news.Count vs Rows.Count)
+                if (!Host.Dispatcher.CheckAccess())
+                {
+                    Host.Dispatcher.Invoke(new Action(TryRepaintGrid));
+                    return;
+                }
+
                 List<News> news = _connector.NewsArray;
 
                 if (news.Count == 0 && _grid.Rows.Count == 0)
@@ -371,12 +397,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         return;
                     }
-                }
-
-                if (_grid.InvokeRequired)
-                {
-                    _grid.Invoke(new Action(TryRepaintGrid));
-                    return;
                 }
 
                 int firstNewsNum = 0;

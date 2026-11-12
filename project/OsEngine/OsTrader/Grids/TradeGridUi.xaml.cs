@@ -700,9 +700,8 @@ namespace OsEngine.OsTrader.Grids
 
         private void CheckEnabledItems()
         {
-            if (_gridDataGrid.InvokeRequired)
+            if (TryMarshalToUi(new Action(CheckEnabledItems)))
             {
-                _gridDataGrid.Invoke(new Action(CheckEnabledItems));
                 return;
             }
 
@@ -943,9 +942,8 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                if (_gridDataGrid.InvokeRequired)
+                if (TryMarshalToUi(new Action(TradeGrid_RePaintSettingsEvent)))
                 {
-                    _gridDataGrid.Invoke(new Action(TradeGrid_RePaintSettingsEvent));
                     return;
                 }
 
@@ -1876,10 +1874,41 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        // BUG-0282: маршалинг на UI окна через его Dispatcher: Control.InvokeRequired на grid
+        // с несозданным handle лжёт (false) — перерисовка уходила с рабочего потока (краш #353).
+        // На Shutdown диспетчера — тихий возврат: отрисовка уже не нужна, а исключение ушло бы
+        // штормом ошибок в catch потока-наблюдателя. true = вызывающему возвращаться.
+        private bool TryMarshalToUi(Action repaint)
+        {
+            Dispatcher dispatcher = Dispatcher;
+            if (dispatcher == null)
+            {
+                // shortcut: у реального окна Dispatcher всегда задан; null только у достроенного
+                // без конструктора экземпляра — тогда штатный путь (инлайн)
+                return false;
+            }
+            if (dispatcher.HasShutdownStarted
+                || dispatcher.HasShutdownFinished)
+            {
+                return true;
+            }
+            if (dispatcher.CheckAccess())
+            {
+                return false;
+            }
+            dispatcher.Invoke(repaint);
+            return true;
+        }
+
         private void RePaintGridTable()
         {
             try
             {
+                if (TryMarshalToUi(new Action(RePaintGridTable)))
+                {
+                    return;
+                }
+
                 if (_gridDataGrid == null)
                 {
                     return;
@@ -1888,12 +1917,6 @@ namespace OsEngine.OsTrader.Grids
                 if (TradeGrid.GridCreator == null
                     || TradeGrid.GridCreator.Lines == null)
                 {
-                    return;
-                }
-
-                if (_gridDataGrid.InvokeRequired)
-                {
-                    _gridDataGrid.Invoke(new Action(RePaintGridTable));
                     return;
                 }
 
@@ -2004,9 +2027,8 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if (_gridDataGrid.InvokeRequired)
+                if (TryMarshalToUi(new Action(TryUpdateGridTable)))
                 {
-                    _gridDataGrid.Invoke(new Action(TryUpdateGridTable));
                     return;
                 }
 
