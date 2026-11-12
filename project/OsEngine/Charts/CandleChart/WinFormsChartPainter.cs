@@ -338,7 +338,7 @@ ContextMenuStrip menu)
 
                 if (FindSeriesByNameSafe("Deal_" + "BuySell") != null)
                 {
-                    _chart.Series.Remove(FindSeriesByNameSafe("Deal_" + "BuySell"));
+                    RemoveSeriesOnNextPaint(FindSeriesByNameSafe("Deal_" + "BuySell"));
                 }
 
                 for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
@@ -348,8 +348,8 @@ ContextMenuStrip menu)
                     if (_chart.Series[i].Name.Split('_')[0] == "Stop" ||
                         _chart.Series[i].Name.Split('_')[0] == "Profit")
                     {
-                        _chart.Series.Remove(_chart.Series[i]);
-                        i--;
+                        RemoveSeriesOnNextPaint(_chart.Series[i]);
+                        // отложенное удаление не укорачивает коллекцию: i-- вернул бы к той же серии и зациклил цикл
                     }
                 }
 
@@ -1029,7 +1029,7 @@ ContextMenuStrip menu)
                             ClearLabelOnY2(mySeries.Name + "Label", mySeries.ChartArea, mySeries.Points[0].Color);
                         }
                         mySeries.Points.ClearFast();
-                        _chart.Series.Remove(FindSeriesByNameSafe(indicator.Name + i));
+                        RemoveSeriesOnNextPaint(FindSeriesByNameSafe(indicator.Name + i));
 
                         if (_labelSeries != null)
                         {
@@ -1787,7 +1787,7 @@ ContextMenuStrip menu)
 
             if (FindSeriesByNameSafe("Cursor") != null)
             {
-                ReMoveSeriesSafe(FindSeriesByNameSafe("Cursor"));
+                RemoveSeriesOnNextPaint(FindSeriesByNameSafe("Cursor"));
             }
 
             PaintSeriesSafe(candleSeries);
