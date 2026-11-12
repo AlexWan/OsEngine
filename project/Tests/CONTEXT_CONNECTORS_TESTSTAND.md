@@ -115,6 +115,36 @@ OsEngine.Connectors.TestStand.exe --connector BinanceFutures --security ETHUSDT 
 - Отчёт каждого теста — в логе робота (`Engine\Log\*ConnectorsTesterBot*Log_*.txt`
   в папке OsEngine): `REPORT <Класс>` + `STATUS: OK|FAIL` + ошибки + service info.
 
+## Телеметрия
+
+- Каждые 10 с — строка `[Mem] pid=… ws=…MB private=…MB peakWS=…MB gcStand=…MB gen0/1/2=n/n/n`:
+  память OsEngine по данным ОС (рабочий набор, приватные байты, пик) + память самого стенда
+  (`gcStand` — GC-метрики оболочки, к движку отношения не имеют). Если процесс ушёл или его
+  утилизировали — `[Mem] sampling stopped: …` и сэмплер гаснет; сбой остановки сэмплера —
+  `[Mem] failed to stop sampler: …`.
+- Гибель процесса — `[Proc] pid=… EXITED exit=0x…… (n) at=… uptime=…s reason=… peakWS=… lastWS=…`;
+  `reason=stand_kill` только после успешного `Kill()`, иначе `reason=self_exit` (тихая смерть,
+  краш, смерть в микроокне между `HasExited` и `Kill`). Редкий фолбэк-вариант записи из
+  обработчика — `uptime=n/a` с хвостом `(<исключение>)`: значения потеряны, факт гибели записан.
+- `peakWS` в строке гибели — OS-пик, если читается; суффикс `~` означает «последний сэмпл
+  сэмплера» (ему ≤10 с: свойства памяти мёртвого процесса читаются с исключением). `lastWS` —
+  последний рабочий набор по сэмплеру или `n/a`, если сэмплер не успел отработать ни разу.
+- `Stop()`: перед `Kill()` — `[Proc] … STOP requested at=…`; при таймауте ожидания Kill —
+  `[Proc] … STILL RUNNING after 5000ms (kill not confirmed), exit=n/a`; если процесс умер до
+  остановки — `[Proc] … already exited exit=…`. Две `[Proc]`-строки на одну гибель (`EXITED`
+  из события + `already exited`) — норма. При исключении остановки — `Failed to stop OsEngine: …`
+  и всё равно `EXITED` (запись пишется в `finally`; `exit` часто `n/a:<исключение>`).
+- Отказ подписки/отписки события гибели — `[Proc] pid=… failed to subscribe process exit: …`
+  (например, процесс умер до `EnableRaisingEvents`) и `[Proc] … failed to unsubscribe process exit: …`.
+- Различить OOM и kill только по строке гибели нельзя — эвристика по СЕРИИ `[Mem]`: монотонный рост
+  `ws`/`private` на последних сэмплах + `reason=self_exit` — похоже на OOM; ровная серия +
+  `STOP requested` + `reason=stand_kill` — убил стенд. `exit=0x1` неоднозначен; для `Kill()`
+  на Windows наблюдается `-1 (0xFFFFFFFF)`.
+- Всё пишется в штатный лог стенда через `Console` (out и err — каждый через свой
+  `TextWriter.Synchronized`); общего syncRoot для out/err в BCL net10.0 нет — межисточниковая
+  склейка `out↔err` в строке файла лога является задокументированным лимитом, склейка внутри
+  строк одного источника недопустима. Отдельных файлов телеметрии нет.
+
 ## Длительность
 
 - Модуль без стриминга (Securities, Portfolio): ~3–5 мин (подъём OsEngine + коннект).
