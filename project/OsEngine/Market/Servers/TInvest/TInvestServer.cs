@@ -6017,7 +6017,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
                 {
-                    SendLogMessage("Replace order rejected by broker. Order: " + order.NumberUser, LogMessageType.System);
+                    SendLogMessage($"Replace order rejected by broker. Security: {order.SecurityNameCode}, NumberUser: {order.NumberUser}, NumberMarket: {order.NumberMarket}, Side: {order.Side}, Volume: {order.Volume}, Price: {order.Price}. Message: {response.Message}", LogMessageType.Error);
 
                     RestoreOrderMapping(oldRequestId, order.NumberUser);
 
