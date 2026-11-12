@@ -615,22 +615,67 @@ namespace OsEngine.Market.Servers.OKXData
         {
             string[] lines = File.ReadAllLines(csvFilePath);
 
-            List<Trade> trades = new List<Trade>(lines.Length - 1);
+            List<Trade> trades = new List<Trade>(Math.Max(0, lines.Length - 1));
 
             CultureInfo culture = CultureInfo.InvariantCulture;
 
-            Span<int> commas = new int[5];
+            // instrument_name/trade_id/side/price/size/created_time
+            // ETC-USDT-SWAP,156678173,sell,14.21,0.19,1744214402712
+
+            // Columns are located by the header, not by position: OKX added the "source"
+            // column to daily trade dumps (run141), and the positional parser was cutting
+            // it into created_time. Unknown columns are ignored.
+            string header = lines.Length > 0 ? lines[0] : string.Empty;
+
+            string[] headerColumns = header.Split(',');
+
+            Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            for (int c = 0; c < headerColumns.Length; c++)
+            {
+                string columnName = headerColumns[c].Trim();
+
+                // First occurrence wins: a duplicated column name must not move the index to the tail
+                if (!columns.ContainsKey(columnName))
+                {
+                    columns[columnName] = c;
+                }
+            }
+
+            // instrument_name is not used: secName comes from the parameter
+            string[] required = new string[] { "trade_id", "side", "price", "size", "created_time" };
+
+            int[] fieldIdx = new int[required.Length];
+
+            int requiredMaxIdx = -1;
+
+            for (int c = 0; c < required.Length; c++)
+            {
+                if (!columns.TryGetValue(required[c], out fieldIdx[c]))
+                {
+                    SendLogMessage($"Required CSV column {required[c]} missing, file skipped. Header: {header}", LogMessageType.Error);
+                    CleanTempFiles();
+                    return trades;
+                }
+
+                if (fieldIdx[c] > requiredMaxIdx)
+                {
+                    requiredMaxIdx = fieldIdx[c];
+                }
+            }
+
+            // One slot per header column, at least 6; the old parser fixed 6 columns = 5 commas
+            Span<int> commas = new int[Math.Max(6, headerColumns.Length)];
+
+            int skippedRows = 0;
 
             for (int i = 1; i < lines.Length; i++)
             {
                 ReadOnlySpan<char> line = lines[i].AsSpan();
 
-                // instrument_name/trade_id/side/price/size/created_time
-                // ETC-USDT-SWAP,156678173,sell,14.21,0.19,1744214402712
-
                 int commaCount = 0;
 
-                for (int j = 0; j < line.Length && commaCount < 5; j++)
+                for (int j = 0; j < line.Length && commaCount < commas.Length; j++)
                 {
                     if (line[j] == ',')
                     {
@@ -638,19 +683,59 @@ namespace OsEngine.Market.Servers.OKXData
                     }
                 }
 
-                if (commaCount < 5) continue;
+                if (commaCount < requiredMaxIdx) continue;
+
+                // The row ends without further commas: the right boundary of the last field is the end of the row
+                for (int j = commaCount; j <= requiredMaxIdx; j++)
+                {
+                    commas[j] = line.Length;
+                }
 
                 Trade trade = new Trade();
 
-                trade.Id = line.Slice(commas[0] + 1, commas[1] - commas[0] - 1).ToString();
-                trade.Side = line[commas[1] + 1] == 'b' ? Side.Buy : Side.Sell;
-                trade.Price = decimal.Parse(line.Slice(commas[2] + 1, commas[3] - commas[2] - 1), NumberStyles.Any, culture);
-                trade.Volume = Math.Abs(decimal.Parse(line.Slice(commas[3] + 1, commas[4] - commas[3] - 1), NumberStyles.Any, culture));
-                trade.Time = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(line.Slice(commas[4] + 1))).DateTime;
-                trade.MicroSeconds = 0;
-                trade.SecurityNameCode = secName;
+                // One broken line must not drop the whole file, as in ConvertCandles
+                try
+                {
+                    int idField = fieldIdx[0];
+                    int idLeft = idField == 0 ? 0 : commas[idField - 1] + 1;
+                    trade.Id = line.Slice(idLeft, commas[idField] - idLeft).ToString();
 
-                trades.Add(trade);
+                    int sideField = fieldIdx[1];
+                    trade.Side = line[sideField == 0 ? 0 : commas[sideField - 1] + 1] == 'b' ? Side.Buy : Side.Sell;
+
+                    int priceField = fieldIdx[2];
+                    int priceLeft = priceField == 0 ? 0 : commas[priceField - 1] + 1;
+                    trade.Price = decimal.Parse(line.Slice(priceLeft, commas[priceField] - priceLeft), NumberStyles.Any, culture);
+
+                    int sizeField = fieldIdx[3];
+                    int sizeLeft = sizeField == 0 ? 0 : commas[sizeField - 1] + 1;
+                    trade.Volume = Math.Abs(decimal.Parse(line.Slice(sizeLeft, commas[sizeField] - sizeLeft), NumberStyles.Any, culture));
+
+                    // The right boundary is the next comma; end of the row only if the column is really the last
+                    int timeField = fieldIdx[4];
+                    int timeLeft = timeField == 0 ? 0 : commas[timeField - 1] + 1;
+                    trade.Time = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(line.Slice(timeLeft, commas[timeField] - timeLeft))).DateTime;
+
+                    trade.MicroSeconds = 0;
+                    trade.SecurityNameCode = secName;
+
+                    trades.Add(trade);
+                }
+                catch (Exception error)
+                {
+                    // Storm guard (lesson 0173): only the first 10 broken rows go to the log, then a single summary after the loop
+                    skippedRows++;
+
+                    if (skippedRows <= 10)
+                    {
+                        SendLogMessage($"Trade row {i} skipped. {error.Message} {error.StackTrace}", LogMessageType.Error);
+                    }
+                }
+            }
+
+            if (skippedRows > 0)
+            {
+                SendLogMessage($"Trade rows skipped: {skippedRows}", LogMessageType.Error);
             }
 
             CleanTempFiles();
