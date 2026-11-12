@@ -231,10 +231,40 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
+        /// <summary>
+        /// to execute action on UI thread of chart host. Inline if host is not set: chart is detached, live WmPaint is impossible
+        /// выполнить действие в UI-потоке хоста чарта. Inline если хост ещё не назначен: чарт откреплён, живого WmPaint нет
+        /// </summary>
+        private void RunOnUi(Action action)
+        {
+            WindowsFormsHost host = _host;
+            if (host == null || host.Dispatcher.CheckAccess())
+            {
+                // хоста ещё нет — чарт откреплён и _isPaint выключен, живого WmPaint нет; inline сохраняет семантику master
+                action();
+                return;
+            }
+            host.Dispatcher.Invoke(action);
+        }
+
+        /// <summary>
+        /// whether current thread must marshal the call to UI thread. False if host is not set: master mutated inline in that window too
+        /// нужно ли маршалировать вызов в UI-поток. False если хост ещё не назначен: в том окне master мутировал inline
+        /// </summary>
+        private bool MustMarshalToUiThread()
+        {
+            WindowsFormsHost host = _host;
+            if (host == null)
+            {
+                return false;
+            }
+            return !host.Dispatcher.CheckAccess();
+        }
+
         public void ShowContextMenu(// TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
 ContextMenuStrip menu)
         {
-           _chart.ContextMenuStrip = menu;
+           RunOnUi(() => { _chart.ContextMenuStrip = menu; });
         }
 
         /// <summary>
@@ -258,9 +288,9 @@ ContextMenuStrip menu)
                     return;
                 }
 
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action(ClearDataPointsAndSizeValue));
+                    RunOnUi(ClearDataPointsAndSizeValue);
                     return;
                 }
                 if (_areaSizes != null)
@@ -338,9 +368,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action(ClearSeries));
+                RunOnUi(ClearSeries);
                 return;
             }
             for (int i = 0; i < _chart.Series.Count; i++)
@@ -373,9 +403,9 @@ ContextMenuStrip menu)
                     return;
                 }
 
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action(ClearDelete));
+                    RunOnUi(ClearDelete);
                     return;
                 }
 
@@ -546,9 +576,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action(RefreshChartColor));
+                    RunOnUi(RefreshChartColor);
                     return;
                 }
 
@@ -614,9 +644,9 @@ ContextMenuStrip menu)
         {
             try
             {
-                if (_chart != null && _chart.InvokeRequired)
+                if (_chart != null && MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action(CreateChart));
+                    RunOnUi(CreateChart);
                     return;
                 }
 
@@ -718,6 +748,12 @@ ContextMenuStrip menu)
         {
             try
             {
+                if (MustMarshalToUiThread())
+                {
+                    string areaResult = null;
+                    RunOnUi(() => { areaResult = CreateArea(nameArea, height); });
+                    return areaResult;
+                }
                 ChartArea area = FindAreaByNameSafe(nameArea);
 
                 if (area != null)
@@ -817,6 +853,12 @@ ContextMenuStrip menu)
         {
             try
             {
+                if (MustMarshalToUiThread())
+                {
+                    string nameResult = null;
+                    RunOnUi(() => { nameResult = CreateSeries(areaName, indicatorType, name); });
+                    return nameResult;
+                }
                 ChartArea area = GetChartArea(areaName);
 
                 Series newSeries = new Series(name);
@@ -948,6 +990,11 @@ ContextMenuStrip menu)
         {
             try
             {
+                if (MustMarshalToUiThread())
+                {
+                    RunOnUi(() => DeleteIndicator(indicator));
+                    return;
+                }
 
                 for (int i = 0; i < 30; i++)
                 {
@@ -1401,9 +1448,9 @@ ContextMenuStrip menu)
                     return;
                 }
 
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<List<Candle>>(PaintCandles), history);
+                    RunOnUi(() => PaintCandles(history));
                     return;
                 }
 
@@ -1546,9 +1593,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<List<Candle>, int>(RePaintToIndex), history, index);
+                RunOnUi(() => RePaintToIndex(history, index));
                 return;
             }
             Series candleSeries = FindSeriesByNameSafe("SeriesCandle");
@@ -2462,10 +2509,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<Series, Series[]>
-                        (PaintDealSafe), buySellSeries, profitStopOrderSeries);
+                    RunOnUi(() => PaintDealSafe(buySellSeries, profitStopOrderSeries));
                     return;
                 }
                 // 1 Drawing up deals
@@ -2876,10 +2922,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<List<Series>>
-                    (PaintStopLimitsSafe), stopLimitsSeries);
+                RunOnUi(() => PaintStopLimitsSafe(stopLimitsSeries));
                 return;
             }
 
@@ -3000,9 +3045,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<IChartElement>(ClearElem), element);
+                    RunOnUi(() => ClearElem(element));
                     return;
                 }
                 // If there is such a series on chart - delete
@@ -3089,9 +3134,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<Elements.Line>(PaintLineElemOnArea), lineElement);
+                RunOnUi(() => PaintLineElemOnArea(lineElement));
                 return;
             }
 
@@ -3200,9 +3245,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<LineHorisontal>(PaintHorizontalLineOnArea), lineElement);
+                RunOnUi(() => PaintHorizontalLineOnArea(lineElement));
                 return;
             }
 
@@ -3428,9 +3473,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<RectangleElement>(PaintRectangleElement), rectangle);
+                RunOnUi(() => PaintRectangleElement(rectangle));
                 return;
             }
 
@@ -3851,9 +3896,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<AlertToChart>(RemoveAlert), alertToChart);
+                RunOnUi(() => RemoveAlert(alertToChart));
                 return;
             }
 
@@ -4002,9 +4047,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<AlertToChart>(PaintAlert), alert);
+                RunOnUi(() => PaintAlert(alert));
                 return;
             }
 
@@ -4217,9 +4262,9 @@ ContextMenuStrip menu)
                     return;
                 }
 
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<IIndicator>(PaintIndicator), indicator);
+                    RunOnUi(() => PaintIndicator(indicator));
                     return;
                 }
 
@@ -4349,9 +4394,12 @@ ContextMenuStrip menu)
             &&
                 _host != null)
             {
-                PaintIndicator(indicator);
-                ReloadAreaSizes();
-                ResizeYAxisOnArea("Prime");
+                RunOnUi(() =>
+                {
+                    PaintIndicator(indicator);
+                    ReloadAreaSizes();
+                    ResizeYAxisOnArea("Prime");
+                });
             }
             else
             {
@@ -4392,9 +4440,9 @@ ContextMenuStrip menu)
                 return;
             }
 
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<IIndicator>(RePaintIndicator), indicatorCandle);
+                RunOnUi(() => RePaintIndicator(indicatorCandle));
                 return;
             }
 
@@ -4435,9 +4483,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<Series>(ClearIndicatorSeries), series);
+                    RunOnUi(() => ClearIndicatorSeries(series));
                     return;
                 }
                 series.Points.ClearFast();
@@ -5148,9 +5196,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<Series>(PaintSeriesSafe), series);
+                    RunOnUi(() => PaintSeriesSafe(series));
                     return;
                 }
                 if (FindSeriesByNameSafe(series.Name) == null)
@@ -5196,9 +5244,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<Series>(ReMoveSeriesSafe), series);
+                    RunOnUi(() => ReMoveSeriesSafe(series));
                     return;
                 }
                 if (FindSeriesByNameSafe(series.Name) == null)
@@ -5293,9 +5341,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<List<Candle>>(PaintSingleVolumePattern), candles);
+                RunOnUi(() => PaintSingleVolumePattern(candles));
                 return;
             }
             if (candles == null)
@@ -5330,9 +5378,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<int, int, string> (PaintInDifColor), indexStart, indexEnd, seriesName);
+                RunOnUi(() => PaintInDifColor(indexStart, indexEnd, seriesName));
                 return;
             }
             if (indexStart < 0 || indexEnd < 0)
@@ -5412,6 +5460,12 @@ ContextMenuStrip menu)
         {
             try
             {
+                if (MustMarshalToUiThread())
+                {
+                    RunOnUi(() => GoChartToTime(time));
+                    return;
+                }
+
                 if (_myCandles == null ||
                 _myCandles.Count < 50)
                 {
@@ -5755,9 +5809,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<string, string, string, decimal, Color, bool>(PaintLabelOnY2), name, nameArea, label, positionOnY, color, isPrime);
+                RunOnUi(() => PaintLabelOnY2(name, nameArea, label, positionOnY, color, isPrime));
                 return;
             }
 
@@ -5855,9 +5909,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<string, string, Color>(ClearLabelOnY2), name, nameArea,color);
+                RunOnUi(() => ClearLabelOnY2(name, nameArea, color));
                 return;
             }
 
@@ -5923,9 +5977,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<string>(RePaintPrimeLines), areaName);
+                RunOnUi(() => RePaintPrimeLines(areaName));
                 return;
             }
 
@@ -7533,9 +7587,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action<string, bool>(ResizeYAxisOnArea), areaName,full);
+                    RunOnUi(() => ResizeYAxisOnArea(areaName, full));
                     return;
                 }
 
@@ -7972,9 +8026,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action(ResizeXAxis));
+                RunOnUi(ResizeXAxis);
 
                 return;
             }
@@ -8072,9 +8126,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action(ResizeTickArea));
+                RunOnUi(ResizeTickArea);
                 return;
             }
 
@@ -8159,9 +8213,9 @@ ContextMenuStrip menu)
                 {
                     return;
                 }
-                if (_chart.InvokeRequired)
+                if (MustMarshalToUiThread())
                 {
-                    _chart.Invoke(new Action(ClearZoom));
+                    RunOnUi(ClearZoom);
                     return;
                 }
 
@@ -8200,9 +8254,9 @@ ContextMenuStrip menu)
             {
                 return;
             }
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<int>(MoveChartToTheRightLogic), scaleSize);
+                RunOnUi(() => MoveChartToTheRightLogic(scaleSize));
 
                 return;
             }
@@ -8278,9 +8332,9 @@ ContextMenuStrip menu)
 
         private void ChangeOpenScaleSize(int value)
         {
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<int>(ChangeOpenScaleSize), value);
+                RunOnUi(() => ChangeOpenScaleSize(value));
                 return;
             }
 
@@ -8310,9 +8364,9 @@ ContextMenuStrip menu)
 
         public void SetAxisXPositionFromRight(int xPosition)
         {
-            if (_chart.InvokeRequired)
+            if (MustMarshalToUiThread())
             {
-                _chart.Invoke(new Action<int>(SetAxisXPositionFromRight), xPosition);
+                RunOnUi(() => SetAxisXPositionFromRight(xPosition));
                 return;
             }
 
