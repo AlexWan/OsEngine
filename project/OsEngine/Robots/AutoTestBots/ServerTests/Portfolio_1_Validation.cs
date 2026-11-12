@@ -81,7 +81,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // при ненулевом остатке невалидна любая нога: SHORT не даст шорт (Error 12), LONG сломается на Error 9; до гарда нет ни подписок, ни ордеров
 
-            decimal start = GetCurValueBySecurity(mySecurity);
+            decimal start;
+
+            if (!TryGetCurValueBySecurity(mySecurity, out start))
+            {
+                TestEnded();
+                return;
+            }
 
             if (start != 0)
             {
@@ -149,7 +155,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             // 1 берём текущее состояние портфеля
 
-            decimal currentValue = GetCurValueBySecurity(mySecurity);
+            decimal currentValue;
+
+            if (!TryGetCurValueBySecurity(mySecurity, out currentValue))
+            {
+                return false;
+            }
 
             this.SetNewServiceInfo("LONG POS. Start asset value: " + currentValue.ToString());
 
@@ -175,7 +186,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                decimal value = GetCurValueBySecurity(mySecurity);
+                decimal value;
+
+                if (!TryGetCurValueBySecurity(mySecurity, out value))
+                {
+                    return false;
+                }
 
                 if (value != currentValue)
                 {
@@ -214,7 +230,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                decimal value = GetCurValueBySecurity(mySecurity);
+                decimal value;
+
+                if (!TryGetCurValueBySecurity(mySecurity, out value))
+                {
+                    return false;
+                }
 
                 if (value != currentValue)
                 {
@@ -234,7 +255,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             // 1 берём текущее состояние портфеля
 
-            decimal currentValue = GetCurValueBySecurity(mySecurity);
+            decimal currentValue;
+
+            if (!TryGetCurValueBySecurity(mySecurity, out currentValue))
+            {
+                return false;
+            }
 
             this.SetNewServiceInfo("SHORT POS. Start asset value: " + currentValue.ToString());
 
@@ -260,7 +286,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                decimal value = GetCurValueBySecurity(mySecurity);
+                decimal value;
+
+                if (!TryGetCurValueBySecurity(mySecurity, out value))
+                {
+                    return false;
+                }
 
                 if (value != currentValue)
                 {
@@ -300,7 +331,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                     return false;
                 }
 
-                decimal value = GetCurValueBySecurity(mySecurity);
+                decimal value;
+
+                if (!TryGetCurValueBySecurity(mySecurity, out value))
+                {
+                    return false;
+                }
 
                 if (value != currentValue)
                 {
@@ -316,7 +352,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             return true;
         }
 
-        private decimal GetCurValueBySecurity(Security sec)
+        private bool TryGetCurValueBySecurity(Security sec, out decimal value)
         {
             List<Portfolio> portfolious = Server.Portfolios;
 
@@ -324,8 +360,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 portfolious.Count == 0)
             {
                 SetNewError("Error 14. No Portfolio found");
-                TestEnded();
-                return 0;
+                value = 0;
+                return false;
             }
 
             Portfolio myPorftolio = null;
@@ -342,14 +378,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (myPorftolio == null)
             {
                 SetNewError("Error 15. Portfolio not found");
-                return 0;
+                value = 0;
+                return false;
             }
 
             List<PositionOnBoard> myPositions = myPorftolio.GetPositionOnBoard();
 
             if (myPositions == null)
             {
-                return 0;
+                // коннектор ещё ни разу не прислал позицию. легальный плоский старт, не отказ чтения
+                value = 0;
+                return true;
             }
 
             PositionOnBoard myPositionOnBoard = null;
@@ -366,10 +405,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (myPositionOnBoard == null)
             {
-                return 0;
+                // нет строки позиции по инструменту/активу: легальное «плоско», ждём дальше (Error 8..13 по таймауту)
+                value = 0;
+                return true;
             }
 
-            return myPositionOnBoard.ValueCurrent;
+            value = myPositionOnBoard.ValueCurrent;
+            return true;
         }
 
         private void SendBuyOrder(Security mySec, decimal price)
