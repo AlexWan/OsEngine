@@ -5247,6 +5247,51 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Whether the order is working: registered in the order book with a remaining volume
+        /// (State is Active or Partial). Pending and None are consciously NOT working orders:
+        /// the order is not registered in the book yet. Do not confuse with the "still in the
+        /// system" check in BotManualControl, which counts Pending as well
+        /// </summary>
+        public static bool IsWorkingOrder(Order order)
+        {
+            if (order == null)
+            {
+                return false;
+            }
+
+            return order.State == OrderStateType.Active
+                || order.State == OrderStateType.Partial;
+        }
+
+        /// <summary>
+        /// Cancel every order from the given list that passes the working filter. It is the
+        /// single cancellation point of the position-order-cancel loop; workingFilter decides
+        /// which orders go to cancel. Null list, null filter and null orders are skipped
+        /// </summary>
+        protected virtual void CancelWorkingOrders(List<Order> orders, Func<Order, bool> workingFilter)
+        {
+            if (orders == null || workingFilter == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order == null)
+                {
+                    continue;
+                }
+
+                if (workingFilter(order))
+                {
+                    _connector.OrderCancel(order);
+                }
+            }
+        }
+
+        /// <summary>
         /// Withdraw all orders from the system associated with this transaction
         /// </summary>
         public void CloseAllOrderToPosition(Position position)
@@ -5257,43 +5302,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.ProfitOrderIsActive = false;
 
 
-                if (position.OpenOrders != null &&
-                   position.OpenOrders.Count > 0)
-                {
-                    for (int i = 0; i < position.OpenOrders.Count; i++)
-                    {
-                        Order order = position.OpenOrders[i];
+                CancelWorkingOrders(position.OpenOrders, order => order.State == OrderStateType.Active);
 
-                        if (order == null)
-                        {
-                            continue;
-                        }
-
-                        if (order.State == OrderStateType.Active)
-                        {
-                            _connector.OrderCancel(position.OpenOrders[i]);
-                        }
-                    }
-                }
-
-
-                if (position.CloseOrders != null)
-                {
-                    for (int i = 0; i < position.CloseOrders.Count; i++)
-                    {
-                        Order closeOrder = position.CloseOrders[i];
-
-                        if (closeOrder == null)
-                        {
-                            continue;
-                        }
-
-                        if (closeOrder.State == OrderStateType.Active)
-                        {
-                            _connector.OrderCancel(closeOrder);
-                        }
-                    }
-                }
+                CancelWorkingOrders(position.CloseOrders, order => order.State == OrderStateType.Active);
             }
             catch (Exception error)
             {
@@ -6032,20 +6043,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            for (int i = 0; i < position.CloseOrders.Count; i++)
-            {
-                Order order = position.CloseOrders[i];
-
-                if (order == null)
-                {
-                    continue;
-                }
-
-                if (IsServerStopOrder(order) && order.State == OrderStateType.Active)
-                {
-                    _connector.OrderCancel(order);
-                }
-            }
+            CancelWorkingOrders(position.CloseOrders,
+                order => IsServerStopOrder(order) && order.State == OrderStateType.Active);
         }
 
         #endregion
