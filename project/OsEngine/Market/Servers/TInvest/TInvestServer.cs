@@ -5890,6 +5890,15 @@ namespace OsEngine.Market.Servers.TInvest
                     return;
                 }
 
+                if (order.State == OrderStateType.Cancel
+                    && state.Status != StopOrderStatusOption.StopOrderStatusExecuted)
+                {   // отзыв/истечение терминальны и без порождения заявки, маппинг больше не нужен
+                    lock (_orderNumbersLocker)
+                    {
+                        _stopOrderNumbers.Remove(state.StopOrderId);
+                    }
+                }
+
                 if (state.Status == StopOrderStatusOption.StopOrderStatusExecuted)
                 {
                     // исполнение стопа требует REST-дозапросов (ExchangeOrderId, ActivationDateTime, сделки) -
@@ -6111,6 +6120,16 @@ namespace OsEngine.Market.Servers.TInvest
 
                 // трейды дочерней заявки
                 ProcessStopOrderChildOrderTrades(state, security);
+
+                if (order.State == OrderStateType.Done
+                    || order.State == OrderStateType.Cancel
+                    || order.State == OrderStateType.Fail)
+                {   // стоп отработал и дочерняя заявка завершилась, пара больше не нужна
+                    lock (_orderNumbersLocker)
+                    {
+                        _stopOrderNumbers.Remove(state.TradeOrderId);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -7954,6 +7973,14 @@ namespace OsEngine.Market.Servers.TInvest
                                 RemoveActiveStopOrderUnsafe(order.NumberMarket);
                             }
 
+                            if (serverStatus != StopOrderStatusOption.StopOrderStatusExecuted)
+                            {   // сверка подтвердила терминал без активации, маппинг больше не нужен
+                                lock (_orderNumbersLocker)
+                                {
+                                    _stopOrderNumbers.Remove(order.NumberMarket);
+                                }
+                            }
+
                             if (serverStatus == StopOrderStatusOption.StopOrderStatusExecuted)
                             {
                                 ProcessStopOrderTrades(order, stopsFromServer[i], source);
@@ -8175,7 +8202,8 @@ namespace OsEngine.Market.Servers.TInvest
                                 newOrder.NumberUser = _stopOrderNumbers[stop.StopOrderId];
                             }
                             else
-                            {   // не наш стоп-ордер (ручной или выставленный вне этого экземпляра). Пропускаем только его,
+                            {   // не наш стоп-ордер (ручной или выставленный вне этого экземпляра) либо наш,
+                                // но уже снятый на терминале. Пропускаем только его,
                                 // без фабрики NumberUser и без пополнения _stopOrderNumbers — как обычные заявки
                                 continue;
                             }
