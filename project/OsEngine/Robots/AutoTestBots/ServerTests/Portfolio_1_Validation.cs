@@ -79,6 +79,17 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
+            // при ненулевом остатке невалидна любая нога: SHORT не даст шорт (Error 12), LONG сломается на Error 9; до гарда нет ни подписок, ни ордеров
+
+            decimal start = GetCurValueBySecurity(mySecurity);
+
+            if (start != 0)
+            {
+                SetNewError("Error 57. Start position is not flat: " + start);
+                TestEnded();
+                return;
+            }
+
             Server.NewMarketDepthEvent += Server_NewMarketDepthEvent;
             Server.NewOrderIncomeEvent += Server_NewOrderIncomeEvent;
             Server.NewMyTradeEvent += Server_NewMyTradeEvent;
@@ -258,14 +269,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
+            this.SetNewServiceInfo("Value asset after Sell order: " + currentValue.ToString());
+
             if (currentValue >= 0)
             {
                 SetNewError($"Error 12. Value in portfolio >= 0");
 
                 return false;
             }
-
-            this.SetNewServiceInfo("Value asset after Sell order: " + currentValue.ToString());
 
             // 4 ордер на продажу
 
