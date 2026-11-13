@@ -1202,7 +1202,8 @@ namespace OsEngine.Logging
             ServerMaster.SendNewLogMessage(e.ToString(), Logging.LogMessageType.Error);
         }
 
-        private static bool _errorLogShutDown = false;
+        // volatile: single UI-thread writer, cross-thread readers. Do not remove.
+        private static volatile bool _errorLogShutDown = false;
 
         /// <summary>
         /// count of Error messages posted to UI dispatcher but not yet processed
