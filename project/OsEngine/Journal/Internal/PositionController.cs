@@ -619,8 +619,11 @@ namespace OsEngine.Journal.Internal
                     {
                         curPosition = _deals[i];
                     }
-                    catch
+                    catch (Exception error)
                     {
+                        // NeedToUpdateStatePositions and UI paths mutate _deals without the lock,
+                        // the list can shrink between the Count check and the indexer
+                        SendNewLogMessage("Update order scan skipped at index " + i + ", journal " + _name + ". " + error.ToString(), LogMessageType.Error);
                         continue;
                     }
 
@@ -1166,6 +1169,123 @@ namespace OsEngine.Journal.Internal
             }
         }
         private Position _lastPosition;
+
+        #endregion
+
+        #region Reader snapshots and Iceberg add
+
+        /// <summary>
+        /// Copy of the open positions list under lock(_dealsLocker).
+        /// For lock-free readers (Journal.IsMyOrder), BUG-0291.
+        /// </summary>
+        public List<Position> CreateOpenPositionsSnapshot()
+        {
+            lock (_dealsLocker)
+            {
+                try
+                {
+                    if (_openPositions == null)
+                    {
+                        return new List<Position>();
+                    }
+                    return new List<Position>(_openPositions);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    // Unlocked mutators of already published data (residual: CopyTrader, UI paths,
+                    // see CheckOrdersForStale) can tear the copy apart. Degrade to empty list,
+                    // the reader then matches nothing instead of throwing.
+                    SendNewLogMessage("Open positions snapshot skipped, journal " + _name + ". " + error.ToString(), LogMessageType.Error);
+                    return new List<Position>();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copy of all positions (history) list under lock(_dealsLocker).
+        /// For lock-free readers (Journal.IsMyOrder), BUG-0291.
+        /// </summary>
+        public List<Position> CreateAllPositionsSnapshot()
+        {
+            lock (_dealsLocker)
+            {
+                try
+                {
+                    if (_deals == null)
+                    {
+                        return new List<Position>();
+                    }
+                    return new List<Position>(_deals);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    // Same degradation as in CreateOpenPositionsSnapshot
+                    SendNewLogMessage("All positions snapshot skipped, journal " + _name + ". " + error.ToString(), LogMessageType.Error);
+                    return new List<Position>();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copy of one position order list under lock(_dealsLocker). null order list in, null out.
+        /// For lock-free readers (Journal.IsMyOrder), BUG-0291.
+        /// </summary>
+        public List<Order> CreateOrderListSnapshot(List<Order> orders)
+        {
+            if (orders == null)
+            {
+                return null;
+            }
+
+            lock (_dealsLocker)
+            {
+                try
+                {
+                    return new List<Order>(orders);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    // Same degradation as in CheckOrdersForStale (transient), the reader
+                    // treats null as an empty list and matches nothing in this position.
+                    SendNewLogMessage("Order list snapshot skipped, journal " + _name + ". " + error.ToString(), LogMessageType.Error);
+                    return null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds an order of an iceberg worker to the position under lock(_dealsLocker).
+        /// Before this method IcebergMaker.Check() called Position.AddNewOpenOrder /
+        /// AddNewCloseOrder directly without a lock and raced with journal readers (BUG-0291).
+        /// Returns false when arguments are null (Error log, no exception).
+        /// </summary>
+        public bool AddIcebergOrderToPosition(Position position, Order order, bool isCloseOrder)
+        {
+            if (position == null || order == null)
+            {
+                SendNewLogMessage("Iceberg order add refused. Position "
+                    + (position == null ? "null" : position.Number.ToString())
+                    + ", order " + (order == null ? "null" : order.NumberUser.ToString()),
+                    LogMessageType.Error);
+                return false;
+            }
+
+            lock (_dealsLocker)
+            {
+                if (isCloseOrder)
+                {
+                    position.AddNewCloseOrder(order);
+                }
+                else
+                {
+                    position.AddNewOpenOrder(order);
+                }
+
+                _needToSave = true;
+            }
+
+            return true;
+        }
 
         #endregion
 

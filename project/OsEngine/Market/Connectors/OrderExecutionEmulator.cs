@@ -203,7 +203,17 @@ namespace OsEngine.Market.Connectors
 
                 if (OrderChangeEvent != null)
                 {
-                    OrderChangeEvent(order);
+                    try
+                    {
+                        OrderChangeEvent(order);
+                    }
+                    catch (Exception e)
+                    {
+                        // A subscriber error must not drop the rest of the batch
+                        // (the order is already dequeued), BUG-0291
+                        ServerMaster.SendNewLogMessage("Error on OrderChangeEvent in paper mode. NumberUser "
+                            + order.NumberUser + ". " + e.ToString(), Logging.LogMessageType.Error);
+                    }
                 }
             }
 
