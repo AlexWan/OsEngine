@@ -1101,8 +1101,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (needRepaint)
                 {
                     // Residual risk: the repaint reads Tabs outside the lock and may catch a
-                    // parallel reload. RePaintSecuritiesGrid guards internally and the grid is
-                    // restored on the next repaint; the race class predates this fix.
+                    // parallel reload. RePaintSecuritiesGrid swallows the torn pass, and the grid
+                    // is re-stamped only when a later delete/create sets needRepaint; an
+                    // update-only reload leaves the torn view until then. The deferred repaint
+                    // also replaces append-only PaintNewRow on create: Rows.Clear repaints the
+                    // whole grid, so selection is lost and an in-place On/Off edit is cancelled
+                    // (editable :1927); scroll is restored but flickers. Race class predates fix.
                     RePaintSecuritiesGrid();
                 }
             }
@@ -1154,6 +1158,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // 1 remove unwanted tabs
 
                 bool deleteSomeTabs = false;
+
+                // F3: the deferred close in the caller's finally raises ChartClosedEvent on the UI
+                // thread OUTSIDE this lock and RemoveAt's _chartEngines (:1630-38), so the live list
+                // can shrink mid-loop for the next lock holder. Index a local snapshot; the base
+                // serialized the close under the lock. No UI calls from this loop.
+                CandleEngine[] chartEnginesSnapshot = _chartEngines == null ? null : _chartEngines.ToArray();
               
                 for (int i = 0; i < Tabs.Count; i++)
                 {
@@ -1163,13 +1173,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         string chartName = Tabs[i].TabName + "_Engine";
 
-                        for (int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count; i2++)
+                        for (int i2 = 0; chartEnginesSnapshot != null && i2 < chartEnginesSnapshot.Length; i2++)
                         {
-                            if (chartName == _chartEngines[i2].NameStrategyUniq)
+                            if (chartName == chartEnginesSnapshot[i2].NameStrategyUniq)
                             {
                                 // closing is deferred to the plan outside the lock (BUG-0335),
                                 // the engine itself stays in _chartEngines as before
-                                chartsToClose.Add(_chartEngines[i2]);
+                                chartsToClose.Add(chartEnginesSnapshot[i2]);
                                 break;
                             }
                         }
@@ -1211,11 +1221,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                         needRepaint = true; // the row is drawn by the deferred plan (BUG-0335)
 
                         // W-1, contract for NewTabCreateEvent subscribers (the raise stays under the lock):
-                        // data-only on this path holds for the screener chain of the optimizer
-                        // (the single UI entry into the lock is the Closed-callback OptimizerUi :1907-12;
-                        // BotPanel :2158/:2200 go to journals, LoadTabToWatch :48-51 is an assignment).
-                        // On-board bots TestBotOption :262-266 / TestBotFunding :171-175 marshal to UI
-                        // under the raise, but have no UI entry into their own locker.
+                        // data-only here holds for current subscribers: BotPanel :2158/:2200 go to
+                        // journals, LoadTabToWatch :48-51 is an assignment, TestBotOption :262-266 /
+                        // TestBotFunding :171-175 marshal to UI under the raise but have no UI entry
+                        // into their own locker.
+                        // UI entries into this lock: (1) OptimizerUi Closed-callback :1907-12;
+                        // (2) MCP config Apply*: RobotsApi.SetBotConfigTabScreener :2064-72 and
+                        // OptimizerApi :1050-56 marshal to the UI thread (MainWindow.GetDispatcher,
+                        // synchronous Invoke) and enter the lock ON the UI thread - with a non-UI
+                        // holder (static worker :140-43) that freezes OsTrader, not only the optimizer.
                         // Both TryReLoadTabs and NewTabCreateEvent are public: a user robot with a
                         // UI-blocking handler under the raise can close the deadlock cycle again.
                         if (NewTabCreateEvent != null)
