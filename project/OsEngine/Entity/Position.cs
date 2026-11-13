@@ -536,16 +536,26 @@ namespace OsEngine.Entity
         {
             get
             {
-                if(OpenOrders == null 
-                    || OpenOrders.Count == 0
-                    || OpenOrders[0] == null)
+                try
                 {
-                    return null;
+                    if(OpenOrders == null 
+                        || OpenOrders.Count == 0
+                        || OpenOrders[0] == null)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return OpenOrders[0].ServerName;
+                    }
                 }
-                else
+                catch (ArgumentOutOfRangeException error)
                 {
-                    return OpenOrders[0].ServerName;
+                    // BUG-0300: OpenOrders can shrink to empty between the Count guard and the indexer
+                    // (UI/timer readers vs order remove paths without lock). Degrade to null, as no-orders.
+                    ServerMaster.SendNewLogMessage("ServerName read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
                 }
+                return null;
             }
         }
 
@@ -707,37 +717,48 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_openOrders == null ||
-                    _openOrders.Count == 0)
+                try
                 {
-                    return 0;
-                }
-
-                decimal price = 0;
-                decimal volume = 0;
-                for (int i = 0; i < _openOrders.Count; i++)
-                {
-                    Order order = _openOrders[i];
-
-                    if (order == null)
+                    if (_openOrders == null ||
+                        _openOrders.Count == 0)
                     {
-                        continue;
+                        return 0;
                     }
 
-                    decimal volumeEx = order.VolumeExecute;
-                    if (volumeEx != 0)
+                    decimal price = 0;
+                    decimal volume = 0;
+                    for (int i = 0; i < _openOrders.Count; i++)
                     {
-                        volume += volumeEx;
-                        price += volumeEx * order.PriceReal;
-                    }
-                }
-                if (volume == 0
-                    && _openOrders[0] != null)
-                {
-                    return _openOrders[0].Price;
-                }
+                        Order order = _openOrders[i];
 
-                return price/volume;
+                        if (order == null)
+                        {
+                            continue;
+                        }
+
+                        decimal volumeEx = order.VolumeExecute;
+                        if (volumeEx != 0)
+                        {
+                            volume += volumeEx;
+                            price += volumeEx * order.PriceReal;
+                        }
+                    }
+                    if (volume == 0
+                        && _openOrders[0] != null)
+                    {
+                        return _openOrders[0].Price;
+                    }
+
+                    return price/volume;
+                }
+                catch (ArgumentOutOfRangeException error)
+                {
+                    // BUG-0300: _openOrders can shrink between the Count guard and the indexer
+                    // (UI/timer readers vs order remove/replace paths without lock).
+                    // Degrade to 0, the same value as the no-orders case.
+                    ServerMaster.SendNewLogMessage("EntryPrice read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
+                }
+                return 0;
             }
         }
 
@@ -835,11 +856,21 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_timeCreate == DateTime.MinValue &&
-                    _openOrders != null
-                    && _openOrders.Count > 0)
+                try
                 {
-                    _timeCreate = _openOrders[0].GetLastTradeTime();
+                    if (_timeCreate == DateTime.MinValue &&
+                        _openOrders != null
+                        && _openOrders.Count > 0
+                        && _openOrders[0] != null)
+                    {
+                        _timeCreate = _openOrders[0].GetLastTradeTime();
+                    }
+                }
+                catch (ArgumentOutOfRangeException error)
+                {
+                    // BUG-0300: _openOrders can shrink between the Count guard and the indexer.
+                    // Degrade to cached _timeCreate (MinValue), the same value as the no-orders case.
+                    ServerMaster.SendNewLogMessage("TimeCreate read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
                 }
 
                 return _timeCreate;
@@ -855,30 +886,39 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (CloseOrders != null
-                    && CloseOrders.Count != 0)
+                try
                 {
-                    for (int i = CloseOrders.Count - 1; i > -1 && i < CloseOrders.Count; i--)
+                    if (CloseOrders != null
+                        && CloseOrders.Count != 0)
                     {
-                        Order closeOrder = CloseOrders[i];
-
-                        if (closeOrder == null)
+                        for (int i = CloseOrders.Count - 1; i > -1 && i < CloseOrders.Count; i--)
                         {
-                            continue;
-                        }
+                            Order closeOrder = CloseOrders[i];
 
-                        if (closeOrder.State != OrderStateType.Done
-                            && closeOrder.State != OrderStateType.Partial)
-                        {
-                            continue;
-                        }
+                            if (closeOrder == null)
+                            {
+                                continue;
+                            }
 
-                        DateTime time = closeOrder.GetLastTradeTime();
-                        if (time != DateTime.MinValue)
-                        {
-                            return time;
+                            if (closeOrder.State != OrderStateType.Done
+                                && closeOrder.State != OrderStateType.Partial)
+                            {
+                                continue;
+                            }
+
+                            DateTime time = closeOrder.GetLastTradeTime();
+                            if (time != DateTime.MinValue)
+                            {
+                                return time;
+                            }
                         }
                     }
+                }
+                catch (ArgumentOutOfRangeException error)
+                {
+                    // BUG-0300: _closeOrders can shrink during the scan (remove path without lock).
+                    // Degrade to TimeCreate, the same value as the no-Done-orders case.
+                    ServerMaster.SendNewLogMessage("TimeClose read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
                 }
                 return TimeCreate;
             }
@@ -1797,33 +1837,43 @@ namespace OsEngine.Entity
         /// </summary>
         private bool IsLotServer()
         {
-            if (OpenOrders != null && OpenOrders.Count > 0)
+            try
             {
-                ServerType serverType = OpenOrders[0].ServerType;
-
-                if(serverType == ServerType.Tester ||
-                    serverType == ServerType.None ||
-                    serverType == ServerType.Optimizer ||
-                    serverType == ServerType.Miner)
+                if (OpenOrders != null && OpenOrders.Count > 0)
                 {
-                    return true;
+                    ServerType serverType = OpenOrders[0].ServerType;
+
+                    if(serverType == ServerType.Tester ||
+                        serverType == ServerType.None ||
+                        serverType == ServerType.Optimizer ||
+                        serverType == ServerType.Miner)
+                    {
+                        return true;
+                    }
+
+                    if(serverType == ServerType.QuikLua
+                        || serverType == ServerType.Plaza)
+                    {
+                        return true;
+                    }
+
+                    IServerPermission permission = ServerMaster.GetServerPermission(serverType);
+
+                    if(permission == null)
+                    {
+                        return false;
+                    }
+
+                    return permission.IsUseLotToCalculateProfit;
+
                 }
-
-                if(serverType == ServerType.QuikLua
-                    || serverType == ServerType.Plaza)
-                {
-                    return true;
-                }
-
-                IServerPermission permission = ServerMaster.GetServerPermission(serverType);
-
-                if(permission == null)
-                {
-                    return false;
-                }
-
-                return permission.IsUseLotToCalculateProfit;
-
+            }
+            catch (ArgumentOutOfRangeException error)
+            {
+                // BUG-0300: OpenOrders can shrink between the Count guard and the indexer.
+                // Degrade to false, the same value as the no-orders case. Callers CommissionTotal
+                // and ProfitPortfolioAbs may under-count profit for one tick, self-heals on next read.
+                ServerMaster.SendNewLogMessage("IsLotServer read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
             return false;
         }
@@ -1917,10 +1967,20 @@ namespace OsEngine.Entity
         {
             get
             {
-                if( OpenOrders!= null 
-                    && OpenOrders.Count> 0)
+                try
                 {
-                    return OpenOrders[0].PortfolioNumber;
+                    if( OpenOrders!= null 
+                        && OpenOrders.Count> 0
+                        && OpenOrders[0] != null)
+                    {
+                        return OpenOrders[0].PortfolioNumber;
+                    }
+                }
+                catch (ArgumentOutOfRangeException error)
+                {
+                    // BUG-0300: OpenOrders can shrink between the Count guard and the indexer.
+                    // Null head is tolerated too (was an NRE). Degrade to null, as no-orders.
+                    ServerMaster.SendNewLogMessage("PortfolioName read race on position " + Number + ". " + error.ToString(), OsEngine.Logging.LogMessageType.Error);
                 }
 
                 return null;
