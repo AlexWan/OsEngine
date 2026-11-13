@@ -5,6 +5,7 @@
 
 using System;
 using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace OsEngine.Charts.CandleChart.Elements
 {
@@ -169,6 +170,14 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// толщина линии. От 1 до 10 пикселей
         /// </summary>
         public int LineWidth = 1;
+
+        /// <summary>
+        /// line dash style: Solid, Dash, Dot, DashDot, DashDotDot.
+        /// Applied when the chart series is created and on full chart repaint, same as Color
+        /// стиль линии: сплошная, штриховая, точечная, штрих-пунктирная, штрих-пунктир-точка.
+        /// Применяется при создании серии чарта и при полной перерисовке чарта, как Color
+        /// </summary>
+        public ChartDashStyle LineDashStyle = ChartDashStyle.Solid;
 
         /// <summary>
         /// line drawing start time

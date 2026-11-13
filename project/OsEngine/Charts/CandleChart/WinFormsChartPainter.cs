@@ -3147,6 +3147,7 @@ ContextMenuStrip menu)
                 newSeries = new Series(lineElement.UniqName);
                 newSeries.ChartType = SeriesChartType.Line;
                 newSeries.BorderWidth = lineElement.LineWidth;
+                newSeries.BorderDashStyle = lineElement.LineDashStyle;
                 newSeries.Color = lineElement.Color;
                 newSeries.ChartArea = lineElement.Area;
                 newSeries.YAxisType = AxisType.Secondary;
@@ -3258,6 +3259,7 @@ ContextMenuStrip menu)
                 newSeries = new Series(lineElement.UniqName);
                 newSeries.ChartType = SeriesChartType.Line;
                 newSeries.BorderWidth = lineElement.LineWidth;
+                newSeries.BorderDashStyle = lineElement.LineDashStyle;
                 newSeries.Color = lineElement.Color;
                 newSeries.ChartArea = lineElement.Area;
                 newSeries.YAxisType = AxisType.Secondary;
