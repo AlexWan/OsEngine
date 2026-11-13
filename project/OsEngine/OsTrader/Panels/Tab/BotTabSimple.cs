@@ -7096,9 +7096,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         SetNewLogMessage(
-                            "Close Position at Stop. StopPrice: " +
-                            position.StopOrderRedLine
-                            + " LastMarketPrice: " + lastTrade,
+                            BuildPositionSupportCloseMessage(position, true, position.StopOrderRedLine, lastTrade),
                             LogMessageType.System);
 
                         if (position.StopIsIceberg == true
@@ -7135,9 +7133,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         SetNewLogMessage(
-                            "Close Position at Stop. StopPrice: " +
-                            position.StopOrderRedLine
-                            + " LastMarketPrice: " + lastTrade,
+                            BuildPositionSupportCloseMessage(position, true, position.StopOrderRedLine, lastTrade),
                             LogMessageType.System);
 
                         if (position.StopIsIceberg == true
@@ -7177,9 +7173,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         SetNewLogMessage(
-                            "Close Position at Profit. ProfitPrice: " +
-                            position.ProfitOrderRedLine
-                            + " LastMarketPrice: " + lastTrade,
+                            BuildPositionSupportCloseMessage(position, false, position.ProfitOrderRedLine, lastTrade),
                             LogMessageType.System);
 
                         if (position.ProfitIsIceberg == true
@@ -7216,9 +7210,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         SetNewLogMessage(
-                            "Close Position at Profit. ProfitPrice: " +
-                            position.ProfitOrderRedLine
-                            + " LastMarketPrice: " + lastTrade,
+                            BuildPositionSupportCloseMessage(position, false, position.ProfitOrderRedLine, lastTrade),
                             LogMessageType.System);
 
                         if (position.ProfitIsIceberg == true
@@ -7249,6 +7241,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
             return false;
+        }
+
+        /// <summary>
+        /// Position support message for stop or profit activate. Keeps the original message text unchanged,
+        /// adds the "Security: " prefix so a single log line identifies the security
+        /// </summary>
+        private static string BuildPositionSupportCloseMessage(Position position, bool isStop, decimal redLine, decimal lastMarketPrice)
+        {
+            return "Security: " + position.SecurityName + ". " + (isStop
+                ? "Close Position at Stop. StopPrice: " + redLine + " LastMarketPrice: " + lastMarketPrice
+                : "Close Position at Profit. ProfitPrice: " + redLine + " LastMarketPrice: " + lastMarketPrice);
         }
 
         /// <summary>
