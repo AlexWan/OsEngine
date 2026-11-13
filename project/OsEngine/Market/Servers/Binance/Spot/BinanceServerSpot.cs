@@ -3256,7 +3256,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         client.Proxy = _myProxy;
                     }
 
-                    var response = client.Execute(request).Content;
+                    IRestResponse restResponse = client.Execute(request);
+
+                    // RestSharp не бросает при сетевом сбое: причина только в ErrorException, Content при этом "" — без проверки отказ уходит коллеру молчаливым пустым успехом
+
+                    if (restResponse.ErrorException != null)
+                    {
+                        throw new Exception($"{startUri}. {endpoint}. Network error: {restResponse.ErrorException.GetType().Name}: {restResponse.ErrorException.Message}", restResponse.ErrorException);
+                    }
+
+                    var response = restResponse.Content;
 
                     if (response.Contains("code"))
                     {
