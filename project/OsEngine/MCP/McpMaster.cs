@@ -325,6 +325,8 @@ namespace OsEngine.MCP
             }
             catch
             {
+                // First event at connect hit a dead client: mark it so the keep-alive loop exits
+                client.IsClosed = true;
                 try
                 {
                     client.Response.Close();
@@ -461,6 +463,8 @@ namespace OsEngine.MCP
                     }
                     catch
                     {
+                        // Abort detected on heartbeat write: must release the client's ProcessSse keep-alive thread
+                        client.IsClosed = true;
                         try
                         {
                             client.Response.Close();
@@ -1854,7 +1858,7 @@ namespace OsEngine.MCP
             SendEventToClient(client, "terminal.launched", GetTerminalStatusSafe());
 
             // keep connection alive until host is stopped
-            while (!_cts.IsCancellationRequested)
+            while (!_cts.IsCancellationRequested && !client.IsClosed)
             {
                 try
                 {
@@ -1902,6 +1906,7 @@ namespace OsEngine.MCP
         private class SseClient
         {
             public HttpListenerResponse Response;
+            public volatile bool IsClosed;
         }
 
         private class StreamableSession
