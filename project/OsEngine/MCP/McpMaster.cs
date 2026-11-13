@@ -512,8 +512,7 @@ namespace OsEngine.MCP
                     continue;
                 }
 
-                pair.Value.Outgoing.Enqueue(frame);
-                pair.Value.Signal.Set();
+                EnqueueToStream(pair.Value, frame);
             }
         }
 
@@ -600,9 +599,71 @@ namespace OsEngine.MCP
                 string dataJson = JsonSerializer.Serialize(notification, JsonOptions);
                 string frame = $"event: message\ndata: {dataJson}\n\n";
 
-                pair.Value.Outgoing.Enqueue(frame);
-                pair.Value.Signal.Set();
+                EnqueueToStream(pair.Value, frame);
             }
+        }
+
+        // BUG-0320: кап очереди v2-SSE. Продюсеры обязаны оставаться fire-and-forget
+        // (блокирующая очередь вернула бы недуг 0305: зависший клиент вешает издателя/UI),
+        // поэтому при переполнении вытесняем старейшие кадры. Кадры — JSON-RPC notifications
+        // без нумерации, прогресс latest-wins: потеря старых протокол не ломает, клиент добирает pull-запросом.
+        private const long MaxOutgoingFrames = 8192;
+
+        // хуки тестопригодности стенда bug-0320: null = реальные часы
+        internal static Func<long> DropLogClock;
+        internal static int DropLogThrottleMs = 30000;
+
+        private void EnqueueToStream(StreamableStream stream, string frame)
+        {
+            try
+            {
+                ConcurrentQueue<string> queue = stream.Outgoing;
+                long dropped = 0;
+
+                while ((long)queue.Count >= MaxOutgoingFrames && queue.TryDequeue(out _))
+                {
+                    dropped++;
+                }
+
+                queue.Enqueue(frame);
+
+                // транзитное превышение от параллельных продюсеров срезается после Enqueue — финал не выше капа
+                while ((long)queue.Count > MaxOutgoingFrames && queue.TryDequeue(out _))
+                {
+                    dropped++;
+                }
+
+                if (dropped > 0)
+                {
+                    Interlocked.Add(ref stream.Dropped, dropped);
+                    LogDropsThrottled(stream);
+                }
+            }
+            finally
+            {
+                // исключение из дроп-пути/лога не должно глотать пробуждение потребителя
+                stream.Signal.Set();
+            }
+        }
+
+        // лог дропов на стрим: первый сразу, далее не чаще раза в DropLogThrottleMs (0 = ещё не логировали)
+        private void LogDropsThrottled(StreamableStream stream)
+        {
+            Func<long> clock = DropLogClock;
+            long now = clock != null ? clock() : Environment.TickCount64;
+            long last = Interlocked.Read(ref stream.LastDropLogTicks);
+
+            if (last != 0 && now - last < DropLogThrottleMs)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref stream.LastDropLogTicks, now, last) != last)
+            {
+                return;
+            }
+
+            Log.ProcessMessage($"[StreamableHttp] session={stream.SessionId} outgoing queue full (cap {MaxOutgoingFrames}), dropped {Interlocked.Read(ref stream.Dropped)} oldest frames", LogMessageType.Connect);
         }
 
         private static string MapEventLevel(string eventName)
@@ -1452,11 +1513,11 @@ namespace OsEngine.MCP
             response.Headers.Add("Cache-Control", "no-cache");
             response.StatusCode = 200;
 
-            StreamableStream stream = new StreamableStream { Response = response };
+            StreamableStream stream = new StreamableStream { Response = response, SessionId = session };
             _streamableStreams[session] = stream;
 
             // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
-            stream.Outgoing.Enqueue(BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
+            EnqueueToStream(stream, BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
 
             try
             {
@@ -1999,6 +2060,11 @@ namespace OsEngine.MCP
             public HttpListenerResponse Response;
             public ConcurrentQueue<string> Outgoing = new ConcurrentQueue<string>();
             public AutoResetEvent Signal = new AutoResetEvent(false);
+            public long Dropped;
+            // троттлинг лога дропов BUG-0320: 0 = ещё не логировали, иначе тики последней записи
+            public long LastDropLogTicks;
+            // ключ сессии для различения строк дропов в логе (BUG-0320, ОдБ неблокер 6)
+            public string SessionId;
         }
 
         #endregion
