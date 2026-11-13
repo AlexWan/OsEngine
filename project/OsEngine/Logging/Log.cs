@@ -83,15 +83,23 @@ namespace OsEngine.Logging
                 {
                     await Task.Delay(2000);
 
-                    for (int i = 0; i < Math.Min(LogsToCheck.Count, LogsToCheck.Capacity); i++)// не потокобезопасная работа с LogsToCheck приводит к Capacity<Count
+                    // снимок под LogLocker: обход без гонки с Add/Delete; save/paint вне лока, чтобы не держать LogLocker на file I/O
+                    Log[] logs = null;
+                    lock (LogLocker)
                     {
-                        if (LogsToCheck[i] == null)
+                        logs = LogsToCheck.ToArray();
+                    }
+
+                    for (int i = 0; i < logs.Length; i++)
+                    {
+                        Log log = logs[i];
+                        if (log == null)
                         {
                             continue;
                         }
 
-                        LogsToCheck[i].TrySaveLog();
-                        LogsToCheck[i].TryPaintLog();
+                        log.TrySaveLog();
+                        log.TryPaintLog();
                     }
 
                     if (!MainWindow.ProccesIsWorked)
@@ -907,6 +915,12 @@ namespace OsEngine.Logging
         /// </summary>
         public void TrySaveLog()
         {
+            // удалённый лог не должен воскресать: Delete() дренирует очереди уже после File.Delete, окно между ними закрывает этот гейт
+            if (_isDelete)
+            {
+                return;
+            }
+
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
