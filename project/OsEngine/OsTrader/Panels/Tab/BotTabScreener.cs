@@ -1108,9 +1108,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // Deleted tabs are wiped here, not under the lock: Clear marshals synchronously
                 // to painted chart/grids/alerts UI. Delete() carries the connector settings-dialog
                 // Close - still a cross-thread call as on the base, deferral only removes it from
-                // under the lock, that behaviour is not redesigned. The deferred Delete cannot
-                // wipe a recreated connector's settings file: a dead tab's cause (security gone
-                // or switched off) is never re-created in the same pass (TryCreateTab checks IsOn).
+                // under the lock, that behaviour is not redesigned. The deferred Delete should not
+                // wipe a recreated connector's settings file in the same pass: a dead tab's cause
+                // (security gone or switched off) is never re-created here (TryCreateTab checks IsOn).
+                // A cross-pass re-add inside the finally window can clobber Engine\<name>ConnectorPrime.txt;
+                // it is a cache and self-heals on restart.
                 for (int i = 0; i < tabsToClear.Count; i++)
                 {
                     try
@@ -1149,6 +1151,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     catch (Exception error)
                     {
                         SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        NeedToReloadTabs = true; // parity with the base abort (R-1)
                     }
                 }
 
@@ -1160,7 +1163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     // update-only reload leaves the torn view until then. The deferred repaint
                     // also replaces append-only PaintNewRow on create: Rows.Clear repaints the
                     // whole grid, so selection is lost and an in-place On/Off edit is cancelled
-                    // (editable :1927); scroll is restored but flickers. Race class predates fix.
+                    // (columns ReadOnly=false :2037+); scroll is restored but flickers. Race class predates fix.
                     RePaintSecuritiesGrid();
                 }
             }
@@ -1218,7 +1221,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 bool deleteSomeTabs = false;
 
                 // F3: the deferred close in the caller's finally raises ChartClosedEvent on the UI
-                // thread OUTSIDE this lock and RemoveAt's _chartEngines (:1630-38), so the live list
+                // thread OUTSIDE this lock and RemoveAt's _chartEngines (RemoveAt :1748), so the live list
                 // can shrink mid-loop for the next lock holder. Index a local snapshot; the base
                 // serialized the close under the lock. No UI calls from this loop.
                 CandleEngine[] chartEnginesSnapshot = _chartEngines == null ? null : _chartEngines.ToArray();
@@ -1289,9 +1292,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         // W-1, contract for NewTabCreateEvent subscribers (the raise stays under the lock):
                         // data-only here holds for current subscribers: BotPanel :2158/:2200 go to
-                        // journals, LoadTabToWatch :48-51 is an assignment, TestBotOption :262-266 /
-                        // TestBotFunding :171-175 marshal to UI under the raise but have no UI entry
-                        // into their own locker.
+                        // journals, LoadTabToWatch :48-51 is an assignment. TestBotOption :262-266 /
+                        // TestBotFunding :171-175 marshal to UI under the raise, and item (2) below
+                        // IS their UI entry into this locker: MCP Apply parks the UI on this lock
+                        // (live base S4 stack: Monitor.Enter <- TryReLoadTabs <- ApplyBotConfigTabScreener),
+                        // so the AB-BA cycle stays closed for TestBot + MCP even on this fix. That is
+                        // the accepted residual W-1: either the subscriber does not marshal, or the
+                        // raise moves out of the lock. Not redesigned here.
                         // UI entries into this lock: (1) OptimizerUi Closed-callback :1907-12;
                         // (2) MCP config Apply*: RobotsApi.SetBotConfigTabScreener :2064-72 and
                         // OptimizerApi :1050-56 marshal to the UI thread (MainWindow.GetDispatcher,
