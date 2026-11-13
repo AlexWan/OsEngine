@@ -1335,6 +1335,9 @@ namespace OsEngine.MCP
                 }
 
                 // notification / response -> 202 Accepted без тела
+                // shortcut: заголовочный Close без тела не гардим; парный v1-аналог — ProcessJsonRpc
+                // (стр.1107-1108 в базе 6428eb062); риск нулевого окна на пакет заголовков минимален,
+                // апгрейд — в TryWriteResponse, если по логам висяк на 202-пути появится
                 if (rpcRequest.Id == null)
                 {
                     if (rpcRequest.Method != null)
@@ -1598,6 +1601,7 @@ namespace OsEngine.MCP
 
         // Таймаут per-frame записи v2-SSE: 10 с НИЖЕ keep-alive цикла 15 с (WaitOne в ProcessStreamableSse),
         // поэтому зависание видно за один виток; локальная запись — миллисекунды.
+        // Общий потолок и для одиночных POST-ответов: TryWriteResponse (BUG-0329).
         // shortcut: порог константой, апгрейд — в конфигурацию, если живые клиенты начнут падать
         private const int StreamableSendTimeoutMs = 10000;
 
@@ -2102,7 +2106,7 @@ namespace OsEngine.MCP
             }
         }
 
-        private void SendJson<T>(HttpListenerResponse response, int statusCode, T data, bool legacyFormat = false)
+        private bool SendJson<T>(HttpListenerResponse response, int statusCode, T data, bool legacyFormat = false)
         {
             JsonSerializerOptions options = legacyFormat ? JsonOptions : JsonOptionsRpc;
             string json = JsonSerializer.Serialize(data, options);
@@ -2111,18 +2115,68 @@ namespace OsEngine.MCP
             response.StatusCode = statusCode;
             response.ContentType = "application/json";
             response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.OutputStream.Close();
+            return TryWriteResponse(response, buffer, $"SendJson {statusCode}");
         }
 
-        private void SendError(HttpListenerResponse response, int statusCode, string message)
+        private bool SendError(HttpListenerResponse response, int statusCode, string message)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(message);
             response.StatusCode = statusCode;
             response.ContentType = "text/plain";
             response.ContentLength64 = buffer.Length;
-            response.OutputStream.Write(buffer, 0, buffer.Length);
-            response.OutputStream.Close();
+            return TryWriteResponse(response, buffer, $"SendError {statusCode}");
+        }
+
+        // Ограниченная по времени запись одиночного POST-ответа (BUG-0329): тот же гард, что
+        // TryWriteStreamable (BUG-0327) на v2-SSE, но POST-путь без finally с CloseStreamableStream,
+        // поэтому разрыв запрашивается отсюда. true = записано; false = запись признана зависшей:
+        // лог разрыва написан, Abort вызван. Факт http.sys (стенд BUG-0329): Abort() при
+        // незавершённом WriteFile — no-op, очередь ответа переживает kill: на зависшем клиенте
+        // отложенный досыл при открытии окна, воркер живёт до TCP/http.sys таймера.
+        private bool TryWriteResponse(HttpListenerResponse response, byte[] bytes, string context)
+        {
+            // LongRunning здесь НЕ нужен по той же причине, что в TryWriteStreamable: писатель один,
+            // а за StreamableSendTimeoutMs гасится ожидание вызывающего, не воркер: он освобождается
+            // при досылке/RST, в worst case — TCP/http.sys таймером
+            Task write = Task.Run(() =>
+            {
+                response.OutputStream.Write(bytes, 0, bytes.Length);
+                response.OutputStream.Close();
+            });
+
+            Exception reason;
+            try
+            {
+                // наблюдатель вешается ДО Wait/разрыва: покинутый воркер не должен остаться
+                // с UnobservedTaskException (урок BUG-0305)
+                write.ContinueWith(t => ObserveAbandonedWriter(t), TaskContinuationOptions.OnlyOnFaulted);
+
+                if (write.Wait(StreamableSendTimeoutMs))
+                {
+                    return true;
+                }
+                reason = new TimeoutException($"send blocked over {StreamableSendTimeoutMs} ms");
+            }
+            catch (AggregateException error)
+            {
+                // Wait на завершившемся сбоем Task даёт AggregateException: берём истинный тип,
+                // иначе имя исключения в логе теряется и его нечем сверять
+                reason = error.GetBaseException();
+            }
+
+            // единственный лог разрыва, уровень Connect (обывный обрыв клиента, см. BUG-0292/BUG-0305)
+            Log.ProcessMessage($"[MCP] POST response write killed (context={context}, {reason.GetType().Name}: {reason.Message})", LogMessageType.Connect);
+
+            try
+            {
+                response.Abort();
+            }
+            catch
+            {
+                // гонка: воркер штатно закрыл ответ между таймаутом и Abort (или коннект уже мёртв) —
+                // разрыв залогирован выше
+            }
+            return false;
         }
 
         #endregion
