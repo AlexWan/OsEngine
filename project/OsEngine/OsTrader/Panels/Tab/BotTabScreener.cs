@@ -1076,9 +1076,35 @@ namespace OsEngine.OsTrader.Panels.Tab
             // called from the screener worker thread and from MCP; without the lock both
             // run "create missing tabs" at once and TryCreateTab adds the same security twice.
             // NeedToReloadTabs is re-checked inside, so the second caller exits after the first finishes
-            lock (_reloadTabsLocker)
+            // The lock serializes data work only (BUG-0335). Synchronous UI marshalling under it
+            // deadlocks with the UI thread entering this method (Closed-callback in OptimizerUi):
+            // the holder waits for the dispatcher, the dispatcher thread waits for the lock.
+            // The UI plan is collected under the lock and executed outside it, in finally:
+            // an aborted reload must not leave the grid stale.
+            List<CandleEngine> chartsToClose = new List<CandleEngine>();
+            bool needRepaint = false;
+
+            try
             {
-                TryReLoadTabsLocked();
+                lock (_reloadTabsLocker)
+                {
+                    TryReLoadTabsLocked(chartsToClose, ref needRepaint);
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < chartsToClose.Count; i++)
+                {
+                    chartsToClose[i].CloseGui();
+                }
+
+                if (needRepaint)
+                {
+                    // Residual risk: the repaint reads Tabs outside the lock and may catch a
+                    // parallel reload. RePaintSecuritiesGrid guards internally and the grid is
+                    // restored on the next repaint; the race class predates this fix.
+                    RePaintSecuritiesGrid();
+                }
             }
         }
 
@@ -1087,7 +1113,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         // живой скринер-воркер (:140-144) дёргает TryReLoadTabs каждые 500 мс: Error о пропуске — только при смене причины
         private string _lastSkipReason = null;
 
-        private void TryReLoadTabsLocked()
+        /// <param name="chartsToClose">chart windows to close after the lock is released (BUG-0335)</param>
+        /// <param name="needRepaint">set when the securities grid must be redrawn after the lock</param>
+        private void TryReLoadTabsLocked(List<CandleEngine> chartsToClose, ref bool needRepaint)
         {
             try
             {
@@ -1139,7 +1167,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             if (chartName == _chartEngines[i2].NameStrategyUniq)
                             {
-                                _chartEngines[i2].CloseGui();
+                                // closing is deferred to the plan outside the lock (BUG-0335),
+                                // the engine itself stays in _chartEngines as before
+                                chartsToClose.Add(_chartEngines[i2]);
                                 break;
                             }
                         }
@@ -1157,7 +1187,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (deleteSomeTabs)
                 {
-                    RePaintSecuritiesGrid();
+                    needRepaint = true;
                 }
 
                 // 2 update data in tabs
@@ -1178,8 +1208,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (createdTab != null)
                     {
                         UpdateTabSettings(createdTab);
-                        PaintNewRow();
+                        needRepaint = true; // the row is drawn by the deferred plan (BUG-0335)
 
+                        // W-1, contract for NewTabCreateEvent subscribers (the raise stays under the lock):
+                        // data-only on this path holds for the screener chain of the optimizer
+                        // (the single UI entry into the lock is the Closed-callback OptimizerUi :1907-12;
+                        // BotPanel :2158/:2200 go to journals, LoadTabToWatch :48-51 is an assignment).
+                        // On-board bots TestBotOption :262-266 / TestBotFunding :171-175 marshal to UI
+                        // under the raise, but have no UI entry into their own locker.
+                        // Both TryReLoadTabs and NewTabCreateEvent are public: a user robot with a
+                        // UI-blocking handler under the raise can close the deadlock cycle again.
                         if (NewTabCreateEvent != null)
                         {
                             NewTabCreateEvent(createdTab);
