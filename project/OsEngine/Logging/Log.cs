@@ -721,6 +721,12 @@ namespace OsEngine.Logging
 
         private ConcurrentQueue<LogMessage> _incomingMessages = new ConcurrentQueue<LogMessage>();
 
+        /// <summary>
+        /// ring of last Error messages, read-only by contract: write only through the Log.ProcessMessage Error path,
+        /// read via GetLastErrorMessagesSnapshot(). Direct enumeration is not thread-safe, direct assignment (e.g. null) breaks the snapshot with NRE
+        /// кольцо последних Error-сообщений, только для чтения по контракту: писать только через Error-путь Log.ProcessMessage,
+        /// читать через GetLastErrorMessagesSnapshot(). Прямое перечисление не потокобезопасно, прямое присваивание (например null) ломает snapshot (NRE)
+        /// </summary>
         public List<LogMessage> LastErrorMessages = new List<LogMessage>();
 
         /// <summary>
@@ -728,6 +734,18 @@ namespace OsEngine.Logging
         /// защита кольца LastErrorMessages: ProcessMessage пишет его на потоке издателя
         /// </summary>
         private readonly object _lastErrorMessagesLock = new object();
+
+        /// <summary>
+        /// thread-safe snapshot of the last error messages ring (shallow copy under the ring lock; items are not mutated after publishing)
+        /// потокобезопасная копия кольца последних Error-сообщений (поверхностная копия под локом кольца; элементы после публикации не мутируются)
+        /// </summary>
+        public List<LogMessage> GetLastErrorMessagesSnapshot()
+        {
+            lock (_lastErrorMessagesLock)
+            {
+                return new List<LogMessage>(LastErrorMessages);
+            }
+        }
 
         private int MaxMessagesCount
         {
