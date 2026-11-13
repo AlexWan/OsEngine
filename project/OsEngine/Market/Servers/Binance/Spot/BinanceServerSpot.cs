@@ -3287,21 +3287,23 @@ namespace OsEngine.Market.Servers.Binance.Spot
         private string GetNonce()
         {
             var resTime = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, "api/v1/time", null, false);
-            var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
 
-            if (result != null)
+            if (!string.IsNullOrEmpty(resTime))
             {
-                return (result.serverTime + 500).ToString();
-            }
-            else
-            {
-                DateTime yearBegin = new DateTime(1970, 1, 1);
-                var timeStamp = DateTime.UtcNow - yearBegin;
-                var r = timeStamp.TotalMilliseconds;
-                var re = Convert.ToInt64(r);
+                var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
 
-                return re.ToString();
+                if (result != null)
+                {
+                    return (result.serverTime + 500).ToString();
+                }
             }
+
+            DateTime yearBegin = new DateTime(1970, 1, 1);
+            var timeStamp = DateTime.UtcNow - yearBegin;
+            var r = timeStamp.TotalMilliseconds;
+            var re = Convert.ToInt64(r);
+
+            return re.ToString();
         }
 
         public string SignEd25519(string payload)
