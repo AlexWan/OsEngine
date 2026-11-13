@@ -16,6 +16,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -791,20 +792,79 @@ namespace OsEngine.MCP
             }
             catch (Exception error)
             {
-                Log.ProcessMessage(error.ToString(), LogMessageType.Error);
-                try
+                if (IsClientAbort(error))
                 {
-                    if (response != null)
+                    // штатный обрыв клиента: 500 в мёртвый сокет не отправляем, уровень Connect (BUG-0292)
+                    Log.ProcessMessage($"[MCP] client aborted request {request?.HttpMethod} {path}: {error.Message}", LogMessageType.Connect);
+                }
+                else
+                {
+                    Log.ProcessMessage(error.ToString(), LogMessageType.Error);
+                    try
                     {
-                        SendError(response, 500, "Internal server error");
-                        LogRequest(request, response, path);
+                        if (response != null)
+                        {
+                            SendError(response, 500, "Internal server error");
+                            LogRequest(request, response, path);
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
                     }
                 }
-                catch
+            }
+        }
+
+        /// <summary>
+        /// Штатный обрыв соединения клиентом (transport abort), а не ошибка серверной логики. BUG-0292.
+        /// </summary>
+        private static bool IsClientAbort(Exception error)
+        {
+            // Ограничение глубины защиты от испорченной цепи InnerException (цикл) — false без зависания
+            int maxChainDepth = 32;
+            bool underIOException = false;
+
+            for (Exception e = error; e != null; e = e.InnerException)
+            {
+                if (maxChainDepth-- <= 0)
                 {
-                    // ignore
+                    return false;
+                }
+
+                if (e is HttpListenerException listenerError)
+                {
+                    // ERROR_OPERATION_ABORTED, ERROR_CONNECTION_REFUSED, ERROR_NETNAME_DELETED,
+                    // ERROR_PIPE_NOT_AVAILABLE, WSAECONNABORTED, WSAECONNRESET
+                    // 1229 ERROR_NETWORK_UNREACHABLE: http.sys/.NET 10 даёт его на write в мёртвое соединение — факт repro Artifacts/Tests/bug-0292-stand/repro-fact.txt
+                    int code = listenerError.ErrorCode;
+                    if (code == 995 || code == 1225 || code == 64 || code == 232 || code == 10053 || code == 10054 || code == 1229)
+                    {
+                        return true;
+                    }
+                }
+                else if (underIOException && e is SocketException socketError)
+                {
+                    // по ТЗ SocketException считается обрывом только в цепи IOException
+                    switch (socketError.SocketErrorCode)
+                    {
+                        case SocketError.Interrupted:
+                        case SocketError.ConnectionAborted:
+                        case SocketError.ConnectionReset:
+                        case SocketError.NotConnected:
+                        case SocketError.NetworkDown:
+                        case SocketError.HostDown:
+                            return true;
+                    }
+                }
+
+                if (e is IOException)
+                {
+                    underIOException = true;
                 }
             }
+
+            return false;
         }
 
         private void LogRequest(HttpListenerRequest request, HttpListenerResponse response, string path)
@@ -1272,14 +1332,22 @@ namespace OsEngine.MCP
             }
             catch (Exception error)
             {
-                Log.ProcessMessage(error.ToString(), LogMessageType.Error);
-                try
+                if (IsClientAbort(error))
                 {
-                    SendError(response, 500, "Internal server error");
+                    // штатный обрыв клиента: 500 в мёртвый сокет не отправляем, уровень Connect (BUG-0292)
+                    Log.ProcessMessage($"[StreamableHttp] client aborted request {request?.HttpMethod} /api/v2/mcp: {error.Message}", LogMessageType.Connect);
                 }
-                catch
+                else
                 {
-                    // ignore
+                    Log.ProcessMessage(error.ToString(), LogMessageType.Error);
+                    try
+                    {
+                        SendError(response, 500, "Internal server error");
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
             }
         }
@@ -1414,7 +1482,17 @@ namespace OsEngine.MCP
                         }
                         catch (Exception writeError)
                         {
-                            Log.ProcessMessage($"[StreamableHttp] write failed (session={session}): {writeError.Message}", LogMessageType.Error);
+                            if (IsClientAbort(writeError))
+                            {
+                                // штатный разрыв потока клиентом — Connect, а не Error-шум (BUG-0292); Message и ErrorCode сохраняем
+                                int abortCode = writeError is HttpListenerException abortListenerError ? abortListenerError.ErrorCode
+                                    : writeError.InnerException is HttpListenerException innerListenerError ? innerListenerError.ErrorCode : 0;
+                                Log.ProcessMessage($"[StreamableHttp] client stream closed (session={session}): {writeError.Message} (ErrorCode={abortCode})", LogMessageType.Connect);
+                            }
+                            else
+                            {
+                                Log.ProcessMessage($"[StreamableHttp] write failed (session={session}): {writeError.Message}", LogMessageType.Error);
+                            }
                             wroteData = false;
                             break;
                         }
