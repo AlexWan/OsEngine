@@ -27,25 +27,33 @@ namespace OsEngine.OsData
 
         private static void AddPainterInArray(OsDataSetPainter painter)
         {
-            _painters.Add(painter);
-
-            if (_worker == null)
+            lock (_locker)
             {
-                _worker = new Thread(PainterThreadArea);
-                _worker.Start();
+                _painters.Add(painter);
+
+                if (_worker == null)
+                {
+                    _worker = new Thread(PainterThreadArea);
+                    // OsEngine lives in libraries/hosts and headless harnesses too, a foreground
+                    // while(true) worker would block process exit (convention OsDataMaster.cs:610).
+                    _worker.IsBackground = true;
+                    _worker.Start();
+                }
             }
         }
 
         private static void DeletePainterFromArray(OsDataSetPainter painter)
         {
-            for (int i = 0; i < _painters.Count; i++)
+            lock (_locker)
             {
-                if (_painters[i].UID == painter.UID)
+                for (int i = 0; i < _painters.Count; i++)
                 {
-                    _painters.RemoveAt(i);
-                    break;
+                    if (_painters[i].UID == painter.UID)
+                    {
+                        _painters.RemoveAt(i);
+                        break;
+                    }
                 }
-
             }
         }
 
@@ -57,22 +65,33 @@ namespace OsEngine.OsData
 
                 try
                 {
+                    OsDataSetPainter[] snapshot;
+
                     lock (_locker)
                     {
-                        for (int i = 0; i < _painters.Count; i++)
+                        snapshot = _painters.ToArray();
+                    }
+
+                    // TryUpdateInterface marshals synchronously to UI (Dispatcher/Control.Invoke).
+                    // Paint strictly outside _locker: under the lock a stalled UI thread would
+                    // freeze the whole paint area and deadlock the mutators above (bug-0336).
+                    for (int i = 0; i < snapshot.Length; i++)
+                    {
+                        try
                         {
-                            _painters[i].TryUpdateInterface();
+                            snapshot[i].TryUpdateInterface();
+                        }
+                        catch (Exception ex)
+                        {
+                            Market.ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                         }
                     }
                 }
                 catch(Exception ex)
                 {
-                    if(_painters != null &&
-                        _painters.Count > 0)
-                    {
-                        _painters[0].SendNewLogMessage(ex.ToString(),LogMessageType.Error);
-                    }
-
+                    // Static channel only: the old _painters indexing here was unsynchronised
+                    // and could throw inside catch, killing the process (bug-0336).
+                    Market.ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
