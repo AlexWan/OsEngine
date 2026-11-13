@@ -297,6 +297,13 @@ namespace OsEngine.MCP
                     _sseClients.Clear();
                 }
 
+                // v2-стримы дорываются тем же путём: GET-поток, зависший в Write, пережил бы Stop
+                // и освободился только вместе с процессом (BUG-0327)
+                foreach (string streamSession in _streamableStreams.Keys)
+                {
+                    CloseStreamableStream(streamSession);
+                }
+
                 Log.ProcessMessage("MCP API stopped", LogMessageType.System);
             }
             catch (Exception error)
@@ -1390,8 +1397,10 @@ namespace OsEngine.MCP
             {
                 // SSE-комментарий сразу флашит заголовки, иначе клиент не получит их до первого события
                 byte[] hello = Encoding.UTF8.GetBytes(": connected\n\n");
-                response.OutputStream.Write(hello, 0, hello.Length);
-                response.OutputStream.Flush();
+                if (!TryWriteStreamable(response, hello, session))
+                {
+                    return;
+                }
 
                 // единственный поток, который пишет в этот response: разгребает очередь событий
                 while (!_cts.IsCancellationRequested)
@@ -1404,8 +1413,10 @@ namespace OsEngine.MCP
                         try
                         {
                             byte[] frameBytes = Encoding.UTF8.GetBytes(frame);
-                            response.OutputStream.Write(frameBytes, 0, frameBytes.Length);
-                            response.OutputStream.Flush();
+                            if (!TryWriteStreamable(response, frameBytes, session))
+                            {
+                                return;
+                            }
                             wroteData = true;
                         }
                         catch (Exception writeError)
@@ -1422,8 +1433,10 @@ namespace OsEngine.MCP
                         try
                         {
                             byte[] keepAlive = Encoding.UTF8.GetBytes(": keep-alive\n\n");
-                            response.OutputStream.Write(keepAlive, 0, keepAlive.Length);
-                            response.OutputStream.Flush();
+                            if (!TryWriteStreamable(response, keepAlive, session))
+                            {
+                                return;
+                            }
                         }
                         catch
                         {
@@ -1440,6 +1453,57 @@ namespace OsEngine.MCP
             }
         }
 
+        // Таймаут per-frame записи v2-SSE: 10 с НИЖЕ keep-alive цикла 15 с (WaitOne в ProcessStreamableSse),
+        // поэтому зависание видно за один виток; локальная запись — миллисекунды.
+        // shortcut: порог константой, апгрейд — в конфигурацию, если живые клиенты начнут падать
+        private const int StreamableSendTimeoutMs = 10000;
+
+        // true = записано; false = клиент признан зависшим: лог уже написан, коннект разорвёт
+        // CloseStreamableStream в finally. Возврат вместо исключения — чтобы штатный разрыв висяка
+        // не дошёл ни до одного Error-логера (catch writeError и общий catch ProcessStreamableHttp),
+        // а Error уходит в SetNewErrorMessage -> окно ошибки + Beep.
+        private bool TryWriteStreamable(HttpListenerResponse response, byte[] bytes, string session)
+        {
+            // LongRunning здесь НЕ нужен: запись пофреймовая, это был бы отдельный поток на каждый кадр,
+            // а писателей здесь строго последовательно по одному и зависший гасится за StreamableSendTimeoutMs
+            Task write = Task.Run(() =>
+            {
+                response.OutputStream.Write(bytes, 0, bytes.Length);
+                response.OutputStream.Flush();
+            });
+
+            Exception reason;
+            try
+            {
+                // наблюдатель вешается ДО Wait/разрыва: покинутый воркер не должен остаться
+                // с UnobservedTaskException (урок BUG-0305); своего лога нет — один лог на разрыв ниже
+                write.ContinueWith(t => ObserveAbandonedWriter(t), TaskContinuationOptions.OnlyOnFaulted);
+
+                if (write.Wait(StreamableSendTimeoutMs))
+                {
+                    return true;
+                }
+                reason = new TimeoutException($"send blocked over {StreamableSendTimeoutMs} ms");
+            }
+            catch (AggregateException error)
+            {
+                // Wait на завершившемся сбоем Task даёт AggregateException: берём истинный тип,
+                // иначе имя исключения в логе теряется и его нечем сверять
+                reason = error.GetBaseException();
+            }
+
+            // единственный лог разрыва, уровень Connect (обывный обрыв клиента, см. BUG-0292/BUG-0305)
+            Log.ProcessMessage($"[StreamableHttp] client stream killed (session={session}, {reason.GetType().Name}: {reason.Message})", LogMessageType.Connect);
+            return false;
+        }
+
+        // Обращение к Task.Exception помечает исключение наблюдаемым. Отдельного лога здесь нет:
+        // маркер разрыва пишется один раз в TryWriteStreamable
+        private static void ObserveAbandonedWriter(Task abandoned)
+        {
+            abandoned.Exception?.GetType();
+        }
+
         private void CloseStreamableStream(string session)
         {
             if (_streamableStreams.TryRemove(session, out StreamableStream stream))
@@ -1447,7 +1511,9 @@ namespace OsEngine.MCP
                 try
                 {
                     stream.Signal.Set();
-                    stream.Response.Close();
+                    // Abort вместо Close: Close имеет flush-семантику и сам блокируется на коннекте,
+                    // зависшем в Write (BUG-0327). Abort рвёт коннект немедленно и разблокирует писатель
+                    stream.Response.Abort();
                 }
                 catch
                 {
