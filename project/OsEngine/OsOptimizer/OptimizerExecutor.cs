@@ -225,6 +225,16 @@ namespace OsEngine.OsOptimizer
 
         public int BotCountOneFaze(List<IIStrategyParameter> parameters, List<bool> parametersOn)
         {
+            // Пересчёт мутирует живые параметры (сброс в Start, ReloadParam) — под локом мастера,
+            // чтобы не перемешиваться с геттерами и вторым параллельным подсчётом (BUG-0341)
+            lock (_master.ParametersLock)
+            {
+                return BotCountOneFazeLocked(parameters, parametersOn);
+            }
+        }
+
+        private int BotCountOneFazeLocked(List<IIStrategyParameter> parameters, List<bool> parametersOn)
+        {
             List<IIStrategyParameter> allParam = parameters;
 
             for (int i = 0; i < allParam.Count; i++)
