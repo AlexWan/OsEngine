@@ -1592,7 +1592,7 @@ namespace OsEngine.MCP
             }
             finally
             {
-                CloseStreamableStream(session);
+                CloseStreamableStream(session, stream);
             }
         }
 
@@ -1662,6 +1662,27 @@ namespace OsEngine.MCP
                 {
                     // ignore
                 }
+            }
+        }
+
+        // Самоликвидация GET-цикла (BUG-0328): снимаем ТОЛЬКО свою регистрацию.
+        // Если сессия уже перерегистрирована новым стримом — запись не трогаем:
+        // разрыв dying-стрима иначе рвёт живой (снятие по ключу их не различает).
+        // Свой response закрываем всегда: его писатель — этот покидающий поток, гонки с новым писателем нет
+        private void CloseStreamableStream(string session, StreamableStream expected)
+        {
+            // compare-and-remove: равенство KeyValuePair сверяет ключ и эталонное равенство значения
+            ((ICollection<KeyValuePair<string, StreamableStream>>)_streamableStreams)
+                .Remove(new KeyValuePair<string, StreamableStream>(session, expected));
+
+            try
+            {
+                expected.Signal.Set();
+                expected.Response.Abort();
+            }
+            catch
+            {
+                // ignore
             }
         }
 
@@ -2123,6 +2144,9 @@ namespace OsEngine.MCP
 
         private class StreamableStream
         {
+            // НЕ вводить Equals/GetHashCode: самоликвидация BUG-0328 (overload CloseStreamableStream
+            // с expected) держится на эталонном равенстве; переопределение Equals вернёт баг —
+            // новый стрим станет «равен» dying и снова будет им сорван
             public HttpListenerResponse Response;
             public ConcurrentQueue<string> Outgoing = new ConcurrentQueue<string>();
             public AutoResetEvent Signal = new AutoResetEvent(false);
