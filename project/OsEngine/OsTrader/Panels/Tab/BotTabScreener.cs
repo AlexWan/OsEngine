@@ -125,15 +125,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (curScreener._host != null)
                         {
-                            for (int i2 = 0; curScreener.Tabs != null &&
-                                 curScreener.Tabs.Count != 0 &&
-                                 i2 < curScreener.Tabs.Count; i2++)
+                            // snapshot: PaintLastBidAsk runs on the screener worker while
+                            // MCP TryReLoadTabs may mutate Tabs from another thread
+                            List<BotTabSimple> tabsSnapshot = new List<BotTabSimple>();
+                            curScreener.CopyTabsInto(tabsSnapshot);
+
+                            for (int i2 = 0; i2 < tabsSnapshot.Count; i2++)
                             {
                                 if(_screeners[i].LastTimeClick.AddSeconds(2) > DateTime.Now)
                                 {
                                     continue;
                                 }
-                                PaintLastBidAsk(_screeners[i].Tabs[i2], _screeners[i].SecuritiesDataGrid);
+                                PaintLastBidAsk(tabsSnapshot[i2], _screeners[i].SecuritiesDataGrid);
                             }
                         }
 
@@ -369,6 +372,28 @@ namespace OsEngine.OsTrader.Panels.Tab
         public List<BotTabSimple> Tabs = new List<BotTabSimple>();
 
         /// <summary>
+        /// Blocker of multi-threaded access to Tabs: the screener worker and MCP mutate it,
+        /// external readers must take an atomic snapshot via CopyTabsInto
+        /// </summary>
+        private readonly object _tabsLocker = new object();
+
+        /// <summary>
+        /// Atomic snapshot of Tabs into destination (for readers outside the screener)
+        /// </summary>
+        public void CopyTabsInto(List<BotTabSimple> destination)
+        {
+            if (destination == null)
+            {
+                return;
+            }
+
+            lock (_tabsLocker)
+            {
+                destination.AddRange(Tabs);
+            }
+        }
+
+        /// <summary>
         /// Unique robot name
         /// </summary>
         public string TabName { get; set; }
@@ -516,9 +541,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                         BotTabSimple newTab = new BotTabSimple(save2[i], _startProgram);
                         newTab.Connector.SaveTradesInCandles = false;
 
-                        Tabs.Add(newTab);
+                        // lock only the list mutation; Subscribe/Update/Paint/raise stay outside (W-2)
+                        lock (_tabsLocker)
+                        {
+                            Tabs.Add(newTab);
+                        }
                         SubscribeOnTab(newTab);
-                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        UpdateTabSettings(newTab);
                         PaintNewRow();
 
                         if (NewTabCreateEvent != null)
@@ -1117,7 +1146,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         Tabs[i].Clear();
                         Tabs[i].Delete();
-                        Tabs.RemoveAt(i);
+                        lock (_tabsLocker)
+                        {
+                            Tabs.RemoveAt(i);
+                        }
                         i--;
                         deleteSomeTabs = true;
                     }
@@ -1139,23 +1171,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                 IsLoadTabs = true;
                 for (int i = 0; i < SecuritiesNames.Count; i++)
                 {
-                    int tabCount = Tabs.Count;
+                    // TryCreateTab returns the created tab: no re-read of the just-added
+                    // element through the live list (W-4b)
+                    BotTabSimple createdTab = TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
 
-                    TryCreateTab(SecuritiesNames[i], TimeFrame, Tabs);
-
-                    if (tabCount != Tabs.Count)
+                    if (createdTab != null)
                     {
-                        UpdateTabSettings(Tabs[Tabs.Count - 1]);
+                        UpdateTabSettings(createdTab);
                         PaintNewRow();
 
                         if (NewTabCreateEvent != null)
                         {
-                            NewTabCreateEvent(Tabs[Tabs.Count - 1]);
+                            NewTabCreateEvent(createdTab);
                         }
 
                         if (NewTabCreateWithScreenerEvent != null)
                         {
-                            NewTabCreateWithScreenerEvent(Tabs[Tabs.Count - 1], this);
+                            NewTabCreateWithScreenerEvent(createdTab, this);
                         }
                     }
                 }
@@ -1297,16 +1329,16 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Try creating a tab with these options
         /// </summary>
-        private void TryCreateTab(ActivatedSecurity sec, TimeFrame frame, List<BotTabSimple> curTabs)
+        private BotTabSimple TryCreateTab(ActivatedSecurity sec, TimeFrame frame, List<BotTabSimple> curTabs)
         {
             if (sec.IsOn == false)
             {
-                return;
+                return null;
             }
 
             if (curTabs.Find(tab => tab.Connector.SecurityName == sec.SecurityName) != null)
             {
-                return;
+                return null;
             }
 
             string nameStart = curTabs.Count + " " + TabName;
@@ -1341,9 +1373,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.CommissionValue = CommissionValue;
             newTab.IsCreatedByScreener = true;
 
-            curTabs.Add(newTab);
+            lock (_tabsLocker)
+            {
+                curTabs.Add(newTab);
+            }
 
             SubscribeOnTab(newTab);
+
+            return newTab;
         }
 
         /// <summary>

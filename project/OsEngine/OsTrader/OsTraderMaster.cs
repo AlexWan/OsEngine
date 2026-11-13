@@ -262,6 +262,28 @@ namespace OsEngine.OsTrader
         public List<BotPanel> PanelsArray = new List<BotPanel>();
 
         /// <summary>
+        /// Blocker of multi-threaded access to PanelsArray: UI mutates it,
+        /// ReloadRiskJournals and copy sites run on the screener worker
+        /// </summary>
+        private readonly object _panelsArrayLocker = new object();
+
+        /// <summary>
+        /// Atomic snapshot of PanelsArray for readers running off the UI thread
+        /// </summary>
+        private BotPanel[] GetPanelsArraySnapshot()
+        {
+            lock (_panelsArrayLocker)
+            {
+                if (PanelsArray == null)
+                {
+                    return new BotPanel[0];
+                }
+
+                return PanelsArray.ToArray();
+            }
+        }
+
+        /// <summary>
         /// The bot to which the interface is currently connected
         /// </summary>
         public BotPanel _activePanel;
@@ -295,7 +317,10 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            PanelsArray = new List<BotPanel>();
+            lock (_panelsArrayLocker)
+            {
+                PanelsArray = new List<BotPanel>();
+            }
 
             int botIterator = 0;
             using (StreamReader reader = new StreamReader(@"Engine\Settings" + _typeWorkKeeper + "Keeper.txt"))
@@ -346,7 +371,10 @@ namespace OsEngine.OsTrader
 
                     if (bot != null)
                     {
-                        PanelsArray.Add(bot);
+                        lock (_panelsArrayLocker)
+                        {
+                            PanelsArray.Add(bot);
+                        }
 
                         if (BotCreateEvent != null)
                         {
@@ -891,7 +919,13 @@ namespace OsEngine.OsTrader
 
                 if (PanelsArray == null)
                 {
-                    PanelsArray = new List<BotPanel>();
+                    lock (_panelsArrayLocker)
+                    {
+                        if (PanelsArray == null)
+                        {
+                            PanelsArray = new List<BotPanel>();
+                        }
+                    }
                 }
 
                 int botIterator = PanelsArray.Count;
@@ -990,7 +1024,10 @@ namespace OsEngine.OsTrader
                         bot.PublicName = originalName;
                     }
 
-                    PanelsArray.Add(bot);
+                    lock (_panelsArrayLocker)
+                    {
+                        PanelsArray.Add(bot);
+                    }
 
                     if (BotCreateEvent != null)
                     {
@@ -1213,55 +1250,49 @@ namespace OsEngine.OsTrader
                     _globalPositionViewer.ClearJournalsArray();
                 }
 
-                if (PanelsArray != null)
+                // snapshot: this method runs on the screener worker via NewTabCreateEvent,
+                // while UI mutates PanelsArray
+                BotPanel[] panels = GetPanelsArraySnapshot();
+
+                List<Journal.Journal> journalsAll = new List<Journal.Journal>();
+
+                for (int i = 0; i < panels.Length; i++)
                 {
-                    List<Journal.Journal> journalsAll = new List<Journal.Journal>();
+                    List<Journal.Journal> journalsCurrent = panels[i].GetJournals();
 
-                    for (int i = 0; i < PanelsArray.Count; i++)
+                    for (int i2 = 0; journalsCurrent != null && i2 < journalsCurrent.Count; i2++)
                     {
-                        List<Journal.Journal> journalsCurrent = PanelsArray[i].GetJournals();
+                        _riskManager.SetNewJournal(journalsCurrent[i2]);
 
-                        for (int i2 = 0; journalsCurrent != null && i2 < journalsCurrent.Count; i2++)
+                        if (_globalPositionViewer != null)
                         {
-                            _riskManager.SetNewJournal(journalsCurrent[i2]);
+                            journalsAll.AddRange(journalsCurrent[i2]);
+                        }
+                    }
+                }
 
-                            if (_globalPositionViewer != null)
-                            {
-                                journalsAll.AddRange(journalsCurrent[i2]);
-                            }
+                if (_globalPositionViewer != null)
+                {
+                    _globalPositionViewer.SetJournals(journalsAll);
+                }
+
+                if (_buyAtStopPosViewer != null)
+                {
+                    List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                    for (int i = 0; i < panels.Length; i++)
+                    {
+                        List<BotTabSimple> simpleTabs = panels[i].TabsSimple;
+                        allTabs.AddRange(simpleTabs);
+
+                        List<BotTabScreener> screenerTabs = panels[i].TabsScreener;
+                        for (int i2 = 0; i2 < screenerTabs.Count; i2++)
+                        {
+                            screenerTabs[i2].CopyTabsInto(allTabs);
                         }
                     }
 
-                    if (_globalPositionViewer != null)
-                    {
-                        _globalPositionViewer.SetJournals(journalsAll);
-                    }
-
-                    if (_buyAtStopPosViewer != null)
-                    {
-                        List<BotTabSimple> allTabs = new List<BotTabSimple>();
-
-                        for (int i = 0; i < PanelsArray.Count; i++)
-                        {
-                            if (PanelsArray[i].TabsSimple != null)
-                            {
-                                allTabs.AddRange(PanelsArray[i].TabsSimple);
-                            }
-
-                            if (PanelsArray[i].TabsScreener != null)
-                            {
-                                for(int i2 = 0;i2 < PanelsArray[i].TabsScreener.Count; i2++)
-                                {
-                                    if(PanelsArray[i].TabsScreener[i2].Tabs != null)
-                                    {
-                                        allTabs.AddRange(PanelsArray[i].TabsScreener[i2].Tabs);
-                                    }
-                                }
-                            }
-                        }
-
-                        _buyAtStopPosViewer.LoadTabToWatch(allTabs);
-                    }
+                    _buyAtStopPosViewer.LoadTabToWatch(allTabs);
                 }
             }
             catch (Exception error)
@@ -1858,46 +1889,39 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (PanelsArray != null)
+                // snapshot: UI click here races screener-worker mutations of the tab lists
+                BotPanel[] panels = GetPanelsArraySnapshot();
+
+                List<BotTabSimple> allTabs = new List<BotTabSimple>();
+
+                for (int i = 0; i < panels.Length; i++)
                 {
-                    List<BotTabSimple> allTabs = new List<BotTabSimple>();
+                    List<BotTabSimple> simpleTabs = panels[i].TabsSimple;
+                    allTabs.AddRange(simpleTabs);
 
-                    for (int i = 0; i < PanelsArray.Count; i++)
+                    List<BotTabScreener> screenerTabs = panels[i].TabsScreener;
+                    for (int i2 = 0; i2 < screenerTabs.Count; i2++)
                     {
-                        if(PanelsArray[i].TabsSimple != null)
-                        {
-                            allTabs.AddRange(PanelsArray[i].TabsSimple);
-                        }
-                      
-                        if (PanelsArray[i].TabsScreener != null)
-                        {
-                            for (int i2 = 0; i2 < PanelsArray[i].TabsScreener.Count; i2++)
-                            {
-                                if (PanelsArray[i].TabsScreener[i2].Tabs != null)
-                                {
-                                    allTabs.AddRange(PanelsArray[i].TabsScreener[i2].Tabs);
-                                }
-                            }
-                        }
+                        screenerTabs[i2].CopyTabsInto(allTabs);
                     }
+                }
 
-                    for(int i = 0;i < allTabs.Count; i++)
+                for(int i = 0;i < allTabs.Count; i++)
+                {
+                    if(signal == SignalType.DeleteAllPoses)
                     {
-                        if(signal == SignalType.DeleteAllPoses)
+                        allTabs[i].BuyAtStopCancel();
+                        allTabs[i].SellAtStopCancel();
+                    }
+                    else
+                    {
+                       for(int i2 = 0;i2 < allTabs[i].PositionOpenerToStop.Count;i2++)
                         {
-                            allTabs[i].BuyAtStopCancel();
-                            allTabs[i].SellAtStopCancel();
-                        }
-                        else
-                        {
-                           for(int i2 = 0;i2 < allTabs[i].PositionOpenerToStop.Count;i2++)
+                           if(allTabs[i].PositionOpenerToStop[i2].Number == ordNum)
                             {
-                               if(allTabs[i].PositionOpenerToStop[i2].Number == ordNum)
-                                {
-                                    allTabs[i].PositionOpenerToStop.RemoveAt(i2);
-                                    allTabs[i].UpdateStopLimits();
-                                    return;
-                                }
+                                allTabs[i].PositionOpenerToStop.RemoveAt(i2);
+                                allTabs[i].UpdateStopLimits();
+                                return;
                             }
                         }
                     }
@@ -2172,7 +2196,10 @@ namespace OsEngine.OsTrader
 
                 SendNewLogMessage(OsLocalization.Trader.Label5 + _activePanel.NameStrategyUniq, LogMessageType.System);
 
-                PanelsArray.Remove(_activePanel);
+                lock (_panelsArrayLocker)
+                {
+                    PanelsArray.Remove(_activePanel);
+                }
 
                 if (BotDeleteEvent != null)
                 {
@@ -2277,11 +2304,14 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                if (PanelsArray == null)
+                lock (_panelsArrayLocker)
                 {
-                    PanelsArray = new List<BotPanel>();
+                    if (PanelsArray == null)
+                    {
+                        PanelsArray = new List<BotPanel>();
+                    }
+                    PanelsArray.Add(newRobot);
                 }
-                PanelsArray.Add(newRobot);
 
                 if(BotCreateEvent != null)
                 {
@@ -2315,11 +2345,14 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                if (PanelsArray == null)
+                lock (_panelsArrayLocker)
                 {
-                    PanelsArray = new List<BotPanel>();
+                    if (PanelsArray == null)
+                    {
+                        PanelsArray = new List<BotPanel>();
+                    }
+                    PanelsArray.Add(newRobot);
                 }
-                PanelsArray.Add(newRobot);
 
                 if (BotCreateEvent != null)
                 {

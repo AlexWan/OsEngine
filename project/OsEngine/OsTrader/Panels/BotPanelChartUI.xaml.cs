@@ -253,18 +253,19 @@ namespace OsEngine.OsTrader.Panels
             {
                 List<BotTabSimple> allTabs = new List<BotTabSimple>();
 
-                if (_panel.TabsSimple != null)
+                BotPanel panel = _panel;
+
+                if (panel != null)
                 {
-                    allTabs.AddRange(_panel.TabsSimple);
-                }
-                if (_panel.TabsScreener != null)
-                {
-                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                    // atomic snapshots only: this handler runs on the thread that raised
+                    // NewTabCreateEvent (screener worker or UI), lists mutate concurrently
+                    List<BotTabSimple> simpleTabs = panel.TabsSimple;
+                    allTabs.AddRange(simpleTabs);
+
+                    List<BotTabScreener> screenerTabs = panel.TabsScreener;
+                    for (int i = 0; i < screenerTabs.Count; i++)
                     {
-                        if (_panel.TabsScreener[i].Tabs != null)
-                        {
-                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
-                        }
+                        screenerTabs[i].CopyTabsInto(allTabs);
                     }
                 }
 
@@ -285,18 +286,18 @@ namespace OsEngine.OsTrader.Panels
 
                 List<BotTabSimple> allTabs = new List<BotTabSimple>();
 
-                if (_panel.TabsSimple != null)
+                BotPanel panel = _panel;
+
+                if (panel != null)
                 {
-                    allTabs.AddRange(_panel.TabsSimple);
-                }
-                if (_panel.TabsScreener != null)
-                {
-                    for (int i = 0; i < _panel.TabsScreener.Count; i++)
+                    // atomic snapshots only (same race as UpdateTabsInStopLimitViewer)
+                    List<BotTabSimple> simpleTabs = panel.TabsSimple;
+                    allTabs.AddRange(simpleTabs);
+
+                    List<BotTabScreener> screenerTabs = panel.TabsScreener;
+                    for (int i = 0; i < screenerTabs.Count; i++)
                     {
-                        if (_panel.TabsScreener[i].Tabs != null)
-                        {
-                            allTabs.AddRange(_panel.TabsScreener[i].Tabs);
-                        }
+                        screenerTabs[i].CopyTabsInto(allTabs);
                     }
                 }
 

@@ -193,8 +193,11 @@ namespace OsEngine.OsTrader.Panels
                             ((BotTabScreener)_botTabs[i]).NewTabCreateEvent -= BotPanel_NewTabCreateEvent;
                         }
                     }
-                    _botTabs.Clear();
-                    _botTabs = null;
+                    lock (_botTabsLocker)
+                    {
+                        _botTabs.Clear();
+                        _botTabs = null;
+                    }
                 }
 
                 if (ParamGuiSettings != null)
@@ -1880,6 +1883,12 @@ position => position.State != PositionStateType.OpeningFail
         private List<IIBotTab> _botTabs;
 
         /// <summary>
+        /// Blocker of multi-threaded access to _botTabs: UI mutates it (TabCreate/TabDelete),
+        /// type-filtered getters are read from screener worker and MCP paths
+        /// </summary>
+        private readonly object _botTabsLocker = new object();
+
+        /// <summary>
         /// get all tabs
         /// </summary>
         public List<IIBotTab> GetTabs() => _botTabs;
@@ -1931,9 +1940,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabSimple>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabSimple>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -1944,9 +1956,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabIndex>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabIndex>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -1957,9 +1972,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabCluster>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabCluster>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -1970,9 +1988,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabPair>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabPair>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -1983,9 +2004,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabScreener>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabScreener>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -1996,9 +2020,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabPolygon>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabPolygon>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -2009,9 +2036,12 @@ position => position.State != PositionStateType.OpeningFail
         {
             get
             {
-                return _botTabs != null
-                    ? _botTabs.OfType<BotTabNews>().ToList()
-                    : new();
+                lock (_botTabsLocker)
+                {
+                    return _botTabs != null
+                        ? _botTabs.OfType<BotTabNews>().ToList()
+                        : new();
+                }
             }
         }
 
@@ -2021,41 +2051,40 @@ position => position.State != PositionStateType.OpeningFail
             {
                 DateTime result = DateTime.MinValue;
 
-                if (TabsSimple != null
-                    && TabsSimple.Count > 0)
+                // snapshots only: this getter runs on bot/MCP threads while UI and screener
+                // workers mutate the tab lists
+                List<BotTabSimple> simpleTabs = TabsSimple;
+                for (int i = 0; i < simpleTabs.Count; i++)
                 {
-                    for (int i = 0; i < TabsSimple.Count; i++)
+                    if (simpleTabs[i].IsConnected == false)
                     {
-                        if (TabsSimple[i].IsConnected == false)
+                        continue;
+                    }
+
+                    if (simpleTabs[i].TimeServerCurrent > result)
+                    {
+                        result = simpleTabs[i].TimeServerCurrent;
+                    }
+                }
+
+                List<BotTabScreener> screenerTabs = TabsScreener;
+                for (int i = 0; i < screenerTabs.Count; i++)
+                {
+                    List<BotTabSimple> screenerTabsSnapshot = new List<BotTabSimple>();
+                    screenerTabs[i].CopyTabsInto(screenerTabsSnapshot);
+
+                    for (int j = 0; j < screenerTabsSnapshot.Count; j++)
+                    {
+                        BotTabSimple tab = screenerTabsSnapshot[j];
+
+                        if (tab.IsConnected == false)
                         {
                             continue;
                         }
 
-                        if (TabsSimple[i].TimeServerCurrent > result)
+                        if (tab.TimeServerCurrent > result)
                         {
-                            result = TabsSimple[i].TimeServerCurrent;
-                        }
-                    }
-                }
-
-                if (TabsScreener != null
-                    && TabsScreener.Count > 0)
-                {
-                    for (int i = 0; i < TabsScreener.Count; i++)
-                    {
-                        for (int j = 0; j < TabsScreener[i].Tabs.Count; j++)
-                        {
-                            BotTabSimple tab = TabsScreener[i].Tabs[j];
-
-                            if (tab.IsConnected == false)
-                            {
-                                continue;
-                            }
-
-                            if (tab.TimeServerCurrent > result)
-                            {
-                                result = tab.TimeServerCurrent;
-                            }
+                            result = tab.TimeServerCurrent;
                         }
                     }
                 }
@@ -2212,12 +2241,19 @@ position => position.State != PositionStateType.OpeningFail
 
         private void ActivateTab(IIBotTab newTab)
         {
-            _botTabs.Add(newTab);
+            // Add and the resulting index must be atomic: TabNum/ChangeActiveTab below
+            // must not observe a list shrunk by a concurrent TabDelete
+            int tabIndex;
+            lock (_botTabsLocker)
+            {
+                _botTabs.Add(newTab);
+                tabIndex = _botTabs.Count - 1;
+            }
 
             newTab.LogMessageEvent += SendNewLogMessage;
-            newTab.TabNum = _botTabs.Count - 1;
+            newTab.TabNum = tabIndex;
 
-            ChangeActiveTab(_botTabs.Count - 1);
+            ChangeActiveTab(tabIndex);
             ReloadTab();
 
             NewTabCreateEvent?.Invoke();
@@ -2255,7 +2291,13 @@ position => position.State != PositionStateType.OpeningFail
 
             if (_botTabs == null)
             {
-                _botTabs = new List<IIBotTab>();
+                lock (_botTabsLocker)
+                {
+                    if (_botTabs == null)
+                    {
+                        _botTabs = new List<IIBotTab>();
+                    }
+                }
             }
 
             return true;
@@ -2268,14 +2310,19 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                if (ActiveTab == null)
+                IIBotTab delTab = ActiveTab;
+
+                if (delTab == null)
                 {
                     return;
                 }
 
-                ActiveTab.Delete();
+                delTab.Delete();
 
-                _botTabs.Remove(ActiveTab);
+                lock (_botTabsLocker)
+                {
+                    _botTabs.Remove(delTab);
+                }
 
                 if (_botTabs != null && _botTabs.Count != 0)
                 {
@@ -2304,14 +2351,23 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
-                if (index >= _botTabs.Count)
+                IIBotTab delTab;
+                lock (_botTabsLocker)
                 {
-                    return;
+                    if (_botTabs == null || index >= _botTabs.Count)
+                    {
+                        return;
+                    }
+
+                    delTab = _botTabs[index];
                 }
 
-                _botTabs[index].Delete();
+                delTab.Delete();
 
-                _botTabs.RemoveAt(index);
+                lock (_botTabsLocker)
+                {
+                    _botTabs.RemoveAt(index);
+                }
                 if (_botTabs != null && _botTabs.Count != 0)
                 {
                     ChangeActiveTab(0);
@@ -2480,7 +2536,10 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public void ClearTabs()
         {
-            _botTabs?.Clear();
+            lock (_botTabsLocker)
+            {
+                _botTabs?.Clear();
+            }
             ActiveTab = null;
             NewTabCreateEvent?.Invoke();
         }
