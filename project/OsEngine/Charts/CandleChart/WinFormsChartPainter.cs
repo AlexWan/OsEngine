@@ -215,6 +215,21 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                RunOnUi(() =>
+                {
+                    if (_chart != null)
+                    {
+                        _chart.Paint -= _chart_Paint;
+                    }
+                    _paintPurgeSubscribed = false;
+                    // стоп: очередь гасим вместе с отпиской — отложенные серии вернутся в коллекцию навсегда;
+                    // переиспользование драйна только после CreateChart
+                    if (_pendingSeriesRemovals != null)
+                    {
+                        _pendingSeriesRemovals.Clear();
+                    }
+                });
+
                 if (_host != null)
                 {
                     _host.Child = null;
@@ -323,7 +338,7 @@ ContextMenuStrip menu)
 
                 if (FindSeriesByNameSafe("Deal_" + "BuySell") != null)
                 {
-                    _chart.Series.Remove(FindSeriesByNameSafe("Deal_" + "BuySell"));
+                    RemoveSeriesOnNextPaint(FindSeriesByNameSafe("Deal_" + "BuySell"));
                 }
 
                 for (int i = 0; _chart.Series != null && i < _chart.Series.Count; i++)
@@ -333,8 +348,8 @@ ContextMenuStrip menu)
                     if (_chart.Series[i].Name.Split('_')[0] == "Stop" ||
                         _chart.Series[i].Name.Split('_')[0] == "Profit")
                     {
-                        _chart.Series.Remove(_chart.Series[i]);
-                        i--;
+                        RemoveSeriesOnNextPaint(_chart.Series[i]);
+                        // отложенное удаление не укорачивает коллекцию: i-- вернул бы к той же серии и зациклил цикл
                     }
                 }
 
@@ -652,6 +667,13 @@ ContextMenuStrip menu)
 
                 _chart = new Chart();
                 _chart.SuppressExceptions = true;
+
+                // новый чарт: старая очередь указывает на прежнюю коллекцию, подписка — на прежний чарт
+                if (_pendingSeriesRemovals != null)
+                {
+                    _pendingSeriesRemovals.Clear();
+                }
+                _paintPurgeSubscribed = false;
 
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
@@ -1007,7 +1029,7 @@ ContextMenuStrip menu)
                             ClearLabelOnY2(mySeries.Name + "Label", mySeries.ChartArea, mySeries.Points[0].Color);
                         }
                         mySeries.Points.ClearFast();
-                        _chart.Series.Remove(FindSeriesByNameSafe(indicator.Name + i));
+                        RemoveSeriesOnNextPaint(FindSeriesByNameSafe(indicator.Name + i));
 
                         if (_labelSeries != null)
                         {
@@ -1765,7 +1787,7 @@ ContextMenuStrip menu)
 
             if (FindSeriesByNameSafe("Cursor") != null)
             {
-                ReMoveSeriesSafe(FindSeriesByNameSafe("Cursor"));
+                RemoveSeriesOnNextPaint(FindSeriesByNameSafe("Cursor"));
             }
 
             PaintSeriesSafe(candleSeries);
@@ -2614,8 +2636,8 @@ ContextMenuStrip menu)
                         if (isInArray == false)
                         {
                             ClearLabelOnY2(curSeries.Name + "Label", "Prime", curSeries.Color);
-                            ReMoveSeriesSafe(curSeries);
-                            j--;
+                            RemoveSeriesOnNextPaint(curSeries);
+                            // отложенное удаление не укорачивает коллекцию: j-- вернул бы к той же серии и зациклил цикл
                         }
                     }
                 }
@@ -5255,6 +5277,99 @@ ContextMenuStrip menu)
                 }
 
                 _chart.Series.Remove(series);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// series marked for deferred removal. Physically removed inside Chart.Paint, right after the
+        /// library re-aligns and drops them from the area cache. UI-only: очередь и дренаж исполняются
+        /// только на UI-потоке (RunOnUi, событие Paint) — locker не нужен.
+        /// серии, помеченные к отложенному удалению; удаляются внутри Chart.Paint, после align библиотеки
+        /// </summary>
+        private List<Series> _pendingSeriesRemovals;
+
+        /// <summary>
+        /// whether Paint is subscribed for the current _chart. UI-only
+        /// подписан ли Paint для текущего _chart
+        /// </summary>
+        private bool _paintPurgeSubscribed;
+
+        /// <summary>
+        /// to mark a series for removal on the next Chart.Paint instead of an immediate Series.Remove.
+        /// Immediate removal leaves the stale name in ChartAreaAxes._series until the next align: a mouse
+        /// click or move before that reaches Cursor.RoundPosition -> GetXAxesSeries and throws ArgumentException
+        /// "A chart element with the name ... could not be found" (crash #341). Clearing points keeps the name
+        /// resolvable; the next align excludes the empty series from the cache; the purge inside Paint removes
+        /// the object afterwards.
+        /// пометить серию к удалению на следующем Chart.Paint вместо немедленного Series.Remove: немедленное
+        /// удаление оставляет stale-имя в кэше области до следующего align, и мышь бросает ArgumentException (#341)
+        /// </summary>
+        private void RemoveSeriesOnNextPaint(Series series)
+        {
+            if (_chart == null || series == null)
+            {
+                return;
+            }
+
+            RunOnUi(() =>
+            {
+                // стенды строят painter через GetUninitializedObject — инициализатор поля не отработал
+                if (_pendingSeriesRemovals == null)
+                {
+                    _pendingSeriesRemovals = new List<Series>();
+                }
+
+                if (_pendingSeriesRemovals.Contains(series))
+                {
+                    return;
+                }
+
+                series.Points.ClearFast();
+                _pendingSeriesRemovals.Add(series);
+
+                if (!_paintPurgeSubscribed)
+                {
+                    _chart.Paint += _chart_Paint;
+                    _paintPurgeSubscribed = true;
+                }
+            });
+        }
+
+        /// <summary>
+        /// removes series marked via RemoveSeriesOnNextPaint. Fires inside Paint, after the library align
+        /// rebuilt the area cache, so empty pending series are no longer referenced there.
+        /// удаляет серии, помеченные RemoveSeriesOnNextPaint. Исполляется внутри Paint, после align библиотеки
+        /// </summary>
+        private void _chart_Paint(object sender, PaintEventArgs e)
+        {
+            try
+            {
+                if (_chart == null || _pendingSeriesRemovals == null || _pendingSeriesRemovals.Count == 0)
+                {
+                    return;
+                }
+
+                List<Series> batch = new List<Series>(_pendingSeriesRemovals);
+                _pendingSeriesRemovals.Clear();
+
+                foreach (Series series in batch)
+                {
+                    if (series == null || series.Points.Count > 0)
+                    {
+                        // линия вернулась в обновлении данных — удаление отменено
+                        continue;
+                    }
+
+                    // дренаж строго по ссылке: одноимённая новая серия не должна попасть под удаление
+                    if (_chart.Series.Contains(series))
+                    {
+                        _chart.Series.Remove(series);
+                    }
+                }
             }
             catch (Exception error)
             {
