@@ -314,6 +314,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 //GET /sapi/v1/margin/allPairs
 
                 string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/exchangeInfo", null, false);
+
+                if (string.IsNullOrEmpty(res))
+                {
+                    return;
+                }
+
                 SecurityResponse secResp = JsonConvert.DeserializeAnonymousType(res, new SecurityResponse());
                 UpdateRateLimits(secResp);
                 UpdatePairs(secResp);
@@ -832,6 +838,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     "/" + type_str_selector + "/v1/premiumIndex",
                     new Dictionary<string, string>() { { "symbol=", symbol } },
                     true);
+
+                if (string.IsNullOrEmpty(res))
+                {
+                    return null;
+                }
 
                 PremiumIndex resp = JsonConvert.DeserializeAnonymousType(res, new PremiumIndex());
                 return resp;
@@ -1458,6 +1469,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     var res2 = CreateQuery(Method.GET, endPoint, param, false);
 
+                    if (string.IsNullOrEmpty(res2))
+                    {
+                        return null;
+                    }
+
                     AgregatedHistoryTrade[] tradeHistory = JsonConvert.DeserializeObject<AgregatedHistoryTrade[]>(res2);
 
                     var oldTrades = CreateTradesFromJson(security, tradeHistory);
@@ -1889,6 +1905,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/fundingInfo", null, true);
 
+                if (string.IsNullOrEmpty(res))
+                {
+                    return;
+                }
+
                 List<FundingInfo> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingInfo>());
 
                 Funding data = new Funding();
@@ -1921,7 +1942,19 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/fundingRate", new Dictionary<string, string>() { { "symbol=", security } }, false);
 
+                if (string.IsNullOrEmpty(res))
+                {
+                    return;
+                }
+
                 List<FundingHistory> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingHistory>());
+
+                if (response == null
+                    || response.Count == 0)
+                {
+                    // пустой ответ = нет истории, [^1] на пустом списке бросал ArgumentOutOfRangeException
+                    return;
+                }
 
                 Funding data = new Funding();
 
@@ -1991,6 +2024,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
                     string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribedSecurities[i].Name } }, false);
+
+                    if (string.IsNullOrEmpty(res))
+                    {
+                        // отказ по одному инструменту не обрывает батч по остальным подпискам
+                        continue;
+                    }
 
                     OpenInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new OpenInterestInfo());
 
