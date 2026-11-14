@@ -288,6 +288,10 @@ namespace OsEngine.MCP
                     {
                         try
                         {
+                            // Abort перед Close: Close имеет flush-семантику и на клиенте, зависшем
+                            // в Write, повис бы сам (факт BUG-0327). Клиент, зависший между фан-аутами,
+                            // ещё в списке (heartbeat снимет его только на следующем тике) (BUG-0330)
+                            client.Response.Abort();
                             client.Response.Close();
                         }
                         catch
@@ -328,8 +332,24 @@ namespace OsEngine.MCP
 
             try
             {
-                client.Response.OutputStream.Write(bytes, 0, bytes.Length);
-                client.Response.OutputStream.Flush();
+                // Гард зовём на хосте-владельце клиента: единственный лог разрыва принадлежит его
+                // логу; в production на этом пути owner всегда == this (BUG-0330)
+                McpMaster host = client.Owner ?? this;
+                if (!host.TryWriteSse(client.Response, bytes))
+                {
+                    // Сталл welcome-кадра: pool-воркер отпущен гардом, коннект рвём Abort-ом —
+                    // Close на висяке завис бы сам; флаг будит keep-alive цикл ProcessSse (BUG-0294)
+                    client.IsClosed = true;
+                    try
+                    {
+                        client.Response.Abort();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                    return;
+                }
             }
             catch
             {
@@ -466,8 +486,21 @@ namespace OsEngine.MCP
                     SseClient client = _sseClients[i];
                     try
                     {
-                        client.Response.OutputStream.Write(bytes, 0, bytes.Length);
-                        client.Response.OutputStream.Flush();
+                        if (!TryWriteSse(client.Response, bytes))
+                        {
+                            // Сталл: writer покинут гардом, разрыв только Abort-ом (Close flush-ется
+                            // и сам виснет на висяке, BUG-0327); флаг будит keep-alive цикл (BUG-0294)
+                            client.IsClosed = true;
+                            try
+                            {
+                                client.Response.Abort();
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+                            _sseClients.RemoveAt(i);
+                        }
                     }
                     catch
                     {
@@ -1651,6 +1684,48 @@ namespace OsEngine.MCP
             abandoned.Exception?.GetType();
         }
 
+        // Ограниченная по времени запись в v1-SSE (BUG-0330). Фан-аут SendEvent пишется под общим
+        // _sseClientsLocker: без гарда один zero-window клиент вешал под локом всех продюсеров
+        // (publishEvent, UI-путь) и морил v2-очереди — резидуал v1, куда гарды 0327/0329 не дошли.
+        // true = записано; false = клиент признан зависшим по таймауту: лог разрыва сделан, коллер
+        // рвёт коннект Abort-ом и снимает клиента. Сбой записи — rethrow истинного исключения:
+        // штатные catch путей сохраняют молчаливую семантику обрыва (урок BUG-0292: обрыв != Error).
+        private bool TryWriteSse(HttpListenerResponse response, byte[] bytes)
+        {
+            // LongRunning здесь НЕ нужен по той же причине, что в TryWriteStreamable: писатель
+            // на коннект один, а за StreamableSendTimeoutMs гасится ожидание вызывающего, не воркер
+            Task write = Task.Run(() =>
+            {
+                response.OutputStream.Write(bytes, 0, bytes.Length);
+                response.OutputStream.Flush();
+            });
+
+            Exception reason;
+            try
+            {
+                // наблюдатель вешается безусловно ДО Wait, на всех путях: покинутый на таймауте
+                // воркер не должен остаться с UnobservedTaskException (урок BUG-0305, прецеденты
+                // TryWriteStreamable/TryWriteResponse)
+                write.ContinueWith(t => ObserveAbandonedWriter(t), TaskContinuationOptions.OnlyOnFaulted);
+
+                if (write.Wait(StreamableSendTimeoutMs))
+                {
+                    return true;
+                }
+                reason = new TimeoutException($"send blocked over {StreamableSendTimeoutMs} ms");
+            }
+            catch (AggregateException error)
+            {
+                // Wait на завершившемся сбоем Task бросает AggregateException — коллеру истинный тип
+                throw error.GetBaseException();
+            }
+
+            // Единственный лог разрыва, Connect: обычный обрыв клиента, не ошибка (урок BUG-0292).
+            // Пишется в Log этого экземпляра: метод вызывают на хосте-владельце клиента
+            Log.ProcessMessage($"[MCP] v1 SSE client killed ({reason.GetType().Name}: {reason.Message})", LogMessageType.Connect);
+            return false;
+        }
+
         private void CloseStreamableStream(string session)
         {
             if (_streamableStreams.TryRemove(session, out StreamableStream stream))
@@ -2078,7 +2153,7 @@ namespace OsEngine.MCP
             response.StatusCode = 200;
             response.OutputStream.Flush();
 
-            SseClient client = new SseClient { Response = response };
+            SseClient client = new SseClient { Response = response, Owner = this };
 
             lock (_sseClientsLocker)
             {
@@ -2187,6 +2262,9 @@ namespace OsEngine.MCP
         {
             public HttpListenerResponse Response;
             public volatile bool IsClosed;
+            // Хост-владелец регистрации: лог разрыва по таймауту гарда идёт в его Log,
+            // даже если сайт вызван на чужом экземпляре (BUG-0330)
+            public McpMaster Owner;
         }
 
         private class StreamableSession
