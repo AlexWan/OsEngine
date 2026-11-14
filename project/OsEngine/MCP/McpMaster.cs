@@ -1559,6 +1559,18 @@ namespace OsEngine.MCP
             StreamableStream stream = new StreamableStream { Response = response, SessionId = session };
             _streamableStreams[session] = stream;
 
+            // BUG-0374: DELETE мог пройти между проверкой выше и регистрацией — он снял сессию и не
+            // нашёл ещё не зарегистрированный стрим. Пост-регистрационный re-check: сессия уже мертва —
+            // отвечаем 404 и снимаем свою регистрацию. Заголовки ещё не флашены (первый флаш — hello
+            // ниже), SendError до снятия: после Abort (в Close) ответ уже не уходит.
+            // Успевший пройти позже DELETE регистрацию найдёт в ProcessSessionDelete и закроет стрим сам
+            if (!_sessions.ContainsKey(session))
+            {
+                SendError(response, 404, "Session not found");
+                CloseStreamableStream(session, stream);
+                return;
+            }
+
             // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
             EnqueueToStream(stream, BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
 
