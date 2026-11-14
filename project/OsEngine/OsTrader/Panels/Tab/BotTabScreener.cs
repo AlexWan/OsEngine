@@ -1076,9 +1076,96 @@ namespace OsEngine.OsTrader.Panels.Tab
             // called from the screener worker thread and from MCP; without the lock both
             // run "create missing tabs" at once and TryCreateTab adds the same security twice.
             // NeedToReloadTabs is re-checked inside, so the second caller exits after the first finishes
-            lock (_reloadTabsLocker)
+            // The lock serializes data work only (BUG-0335). Synchronous UI marshalling under it
+            // deadlocks with the UI thread entering this method (Closed-callback in OptimizerUi):
+            // the holder waits for the dispatcher, the dispatcher thread waits for the lock.
+            // The UI plan is collected under the lock and executed outside it, in finally:
+            // an aborted reload must not leave the grid stale.
+            // Delta-2 (S1 FAIL): the plan covers every UI site reachable from the locked body -
+            // deleted-tab Clear (chart/grid/alerts painters), connector Delete (settings-dialog
+            // Close), the connector settings re-apply (synchronous reconnect marshal) and the
+            // indicator reload (chart paint). Nothing UI is called under the lock.
+            List<CandleEngine> chartsToClose = new List<CandleEngine>();
+            List<BotTabSimple> tabsToClear = new List<BotTabSimple>();
+            List<BotTabSimple> tabsToUpdate = new List<BotTabSimple>();
+            bool needRepaint = false;
+            bool indicatorsReload = false;
+
+            try
             {
-                TryReLoadTabsLocked();
+                lock (_reloadTabsLocker)
+                {
+                    TryReLoadTabsLocked(chartsToClose, tabsToClear, tabsToUpdate, ref needRepaint, ref indicatorsReload);
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < chartsToClose.Count; i++)
+                {
+                    chartsToClose[i].CloseGui();
+                }
+
+                // Deleted tabs are wiped here, not under the lock: Clear marshals synchronously
+                // to painted chart/grids/alerts UI. Delete() carries the connector settings-dialog
+                // Close - still a cross-thread call as on the base, deferral only removes it from
+                // under the lock, that behaviour is not redesigned. The deferred Delete should not
+                // wipe a recreated connector's settings file in the same pass: a dead tab's cause
+                // (security gone or switched off) is never re-created here (TryCreateTab checks IsOn).
+                // A cross-pass re-add inside the finally window can clobber Engine\<name>ConnectorPrime.txt;
+                // it is a cache and self-heals on restart.
+                for (int i = 0; i < tabsToClear.Count; i++)
+                {
+                    try
+                    {
+                        tabsToClear[i].Clear();
+                        tabsToClear[i].Delete();
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        NeedToReloadTabs = true; // the base aborted the pass and retried on the next tick, parity
+                    }
+                }
+
+                // A concurrent reload may already own newer settings here - harmless, the next
+                // reload re-applies them; no "lost update" is promised.
+                for (int i = 0; i < tabsToUpdate.Count; i++)
+                {
+                    try
+                    {
+                        UpdateTabSettings(tabsToUpdate[i]);
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        NeedToReloadTabs = true; // parity with the base abort
+                    }
+                }
+
+                if (indicatorsReload)
+                {
+                    try
+                    {
+                        ReloadIndicatorsOnTabs();
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        NeedToReloadTabs = true; // parity with the base abort (R-1)
+                    }
+                }
+
+                if (needRepaint)
+                {
+                    // Residual risk: the repaint reads Tabs outside the lock and may catch a
+                    // parallel reload. RePaintSecuritiesGrid swallows the torn pass, and the grid
+                    // is re-stamped only when a later delete/create sets needRepaint; an
+                    // update-only reload leaves the torn view until then. The deferred repaint
+                    // also replaces append-only PaintNewRow on create: Rows.Clear repaints the
+                    // whole grid, so selection is lost and an in-place On/Off edit is cancelled
+                    // (columns ReadOnly=false :2037+); scroll is restored but flickers. Race class predates fix.
+                    RePaintSecuritiesGrid();
+                }
             }
         }
 
@@ -1087,7 +1174,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         // живой скринер-воркер (:140-144) дёргает TryReLoadTabs каждые 500 мс: Error о пропуске — только при смене причины
         private string _lastSkipReason = null;
 
-        private void TryReLoadTabsLocked()
+        /// <param name="chartsToClose">chart windows to close after the lock is released (BUG-0335)</param>
+        /// <param name="tabsToClear">tabs deleted in this pass, wiped and removed outside the lock (BUG-0335)</param>
+        /// <param name="tabsToUpdate">tabs whose connector settings are (re-)applied outside the lock (BUG-0335)</param>
+        /// <param name="needRepaint">set when the securities grid must be redrawn after the lock</param>
+        /// <param name="indicatorsReload">set when the per-tab indicator reload must run after the lock (BUG-0335)</param>
+        private void TryReLoadTabsLocked(List<CandleEngine> chartsToClose, List<BotTabSimple> tabsToClear,
+            List<BotTabSimple> tabsToUpdate, ref bool needRepaint, ref bool indicatorsReload)
         {
             try
             {
@@ -1126,26 +1219,36 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // 1 remove unwanted tabs
 
                 bool deleteSomeTabs = false;
+
+                // F3: the deferred close in the caller's finally raises ChartClosedEvent on the UI
+                // thread OUTSIDE this lock and RemoveAt's _chartEngines (RemoveAt :1748), so the live list
+                // can shrink mid-loop for the next lock holder. Index a local snapshot; the base
+                // serialized the close under the lock. No UI calls from this loop.
+                CandleEngine[] chartEnginesSnapshot = _chartEngines == null ? null : _chartEngines.ToArray();
               
                 for (int i = 0; i < Tabs.Count; i++)
                 {
-                    UpdateTabSettings(Tabs[i]);
-
-                    if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i]) == false)
+                    // BUG-0335 delta-2: settings are not applied here (the base applied them, the call
+                    // marshals a synchronous reconnect - the S1 site). The alive verdict is taken on
+                    // prospective values (settingsWillSync), so keep/dead stays 1:1 with the base.
+                    // A dead tab is not queued at all: the base re-applied settings to it only to
+                    // destroy it a line later, that reconnect was pure busywork.
+                    if (TabIsAlive(SecuritiesNames, TimeFrame, Tabs[i], true) == false)
                     {
                         string chartName = Tabs[i].TabName + "_Engine";
 
-                        for (int i2 = 0; _chartEngines != null && i2 < _chartEngines.Count; i2++)
+                        for (int i2 = 0; chartEnginesSnapshot != null && i2 < chartEnginesSnapshot.Length; i2++)
                         {
-                            if (chartName == _chartEngines[i2].NameStrategyUniq)
+                            if (chartName == chartEnginesSnapshot[i2].NameStrategyUniq)
                             {
-                                _chartEngines[i2].CloseGui();
+                                // closing and wiping are deferred to the plan outside the lock
+                                // (BUG-0335), the engine itself stays in _chartEngines as before
+                                chartsToClose.Add(chartEnginesSnapshot[i2]);
                                 break;
                             }
                         }
 
-                        Tabs[i].Clear();
-                        Tabs[i].Delete();
+                        tabsToClear.Add(Tabs[i]);
                         lock (_tabsLocker)
                         {
                             Tabs.RemoveAt(i);
@@ -1153,11 +1256,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                         i--;
                         deleteSomeTabs = true;
                     }
+                    else
+                    {
+                        tabsToUpdate.Add(Tabs[i]);
+                    }
                 }
 
                 if (deleteSomeTabs)
                 {
-                    RePaintSecuritiesGrid();
+                    needRepaint = true;
                 }
 
                 // 2 update data in tabs
@@ -1177,9 +1284,28 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (createdTab != null)
                     {
-                        UpdateTabSettings(createdTab);
-                        PaintNewRow();
+                        // BUG-0335 delta-2: the (re-)apply marshals; queued, the final pass runs it
+                        // outside the lock. The raise below now sees the fresh tab before the full
+                        // re-apply; current subscribers read the creation-time fields only (W-1).
+                        tabsToUpdate.Add(createdTab);
+                        needRepaint = true; // the row is drawn by the deferred plan (BUG-0335)
 
+                        // W-1, contract for NewTabCreateEvent subscribers (the raise stays under the lock):
+                        // data-only here holds for current subscribers: BotPanel :2158/:2200 go to
+                        // journals, LoadTabToWatch :48-51 is an assignment. TestBotOption :262-266 /
+                        // TestBotFunding :171-175 marshal to UI under the raise, and item (2) below
+                        // IS their UI entry into this locker: MCP Apply parks the UI on this lock
+                        // (live base S4 stack: Monitor.Enter <- TryReLoadTabs <- ApplyBotConfigTabScreener),
+                        // so the AB-BA cycle stays closed for TestBot + MCP even on this fix. That is
+                        // the accepted residual W-1: either the subscriber does not marshal, or the
+                        // raise moves out of the lock. Not redesigned here.
+                        // UI entries into this lock: (1) OptimizerUi Closed-callback :1907-12;
+                        // (2) MCP config Apply*: RobotsApi.SetBotConfigTabScreener :2064-72 and
+                        // OptimizerApi :1050-56 marshal to the UI thread (MainWindow.GetDispatcher,
+                        // synchronous Invoke) and enter the lock ON the UI thread - with a non-UI
+                        // holder (static worker :140-43) that freezes OsTrader, not only the optimizer.
+                        // Both TryReLoadTabs and NewTabCreateEvent are public: a user robot with a
+                        // UI-blocking handler under the raise can close the deadlock cycle again.
                         if (NewTabCreateEvent != null)
                         {
                             NewTabCreateEvent(createdTab);
@@ -1192,7 +1318,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
                 IsLoadTabs = false;
-                ReloadIndicatorsOnTabs();
+                // BUG-0335 delta-2: the reload paints indicators onto every already-painted chart
+                // (synchronous marshals), so it runs in the deferred plan. Market-depth indicators
+                // are data-only (verified: no marshals in the master), they stay.
+                if (_indicators.Count > 0)
+                {
+                    indicatorsReload = true;
+                }
                 ReloadMarketDepthIndicatorsOnTabs();
 
                 if (Tabs.Count != 0)
@@ -1209,7 +1341,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; Tabs != null && i < Tabs.Count; i++)
                 {
-                    UpdateTabSettings(Tabs[i]);
+                    // BUG-0335 delta-2: re-apply is queued (the deletion loop already queued the
+                    // survivors, this pass re-queues them: UpdateTabSettings is idempotent, the
+                    // second run finds no difference and does not reconnect).
+                    tabsToUpdate.Add(Tabs[i]);
                 }
 
                 SaveTabs();
@@ -1386,9 +1521,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Check if the tab exists
         /// </summary>
-        private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
+        /// <summary>
+        /// Alive verdict for a tab against the settings that will be applied to it (BUG-0335 delta-2):
+        /// settingsWillSync means the connector re-apply runs later (deferred plan), so the checks
+        /// comparing fields that the re-apply overwrites (ServerFullName, TimeFrame, candle series
+        /// parameters) are evaluated as post-sync, i.e. always pass; no assignments are made here.
+        /// The candle-series type check stays live: SetSaveString never changes the CLR type, and a
+        /// type mismatch made the base verdict dead too.
+        /// </summary>
+        private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab, bool settingsWillSync)
         {
-            if (StartProgram == StartProgram.IsOsTrader)
+            if (settingsWillSync == false
+                && StartProgram == StartProgram.IsOsTrader)
             {
                 if (tab.Connector.ServerFullName != ServerName)
                 {
@@ -1420,7 +1564,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return false;
             }
 
-            if (tab.Connector.TimeFrame != frame)
+            if (settingsWillSync == false
+                && tab.Connector.TimeFrame != frame)
             {
                 return false;
             }
@@ -1434,30 +1579,33 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return false;
             }
 
-            for (int i = 0; i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count; i++)
+            if (settingsWillSync == false)
             {
-                ICandleSeriesParameter paramInTab = tab.TimeFrameBuilder.CandleSeriesRealization.Parameters[i];
-                ICandleSeriesParameter paramInScreener = CandleSeriesRealization.Parameters[i];
+                for (int i = 0; i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count; i++)
+                {
+                    ICandleSeriesParameter paramInTab = tab.TimeFrameBuilder.CandleSeriesRealization.Parameters[i];
+                    ICandleSeriesParameter paramInScreener = CandleSeriesRealization.Parameters[i];
 
-                if (paramInTab.Type == CandlesParameterType.StringCollection
-                    && ((CandlesParameterString)paramInTab).ValueString != ((CandlesParameterString)paramInScreener).ValueString)
-                {
-                    return false;
-                }
-                else if (paramInTab.Type == CandlesParameterType.Int
-                    && ((CandlesParameterInt)paramInTab).ValueInt != ((CandlesParameterInt)paramInScreener).ValueInt)
-                {
-                    return false;
-                }
-                else if (paramInTab.Type == CandlesParameterType.Bool
-                    && ((CandlesParameterBool)paramInTab).ValueBool != ((CandlesParameterBool)paramInScreener).ValueBool)
-                {
-                    return false;
-                }
-                else if (paramInTab.Type == CandlesParameterType.Decimal
-                    && ((CandlesParameterDecimal)paramInTab).ValueDecimal != ((CandlesParameterDecimal)paramInScreener).ValueDecimal)
-                {
-                    return false;
+                    if (paramInTab.Type == CandlesParameterType.StringCollection
+                        && ((CandlesParameterString)paramInTab).ValueString != ((CandlesParameterString)paramInScreener).ValueString)
+                    {
+                        return false;
+                    }
+                    else if (paramInTab.Type == CandlesParameterType.Int
+                        && ((CandlesParameterInt)paramInTab).ValueInt != ((CandlesParameterInt)paramInScreener).ValueInt)
+                    {
+                        return false;
+                    }
+                    else if (paramInTab.Type == CandlesParameterType.Bool
+                        && ((CandlesParameterBool)paramInTab).ValueBool != ((CandlesParameterBool)paramInScreener).ValueBool)
+                    {
+                        return false;
+                    }
+                    else if (paramInTab.Type == CandlesParameterType.Decimal
+                        && ((CandlesParameterDecimal)paramInTab).ValueDecimal != ((CandlesParameterDecimal)paramInScreener).ValueDecimal)
+                    {
+                        return false;
+                    }
                 }
             }
 
