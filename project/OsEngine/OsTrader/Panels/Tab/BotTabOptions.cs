@@ -717,6 +717,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            // BUG-0334: логирование, удаление вкладок и маршаллинг на UI исполняются после выхода
+            // из _locker: синхронный переход на UI-поток под блокировкой давал AB-BA (UI-делегат
+            // берёт _locker в RefreshOptionsGrid/UpdateExpirationFilter).
+            List<string> deferredLogs = null;
+            List<BotTabSimple> tabsToDelete = null;
+            bool uiRefreshNeeded = false;
+
             lock (_locker)
             {
                 var newSecurityNames = new HashSet<string>(
@@ -732,13 +739,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (securitiesToRemove.Any())
                 {
-                    LogMessageEvent?.Invoke($"Removing {securitiesToRemove.Count} expired/delisted securities.", LogMessageType.System);
+                    deferredLogs = new List<string>();
+                    deferredLogs.Add($"Removing {securitiesToRemove.Count} expired/delisted securities.");
+                    tabsToDelete = new List<BotTabSimple>();
                     foreach (var secName in securitiesToRemove)
                     {
                         if (_simpleTabs.TryGetValue(secName, out var tabToRemove))
                         {
                             _simpleTabs.Remove(secName);
-                            tabToRemove.Delete();
+                            tabsToDelete.Add(tabToRemove);
                             _allOptionsData.RemoveAll(o => o.Security.Name == secName);
                             _uaData.RemoveAll(u => u.Security.Name == secName);
                         }
@@ -750,7 +759,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (newSecurityObjects.Any())
                 {
-                    LogMessageEvent?.Invoke($"Discovered {newSecurityObjects.Count} new securities.", LogMessageType.System);
+                    if (deferredLogs == null)
+                    {
+                        deferredLogs = new List<string>();
+                    }
+                    deferredLogs.Add($"Discovered {newSecurityObjects.Count} new securities.");
                     foreach (var security in newSecurityObjects)
                     {
                         var tab = CreateSimpleTab(security, _server);
@@ -765,18 +778,43 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if (securitiesToRemove.Any() || newSecurityObjects.Any())
+                // Условие перехода на UI вычисляется под локом по всем путям (BUG-0334 N2)
+                uiRefreshNeeded = (securitiesToRemove.Any() || newSecurityObjects.Any()) && _mainControl.IsHandleCreated;
+            }
+
+            if (deferredLogs != null)
+            {
+                foreach (string deferredLog in deferredLogs)
                 {
-                    if (_mainControl.IsHandleCreated)
+                    LogMessageEvent?.Invoke(deferredLog, LogMessageType.System);
+                }
+            }
+
+            if (tabsToDelete != null)
+            {
+                foreach (BotTabSimple tabToDelete in tabsToDelete)
+                {
+                    tabToDelete.Delete();
+                }
+            }
+
+            // U.1: гейт под локом мог протухнуть за логоми и удалениями (закрытие окна в log-фазе);
+            // остаточную гонку проверка->Invoke закрывает catch на уничтожении дескриптора.
+            if (uiRefreshNeeded && !_isDisposed && _mainControl.IsHandleCreated)
+            {
+                try
+                {
+                    _mainControl.Invoke(new Action(() =>
                     {
-                        _mainControl.Invoke(new Action(() =>
-                        {
-                            InitializeUaGrid();
-                            UpdateExpirationFilter();
-                            RefreshOptionsGrid();
-                            SecuritiesUpdated?.Invoke(); // Add this line
-                        }));
-                    }
+                        InitializeUaGrid();
+                        UpdateExpirationFilter();
+                        RefreshOptionsGrid();
+                        SecuritiesUpdated?.Invoke(); // Add this line
+                    }));
+                }
+                catch (Exception e) when (e is ObjectDisposedException || e is InvalidOperationException)
+                {
+                    LogMessageEvent?.Invoke("OnSecuritiesChanged: UI refresh skipped, control closed (" + e.GetType().Name + ").", LogMessageType.Error);
                 }
             }
         }
@@ -1503,6 +1541,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
+            // BUG-0334: тексты битых строк накапливаются под локом, сами вызовы лога — после выхода
+            List<string> errorLogs = null;
+
             lock (_locker)
             {
                 OptionDataRow optionData = null;
@@ -1510,12 +1551,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (o == null)
                     {
-                        LogMessageEvent?.Invoke("Null OptionDataRow found in _allOptionsData during TickChange event.", LogMessageType.Error);
+                        if (errorLogs == null)
+                        {
+                            errorLogs = new List<string>();
+                        }
+                        errorLogs.Add("Null OptionDataRow found in _allOptionsData during TickChange event.");
                         continue;
                     }
                     if (o.Security == null)
                     {
-                        LogMessageEvent?.Invoke($"OptionDataRow with null Security found for a ticker.", LogMessageType.Error);
+                        if (errorLogs == null)
+                        {
+                            errorLogs = new List<string>();
+                        }
+                        errorLogs.Add($"OptionDataRow with null Security found for a ticker.");
                         continue;
                     }
                     if (o.Security.Name == trade.SecurityNameCode)
@@ -1531,35 +1580,51 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         optionData.LastPrice = (double)trade.Price;
                     }
-
-                    return;
                 }
-
-                UnderlyingAssetDataRow uaData = null;
-                foreach (var ud in _uaData)
+                else
                 {
-                    if (ud == null)
+                    UnderlyingAssetDataRow uaData = null;
+                    foreach (var ud in _uaData)
                     {
-                        LogMessageEvent?.Invoke("Null UnderlyingAssetDataRow found in _uaData during TickChange event.", LogMessageType.Error);
-                        continue;
+                        if (ud == null)
+                        {
+                            if (errorLogs == null)
+                            {
+                                errorLogs = new List<string>();
+                            }
+                            errorLogs.Add("Null UnderlyingAssetDataRow found in _uaData during TickChange event.");
+                            continue;
+                        }
+                        if (ud.Security == null)
+                        {
+                            if (errorLogs == null)
+                            {
+                                errorLogs = new List<string>();
+                            }
+                            errorLogs.Add($"UnderlyingAssetDataRow with null Security found.");
+                            continue;
+                        }
+                        if (ud.Security.Name == trade.SecurityNameCode)
+                        {
+                            uaData = ud;
+                            break;
+                        }
                     }
-                    if (ud.Security == null)
+                    if (uaData != null)
                     {
-                        LogMessageEvent?.Invoke($"UnderlyingAssetDataRow with null Security found.", LogMessageType.Error);
-                        continue;
-                    }
-                    if (ud.Security.Name == trade.SecurityNameCode)
-                    {
-                        uaData = ud;
-                        break;
+                        if (trade.Price > 0)
+                        {
+                            uaData.LastPrice = (double)trade.Price;
+                        }
                     }
                 }
-                if (uaData != null)
+            }
+
+            if (errorLogs != null)
+            {
+                foreach (string errorLog in errorLogs)
                 {
-                    if (trade.Price > 0)
-                    {
-                        uaData.LastPrice = (double)trade.Price;
-                    }
+                    LogMessageEvent?.Invoke(errorLog, LogMessageType.Error);
                 }
             }
         }
