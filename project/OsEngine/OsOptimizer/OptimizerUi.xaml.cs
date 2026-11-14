@@ -310,6 +310,12 @@ namespace OsEngine.OsOptimizer
                     _chartSeriesResult = null;
                 }
 
+                if (_dialogScreenerTab != null)
+                {
+                    _dialogScreenerTab.DialogClosed -= Screener_DialogClosed;
+                    _dialogScreenerTab = null;
+                }
+
                 _master = null;
 
                 if (HostTabsSimple != null)
@@ -1885,37 +1891,56 @@ namespace OsEngine.OsOptimizer
                 {
                     BotTabSimple simpleTab = (BotTabSimple)curTab;
                     simpleTab.ShowConnectorDialog();
-                    simpleTab.DialogClosed += () =>
-                    {
-                        PaintTableSources();
-                    };
+                    simpleTab.DialogClosed -= Sources_DialogClosed_Paint;
+                    simpleTab.DialogClosed += Sources_DialogClosed_Paint;
                 }
                 else if (curTab.TabType == BotTabType.Index)
                 {
                     BotTabIndex simpleTab = (BotTabIndex)curTab;
                     simpleTab.ShowDialog();
-                    simpleTab.DialogClosed += () =>
-                    {
-                        PaintTableSources();
-                    };
+                    simpleTab.DialogClosed -= Sources_DialogClosed_Paint;
+                    simpleTab.DialogClosed += Sources_DialogClosed_Paint;
                 }
                 else if (curTab.TabType == BotTabType.Screener)
                 {
                     BotTabScreener screenerTab = (BotTabScreener)curTab;
                     screenerTab.ShowDialog();
 
-                    screenerTab.DialogClosed += () =>
+                    if (_dialogScreenerTab != null)
                     {
-                        screenerTab.TryLoadTabs();
-                        screenerTab.TryReLoadTabs();
-                        PaintTableSources();
-                    };
+                        _dialogScreenerTab.DialogClosed -= Screener_DialogClosed;
+                    }
+
+                    _dialogScreenerTab = screenerTab;
+                    screenerTab.DialogClosed -= Screener_DialogClosed;
+                    screenerTab.DialogClosed += Screener_DialogClosed;
                 }
             }
             catch (Exception ex)
             {
                 _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private BotTabScreener _dialogScreenerTab; // bug-0363: one DialogClosed subscription, kept on the last opened screener tab
+
+        private void Sources_DialogClosed_Paint()
+        {
+            PaintTableSources();
+        }
+
+        private void Screener_DialogClosed()
+        {
+            BotTabScreener tab = _dialogScreenerTab;
+
+            if (tab == null)
+            {
+                return;
+            }
+
+            tab.TryLoadTabs();
+            tab.TryReLoadTabs();
+            PaintTableSources();
         }
 
         #endregion
