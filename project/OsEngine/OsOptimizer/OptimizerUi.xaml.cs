@@ -3256,11 +3256,13 @@ namespace OsEngine.OsOptimizer
 
         private void PaintCountBotsInOptimization()
         {
+            int botCount;
             lock (_locker)
             {
-                int botCount = _master.GetMaxBotsCount();
-                PaintBotsCount(botCount);
+                botCount = _master.GetMaxBotsCount();
             }
+            // Окраску зовём вне лока: Invoke в PaintBotsCount ждёт UI-поток, а UI в это время ждёт _locker — взаимоблокировка
+            PaintBotsCount(botCount);
         }
 
         private void PaintBotsCount(int value)
