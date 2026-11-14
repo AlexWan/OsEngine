@@ -1014,7 +1014,18 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException($"Robot name '{instanceName}' already exists");
             }
 
-            BotPanel bot = BotFactory.GetStrategyForName(strategyName, instanceName, master._startProgram, isScript);
+            // The bot constructor can create WPF/WinForms controls (WindowsFormsHost), so it must run on the UI thread (STA)
+            BotPanel bot = null;
+            if (MainWindow.GetDispatcher.CheckAccess())
+            {
+                bot = BotFactory.GetStrategyForName(strategyName, instanceName, master._startProgram, isScript);
+            }
+            else
+            {
+                bot = MainWindow.GetDispatcher.Invoke(() =>
+                    BotFactory.GetStrategyForName(strategyName, instanceName, master._startProgram, isScript));
+            }
+
             if (bot == null)
             {
                 throw new InvalidOperationException($"Failed to create robot '{strategyName}'");
