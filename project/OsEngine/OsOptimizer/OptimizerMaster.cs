@@ -79,20 +79,28 @@ namespace OsEngine.OsOptimizer
 
         public int GetMaxBotsCount()
         {
-            if (_parameters == null ||
-                _parametersOn == null)
+            // Пара списков снимается и считается под локом: подсчёт мутирует живые параметры,
+            // а геттеры пересобирают поля между двумя проходами (BUG-0341)
+            lock (ParametersLock)
             {
-                return 0;
+                List<IIStrategyParameter> parameters = _parameters;
+                List<bool> parametersOn = _parametersOn;
+
+                if (parameters == null ||
+                    parametersOn == null)
+                {
+                    return 0;
+                }
+
+                int value = _optimizerExecutor.BotCountOneFaze(parameters, parametersOn) * IterationCount * 2;
+
+                if (LastInSample)
+                {
+                    value = value - _optimizerExecutor.BotCountOneFaze(parameters, parametersOn);
+                }
+
+                return value;
             }
-
-            int value = _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn) * IterationCount * 2;
-
-            if (LastInSample)
-            {
-                value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn);
-            }
-
-            return value;
         }
 
         private void Save()
@@ -1310,22 +1318,27 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
+                // Пересборка общего списка под локом: конкурентный пересчёт не должен увидеть
+                // частично очищенное или null-состояние (BUG-0341)
+                lock (ParametersLock)
                 {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
+                    if (_parameters != null)
+                    {
+                        _parameters.Clear();
+                        _parameters = null;
+                    }
 
-                _parameters = new List<IIStrategyParameter>();
+                    _parameters = new List<IIStrategyParameter>();
 
-                for (int i = 0; i < bot.Parameters.Count; i++)
-                {
-                    _parameters.Add(bot.Parameters[i]);
-                }
+                    for (int i = 0; i < bot.Parameters.Count; i++)
+                    {
+                        _parameters.Add(bot.Parameters[i]);
+                    }
 
-                for (int i = 0; i < _parameters.Count; i++)
-                {
-                    GetValueParameterSaveByUser(_parameters[i]);
+                    for (int i = 0; i < _parameters.Count; i++)
+                    {
+                        GetValueParameterSaveByUser(_parameters[i]);
+                    }
                 }
 
                 bot.Delete();
@@ -1356,22 +1369,34 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if (_parameters != null)
+                // То же, что в Parameters: пересборка общего списка под локом (BUG-0341)
+                lock (ParametersLock)
                 {
-                    _parameters.Clear();
-                    _parameters = null;
-                }
+                    if (_parameters != null)
+                    {
+                        _parameters.Clear();
+                        _parameters = null;
+                    }
 
-                _parameters = new List<IIStrategyParameter>();
+                    _parameters = new List<IIStrategyParameter>();
 
-                for (int i = 0; i < bot.Parameters.Count; i++)
-                {
-                    _parameters.Add(bot.Parameters[i]);
+                    for (int i = 0; i < bot.Parameters.Count; i++)
+                    {
+                        _parameters.Add(bot.Parameters[i]);
+                    }
                 }
 
                 return _parameters;
             }
         }
+
+        // Сериализация сетки параметров оптимизатора: пересчёт BotCountOneFaze мутирует живые
+        // объекты, а геттеры пересобирают поля; без лока счёт и файлы стандартов рвались на
+        // склейке (BUG-0341). UI-вызовов и _locker под ним нет. Вложенность односторонняя: Error-ветка
+        // гейта cap(>5 000 000) в BotCountOneFaze идёт через SendLogMessage в Log.ProcessMessage
+        // под lock(_lastErrorMessagesLock) (кольцо ошибок, BUG-0321); обратно в ParametersLock кольцо
+        // не входит — цикла нет.
+        public readonly object ParametersLock = new object();
 
         private List<IIStrategyParameter> _parameters;
 
@@ -1405,53 +1430,65 @@ namespace OsEngine.OsOptimizer
 
         public void SaveStandardParameters()
         {
-            if (_parameters == null ||
-                _parameters.Count == 0)
+            // Снимок живых параметров для файла стандартов под локом: конкурентный пересчёт,
+            // сбрасывающий значения в Start, не должен вклиниться в середину записи (BUG-0341)
+            lock (ParametersLock)
             {
-                return;
-            }
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
-                    )
+                if (_parameters == null ||
+                    _parameters.Count == 0)
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
-                    {
-                        writer.WriteLine(_parameters[i].GetStringToSave());
-                    }
-
-                    writer.Close();
+                    return;
                 }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
 
-            SaveParametersOnOffByStrategy();
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
+                        )
+                    {
+                        for (int i = 0; i < _parameters.Count; i++)
+                        {
+                            writer.WriteLine(_parameters[i].GetStringToSave());
+                        }
+
+                        writer.Close();
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+
+                SaveParametersOnOffByStrategy();
+            }
         }
 
         public List<bool> ParametersOn
         {
             get
             {
-
-                _parametersOn = new List<bool>();
-                for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+                // Публикация нового списка флагов под локом: переходное пустое/all-false
+                // состояние не должно попадаться конкурентному пересчёту (BUG-0341)
+                List<bool> result;
+                lock (ParametersLock)
                 {
-                    _parametersOn.Add(false);
+                    _parametersOn = new List<bool>();
+                    for (int i = 0; _parameters != null && i < _parameters.Count; i++)
+                    {
+                        _parametersOn.Add(false);
+                    }
+
+                    List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
+
+                    if (parametersOnSaveBefore != null &&
+                        parametersOnSaveBefore.Count == _parametersOn.Count)
+                    {
+                        _parametersOn = parametersOnSaveBefore;
+                    }
+
+                    result = _parametersOn;
                 }
 
-                List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
-
-                if (parametersOnSaveBefore != null &&
-                    parametersOnSaveBefore.Count == _parametersOn.Count)
-                {
-                    _parametersOn = parametersOnSaveBefore;
-                }
-
-                return _parametersOn;
+                return result;
             }
         }
         private List<bool> _parametersOn;
