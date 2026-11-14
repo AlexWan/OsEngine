@@ -223,6 +223,11 @@ namespace OsEngine.Market.Servers.OKXData
 
         private void UpdatePairs(SecurityRespOkxData securityResponse)
         {
+            // Publish only a fully parsed list: repeated GetSecurities must not append duplicates,
+            // and a failed response must not leak partial data. Reassign, not Clear: the AServer
+            // wrapper can hold the published list by reference (AServer.cs SecurityEvent fast path).
+            List<Security> filled = new List<Security>();
+
             for (int i = 0; i < securityResponse.data.Count; i++)
             {
                 OkxSecurityData item = securityResponse.data[i];
@@ -303,7 +308,16 @@ namespace OsEngine.Market.Servers.OKXData
                 // The Expiration field is used to store the listing date.
                 security.Expiration = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(item.listTime)).DateTime;
 
-                _securities.Add(security);
+                filled.Add(security);
+            }
+
+            if (filled.Count > 0)
+            {
+                _securities = filled;
+            }
+            else
+            {
+                SendLogMessage("UpdatePairs: empty response, old securities table is kept", LogMessageType.System);
             }
 
             if (SecurityEvent != null)
