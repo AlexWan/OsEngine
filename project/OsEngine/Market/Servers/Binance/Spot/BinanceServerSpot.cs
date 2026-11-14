@@ -3271,6 +3271,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 if (ex.ToString().Contains("This listenKey does not exist"))
                 {
+                    // штатная потеря listenKey — не ошибка: молча null, как соседний гейт Unknown order sent
+                    return null;
 
                 }
                 if (ex.ToString().Contains("Unknown order sent"))
