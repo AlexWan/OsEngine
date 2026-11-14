@@ -653,6 +653,9 @@ namespace OsEngine.MCP
         internal static Func<long> DropLogClock;
         internal static int DropLogThrottleMs = 30000;
 
+        // хук тестопригодности стенда bug-0331: вызывается сразу после регистрации v2-SSE стрима, null = production
+        internal static Action WelcomeFrameHookForTests;
+
         private void EnqueueToStream(StreamableStream stream, string frame)
         {
             try
@@ -1557,13 +1560,17 @@ namespace OsEngine.MCP
             response.StatusCode = 200;
 
             StreamableStream stream = new StreamableStream { Response = response, SessionId = session };
-            _streamableStreams[session] = stream;
 
-            // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
-            EnqueueToStream(stream, BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
-
+            // Регистрация внутри try: иначе бросок между регистрацией и try оставляет осиротевшую запись —
+            // фантом в рассылке до DELETE/re-GET/Stop (BUG-0331); finally снимает своей compare-and-remove
             try
             {
+                _streamableStreams[session] = stream;
+                WelcomeFrameHookForTests?.Invoke();
+
+                // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
+                EnqueueToStream(stream, BuildMessageFrame("terminal.launched", GetTerminalStatusSafe()));
+
                 // SSE-комментарий сразу флашит заголовки, иначе клиент не получит их до первого события
                 byte[] hello = Encoding.UTF8.GetBytes(": connected\n\n");
                 if (!TryWriteStreamable(response, hello, session))
