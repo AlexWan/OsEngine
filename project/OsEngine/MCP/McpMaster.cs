@@ -69,6 +69,9 @@ namespace OsEngine.MCP
         private readonly List<SseClient> _sseClients = new List<SseClient>();
         private readonly object _sseClientsLocker = new object();
 
+        // тестовый хук, вызывается между регистрацией v1-SSE клиента и welcome-кадром; null = production
+        internal static Action V1WelcomeHookForTests;
+
         // сессии Streamable HTTP (v2): id -> состояние сессии
         private readonly ConcurrentDictionary<string, StreamableSession> _sessions = new ConcurrentDictionary<string, StreamableSession>();
 
@@ -2162,29 +2165,39 @@ namespace OsEngine.MCP
 
             SseClient client = new SseClient { Response = response, Owner = this };
 
-            lock (_sseClientsLocker)
+            // Регистрация должна быть в зоне действия её снятия: исключение между регистрацией и телом
+            // оставляло запись клиента без хозяина и response без обработчика. Снятие по reference equality
+            // идемпотентно к RemoveAt фан-аута и Clear из Stop, поэтому — в finally на весь путь выхода.
+            try
             {
-                _sseClients.Add(client);
-            }
-
-            SendEventToClient(client, "terminal.launched", GetTerminalStatusSafe());
-
-            // keep connection alive until host is stopped
-            while (!_cts.IsCancellationRequested && !client.IsClosed)
-            {
-                try
+                lock (_sseClientsLocker)
                 {
-                    Thread.Sleep(1000);
+                    _sseClients.Add(client);
                 }
-                catch
+
+                V1WelcomeHookForTests?.Invoke();
+
+                SendEventToClient(client, "terminal.launched", GetTerminalStatusSafe());
+
+                // keep connection alive until host is stopped
+                while (!_cts.IsCancellationRequested && !client.IsClosed)
                 {
-                    break;
+                    try
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    catch
+                    {
+                        break;
+                    }
                 }
             }
-
-            lock (_sseClientsLocker)
+            finally
             {
-                _sseClients.Remove(client);
+                lock (_sseClientsLocker)
+                {
+                    _sseClients.Remove(client);
+                }
             }
         }
 
