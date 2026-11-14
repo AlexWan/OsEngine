@@ -421,12 +421,7 @@ namespace OsEngine.MCP.Modules
                 return password;
             }
 
-            if (password.Length <= 4)
-            {
-                return "********";
-            }
-
-            return password.Substring(0, 2) + "********" + password.Substring(password.Length - 2);
+            return ServerInstanceApi.MaskSecret(password);
         }
 
         private int GetRequiredNumber(JsonElement parameters)
