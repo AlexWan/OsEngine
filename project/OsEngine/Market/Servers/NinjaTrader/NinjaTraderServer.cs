@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
             ServerRealization = new NinjaTraderServerRealization();
 
             CreateParameterString("ServerAddress", "localhost");
-            CreateParameterPassword("Port", "11000");
+            CreateParameterInt("Port", 11000);
         }
     }
     
@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         {
             if (_client == null)
             {
-                _client = new NinjaTraderClient(((ServerParameterPassword)ServerParameters[1]).Value, ((ServerParameterString)ServerParameters[0]).Value);
+                _client = new NinjaTraderClient(((ServerParameterInt)ServerParameters[1]).Value.ToString(), ((ServerParameterString)ServerParameters[0]).Value);
                 _client.Connected += ClientOnConnected;
                 _client.UpdateSecuritiesEvent += ClientOnUpdateSecuritiesEvent;
                 _client.Disconnected += ClientOnDisconnected;
