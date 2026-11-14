@@ -3565,6 +3565,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             IRestResponse restResponse = _restClient.Execute(request);
 
+            // RestSharp не бросает при сетевом сбое: причина только в ErrorException, Content при этом "" — без проверки отказ уходит коллеру молчаливым пустым успехом
+
+            if (restResponse.ErrorException != null)
+            {
+                throw new Exception(endpoint + ". Network error: " + restResponse.ErrorException.GetType().Name + ": " + restResponse.ErrorException.Message, restResponse.ErrorException);
+            }
+
             UpdateUsedWeight(restResponse);
 
             var response = restResponse.Content;
