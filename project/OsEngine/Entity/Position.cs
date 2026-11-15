@@ -1169,9 +1169,9 @@ namespace OsEngine.Entity
                     && CloseActive == false
                     && OpenVolume != 0)
                 {
-                    // if not fully closed and this is the last order in the closing orders
-                    //AlertMessageManager.ThrowAlert(null, "Cancel", "");
-                    State = PositionStateType.ClosingFail;
+                    // Canceled close order is not terminal: position stays open, the bot re-places close. Mirror of cancel-of-open order above.
+                    // Отзыв close-ордера не терминален: позиция остаётся открытой, робот переиздаст закрытие — зеркально отзыву ордера открытия.
+                    State = PositionStateType.Open;
                 }
                 else if (closeOrder.State == OrderStateType.Done 
                     && OpenVolume < 0)
