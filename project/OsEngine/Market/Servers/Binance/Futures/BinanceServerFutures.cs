@@ -1471,6 +1471,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     if (string.IsNullOrEmpty(res2))
                     {
+                        // null/пустое тело = отказ REST или пауза IP-бана, не «нет данных»: пустое тело Newtonsoft возвращает null без броска, и без гейта отказ молчал бы через null-воронку (BUG-0387)
+
+                        SendLogMessage("Binance Futures: tick history request failed (see prior error or IP ban). Symbol/" + security + ", from: " + startTime, LogMessageType.Error);
+
                         return null;
                     }
 
@@ -1480,9 +1484,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     return oldTrades;
                 }
-                catch
+                catch (Exception error)
                 {
-                    SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
+                    SendLogMessage("Binance Futures: tick history parse error. Symbol/" + security + ", from: " + startTime + ". " + error.ToString(), LogMessageType.Error);
 
                     return null;
                 }
