@@ -1124,8 +1124,26 @@ namespace OsEngine.Market.Servers.Binance.Spot
         {
             List<Trade> trades = new List<Trade>();
 
+            int rejectedCount = 0;
+            string firstBadP = null;
+            string firstBadQ = null;
+
             foreach (var jtTrade in binTrades)
             {
+                // BUG-0412: тот же гейт, что и в UpdateTrades. q<=0 отбраковывается до Math.Abs —
+                // у исполненной сделки quantity > 0, нулевой/битый p/q = порча payload, не трейд.
+                if (!TryParsePositiveDecimal(jtTrade.p, out _) || !TryParsePositiveDecimal(jtTrade.q, out _))
+                {
+                    if (rejectedCount == 0)
+                    {
+                        firstBadP = jtTrade.p;
+                        firstBadQ = jtTrade.q;
+                    }
+
+                    rejectedCount++;
+                    continue;
+                }
+
                 var trade = new Trade();
 
                 trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToDouble(jtTrade.T));
@@ -1154,6 +1172,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 trades.Add(trade);
+            }
+
+            if (rejectedCount > 0)
+            {
+                SendLogMessage("Binance Spot. aggTrades response: rejected " + rejectedCount
+                    + " trade(s) with invalid price or quantity. Symbol: " + secName
+                    + ", first invalid p/q: " + TruncateRaw(firstBadP) + "/" + TruncateRaw(firstBadQ),
+                    LogMessageType.Error);
             }
 
             return trades;
@@ -2332,6 +2358,18 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 return;
             }
+
+            // BUG-0412: ToDecimal глотает FormatException и даёт 0, неотличимый от честного нуля,
+            // поэтому сырой p/q проверяется строго до присвоений. Цена и объём исполненной
+            // сделки всегда > 0 (WS docs Trade/AggTrade, filters.md LOT_SIZE/MIN_NOTIONAL).
+            if (!TryParsePositiveDecimal(trades.data.p, out _) || !TryParsePositiveDecimal(trades.data.q, out _))
+            {
+                SendLogMessage("Binance Spot. Trade rejected: invalid price or quantity. Symbol: " + trades.data.s
+                    + ", p: " + TruncateRaw(trades.data.p) + ", q: " + TruncateRaw(trades.data.q),
+                    LogMessageType.Error);
+                return;
+            }
+
             Trade trade = new Trade();
             trade.SecurityNameCode = trades.data.s;
             trade.Price =
@@ -2343,6 +2381,41 @@ namespace OsEngine.Market.Servers.Binance.Spot
             trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
             NewTradesEvent?.Invoke(trade);
+        }
+
+        private static bool TryParsePositiveDecimal(string raw, out decimal value)
+        {
+            value = 0m;
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return false;
+            }
+
+            return decimal.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && value > 0m;
+        }
+
+        // Сырое значение в Error-лог: не-печатаемые -> '?', длина > 32 -> префикс 32 + '~' (итог <= 35).
+        private static string TruncateRaw(string raw)
+        {
+            if (string.IsNullOrEmpty(raw))
+            {
+                return "";
+            }
+
+            StringBuilder builder = new StringBuilder(raw.Length > 32 ? 33 : raw.Length);
+
+            for (int i = 0; i < raw.Length && builder.Length < 32; i++)
+            {
+                builder.Append(char.IsControl(raw[i]) ? '?' : raw[i]);
+            }
+
+            if (raw.Length > 32)
+            {
+                builder.Append('~');
+            }
+
+            return builder.ToString();
         }
 
         private void UpdateMarketDepth(DepthResponse myDepth)
