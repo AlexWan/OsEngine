@@ -19,10 +19,11 @@
 
 - **PASS** — кнопка теста нажалась через MCP, тест реально стартовал (маркер
   `Tests started <Класс>` в логе робота) и прислал корректный отчёт
-  (`REPORT <Класс>` + `STATUS: OK|FAIL`). **Любой STATUS — успех**: если тест
+  (`REPORT <Класс>` + `STATUS: OK|FAIL|SKIPPED`). **Любой STATUS — успех**: если тест
   зафиксировал ошибки в данных, значит он отработал успешно — ловить ошибки
   это работа самого теста, а не стенда. Пойманные ошибки стенд пишет в лог
-  как информацию.
+  как информацию. `SKIPPED` (bug-0358) — тест прошёл permission-гейт и пропустил
+  тело: корректный отчёт, но не утверждение покрытия.
 - **FAIL стенда** — инфраструктурная поломка: кнопка не нажалась, тест не
   стартовал (нет маркера за `TestStartTimeoutMinutes`), отчёт не пришёл
   (таймаут `TestTimeoutMinutes`) или пришёл битый (нет `STATUS:`).
@@ -113,7 +114,7 @@ OsEngine.Connectors.TestStand.exe --connector BinanceFutures --security ETHUSDT 
 - `Total: X/Y passed` + код выхода 0 (всё прошло/скипнуто) / 1 (есть упавшие).
 - Лог `connectors-test-stand-yyyyMMdd-HHmmss.log` рядом с exe (старые логи чистятся).
 - Отчёт каждого теста — в логе робота (`Engine\Log\*ConnectorsTesterBot*Log_*.txt`
-  в папке OsEngine): `REPORT <Класс>` + `STATUS: OK|FAIL` + ошибки + service info.
+  в папке OsEngine): `REPORT <Класс>` + `STATUS: OK|FAIL|SKIPPED` + ошибки + service info.
 
 ## Телеметрия
 

@@ -328,7 +328,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 Teardown();
                 UnsubscribeEvents();
                 DeleteTab();
-                Log("TEST END. " + (_errors.Count == 0 ? "STATUS: OK" : "STATUS: FAIL"));
+                Log("TEST END. " + GetStatusLine());
                 CloseFileLog();
                 TestEnded();
             }
@@ -1328,7 +1328,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (permission.StopOrdersIsSupport == false)
             {
-                SetNewServiceInfo("Server " + Server.ServerType
+                SetTestSkipped("Server " + Server.ServerType
                     + " does not support server stop orders (StopOrdersIsSupport == false). Test SKIPPED");
                 return false;
             }

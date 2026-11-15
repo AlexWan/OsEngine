@@ -42,14 +42,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.StopOrdersIsSupport == false)
             {
-                SetNewServiceInfo("No permission. StopOrdersIsSupport == false. Test over");
+                SetTestSkipped("No permission. StopOrdersIsSupport == false. Test over");
                 TestEnded();
                 return;
             }
 
             if (serverPermission.CanQueryOrdersAfterReconnect == false)
             {
-                SetNewServiceInfo("No permission. CanQueryOrdersAfterReconnect == false. Test over");
+                SetTestSkipped("No permission. CanQueryOrdersAfterReconnect == false. Test over");
                 TestEnded();
                 return;
             }

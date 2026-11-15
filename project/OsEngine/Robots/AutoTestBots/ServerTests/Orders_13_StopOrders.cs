@@ -36,7 +36,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (permission.StopOrdersIsSupport == false)
             {
                 // коннектор не поддерживает серверные стопы. Тест пропускается
-                SetNewServiceInfo("Server " + Server.ServerType
+                SetTestSkipped("Server " + Server.ServerType
                     + " does not support server stop orders (StopOrdersIsSupport == false). Test SKIPPED");
                 TestEnded();
                 return;

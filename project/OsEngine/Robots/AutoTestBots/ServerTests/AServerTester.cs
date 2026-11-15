@@ -1621,19 +1621,22 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             report += "SERVER: " + Server.ServerType + "  \n";
 
-            if (_errors.Count == 0)
+            // bug-0358: триада FAIL > SKIPPED > OK; байты строк OK/FAIL сохранены,
+            // статус берётся из GetStatusLine(), чтобы отчёт и TEST END не разъезжались
+
+            if (_errors.Count != 0)
             {
-                report += "STATUS: OK";
-            }
-            else
-            {
-                report += "STATUS: FAIL \n";
+                report += GetStatusLine() + " \n";
                 report += "Errors: \n";
 
                 for (int i = 0; i < _errors.Count; i++)
                 {
                     report += (i + 1) + "  " + _errors[i] + "\n";
                 }
+            }
+            else
+            {
+                report += GetStatusLine();
             }
 
             if (_serviceInfo.Count != 0)
@@ -1652,6 +1655,36 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public void SetNewServiceInfo(string serviceInfo)
         {
             _serviceInfo.Add(serviceInfo);
+        }
+
+        /// <summary>
+        /// bug-0358: терминальный пропуск теста (permission-гейт). Без маркера такой прогон
+        /// неотличим от PASS: статус выводится только из _errors. Текст гейта сохраняется в SERVICE INFO
+        /// </summary>
+        public void SetTestSkipped(string reason)
+        {
+            _testSkipped = true;
+            SetNewServiceInfo(reason);
+        }
+
+        private bool _testSkipped;
+
+        /// <summary>
+        /// bug-0358: терминальный статус теста. Приоритет FAIL > SKIPPED > OK
+        /// </summary>
+        protected string GetStatusLine()
+        {
+            if (_errors.Count != 0)
+            {
+                return "STATUS: FAIL";
+            }
+
+            if (_testSkipped)
+            {
+                return "STATUS: SKIPPED";
+            }
+
+            return "STATUS: OK";
         }
 
         List<string> _serviceInfo = new List<string>();

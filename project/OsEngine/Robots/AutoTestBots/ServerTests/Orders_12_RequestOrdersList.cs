@@ -70,7 +70,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.CanGetOrderLists == false)
             {
-                SetNewServiceInfo("No permission. CanGetOrderLists == false. Test over");
+                SetTestSkipped("No permission. CanGetOrderLists == false. Test over");
                 TestEnded();
                 return;
             }

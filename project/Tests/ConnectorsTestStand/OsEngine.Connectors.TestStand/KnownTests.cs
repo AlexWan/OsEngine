@@ -49,7 +49,8 @@ namespace OsEngine.Connectors.TestStand
     ///
     /// The stand checks the WServerTester robot itself ("module is not broken")
     /// on a reference connector: the API works, the button clicks, the test
-    /// thread starts and produces a well-formed report (REPORT ... STATUS: OK|FAIL).
+    /// thread starts and produces a well-formed report (REPORT ... STATUS: OK|FAIL|SKIPPED,
+    /// bug-0358).
     /// The report CONTENT is the responsibility of the test itself: catching
     /// errors is its job, so STATUS: FAIL with caught errors = a successful run.
     /// PASS = test started and a well-formed report arrived. FAIL = the button

@@ -20,7 +20,7 @@ namespace OsEngine.Connectors.TestStand.Tests
     ///
     /// The stand checks the WServerTester robot itself ("module is not broken"):
     /// the API works, buttons click, test threads start and produce well-formed
-    /// reports (REPORT ... STATUS: OK|FAIL). The report CONTENT is the
+    /// reports (REPORT ... STATUS: OK|FAIL|SKIPPED, bug-0358). The report CONTENT is the
     /// responsibility of the test itself - catching errors is its job, so
     /// STATUS: FAIL with caught errors = a successful run of the test.
     /// PASS = test started and a well-formed report arrived.
@@ -867,25 +867,30 @@ namespace OsEngine.Connectors.TestStand.Tests
 
         /// <summary>
         /// Evaluate a test report. The stand only checks that the test ran and
-        /// produced a well-formed report (REPORT + STATUS: OK|FAIL). The errors
+        /// produced a well-formed report (REPORT + STATUS: OK|FAIL|SKIPPED). The errors
         /// the test caught are its own business - they are logged as info.
+        /// bug-0358: STATUS: SKIPPED = ran and skipped via a permission gate, a
+        /// successful run but not a coverage claim.
         /// </summary>
         private void EvaluateReport(ServerTestInfo test, string method, string report)
         {
             bool statusOk = report.Contains("STATUS: OK");
             bool statusFail = report.Contains("STATUS: FAIL");
+            bool statusSkipped = report.Contains("STATUS: SKIPPED");
 
-            if (!statusOk && !statusFail)
+            if (!statusOk && !statusFail && !statusSkipped)
             {
                 _context.RecordFail(ModuleName, method,
-                    $"{test.Id}: malformed report - no STATUS: OK|FAIL. Report: {CompactReport(report)}");
+                    $"{test.Id}: malformed report - no STATUS: OK|FAIL|SKIPPED. Report: {CompactReport(report)}");
                 return;
             }
 
             List<string> actualErrors = ExtractReportErrors(report);
 
+            string statusName = statusOk ? "OK" : statusFail ? "FAIL" : "SKIPPED";
+
             string message = $"{test.Id}: test ran and reported on {ServerTypeName}. " +
-                $"Status: {(statusOk ? "OK" : "FAIL")}";
+                $"Status: {statusName}";
 
             if (actualErrors.Count > 0)
             {

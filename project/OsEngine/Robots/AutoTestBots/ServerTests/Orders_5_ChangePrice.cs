@@ -68,7 +68,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.IsCanChangeOrderPrice == false)
             {
-                SetNewServiceInfo("No permission. Server can`t change order price. Test over");
+                SetTestSkipped("No permission. Server can`t change order price. Test over");
                 TestEnded();
                 return;
             }

@@ -34,7 +34,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.DataFeedTfTickCanLoad == false)
             {
-                SetNewServiceInfo("No permission. Server can`t download trades. Test over");
+                SetTestSkipped("No permission. Server can`t download trades. Test over");
                 TestEnded();
                 return;
             }

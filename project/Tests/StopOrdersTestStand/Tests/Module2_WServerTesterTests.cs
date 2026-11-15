@@ -712,6 +712,11 @@ namespace StopOrdersTestStand.Tests
                 {
                     _context.RecordPass(Module, method, $"{test.Id} passed on real TInvest");
                 }
+                else if (report.Contains("STATUS: SKIPPED"))
+                {
+                    // bug-0358: permission-гейт пропустил тело — запуск корректный, но не покрытие
+                    _context.RecordPass(Module, method, $"{test.Id} SKIPPED on real TInvest (permission gate)");
+                }
                 else
                 {
                     _context.RecordFail(Module, method, $"{test.Id} FAILED. Report: {CompactReport(report)}");

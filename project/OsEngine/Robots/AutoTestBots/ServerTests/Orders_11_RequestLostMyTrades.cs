@@ -37,7 +37,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.CanQueryOrderStatus == false)
             {
-                SetNewServiceInfo("No permission. CanQueryOrderStatus == false. Test over");
+                SetTestSkipped("No permission. CanQueryOrderStatus == false. Test over");
                 TestEnded();
                 return;
             }

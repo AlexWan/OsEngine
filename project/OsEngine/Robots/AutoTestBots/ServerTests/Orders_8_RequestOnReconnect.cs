@@ -37,7 +37,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (serverPermission.CanQueryOrdersAfterReconnect == false)
             {
-                SetNewServiceInfo("No permission. CanQueryOrdersAfterReconnect == false. Test over");
+                SetTestSkipped("No permission. CanQueryOrdersAfterReconnect == false. Test over");
                 TestEnded();
                 return;
             }
