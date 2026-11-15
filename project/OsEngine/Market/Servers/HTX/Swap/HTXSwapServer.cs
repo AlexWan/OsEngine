@@ -590,8 +590,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     if (response.code != "200")
                     {
-                        if (response.msg.Contains("Incorrect Access key [Access key错误]")
-                            || response.msg.Contains("Verification failure [校验失败]"))
+                        // HTX может не прислать msg при ошибке, Contains по null кидает NRE вместо чистой ошибки
+                        if (!string.IsNullOrEmpty(response.msg)
+                            && (response.msg.Contains("Incorrect Access key [Access key错误]")
+                                || response.msg.Contains("Verification failure [校验失败]")))
                         {
                             Disconnect();
                         }
@@ -710,8 +712,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        if (response.msg.Contains("Incorrect Access key [Access key错误]")
-                            || response.msg.Contains("Verification failure [校验失败]"))
+                        // тот же null msg hazard, что в GetAccountInfo
+                        if (!string.IsNullOrEmpty(response.msg)
+                            && (response.msg.Contains("Incorrect Access key [Access key错误]")
+                                || response.msg.Contains("Verification failure [校验失败]")))
                         {
                             Disconnect();
                         }
