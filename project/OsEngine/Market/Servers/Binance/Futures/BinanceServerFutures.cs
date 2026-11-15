@@ -370,6 +370,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private void UpdatePairs(SecurityResponse pairs)
         {
+            // локальный список и переприсваивание при публикации: отказ или частичный разбор REST не обнуляют опубликованный реестр, переприсваивание атомарно для snapshot-читателя (GetSecurityClassCode)
+            List<Security> local = new List<Security>();
+
             foreach (var sec in pairs.symbols)
             {
                 string status = sec.status == null ? sec.contractStatus : sec.status.ToString();
@@ -442,19 +445,19 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
                 security.State = SecurityStateType.Activ;
-                _securities.Add(security);
+                local.Add(security);
             }
 
             List<Security> secNonPerp = new List<Security>();
 
-            for (int i = 0; i < _securities.Count; i++)
+            for (int i = 0; i < local.Count; i++)
             {
-                string[] str = _securities[i].Name.Split('_');
+                string[] str = local[i].Name.Split('_');
 
                 if (str.Length > 1 &&
                     str[1] != "PERP")
                 {
-                    secNonPerp.Add(_securities[i]);
+                    secNonPerp.Add(local[i]);
                 }
             }
 
@@ -462,10 +465,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             //_securities.AddRange(securitiesHistorical);
 
-            if (_securities.Count > 0)
+            // пустой ответ не публикуем: реестр и подписчики остаются на прошлом наборе
+            if (local.Count == 0)
             {
-                _securities = _securities.OrderBy(s => s.Name).ToList();
+                return;
             }
+
+            _securities = local.OrderBy(s => s.Name).ToList();
 
             if (SecurityEvent != null)
             {
