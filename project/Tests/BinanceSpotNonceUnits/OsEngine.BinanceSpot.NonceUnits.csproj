@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- BUG-0352 юниты: T1 (точный fixture-оракул + premise-probe), R3 (type-gate), T2 (матрица
+       characterization) — см. Program.cs и README.md. Не входит в OsEngine.sln (конвенция
+       TInvestPollLockUnits): собирается явным `dotnet build` этого csproj.
+       ЦЕЛЬЮ НЕ ЯВЛЯЕТСЯ закоммиченный ..\..\OsEngine\bin\Debug\OsEngine.dll (он отстает от
+       исходников) — ProjectReference принудительно компилирует движок из дерева:
+       dotnet build OsEngine.BinanceSpot.NonceUnits.csproj -p:EngineTree=<дерево>\project\OsEngine -->
+  <PropertyGroup>
+    <EngineTree Condition="'$(EngineTree)' == ''">$(MSBuildThisFileDirectory)..\..\OsEngine</EngineTree>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>OsEngine.BinanceSpot.NonceUnits</AssemblyName>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(EngineTree)\OsEngine.csproj" />
+  </ItemGroup>
+</Project>
