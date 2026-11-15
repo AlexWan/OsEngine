@@ -258,12 +258,17 @@ namespace OsEngine.Entity.WebSocketOsEngine
         }
 
         // BUG-0361: single guard for every send entry point. Before the fix a non-Open drop here
-        // was silent and invisible to the caller. State read is deliberately not lock-atomic:
-        // a race with Close surfaces in-flight inside Send() as OnError, as before.
+        // was silent and invisible to the caller. The check is deliberately not lock-atomic:
+        // if the socket leaves Open after this guard passes, Send() re-checks and silently skips
+        // the frame without OnError (TOCTOU residual, OdTS) - same net behaviour as the base.
+        // _cts is read into a local once: Close() does Dispose()+null between statements, a second
+        // field read could throw ObjectDisposedException/NRE synchronously into the connector
+        // (KeepaliveUserDataStream / OnOpen), OdTS H1.
         private bool HandoffPossible(string message, string label)
         {
             string stateName;
             bool open;
+            CancellationTokenSource cts = _cts;
 
             try
             {
@@ -276,7 +281,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 stateName = "Disposed";
             }
 
-            if (open == true && _cts != null && _cts.IsCancellationRequested == false)
+            if (open == true && cts != null && cts.IsCancellationRequested == false)
             {
                 return true;
             }
