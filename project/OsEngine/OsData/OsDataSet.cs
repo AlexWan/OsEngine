@@ -1995,10 +1995,18 @@ namespace OsEngine.OsData
             SendNewLogMessage("Try load sec: " + id + " " + SecName + " , tf: " + TimeFrame +
                 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
+            // BUG-0437: хвостовой пир не берёт данные за границей окна; аналог клампа BUG-0397 в трейд-пути.
+            // Средние пиры сохраняют подкладку +23:59, пока она не выходит за TimeEnd.
+            DateTime realEnd = pie.End.AddHours(23).AddMinutes(59);
+            if (realEnd > TimeEnd)
+            {
+                realEnd = TimeEnd;
+            }
+
             List<Candle> candles =
                 server.GetCandleDataToSecurity(
                     id, SecClass, timeFrameBuilder,
-                    pie.Start, pie.End.AddHours(23).AddMinutes(59), pie.Start, false);
+                    pie.Start, realEnd, pie.Start, false);
 
             if (candles == null ||
                 candles.Count == 0)
