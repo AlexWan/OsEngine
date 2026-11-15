@@ -1889,7 +1889,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             }
                             else if (mes.Contains("code"))
                             {
-                                SendLogMessage(JsonConvert.DeserializeAnonymousType(mes, new ErrorMessage()).msg, LogMessageType.Error);
+                                SendLogMessage($"ConverterUserData Error. {FormatWsApiError(mes)}", LogMessageType.Error);
                             }
                             else if (mes.Contains("\"e\"" + ":" + "\"executionReport\""))
                             {
@@ -1931,13 +1931,33 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
                 else
                 {
-
+                    // Пустой else молча гасил отказ logon (битый ключ/подпись) — сохраняем status и код биржи
+                    SendLogMessage($"SubscribeToTheUserDataStream rejected. Status: {auth.status}. {FormatWsApiError(messsage)}", LogMessageType.Error);
                 }
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private string FormatWsApiError(string mes)
+        {
+            // Отказ WS API вложенный: {status,error:{code,msg}} (web-socket-api.md «Response format»); legacy — верхнеуровневые code/msg; при пустом msg или не-JSON — сырая рамка целиком
+            try
+            {
+                ErrorMessage error = JsonConvert.DeserializeAnonymousType(mes, new { error = new ErrorMessage() })?.error
+                    ?? JsonConvert.DeserializeObject<ErrorMessage>(mes);
+                if (!string.IsNullOrEmpty(error?.msg))
+                {
+                    return $"Code: {error.code}, msg: {error.msg}";
+                }
+            }
+            catch (JsonException)
+            {
+                return $"Binance WS error frame (not parsed): {mes}";
+            }
+            return mes;
         }
 
         private void UpdatePortfolio(OutboundAccountInfo portfs, BinanceExchangeType source)
