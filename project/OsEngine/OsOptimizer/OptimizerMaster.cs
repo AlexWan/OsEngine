@@ -103,12 +103,59 @@ namespace OsEngine.OsOptimizer
             }
         }
 
+        // Атомарная замена файла (BUG-0404): строки пишутся в .tmp рядом, Flush(true),
+        // затем File.Replace (File.Move, если цели нет). Обрыв посреди записи или
+        // внешняя блокировка цели оставляет предыдущий файл целым; рваный файл больше
+        // не читается. Ошибка — наружу, коллеры пишут её в лог; .tmp чистится best-effort.
+        private void WriteFileAtomic(string path, Action<StreamWriter> writeBody)
+        {
+            string tempPath = path + @".tmp";
+
+            try
+            {
+                using (FileStream stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writeBody(writer);
+
+                    writer.Flush();
+
+                    // сброс буферов ОС: на .tmp уже лежат полные данные до замены (BUG-0404)
+                    stream.Flush(true);
+                }
+
+                if (File.Exists(path))
+                {
+                    File.Replace(tempPath, path, null);
+                }
+                else
+                {
+                    File.Move(tempPath, path);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    if (File.Exists(tempPath))
+                    {
+                        File.Delete(tempPath);
+                    }
+                }
+                catch (Exception cleanupError)
+                {
+                    SendLogMessage(@"Cannot remove " + tempPath + @". " + cleanupError.ToString(), LogMessageType.Error);
+                }
+
+                throw;
+            }
+        }
+
         private void Save()
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\OptimizerSettings.txt", false)
-                    )
+                WriteFileAtomic(@"Engine\OptimizerSettings.txt", writer =>
                 {
                     writer.WriteLine(ThreadsCount);
                     writer.WriteLine(StrategyName);
@@ -141,9 +188,7 @@ namespace OsEngine.OsOptimizer
 
                     // FEATURE-0089: строка 26 — таймаут зависшего прогона; аддитивно в конец
                     writer.WriteLine(_hangingTestTimeoutSeconds);
-
-                    writer.Close();
-                }
+                });
             }
             catch (Exception error)
             {
@@ -1442,20 +1487,20 @@ namespace OsEngine.OsOptimizer
 
                 try
                 {
-                    using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
-                        )
-                    {
-                        for (int i = 0; i < _parameters.Count; i++)
+                    // Сериализация в .tmp под тем же локом: обрыв посреди записи
+                    // оставляет предыдущий файл целым (BUG-0404)
+                    WriteFileAtomic(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt",
+                        writer =>
                         {
-                            writer.WriteLine(_parameters[i].GetStringToSave());
-                        }
-
-                        writer.Close();
-                    }
+                            for (int i = 0; i < _parameters.Count; i++)
+                            {
+                                writer.WriteLine(_parameters[i].GetStringToSave());
+                            }
+                        });
                 }
-                catch (Exception)
+                catch (Exception error)
                 {
-                    // ignore
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
 
                 SaveParametersOnOffByStrategy();
@@ -1530,20 +1575,18 @@ namespace OsEngine.OsOptimizer
 
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt", false)
-                    )
-                {
-                    for (int i = 0; i < _parametersOn.Count; i++)
+                WriteFileAtomic(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt",
+                    writer =>
                     {
-                        writer.WriteLine(_parametersOn[i].ToString());
-                    }
-
-                    writer.Close();
-                }
+                        for (int i = 0; i < _parametersOn.Count; i++)
+                        {
+                            writer.WriteLine(_parametersOn[i].ToString());
+                        }
+                    });
             }
-            catch (Exception)
+            catch (Exception error)
             {
-                // ignore
+                SendLogMessage(error.ToString(), LogMessageType.Error);
             }
 
         }
