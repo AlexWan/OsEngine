@@ -56,7 +56,11 @@ namespace OsEngine.Market.Servers.BinanceData
                 }
                 else
                 {
-                    SendLogMessage($"Connect server error: {response.StatusCode}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Connect server error: {response.StatusCode}. Error: {err}", LogMessageType.Error);
                 }
 
             }
@@ -926,7 +930,12 @@ namespace OsEngine.Market.Servers.BinanceData
                 }
                 else
                 {
-                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе только «Error response: 0-»
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}. Error: {err}. Url: {baseUrl}{url}", LogMessageType.Error);
                     return null;
                 }
             }
