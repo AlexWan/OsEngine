@@ -3007,7 +3007,37 @@ namespace OsEngine.OsOptimizer
 
             try
             {
+                bool validationFailed;
 
+                // Сериализация писателя с геттерами/счётчиком/сейвом (BUG-0386). MessageBox и
+                // перекраска — вне замка: модальный hold под локом фризит всех писателей неограниченно
+                lock (_master.ParametersLock)
+                {
+                    validationFailed = SaveParametersFromTableLocked();
+
+                    if (!validationFailed)
+                    {
+                        _master.SaveStandardParameters();
+                    }
+                }
+
+                if (validationFailed)
+                {
+                    MessageBox.Show(OsLocalization.Optimizer.Message34);
+                    PaintTableParameters();
+                }
+            }
+            catch (Exception ex)
+            {
+                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+                PaintTableParameters();
+            }
+        }
+
+        // Вызывать только под _master.ParametersLock. true — start > stop, вызывающий покажет
+        // Message34 и перекрасит вне замка. Отступы тела сохранены как в исходном методе
+        private bool SaveParametersFromTableLocked()
+        {
                 for (int i_param = 0, i_grid = 0;
                     i_param < _parameters.Count && i_grid < _gridParameters.Rows.Count;
                     i_param++, i_grid++)
@@ -3070,9 +3100,7 @@ namespace OsEngine.OsOptimizer
 
                         if (valueStart > valueStop)
                         {
-                            MessageBox.Show(OsLocalization.Optimizer.Message34);
-                            PaintTableParameters();
-                            return;
+                            return true; // start > stop: Message34 и перекраска у вызывающего вне замка
                         }
 
                         StrategyParameterInt param = ((StrategyParameterInt)parameter);
@@ -3114,9 +3142,7 @@ namespace OsEngine.OsOptimizer
 
                         if (valueStart > valueStop)
                         {
-                            MessageBox.Show(OsLocalization.Optimizer.Message34);
-                            PaintTableParameters();
-                            return;
+                            return true; // start > stop: Message34 и перекраска у вызывающего вне замка
                         }
 
                         StrategyParameterDecimal param = ((StrategyParameterDecimal)parameter);
@@ -3165,9 +3191,7 @@ namespace OsEngine.OsOptimizer
 
                         if (valueStart > valueStop)
                         {
-                            MessageBox.Show(OsLocalization.Optimizer.Message34);
-                            PaintTableParameters();
-                            return;
+                            return true; // start > stop: Message34 и перекраска у вызывающего вне замка
                         }
 
                         StrategyParameterDecimalCheckBox param = ((StrategyParameterDecimalCheckBox)parameter);
@@ -3201,13 +3225,8 @@ namespace OsEngine.OsOptimizer
                         continue;
                     }
                 }
-                _master.SaveStandardParameters();
-            }
-            catch (Exception ex)
-            {
-                _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
-                PaintTableParameters();
-            }
+
+                return false;
         }
 
         private void ActivateRowOptimizing(DataGridViewRow row)
@@ -3306,8 +3325,16 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-                List<IIStrategyParameter> par = _master.ParametersStandard;
-                _master.SaveStandardParameters();
+                List<IIStrategyParameter> par;
+
+                // Пара getter+save под одним замком (BUG-0386). ReloadStrategy — вне замка: внутри
+                // он берёт OptimizerUi._locker, а порядок захватов _locker→ParametersLock
+                lock (_master.ParametersLock)
+                {
+                    par = _master.ParametersStandard;
+                    _master.SaveStandardParameters();
+                }
+
                 _parameters = par;
                 ReloadStrategy();
             }

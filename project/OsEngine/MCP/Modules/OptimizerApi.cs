@@ -1930,50 +1930,59 @@ namespace OsEngine.MCP.Modules
             }
 
             OptimizerMaster master = GetMasterRequired();
-            List<IIStrategyParameter> masterParams = master.Parameters;
 
-            if (masterParams == null)
+            // Писатель сериализован с геттерами/счётчиком/сейвом (BUG-0386). Замок накрывает ровно
+            // {взять Parameters; мутации; Save}. NotifyParametersChanged вне: подписчик UI делает
+            // синхронный Dispatcher.Invoke — кольцо UI-ждёт-лок ↔ MCP-ждёт-UI. GetParams вне:
+            // он зовёт Parameters и пересобирает список из свежего бота внутри сейв-пути
+            lock (master.ParametersLock)
             {
-                throw new InvalidOperationException("No optimization robot selected or the robot has no parameters");
-            }
+                List<IIStrategyParameter> masterParams = master.Parameters;
 
-            List<bool> parametersOn = master.ParametersOn;
-
-            foreach (JsonElement item in itemsElement.EnumerateArray())
-            {
-                if (!item.TryGetProperty("name", out JsonElement nameElement)
-                    || nameElement.ValueKind != JsonValueKind.String)
+                if (masterParams == null)
                 {
-                    throw new ArgumentException("Each parameter item must have a name");
+                    throw new InvalidOperationException("No optimization robot selected or the robot has no parameters");
                 }
 
-                string paramName = nameElement.GetString();
-                int index = -1;
+                List<bool> parametersOn = master.ParametersOn;
 
-                for (int i = 0; i < masterParams.Count; i++)
+                foreach (JsonElement item in itemsElement.EnumerateArray())
                 {
-                    if (masterParams[i].Name == paramName)
+                    if (!item.TryGetProperty("name", out JsonElement nameElement)
+                        || nameElement.ValueKind != JsonValueKind.String)
                     {
-                        index = i;
-                        break;
+                        throw new ArgumentException("Each parameter item must have a name");
+                    }
+
+                    string paramName = nameElement.GetString();
+                    int index = -1;
+
+                    for (int i = 0; i < masterParams.Count; i++)
+                    {
+                        if (masterParams[i].Name == paramName)
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    if (index < 0)
+                    {
+                        throw new ArgumentException($"Parameter '{paramName}' not found in robot '{master.StrategyName}'");
+                    }
+
+                    ApplyParamValue(masterParams[index], item);
+
+                    if (item.TryGetProperty("on", out JsonElement onElement)
+                        && (onElement.ValueKind == JsonValueKind.True || onElement.ValueKind == JsonValueKind.False))
+                    {
+                        parametersOn[index] = onElement.GetBoolean();
                     }
                 }
 
-                if (index < 0)
-                {
-                    throw new ArgumentException($"Parameter '{paramName}' not found in robot '{master.StrategyName}'");
-                }
-
-                ApplyParamValue(masterParams[index], item);
-
-                if (item.TryGetProperty("on", out JsonElement onElement)
-                    && (onElement.ValueKind == JsonValueKind.True || onElement.ValueKind == JsonValueKind.False))
-                {
-                    parametersOn[index] = onElement.GetBoolean();
-                }
+                master.SaveStandardParameters();
             }
 
-            master.SaveStandardParameters();
             master.NotifyParametersChanged();
 
             return GetParams();
@@ -2162,14 +2171,23 @@ namespace OsEngine.MCP.Modules
                 throw new InvalidOperationException("No optimization robot selected");
             }
 
-            List<IIStrategyParameter> standardParams = master.ParametersStandard;
+            // Пара getter+save под одним замком (BUG-0386). Полу-атомарно: зазор rebuild→save как
+            // структура остаётся (слить их — метод мастера, за скоупом), но после W1/W2 писателей
+            // вне замка не остаётся — коллизий в зазоре ноль, не хуже master
+            List<IIStrategyParameter> standardParams;
 
-            if (standardParams == null)
+            lock (master.ParametersLock)
             {
-                throw new InvalidOperationException($"Failed to load standard parameters for robot '{master.StrategyName}'");
+                standardParams = master.ParametersStandard;
+
+                if (standardParams == null)
+                {
+                    throw new InvalidOperationException($"Failed to load standard parameters for robot '{master.StrategyName}'");
+                }
+
+                master.SaveStandardParameters();
             }
 
-            master.SaveStandardParameters();
             master.NotifyParametersChanged();
 
             return GetParams();
