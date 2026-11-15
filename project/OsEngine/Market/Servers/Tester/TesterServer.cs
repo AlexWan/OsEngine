@@ -1705,7 +1705,16 @@ namespace OsEngine.Market.Servers.Tester
 
             // order didn't execute. check if it's time to recall / ордер не `исполнился. проверяем, не пора ли отзывать
 
-            if (order.OrderTypeTime == OrderTypeTime.Specified)
+            // Candle-mode guard: a market order on an exchange is never dropped by timeout, and in bar mode it executes
+            // no earlier than the next candle of its own series, so a lifetime recall would fabricate a gap. Today market
+            // never falls through to here (short-circuits above); guard holds the semantics if that gate is relaxed and
+            // prevents recalling the order while data of its own series is away.
+            // Защита свечного режима: маркет-ордер на бирже по таймауту не отваливается, а в бар-режиме исполняется не
+            // раньше следующей свечи своей серии — отзыв по lifetime порождал бы фиктивный гэп. Сейчас маркет сюда
+            // недостижим (short-circuit выше); guard сохраняет семантику при ослаблении гейта и не даёт отозвать ордер,
+            // пока данных своей серии нет.
+            if (order.OrderTypeTime == OrderTypeTime.Specified
+                && order.TypeOrder != OrderPriceType.Market)
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
