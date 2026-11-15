@@ -1904,10 +1904,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         if (response.status == "ok")
                         {
-                            OpenInterestData openInterestData = new OpenInterestData();
-
                             for (int j = 0; j < response.data.Count; j++)
                             {
+                                OpenInterestData openInterestData = new OpenInterestData();
+
                                 openInterestData.SecutityName = response.data[j].contract_code;
 
                                 if (response.data[j].amount != null)
