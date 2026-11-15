@@ -186,6 +186,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private bool _notMargineAccount;
 
+        private int _marginListenKeyFailures;
+
         private bool _extendedMarketData;
 
         #endregion
@@ -1373,7 +1375,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 if (string.IsNullOrEmpty(res))
                 {
                     SendLogMessage("Margin Socket don`t ListenKey", LogMessageType.Connect);
-                    _notMargineAccount = true;
+                    // shortcut: лаг после 3 подряд отказов; при REST-off >=15 мин и живом WS OnOpen не срабатывает и сайт не вызывается — лаг держится до реконнекта WS; upgrade: троттлинг-повтор сайта при поднятом флаге, отдельной записью
+                    _marginListenKeyFailures++;
+                    _notMargineAccount = _marginListenKeyFailures >= 3;
                     return;
                 }
 
@@ -1382,11 +1386,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 if (string.IsNullOrEmpty(marginKey))
                 {
                     SendLogMessage("Margin Socket don`t ListenKey", LogMessageType.Connect);
-                    _notMargineAccount = true;
+                    _marginListenKeyFailures++;
+                    _notMargineAccount = _marginListenKeyFailures >= 3;
                     return;
                 }
 
                 _marginSocketClient.SendAsync($"{{\"id\": \"2\",\"method\": \"userDataStream.subscribe.listenToken\",\"params\": {{\"listenToken\": \"{marginKey}\" }}}}");
+                _marginListenKeyFailures = 0;
+                _notMargineAccount = false;
             }
             catch (Exception ex)
             {
