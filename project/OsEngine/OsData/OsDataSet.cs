@@ -3838,7 +3838,17 @@ namespace OsEngine.OsData
                     return _tempFileName;
                 }
 
-                _tempFileName = Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+                // BUG-0417: окно внутри одного календарного дня получает имена с HHmmss.
+                // Без времени все суб-дневные окна одного дня делили один temp-файл:
+                // дофиксовый (до 0397) или чужой остаток маскировал незавершённую закачку.
+                if (End.Date == Start.Date)
+                {
+                    _tempFileName = Start.ToString("yyyyMMdd_HHmmss") + "_" + End.ToString("yyyyMMdd_HHmmss") + ".txt";
+                }
+                else
+                {
+                    _tempFileName = Start.ToString("yyyyMMdd") + "_" + End.ToString("yyyyMMdd") + ".txt";
+                }
 
                 return _tempFileName;
             }
