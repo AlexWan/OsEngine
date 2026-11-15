@@ -42,6 +42,7 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestGetParams();
             TestSetParams();
             TestSetParamsPasswordMasked();
+            TestSetParamsPublicKeyMasked();
             TestSetParamsNonPasswordEchoUnmasked();
             TestCreateAndDeleteInstance();
             TestDeleteInstanceZeroFails();
@@ -413,6 +414,205 @@ namespace OsEngine.McpApi.TestStand.Tests
             {
                 _context.PrintResponse("");
                 _context.RecordFail(Module, setMethod + ".password_masked", error.Message);
+            }
+            finally
+            {
+                if (instanceNumber >= 1)
+                {
+                    try
+                    {
+                        _context.Client.ToolsCall(deleteMethod, new { type = serverType, number = instanceNumber });
+                    }
+                    catch
+                    {
+                        // ignore cleanup errors
+                    }
+                }
+            }
+        }
+
+        // BUG-0421: String-type "Public key" is secret policy-wise and must echo masked, same canon as Password.
+        // If the test connector has no String parameter "Public key" тАФ skipped, not failed.
+        // Runs on a fresh disposable instance so saved connector credentials are never touched.
+        private void TestSetParamsPublicKeyMasked()
+        {
+            const string getMethod = "server_instance_get_params";
+            const string setMethod = "server_instance_set_params";
+            const string createMethod = "server_instance_create";
+            const string deleteMethod = "server_instance_delete";
+            const string secret = "PK-TEST-0123456789";
+            string serverType = _serverType;
+            int instanceNumber = -1;
+
+            try
+            {
+                string? targetName = null;
+                object getRequest = new { type = serverType };
+
+                _context.PrintRequest(Module, getMethod, getRequest);
+                string getResponse = _context.Client.ToolsCall(getMethod, getRequest);
+                _context.PrintResponse(getResponse);
+
+                using (var document = JsonDocument.Parse(getResponse))
+                {
+                    if (!TryExtractToolResult(document.RootElement, out JsonElement resultElement, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", error);
+                        return;
+                    }
+
+                    foreach (JsonElement parameterElement in resultElement.EnumerateArray())
+                    {
+                        if (parameterElement.TryGetProperty("type", out JsonElement typeElement)
+                            && typeElement.ValueKind == JsonValueKind.String
+                            && typeElement.GetString() == "String"
+                            && parameterElement.TryGetProperty("name", out JsonElement nameElement)
+                            && nameElement.ValueKind == JsonValueKind.String
+                            && nameElement.GetString() == "Public key")
+                        {
+                            targetName = nameElement.GetString();
+                            break;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(targetName))
+                {
+                    _context.RecordPass(Module, setMethod + ".public_key_masked", $"SKIP: {serverType} has no String parameter 'Public key'");
+                    return;
+                }
+
+                _context.PrintRequest(Module, createMethod, getRequest);
+                string createResponse = _context.Client.ToolsCall(createMethod, getRequest);
+                _context.PrintResponse(createResponse);
+
+                using (var createDocument = JsonDocument.Parse(createResponse))
+                {
+                    if (!TryExtractToolResult(createDocument.RootElement, out JsonElement createResult, out string error)
+                        || !createResult.TryGetProperty("number", out JsonElement numberElement)
+                        || !numberElement.TryGetInt32(out instanceNumber)
+                        || instanceNumber < 1)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", "failed to create a disposable instance for the public key masking test");
+                        return;
+                    }
+                }
+
+                object setRequest = new
+                {
+                    type = serverType,
+                    number = instanceNumber,
+                    parameters = new[]
+                    {
+                        new { name = targetName, value = secret }
+                    }
+                };
+
+                _context.PrintRequest(Module, setMethod, setRequest);
+                string setResponse = _context.Client.ToolsCall(setMethod, setRequest);
+                _context.PrintResponse(setResponse);
+
+                // MaskSecret canonical (ServerInstanceApi.MaskSecret): 2 head + '*'*(len-4) + 2 tail, <=4 => "****"
+                string expected = secret.Length <= 4
+                    ? "****"
+                    : secret.Substring(0, 2) + new string('*', secret.Length - 4) + secret.Substring(secret.Length - 2);
+
+                using (var setDocument = JsonDocument.Parse(setResponse))
+                {
+                    if (!TryExtractToolResult(setDocument.RootElement, out JsonElement setResult, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", error);
+                        return;
+                    }
+
+                    if (!setResult.TryGetProperty("success", out JsonElement successElement)
+                        || successElement.ValueKind != JsonValueKind.True)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", "set_params did not return success");
+                        return;
+                    }
+
+                    if (!setResult.TryGetProperty("updated", out JsonElement updatedElement)
+                        || updatedElement.ValueKind != JsonValueKind.Array
+                        || updatedElement.GetArrayLength() != 1)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", "set_params did not return exactly one updated parameter");
+                        return;
+                    }
+
+                    JsonElement entry = updatedElement[0];
+
+                    if (!entry.TryGetProperty("value", out JsonElement valueElement)
+                        || valueElement.ValueKind != JsonValueKind.String)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", "echoed value for Public key parameter is not a string");
+                        return;
+                    }
+
+                    string echoed = valueElement.GetString() ?? string.Empty;
+
+                    if (echoed == secret)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", "Public key value echoed in plaintext");
+                        return;
+                    }
+
+                    if (echoed != expected)
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", $"echoed value does not match MaskSecret canonical (expected {expected}, got {echoed})");
+                        return;
+                    }
+                }
+
+                // get_params on the same instance must show the masked value too (BUG-0421, ConvertServerParameters)
+                object instanceGetRequest = new { type = serverType, number = instanceNumber };
+
+                _context.PrintRequest(Module, getMethod, instanceGetRequest);
+                string instanceGetResponse = _context.Client.ToolsCall(getMethod, instanceGetRequest);
+                _context.PrintResponse(instanceGetResponse);
+
+                using (var getDocument = JsonDocument.Parse(instanceGetResponse))
+                {
+                    if (!TryExtractToolResult(getDocument.RootElement, out JsonElement getResult, out string error))
+                    {
+                        _context.RecordFail(Module, setMethod + ".public_key_masked", error);
+                        return;
+                    }
+
+                    foreach (JsonElement parameterElement in getResult.EnumerateArray())
+                    {
+                        if (!parameterElement.TryGetProperty("name", out JsonElement nameElement)
+                            || nameElement.ValueKind != JsonValueKind.String
+                            || nameElement.GetString() != targetName)
+                        {
+                            continue;
+                        }
+
+                        if (!parameterElement.TryGetProperty("value", out JsonElement valueElement)
+                            || valueElement.ValueKind != JsonValueKind.String)
+                        {
+                            _context.RecordFail(Module, setMethod + ".public_key_masked", "get_params value for Public key is not a string");
+                            return;
+                        }
+
+                        string shown = valueElement.GetString() ?? string.Empty;
+
+                        if (shown != expected)
+                        {
+                            _context.RecordFail(Module, setMethod + ".public_key_masked", $"get_params shows Public key not matching MaskSecret canonical (expected {expected}, got {shown})");
+                            return;
+                        }
+
+                        break;
+                    }
+                }
+
+                _context.RecordPass(Module, setMethod + ".public_key_masked", $"Public key parameter echoed MaskSecret-canonical on instance #{instanceNumber}");
+            }
+            catch (Exception error)
+            {
+                _context.PrintResponse("");
+                _context.RecordFail(Module, setMethod + ".public_key_masked", error.Message);
             }
             finally
             {
