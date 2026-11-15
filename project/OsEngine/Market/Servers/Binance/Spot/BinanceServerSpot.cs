@@ -3274,10 +3274,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     var response = restResponse.Content;
 
-                    if (response.Contains("code"))
+                    // Гейт и формат — как PerformHttpRequest в BinanceServerFutures (:3604): успех {"code":200,...} не отказ; код биржи сохраняем в тексте
+                    if (response.Contains("code") && !response.StartsWith("{\"code\":200"))
                     {
                         var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
-                        throw new Exception($"{startUri}. {error.msg}");
+                        if (error == null || string.IsNullOrEmpty(error.msg))
+                        {
+                            // Тело с подстрокой «code» без msg — в лог сырой ответ, иначе в Error-записи пустой текст
+                            throw new Exception($"{startUri}. {response}");
+                        }
+                        throw new Exception(error.code == 0 ? $"{startUri}. {error.msg}" : $"{startUri}. {error.code}: {error.msg}");
                     }
 
                     return response;
