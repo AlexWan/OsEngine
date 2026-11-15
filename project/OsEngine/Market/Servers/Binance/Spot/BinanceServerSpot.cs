@@ -1106,15 +1106,24 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 var res2 = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, endPoint, param, false);
 
+                if (string.IsNullOrEmpty(res2))
+                {
+                    // null/пустое тело = отказ REST, не «нет данных»: на null Newtonsoft кидает, на "" возвращает null без броска — без гейта отказ молчал бы через null-воронку (BUG-0396)
+
+                    SendLogMessage("Binance Spot: tick history request failed (see prior error). Symbol/" + security + ", from: " + startTime, LogMessageType.Error);
+
+                    return null;
+                }
+
                 AgregatedHistoryTrade[] tradeHistory = JsonConvert.DeserializeObject<AgregatedHistoryTrade[]>(res2);
 
                 var oldTrades = CreateTradesFromJson(security, tradeHistory);
 
                 return oldTrades;
             }
-            catch
+            catch (Exception error)
             {
-                SendLogMessage(OsLocalization.Market.Message95 + security, LogMessageType.Error);
+                SendLogMessage("Binance Spot: tick history parse error. Symbol/" + security + ", from: " + startTime + ". " + error.ToString(), LogMessageType.Error);
 
                 return null;
             }
