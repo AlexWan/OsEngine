@@ -484,11 +484,20 @@ namespace OsEngine.Market
 
             try
             {
+                // хэндл не создан (грид ещё не рендерился) — штатный пропуск без броска:
+                // сбросить флаг, следующий статус-ивент с живым хэндлом запланирует репейнт.
+                // Внутри try: гонка обнуления поля дала бы NRE мимо try — поэтому гард под try, а не перед ним
+                if (_gridSources == null || !_gridSources.IsHandleCreated)
+                {
+                    Interlocked.Exchange(ref _sourceRepaintScheduled, 0);
+                    return;
+                }
+
                 _gridSources.BeginInvoke(new Action(SourceRepaintIfScheduled));
             }
             catch (Exception ex)
             {
-                // хэндл грида ещё не создан / шейдаун: сбросить флаг, иначе коалесинг залипнет
+                // гонка Dispose/шейдаун между гардом и enqueue: сбросить флаг, иначе коалесинг залипнет
                 Interlocked.Exchange(ref _sourceRepaintScheduled, 0);
                 ServerMaster.Log?.ProcessMessage("ServerMasterSourcesPainter source repaint enqueue failed: " + ex, Logging.LogMessageType.System);
             }
