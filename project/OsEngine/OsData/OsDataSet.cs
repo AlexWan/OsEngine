@@ -1715,6 +1715,16 @@ namespace OsEngine.OsData
                 return;
             }
 
+            // BUG-0397 (review S1): негативное окно (TimeEnd < TimeStart) даёт interval<0, и цикл
+            // пиров шагнул бы в прошлое навсегда — break-гейты ниже проверяют только «>», гейтов
+            // отмены внутри while нет. Негативная ширина = пустой список пиров, как пустое окно.
+            // from==to не гейтим: интервал 0 завершает цикл сразу, вырожденный запрос гасит realEnd (T3).
+            if (TimeEnd < TimeStart)
+            {
+                DataPies = new List<DataPie>();
+                return;
+            }
+
             if (TimeFrame == TimeFrame.MarketDepth && MDType == MarketDepthsLoaderType.OnLine)
             {
                 Status = SecurityLoadStatus.Loading;
@@ -1754,7 +1764,9 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    interval = new TimeSpan(0, 0, 0, 0);
+                    // BUG-0397: суб-дневное окно = один пир [TimeStart..TimeEnd].
+                    // Нулевой интервал давал вырожденный пир, а LoadTradeDataPieFromServer грузил за него сутки.
+                    interval = timeInSet;
                 }
             }
 
@@ -2157,6 +2169,10 @@ namespace OsEngine.OsData
 
                 DataPies[i].CountTriesToLoadSet = DataPies[i].CountTriesToLoadSet + 1;
 
+                // BUG-0397: отмена (Regime Off, _isDeleted) проверяется между пир-вызовами; внутри
+                // GetTickDataToSecurity пагинация не прерывается — Off/Delete срабатывают на worker-тике
+                // (≤5с) + конец текущего вызова. Полная отмена = CancellationToken в подписи IServer,
+                // кросс-коннекторное изменение — отдельный баг.
                 LoadTradeDataPieFromServer(DataPies[i], server);
 
                 if (_isDeleted) { return; }
@@ -2195,9 +2211,17 @@ namespace OsEngine.OsData
             SendNewLogMessage("Try load sec: " + id + " " + SecName + " , tf: " + TimeFrame +
                 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
+            // BUG-0397: хвостовой пир не берёт данные за границей окна; средние пиры сохраняют
+            // подкладку +1сут — она покрывает день, пропускаемый шагом тик-пиров (timeStart = timeNow.AddDays(1)).
+            DateTime realEnd = pie.End.AddDays(1);
+            if (realEnd > TimeEnd)
+            {
+                realEnd = TimeEnd;
+            }
+
             List<Trade> trades =
                 server.GetTickDataToSecurity(
-                    id, SecClass, pie.Start, pie.End.AddDays(1), pie.Start, false);
+                    id, SecClass, pie.Start, realEnd, pie.Start, false);
 
             if (trades == null ||
                 trades.Count == 0)
