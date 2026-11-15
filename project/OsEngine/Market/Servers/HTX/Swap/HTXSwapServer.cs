@@ -1829,6 +1829,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
+        // Guards _openInterest: written by ThreadExtendedData, read per trade by UpdateTrade
+        private readonly object _openInterestLocker = new object();
+
         private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private RateGate _rateGateOpenInterest = new RateGate(240, TimeSpan.FromMilliseconds(3000));
@@ -1913,19 +1916,22 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                                     bool isInArray = false;
 
-                                    for (int k = 0; k < _openInterest.Count; k++)
+                                    lock (_openInterestLocker)
                                     {
-                                        if (_openInterest[k].SecutityName == openInterestData.SecutityName)
+                                        for (int k = 0; k < _openInterest.Count; k++)
                                         {
-                                            _openInterest[k].OpenInterestValue = openInterestData.OpenInterestValue;
-                                            isInArray = true;
-                                            break;
+                                            if (_openInterest[k].SecutityName == openInterestData.SecutityName)
+                                            {
+                                                _openInterest[k].OpenInterestValue = openInterestData.OpenInterestValue;
+                                                isInArray = true;
+                                                break;
+                                            }
                                         }
-                                    }
 
-                                    if (isInArray == false)
-                                    {
-                                        _openInterest.Add(openInterestData);
+                                        if (isInArray == false)
+                                        {
+                                            _openInterest.Add(openInterestData);
+                                        }
                                     }
                                 }
 
@@ -2265,21 +2271,24 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (_openInterest.Count == 0
-                  || _openInterest == null)
+            lock (_openInterestLocker)
             {
+                if (_openInterest == null
+                    || _openInterest.Count == 0)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < _openInterest.Count; i++)
+                {
+                    if (_openInterest[i].SecutityName == securityNameCode)
+                    {
+                        return _openInterest[i].OpenInterestValue.ToDecimal();
+                    }
+                }
+
                 return 0;
             }
-
-            for (int i = 0; i < _openInterest.Count; i++)
-            {
-                if (_openInterest[i].SecutityName == securityNameCode)
-                {
-                    return _openInterest[i].OpenInterestValue.ToDecimal();
-                }
-            }
-
-            return 0;
         }
 
         private void UpdateDepth(string message)
