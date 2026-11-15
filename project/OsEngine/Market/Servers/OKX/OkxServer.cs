@@ -1308,6 +1308,25 @@ namespace OsEngine.Market.Servers.OKX
 
         private WebSocket _webSocketPrivate;
 
+        // App-level pong liveness (BUG-0053 half-open detection). A text "pong" from OKX stamps these
+        // ticks; CheckAliveWebSocket treats a socket as half-open (ReadyState stuck Open, silent) once the
+        // last pong is older than _pongStaleTimeout and reconnects it. On a healthy connection a pong comes
+        // back every ping cycle, so the stale branch never fires and behavior is unchanged.
+        // Interlocked: the receive thread writes, the check-alive thread reads.
+        private long _privateLastPongTicks;
+
+        // 3 check-alive cycles (the loop sleeps 20 000 ms) before a silent socket is treated as half-open
+        private static readonly TimeSpan _pongStaleTimeout = TimeSpan.FromSeconds(60);
+
+        // single funnel that (re)arms a public socket's pong stamp; used on creation and on socket swap
+        private void StampPublicAlive(OkxSocketWrapper wrapper)
+        {
+            if (wrapper != null)
+            {
+                Interlocked.Exchange(ref wrapper.LastPongTicks, DateTime.Now.Ticks);
+            }
+        }
+
         private void CreatePublicWebSocketConnect()
         {
             try
@@ -1319,6 +1338,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 OkxSocketWrapper firstWrapper = new OkxSocketWrapper();
                 firstWrapper.Socket = CreateNewPublicSocket();
+                StampPublicAlive(firstWrapper);
 
                 lock (_webSocketPublicLocker)
                 {
@@ -1390,6 +1410,10 @@ namespace OsEngine.Market.Servers.OKX
                     _webSocketPrivate.SetProxy(_myProxy);
                 }
 
+
+                // fresh stamp at every (re)creation so a just-opened socket is not judged half-open
+                // before its first pong arrives (BUG-0053)
+                Interlocked.Exchange(ref _privateLastPongTicks, DateTime.Now.Ticks);
 
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
@@ -1743,6 +1767,12 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     return;
                 }
+                if (e.Data == "pong")
+                { // app-level keepalive answer: stamp this socket's liveness (BUG-0053).
+                  // exact match; the Length==4 guard below is left untouched.
+                    StampPublicAlive(FindPublicSocketWrapper(sender as WebSocket));
+                    return;
+                }
                 if (e.Data.Length == 4)
                 { // pong message
                     return;
@@ -1875,6 +1905,11 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     return;
                 }
+                if (e.Data == "pong")
+                { // app-level keepalive answer: stamp private liveness (BUG-0053)
+                    Interlocked.Exchange(ref _privateLastPongTicks, DateTime.Now.Ticks);
+                    return;
+                }
                 if (e.Data.Length == 4)
                 { // pong message
                     return;
@@ -1973,12 +2008,17 @@ namespace OsEngine.Market.Servers.OKX
                         OkxSocketWrapper wrapper = wrappers[i];
 
                         if (wrapper?.Socket != null
-                            && wrapper.Socket.ReadyState == WebSocketState.Open)
+                            && wrapper.Socket.ReadyState == WebSocketState.Open
+                            && DateTime.Now.Ticks - Interlocked.Read(ref wrapper.LastPongTicks) < _pongStaleTimeout.Ticks)
                         {
                             wrapper.Socket.SendAsync("ping");
                         }
                         else
                         {
+                            // half-open (ReadyState Open but pong stale) or dead socket. Re-arm the stamp so
+                            // the reconnect throttle, not a stale stamp, gates the next attempt
+                            StampPublicAlive(wrapper);
+
                             // reconnect only the dead socket instead of the whole connector.
                             // Mass failures (OKX maintenance, error 64008) hit all sockets at once:
                             // the reconnects go one by one with a pause, OKX allows
@@ -1988,12 +2028,27 @@ namespace OsEngine.Market.Servers.OKX
                     }
 
                     if (_webSocketPrivate != null &&
-                    (_webSocketPrivate.ReadyState == WebSocketState.Open))
+                    (_webSocketPrivate.ReadyState == WebSocketState.Open)
+                    && DateTime.Now.Ticks - Interlocked.Read(ref _privateLastPongTicks) < _pongStaleTimeout.Ticks)
                     {
                         _webSocketPrivate.SendAsync("ping");
                     }
                     else
                     {
+                        // half-open: ReadyState stuck Open but pong is stale. ReconnectPrivateSocket skips an
+                        // Open socket (guard at its start), so it must be force-torn-down first, otherwise a
+                        // silent half-open connection is never recovered. The dead-socket case is unchanged.
+                        if (_webSocketPrivate != null
+                            && _webSocketPrivate.ReadyState == WebSocketState.Open)
+                        {
+                            DetachPrivateSocketEvents(_webSocketPrivate);
+                            DisposeSocketAsync(_webSocketPrivate);
+                            _webSocketPrivate = null;
+                        }
+
+                        // re-arm the stamp so the fresh connection gets a fair pong window
+                        Interlocked.Exchange(ref _privateLastPongTicks, DateTime.Now.Ticks);
+
                         // the private socket is recreated seamlessly, like the public ones:
                         // no full connector restart. Full restart only after 3 failed attempts
                         ReconnectPrivateSocket();
@@ -2070,6 +2125,9 @@ namespace OsEngine.Market.Servers.OKX
                 // the Opened hook (instruments channel on the first socket) and the Closed lookup must see the final state
                 WebSocket newSocket = CreateNewPublicSocket();
                 wrapper.Socket = newSocket;
+                // socket swapped under the same wrapper: re-arm the pong stamp so the fresh connection
+                // is not judged half-open before its first pong arrives
+                StampPublicAlive(wrapper);
 
                 DateTime timeEnd = DateTime.Now.AddSeconds(10);
                 while (newSocket.ReadyState != WebSocketState.Open)
@@ -2379,6 +2437,7 @@ namespace OsEngine.Market.Servers.OKX
                     // up to 10 seconds of waiting must not stall the check-alive thread
                     OkxSocketWrapper newWrapper = new OkxSocketWrapper();
                     newWrapper.Socket = CreateNewPublicSocket();
+                    StampPublicAlive(newWrapper);
 
                     if (newWrapper.Socket != null)
                     {
