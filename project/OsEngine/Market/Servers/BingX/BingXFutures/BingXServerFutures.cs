@@ -2750,9 +2750,18 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     client.Proxy = _myProxy;
                 }
 
-                string json = client.Execute(request).Content;
+                IRestResponse response = client.Execute(request);
 
-                ListenKeyBingXFutures responseStr = JsonConvert.DeserializeObject<ListenKeyBingXFutures>(json);
+                ListenKeyBingXFutures responseStr = JsonConvert.DeserializeObject<ListenKeyBingXFutures>(response.Content);
+
+                if (responseStr == null || string.IsNullOrEmpty(responseStr.listenKey))
+                {
+                    // Биржа вернула отказ либо пустое тело: пишем HTTP-причину, а не даём NRE на разыменовании (bug-0420)
+                    string body = response.Content ?? "";
+                    if (body.Length > 500) body = body.Substring(0, 500);
+                    SendLogMessage($"CreateListenKey> Listen key not created. Http State Code: {response.StatusCode} | {body}", LogMessageType.Error);
+                    return null;
+                }
 
                 _timeLastUpdateListenKey = DateTime.Now;
 
@@ -2789,8 +2798,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 try
                 {
-                    if (_listenKey == "")
+                    if (string.IsNullOrEmpty(_listenKey))
                     {
+                        Thread.Sleep(5000);
                         continue;
                     }
 
@@ -2814,9 +2824,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     _timeLastUpdateListenKey = DateTime.Now;
                 }
-                catch
+                catch (Exception error)
                 {
-                    SendLogMessage("Request Listen Key Error", LogMessageType.Error);
+                    SendLogMessage("Request Listen Key Error: " + error.Message, LogMessageType.Error);
                 }
             }
         }
