@@ -1522,6 +1522,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private string _listenKey = "";
 
+        private string _lastRestError = "";
+
         private WebSocket _socketPrivateData;
 
         private Dictionary<string, WebSocket> _socketsArray = new Dictionary<string, WebSocket>();
@@ -1530,7 +1532,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             try
             {
-                _listenKey = CreateListenKey();
+                // BUG-0345: keep the live key if renewal failed (keep-alive worker checks only for empty string)
+                string renewedListenKey = CreateListenKey();
+                if (!string.IsNullOrEmpty(renewedListenKey))
+                {
+                    _listenKey = renewedListenKey;
+                }
             }
             catch (Exception exception)
             {
@@ -1542,6 +1549,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             string createListenKeyUrl = String.Format("/{0}/v1/listenKey", type_str_selector);
             var createListenKeyResult = CreateQueryNoLock(Method.POST, createListenKeyUrl, null, false);
+            if (string.IsNullOrEmpty(createListenKeyResult))
+            {
+                // BUG-0345: null here means the request failed and the failure is already logged; deserializing null throws ArgumentNullException
+                return null;
+            }
             ListenKey responseKey = JsonConvert.DeserializeAnonymousType(createListenKeyResult, new ListenKey());
 
             if (responseKey == null)
@@ -1556,7 +1568,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             try
             {
+                _lastRestError = "";
                 _listenKey = CreateListenKey();
+
+                if (string.IsNullOrEmpty(_listenKey))
+                {
+                    // BUG-0345: report the real REST failure instead of opening the socket without a listenKey
+                    SendLogMessage("Binance Futures: can not get listenKey. "
+                        + (_lastRestError == "" ? "Server returned empty response." : _lastRestError),
+                        LogMessageType.Connect);
+                    return;
+                }
+
                 string urlStr = $"{wss_point_private}/ws?listenKey={_listenKey}&events=ORDER_TRADE_UPDATE/ACCOUNT_UPDATE";
 
                 _socketPrivateData = new WebSocket(urlStr);
@@ -3613,7 +3636,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 TryRegisterIpBan(response);
 
                 var error = JsonConvert.DeserializeAnonymousType(response, new ErrorMessage());
-                throw new Exception(error.msg);
+                // BUG-0345: carrying the exchange error code out; body without msg -> raw response instead of null-message exception
+                if (error == null || string.IsNullOrEmpty(error.msg))
+                {
+                    throw new Exception(response);
+                }
+                throw new Exception(error.code == 0 ? error.msg : error.code + ": " + error.msg);
             }
 
             return response;
@@ -3632,6 +3660,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 return null;
             }
 
+            _lastRestError = ex.Message;
             SendLogMessage(ex.ToString(), LogMessageType.Error);
             return null;
         }
