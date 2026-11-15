@@ -1569,6 +1569,21 @@ namespace OsEngine.MCP
             try
             {
                 _streamableStreams[session] = stream;
+
+                // BUG-0374: DELETE мог пройти между проверкой выше и регистрацией — он снял сессию и не
+                // нашёл ещё не зарегистрированный стрим. Пост-регистрационный re-check: сессия уже мертва —
+                // отвечаем 404 и снимаем свою регистрацию. Заголовки ещё не флашены (первый флаш — hello
+                // ниже), SendError до снятия: после Abort (в Close) ответ уже не уходит.
+                // Успевший пройти позже DELETE регистрацию найдёт в ProcessSessionDelete и закроет стрим сам.
+                // С 0331 re-check внутри try, а не до него: регистрация переехала в try (0331). Бросок от re-check не
+                // оставляет регистрации: finally делает тот же compare-and-remove, бросок разбирает catch ProcessRequest — сироты нет
+                if (!_sessions.ContainsKey(session))
+                {
+                    SendError(response, 404, "Session not found");
+                    CloseStreamableStream(session, stream);
+                    return;
+                }
+
                 WelcomeFrameHookForTests?.Invoke();
 
                 // как и в v1 (ProcessSse), шлём terminal.launched сразу при подключении
