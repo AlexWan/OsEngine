@@ -1995,6 +1995,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
+        // Guards _openInterest: written by ThreadExtendedData, read per trade by ConverterPublicMessagesAll
+        private readonly object _openInterestLocker = new object();
+
         private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private void ThreadExtendedData()
@@ -2066,19 +2069,22 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                         bool isInArray = false;
 
-                        for (int j = 0; j < _openInterest.Count; j++)
+                        lock (_openInterestLocker)
                         {
-                            if (_openInterest[j].SecutityName == openInterestData.SecutityName)
+                            for (int j = 0; j < _openInterest.Count; j++)
                             {
-                                _openInterest[j].OpenInterestValue = openInterestData.OpenInterestValue;
-                                isInArray = true;
-                                break;
+                                if (_openInterest[j].SecutityName == openInterestData.SecutityName)
+                                {
+                                    _openInterest[j].OpenInterestValue = openInterestData.OpenInterestValue;
+                                    isInArray = true;
+                                    break;
+                                }
                             }
-                        }
 
-                        if (isInArray == false)
-                        {
-                            _openInterest.Add(openInterestData);
+                            if (isInArray == false)
+                            {
+                                _openInterest.Add(openInterestData);
+                            }
                         }
                     }
                 }
@@ -2680,21 +2686,24 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (_openInterest.Count == 0
-                 || _openInterest == null)
+            lock (_openInterestLocker)
             {
+                if (_openInterest == null
+                    || _openInterest.Count == 0)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < _openInterest.Count; i++)
+                {
+                    if (_openInterest[i].SecutityName == securityNameCode)
+                    {
+                        return _openInterest[i].OpenInterestValue.ToDecimal();
+                    }
+                }
+
                 return 0;
             }
-
-            for (int i = 0; i < _openInterest.Count; i++)
-            {
-                if (_openInterest[i].SecutityName == securityNameCode)
-                {
-                    return _openInterest[i].OpenInterestValue.ToDecimal();
-                }
-            }
-
-            return 0;
         }
 
         private readonly object _depthLocker = new object();
