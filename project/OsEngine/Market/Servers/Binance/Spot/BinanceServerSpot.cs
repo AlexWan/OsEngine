@@ -1183,6 +1183,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 _spotSocketClient = new WebSocket(_webSocketUrlPrivate);
+                // BUG-0361: label + single owner of the drop Error line, wired BEFORE first Connect
+                _spotSocketClient.SocketName = "spot-private";
+                _spotSocketClient.SendDroppedEvent += WebSocket_SendDropped;
 
                 if (_myProxy != null)
                 {
@@ -1202,6 +1205,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 _marginSocketClient = new WebSocket(_webSocketUrlPrivate);
+                // BUG-0361: label + single owner of the drop Error line, wired BEFORE first Connect
+                _marginSocketClient.SocketName = "margin-private";
+                _marginSocketClient.SendDroppedEvent += WebSocket_SendDropped;
 
                 if (_myProxy != null)
                 {
@@ -1218,6 +1224,20 @@ namespace OsEngine.Market.Servers.Binance.Spot
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        // BUG-0361: one handler per socket creation is the sole owner of the Error line;
+        // runs on the sender thread, must never throw back into it.
+        private void WebSocket_SendDropped(string text)
+        {
+            try
+            {
+                SendLogMessage("WebSocket send DROPPED: " + text, LogMessageType.Error);
+            }
+            catch (Exception)
+            {
+                // logging failure must not crash the WS sender thread
             }
         }
 
@@ -1356,7 +1376,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 string payload = $"apiKey={ApiKey}&timestamp={timestamp}";
                 string signature = SignEd25519(payload);
 
-                _spotSocketClient.SendAsync($"{{\"id\": \"1\",\"method\": \"session.logon\",\"params\": {{\"apiKey\": \"{ApiKey}\",\"signature\": \"{signature}\",\"timestamp\": {timestamp}}}}}");
+                // BUG-0361: drop visible via WebSocket_SendDropped; re-logon repeats on OnOpen/keepalive
+                _spotSocketClient.TrySend($"{{\"id\": \"1\",\"method\": \"session.logon\",\"params\": {{\"apiKey\": \"{ApiKey}\",\"signature\": \"{signature}\",\"timestamp\": {timestamp}}}}}", "session.logon");
             }
             catch (Exception ex)
             {
@@ -1391,7 +1412,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     return;
                 }
 
-                _marginSocketClient.SendAsync($"{{\"id\": \"2\",\"method\": \"userDataStream.subscribe.listenToken\",\"params\": {{\"listenToken\": \"{marginKey}\" }}}}");
+                // BUG-0361: TrySend makes the silent drop visible (Error line via WebSocket_SendDropped).
+                // On drop: no flag changes (that is 0350 territory), retry comes with the next keepalive tick / OnOpen.
+                if (_marginSocketClient.TrySend($"{{\"id\": \"2\",\"method\": \"userDataStream.subscribe.listenToken\",\"params\": {{\"listenToken\": \"{marginKey}\" }}}}", "userDataStream.subscribe.listenToken") == false)
+                {
+                    return;
+                }
+
                 _marginListenKeyFailures = 0;
                 _notMargineAccount = false;
             }
@@ -1918,7 +1945,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (auth.status == "200")
                 {
-                    _spotSocketClient.SendAsync($"{{\"id\": \"3\",\"method\": \"userDataStream.subscribe\"}}");
+                    // BUG-0361: drop visible via WebSocket_SendDropped; repeats on OnOpen/keepalive
+                    _spotSocketClient.TrySend($"{{\"id\": \"3\",\"method\": \"userDataStream.subscribe\"}}", "userDataStream.subscribe");
                 }
                 else
                 {

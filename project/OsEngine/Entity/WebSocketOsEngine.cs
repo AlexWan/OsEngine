@@ -38,6 +38,18 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         public WebSocketState ReadyState;
 
+        /// <summary>Optional socket label for drop diagnostics, set by the connector at creation. Null is allowed.</summary>
+        public string SocketName;
+
+        /// <summary>
+        /// Fires synchronously on the calling thread when a frame is NOT handed to the transport
+        /// (socket not Open / send path disposed). Text: "SocketName | State | label | len=N" -
+        /// the payload itself is never included (frames carry keys/signatures/tokens).
+        /// Handler must be fast and must not throw (it runs on the sender thread).
+        /// No subscribers = silent, same as before this event existed (BUG-0361, additive).
+        /// </summary>
+        public event Action<string> SendDroppedEvent;
+
         // public SslConfiguration
 
         public bool EmitOnPing = false;
@@ -201,6 +213,11 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         public void SendAsync(string message)
         {
+            if (HandoffPossible(message, null) == false)
+            {
+                return;
+            }
+
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             Send(message);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -208,7 +225,71 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         public async Task SendSync(string message)
         {
+            if (HandoffPossible(message, null) == false)
+            {
+                return;
+            }
+
             await Send(message);
+        }
+
+        /// <summary>
+        /// Returns true only when the frame is handed to the transport (socket Open, send path alive).
+        /// false = the frame was NOT sent: SendDroppedEvent fires, no exception is thrown.
+        /// true is handoff, not delivery - delivery is proven by the reply frame with the same id (connector side).
+        /// </summary>
+        public bool TrySend(string message)
+        {
+            return TrySend(message, null);
+        }
+
+        /// <summary>label - connector-side description for SendDroppedEvent ("subscribe", "logon"). Raw message is never logged.</summary>
+        public bool TrySend(string message, string label)
+        {
+            if (HandoffPossible(message, label) == false)
+            {
+                return false;
+            }
+
+#pragma warning disable CS4014 // not awaited: same fire-and-forget semantics as SendAsync
+            Send(message);
+#pragma warning restore CS4014
+            return true;
+        }
+
+        // BUG-0361: single guard for every send entry point. Before the fix a non-Open drop here
+        // was silent and invisible to the caller. State read is deliberately not lock-atomic:
+        // a race with Close surfaces in-flight inside Send() as OnError, as before.
+        private bool HandoffPossible(string message, string label)
+        {
+            string stateName;
+            bool open;
+
+            try
+            {
+                open = _client.State == System.Net.WebSockets.WebSocketState.Open;
+                stateName = _client.State.ToString();
+            }
+            catch (ObjectDisposedException)
+            {
+                open = false;
+                stateName = "Disposed";
+            }
+
+            if (open == true && _cts != null && _cts.IsCancellationRequested == false)
+            {
+                return true;
+            }
+
+            Action<string> handler = SendDroppedEvent;
+
+            if (handler != null)
+            {
+                handler.Invoke((SocketName ?? "<unnamed>") + " | " + stateName + " | " + (label ?? "frame")
+                    + " | len=" + (message == null ? 0 : message.Length));
+            }
+
+            return false;
         }
 
         private async Task Send(string message)
@@ -237,9 +318,8 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
-                if (_client.State == System.Net.WebSockets.WebSocketState.Open
-                    && _cts != null
-                    && !_cts.IsCancellationRequested)
+                // BUG-0361: same drop guard as Send/SendAsync/TrySend, drop is reported via SendDroppedEvent
+                if (HandoffPossible("ping", "ping") == true)
                 {
                     try
                     {
