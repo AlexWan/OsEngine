@@ -36,6 +36,14 @@ namespace OsEngine.OsOptimizer
 
         private AsyncBotFactory _asyncBotFactory;
 
+        /// <summary>
+        /// Источники, уже пропущенные с предупреждением в этом прогоне (ключ = текст + имя источника).
+        /// Конфигурация табов за прогон не меняется, поэтому повторный пропуск того же источника
+        /// на следующей итерации — не событие, молчим. Сбрасывается в Start(); путь TestBot
+        /// (:1357, одиночные тесты) сброс не делает — после первого теста молчит, принято осознанно.
+        /// </summary>
+        private HashSet<string> _skippedSourceWarnings = new HashSet<string>();
+
         public bool Start(List<bool> parametersOn, List<IIStrategyParameter> parameters)
         {
             if (parameters == null || parametersOn == null)
@@ -63,6 +71,9 @@ namespace OsEngine.OsOptimizer
             _countAllServersEndTest = 0;
             _serverNum = 1;
             _testBotsTime.Clear();
+            // сброс до старта прайм-потона: доступ к набору закрыт гейтом _primeThreadWorker
+            // (:47 от повторного Start, TestBot :1345 от одновременной работы) — потоки тут ещё не гонят
+            _skippedSourceWarnings.Clear();
 
             _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
             _primeThreadWorker.Name = "OptimizerExecutorThread";
@@ -954,7 +965,7 @@ namespace OsEngine.OsOptimizer
                 {
                     if (sources[i] == null)
                     {
-                        SendLogMessage("Optimizer. Bot tab is null. Source skipped", LogMessageType.Error);
+                        SendSkippedSourceOnce("Optimizer. Bot tab is null. Source skipped", "tab[" + i + "]");
                         continue;
                     }
 
@@ -964,7 +975,7 @@ namespace OsEngine.OsOptimizer
 
                         if (simple.Connector == null)
                         {
-                            SendLogMessage("Optimizer. Bot tab without connector. Source skipped", LogMessageType.Error);
+                            SendSkippedSourceOnce("Optimizer. Bot tab without connector. Source skipped", simple.TabName);
                             continue;
                         }
 
@@ -973,7 +984,8 @@ namespace OsEngine.OsOptimizer
 
                         if (secToStart == null)
                         {
-                            SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                            SendSkippedSourceOnce("Optimizer. Security not found in storage. Source skipped",
+                                string.IsNullOrEmpty(simple.Connector.SecurityName) ? simple.TabName : simple.Connector.SecurityName);
                             continue;
                         }
 
@@ -988,7 +1000,7 @@ namespace OsEngine.OsOptimizer
                         {
                             if (index.Tabs[i2] == null)
                             {
-                                SendLogMessage("Optimizer. Index tab is null. Source skipped", LogMessageType.Error);
+                                SendSkippedSourceOnce("Optimizer. Index tab is null. Source skipped", "Index:" + i2);
                                 continue;
                             }
 
@@ -997,7 +1009,8 @@ namespace OsEngine.OsOptimizer
 
                             if (secToStart == null)
                             {
-                                SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                                SendSkippedSourceOnce("Optimizer. Security not found in storage. Source skipped",
+                                    string.IsNullOrEmpty(index.Tabs[i2].SecurityName) ? "Index:" + i2 : index.Tabs[i2].SecurityName);
                                 continue;
                             }
 
@@ -1013,13 +1026,13 @@ namespace OsEngine.OsOptimizer
                         {
                             if (screener.Tabs[i2] == null)
                             {
-                                SendLogMessage("Optimizer. Screener tab is null. Source skipped", LogMessageType.Error);
+                                SendSkippedSourceOnce("Optimizer. Screener tab is null. Source skipped", "Screener:" + i2);
                                 continue;
                             }
 
                             if (screener.Tabs[i2].Connector == null)
                             {
-                                SendLogMessage("Optimizer. Screener tab without connector. Source skipped", LogMessageType.Error);
+                                SendSkippedSourceOnce("Optimizer. Screener tab without connector. Source skipped", "Screener:" + i2);
                                 continue;
                             }
 
@@ -1028,7 +1041,8 @@ namespace OsEngine.OsOptimizer
 
                             if (secToStart == null)
                             {
-                                SendLogMessage("Optimizer. Security not found in storage. Source skipped", LogMessageType.Error);
+                                SendSkippedSourceOnce("Optimizer. Security not found in storage. Source skipped",
+                                    string.IsNullOrEmpty(screener.Tabs[i2].Connector.SecurityName) ? "Screener:" + i2 : screener.Tabs[i2].Connector.SecurityName);
                                 continue;
                             }
 
@@ -1044,6 +1058,23 @@ namespace OsEngine.OsOptimizer
             }
 
             return server;
+        }
+
+        /// <summary>
+        /// Пропуск источника — штатный путь, уже подтверждённый пользователем до старта
+        /// (CheckReadyData / CheckReadyDataHeadless). Озвучиваем однократно за прогон и уровнем
+        /// System: на каждой итерации конфигурация табов та же, повторный Error — только шум.
+        /// </summary>
+        private void SendSkippedSourceOnce(string message, string sourceKey)
+        {
+            string key = message + "|" + sourceKey;
+
+            if (_skippedSourceWarnings.Add(key) == false)
+            {
+                return;
+            }
+
+            SendLogMessage(message, LogMessageType.System);
         }
 
         private BotPanel CreateNewBot(string botName,
