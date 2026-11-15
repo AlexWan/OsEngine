@@ -1287,6 +1287,9 @@ namespace OsEngine.MCP
             return name.Equals("password", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("apikey", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("api_key", StringComparison.OrdinalIgnoreCase)
+                // BUG-0421: public key — partial credential identifier, masked in FullLog dumps too
+                || name.Equals("public_key", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("publickey", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("token", StringComparison.OrdinalIgnoreCase)
                 || name.Equals("secret", StringComparison.OrdinalIgnoreCase)
                 // login прокси-конфига и username-формы уходят в FullLog-дампы открытым текстом (proxy_create/proxy_set_settings)
@@ -1296,6 +1299,7 @@ namespace OsEngine.MCP
         }
 
         // set_params request: секрет по имени параметра (тип в запросе не приходит); shortcut: неговорящее имя (NinjaTrader «Port») не ловится.
+        // BUG-0421: имя Public key (и ключевые формы api/public key) — тоже секрет, частичный идентификатор.
         // На проводе tool-эхо — строка content[].text: JSON-кандидат под ключом Text вскрывается рекурсивно; на source эхо уже маскировано; type=="Password" — defense-in-depth на прямом result.
         private static bool IsSecretParameterObject(JsonElement element)
         {
@@ -1314,7 +1318,12 @@ namespace OsEngine.MCP
                     || paramName.Contains("token", StringComparison.OrdinalIgnoreCase)
                     || paramName.Contains("secret", StringComparison.OrdinalIgnoreCase)
                     || paramName.Contains("hash", StringComparison.OrdinalIgnoreCase)
-                    || paramName.Contains("passphrase", StringComparison.OrdinalIgnoreCase);
+                    || paramName.Contains("passphrase", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("public key", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("public_key", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("publickey", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("apikey", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("api_key", StringComparison.OrdinalIgnoreCase);
             }
 
             return false;

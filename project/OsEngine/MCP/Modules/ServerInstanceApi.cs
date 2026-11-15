@@ -450,7 +450,7 @@ namespace OsEngine.MCP.Modules
                 }
 
                 object value = GetParameterValue(parameter);
-                bool isSecret = parameter.Type == ServerParameterType.Password;
+                bool isSecret = IsSecretParameter(parameter);
 
                 result.Add(new
                 {
@@ -512,8 +512,30 @@ namespace OsEngine.MCP.Modules
         }
 
         /// <summary>
+        /// Secret-parameter policy (BUG-0421): Password plus the String parameter named
+        /// "Public key" — a partial credential identifier, echoed and logged like Password.
+        /// Name compared to the canonical localized string exactly (identical in Eng and Ru),
+        /// no substring matching: other String parameters keep the raw echo (BUG-0137 guard).
+        /// </summary>
+        internal static bool IsSecretParameter(IServerParameter parameter)
+        {
+            if (parameter == null)
+            {
+                return false;
+            }
+
+            if (parameter.Type == ServerParameterType.Password)
+            {
+                return true;
+            }
+
+            return parameter.Type == ServerParameterType.String
+                && parameter.Name == OsEngine.Language.OsLocalization.Market.ServerParamPublicKey;
+        }
+
+        /// <summary>
         /// Masking of secret values inside a log line before it leaves MCP (BUG-0139).
-        /// Only exact matches of Password-parameter values are masked, longest value first,
+        /// Only exact matches of secret-parameter (BUG-0421: Password, Public key) values are masked, longest value first,
         /// with the MaskSecret canon. Values shorter than 5 symbols are skipped: they are
         /// indistinguishable from ordinary words. Escaped or transformed occurrences are not covered,
         /// and a common word or number of 5+ symbols equal to a secret value will be masked.
@@ -552,8 +574,9 @@ namespace OsEngine.MCP.Modules
         }
 
         /// <summary>
-        /// Secret values of the server instance to mask in logs: only Password-type parameters.
-        /// String parameters holding hand-made tokens cannot be told apart from non-secrets.
+        /// Secret values of the server instance to mask in logs: Password-type parameters and the
+        /// String "Public key" parameter (BUG-0421). Other String parameters holding hand-made
+        /// tokens cannot be told apart from non-secrets.
         /// Empty values are dropped, duplicates removed, longest values first.
         /// </summary>
         private static List<string> CollectSecretValues(AServer server)
@@ -570,12 +593,15 @@ namespace OsEngine.MCP.Modules
                 IServerParameter parameter = server.ServerParameters[i];
 
                 if (parameter == null
-                    || parameter.Type != ServerParameterType.Password)
+                    || !IsSecretParameter(parameter))
                 {
                     continue;
                 }
 
-                string value = ((ServerParameterPassword)parameter).Value;
+                // BUG-0421: Public key is a String parameter, cast by type — Password cast alone would throw on it
+                string value = parameter.Type == ServerParameterType.String
+                    ? ((ServerParameterString)parameter).Value
+                    : ((ServerParameterPassword)parameter).Value;
 
                 if (string.IsNullOrEmpty(value)
                     || result.Contains(value))
@@ -649,8 +675,8 @@ namespace OsEngine.MCP.Modules
                 {
                     name = p.Item1.Name,
                     type = p.Item1.Type.ToString(),
-                    // Password values masked with the same get_params canon (BUG-0137)
-                    value = p.Item1.Type == ServerParameterType.Password ? MaskSecret(p.Item2) : p.Item2
+                    // Password values masked with the same get_params canon (BUG-0137); Public key added by BUG-0421
+                    value = IsSecretParameter(p.Item1) ? MaskSecret(p.Item2) : p.Item2
                 })
             };
         }
