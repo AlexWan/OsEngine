@@ -1,46 +1,32 @@
-# BinanceSpotNonceUnits — BUG-0352 юниты (T1/R3/T2)
+# BinanceSpotNonceUnits — BUG-0352 юниты + перенос шва (BUG-0431)
 
-Юниты к фиксу `fix/bug-0352` (`BinanceTime.serverTime` возвращён в `long`; арифметика
-в `BinanceServerSpot.cs` :3321 post-merge). ТЗ приёмки: ОдТС plan-20261115-013 (R2–R4, R6).
-Не входит в `OsEngine.sln` — собирается явным `dotnet build` этого csproj.
+Юниты перенесены на новый шов `GetNonce` (кэш offset 5 мин) фиксом `fix/bug-0432` по ТЗ ОдТС
+plan-20261115-016. Первоначально (PR #2137) пинилось выражение `result.serverTime + 500`
+репликой на типе `BinanceTime` (:3321 post-merge). Fix bug-0432 удалил это выражение из
+`GetNonce`; смысл проверок («+500» — арифметика long, а не конкатенация строк; fixture-оракул
+отличим от epoch-fallback) сохранён и проверяется через реальный `GetNonce` с инжектированным
+кэшем при свежем TTL — без сети.
 
 ## Прогон
 
 1. `dotnet build project\Tests\BinanceSpotNonceUnits\OsEngine.BinanceSpot.NonceUnits.csproj -p:EngineTree=<корень дерева>\project\OsEngine --no-incremental`
-   По умолчанию `EngineTree` — это же дерево. `ProjectReference` принудительно
-   компилирует движок из исходников: закоммиченный `..\..\OsEngine\bin\Debug\OsEngine.dll`
-   целью НЕ является (отстаёт от исходников, OdTC R1.3).
-2. `OsEngine.BinanceSpot.NonceUnits.exe red` — unfixed база (ожидаем конкатенацию,
-   16 цифр `1763000000000500`).
-   `OsEngine.BinanceSpot.NonceUnits.exe green` — фикс (арифметика, `1763000000500`).
+   По умолчанию `EngineTree` — это же дерево. `ProjectReference` принудительно компилирует
+   движок из исходников: закоммиченный `bin\Debug\OsEngine.dll` целью НЕ является.
+2. `OsEngine.BinanceSpot.NonceUnits.exe green` — 0 = все кейсы совпали.
+   Режим `red` (характеризация unfixed-базы через конкатенацию) больше не поддерживается
+   (exit=2): базового выражения в дереве нет, на новом шве база невоспроизводима.
 
-Выход: 0 — все кейсы совпали с ожиданиями режима; 1 — расхождение; 2 — фатальный preflight.
-Первые строки вывода — location и `sha256` факчески загруженной `OsEngine.dll` (пин).
+## Кейсы (новый шов; свежий TTL = сеть не трогается)
 
-## Кейсы
+- `R3` type-gate: `BinanceTime.serverTime` имеет тип `Int64` — анти-регрессия повторного
+  `long -> string` (OdTC plan-20261115-013). Без изменений.
+- `T1` fixture-оракул = инжектированный skew +30 с → `nonce = local + 30с + 500` (±1 с);
+  premise-probe: НОЛЬ записей журнала движка за вызов (попадание в кэш — проба на /time
+  и fallback не использовались). Конкатенация-регрессия дал бы нечисло / 16+ цифр / нет +30 с.
+- `T2a` offset=0 → pad ровно +500; `T2b` offset=−30 с → signed-арифметика (конкатенация
+  невозможна); `T2c` offset=+30 суток → nonce отличим от fallback более чем на 30 суток
+  (перенос исходного premise-probe «|nonce−now| > 30 суток»).
+- `T2d` quoted-число `{"serverTime":"1763..."}` — ПРИНЯТО через `ApplyTimeResponse`
+  (Newtonsoft коэрция в анонимный long-тип — carryover case из матрицы #2137, пин CDN-формы).
 
-- `R3` type-gate: `BinanceTime.serverTime` имеет тип `Int64` (GREEN) / `String` (RED-пин) —
-  анти-регрессия повторного `long -> string`.
-- `T1` точный fixture-оракул `{"serverTime":1763000000000}` -> `1763000000500` плюс
-  premise-probe «epoch-fallback не использован» (|nonce−now| > 30 суток): 13 цифр
-  недискриминирующи — fallback на сетевом отказе тоже даёт 13 цифр (R2).
-- `T2` characterization-матрица (R4): quoted-число; `{}` -> `500` на обеих; `null` — A/B
-  (red `500`; green — `JsonSerializationException`, замер на Newtonsoft null->long; в проде
-  перехватывает catch CreateQuery -> Error+null -> фолбэк через гейт 0348);
-  `0` (A/B: red `0500`, green `500` — стенд bug-0348 уже пиннил `0500`); `MaxValue` (green — unchecked wrap в
-  отрицательный nonce, новый failure mode; гейт `0 < serverTime <= long.MaxValue-500`
-  — follow-up); `"abc"` (green — throw, в проде перехватывает catch CreateQuery ->
-  Error+null; red — `abc500`); сырой не-JSON (кидает на обеих). Culture-тест не введён:
-  `Int64.ToString("G")` инвариантен.
-
-## Маркировка (OdTC R2/R6)
-
-T1/T2 — type-level реплика выражения :3321 против реального типа, НЕ прод-путь
-`GetNonce` (private; `CreateQuery` non-virtual; URL захардкожен; единственный шов —
-MITM `Connect(WebProxy)`/`_myProxy`). Прод-путь auth/GetNonce покрыт стендом bug-0348
-(C1–C4). Прод-покрытие 0352 = разбор + live-пробел (R5, ConnectorsTestStand / Мастер
-Коннекторов, оракул — отсутствие `-1021`). T3 (сборка `OsEngine.sln`) — build-gate,
-не покрытие.
-
-На ветке фикса пин `U3` (`1700000000000500`, конкатенация) в полном прогоне стенда
-bug-0348 инвертируется в арифметику — ожидаемо, инверсия была оговорена на 0348.
+Первые строки вывода — location и `sha256` фактически загруженной `OsEngine.dll` (пин).
