@@ -2017,7 +2017,10 @@ namespace OsEngine.OsData
                 return;
             }
 
-            pie.SetNewCandlesInPie(candles);
+            if (pie.SetNewCandlesInPie(candles) == false)
+            {
+                return;
+            }
 
             SendNewLogMessage("Candles Load Successfully. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
@@ -2240,7 +2243,10 @@ namespace OsEngine.OsData
                 return;
             }
 
-            pie.SetNewTradesInPie(trades);
+            if (pie.SetNewTradesInPie(trades) == false)
+            {
+                return;
+            }
 
             SendNewLogMessage("Trades Load Successfully. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
@@ -2504,7 +2510,10 @@ namespace OsEngine.OsData
 
             (DateTime earlyFileDate, DateTime lateFileDate) = CheckMDTimeInSet(marketDepthFiles);
 
-            pie.SaveMarketDepthInfoPieInTempFile(earlyFileDate, lateFileDate, marketDepthFiles.Count);
+            if (pie.SaveMarketDepthInfoPieInTempFile(earlyFileDate, lateFileDate, marketDepthFiles.Count) == false)
+            {
+                return;
+            }
 
             pie.UpDateStatus();
 
@@ -3901,12 +3910,23 @@ namespace OsEngine.OsData
             }
         }
 
+        // Temp-папка может быть удалена извне после ctor загрузчика — воссоздаём перед каждой записью temp
+        private void EnsureTempFolderExists()
+        {
+            if (!Directory.Exists(_pathMyTempPieInTfFolder))
+            {
+                Directory.CreateDirectory(_pathMyTempPieInTfFolder);
+            }
+        }
+
         private void SavePieSettings()
         {
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + "Settings_" + TempFileName;
 
             try
             {
+                EnsureTempFolderExists();
+
                 using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
                 {
 
@@ -3914,18 +3934,22 @@ namespace OsEngine.OsData
 
                 }
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage("Error. Pie settings save failed. " + error.ToString(), LogMessageType.Error);
             }
         }
 
         #region Candles
 
-        public void SetNewCandlesInPie(List<Candle> candles)
+        public bool SetNewCandlesInPie(List<Candle> candles)
         {
-            SaveCandleDataPieInTempFile(candles);
+            if (SaveCandleDataPieInTempFile(candles) == false)
+            {
+                return false;
+            }
             UpDateStatus();
+            return true;
         }
 
         public CandlePieStatusInfo LoadCandlesPieStatus()
@@ -4045,12 +4069,14 @@ namespace OsEngine.OsData
             return candles;
         }
 
-        private void SaveCandleDataPieInTempFile(List<Candle> candles)
+        private bool SaveCandleDataPieInTempFile(List<Candle> candles)
         {
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             try
             {
+                EnsureTempFolderExists();
+
                 DateTime realEnd = End.AddDays(1);
 
                 using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
@@ -4071,10 +4097,13 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage("Error. Candle pie save failed. " + error.ToString(), LogMessageType.Error);
+                return false;
             }
+
+            return true;
         }
 
         #endregion
@@ -4172,18 +4201,24 @@ namespace OsEngine.OsData
             return trades;
         }
 
-        public void SetNewTradesInPie(List<Trade> trades)
+        public bool SetNewTradesInPie(List<Trade> trades)
         {
-            SaveTradesDataPieInTempFile(trades);
+            if (SaveTradesDataPieInTempFile(trades) == false)
+            {
+                return false;
+            }
             UpDateStatus();
+            return true;
         }
 
-        private void SaveTradesDataPieInTempFile(List<Trade> trades)
+        private bool SaveTradesDataPieInTempFile(List<Trade> trades)
         {
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             try
             {
+                EnsureTempFolderExists();
+
                 DateTime realEnd = End.AddDays(1);
 
                 using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
@@ -4204,10 +4239,13 @@ namespace OsEngine.OsData
                     }
                 }
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage("Error. Trades pie save failed. " + error.ToString(), LogMessageType.Error);
+                return false;
             }
+
+            return true;
         }
 
         #endregion
@@ -4252,12 +4290,14 @@ namespace OsEngine.OsData
             return info;
         }
 
-        public void SaveMarketDepthInfoPieInTempFile(DateTime realStart, DateTime realEnd, int qshFilesCount)
+        public bool SaveMarketDepthInfoPieInTempFile(DateTime realStart, DateTime realEnd, int qshFilesCount)
         {
             string pathToTempFile = _pathMyTempPieInTfFolder + "\\" + TempFileName;
 
             try
             {
+                EnsureTempFolderExists();
+
                 string start = realStart.ToString("yyyy-MM-dd");
                 string end = realEnd.ToString("yyyy-MM-dd");
 
@@ -4265,10 +4305,13 @@ namespace OsEngine.OsData
 
                 File.WriteAllText(pathToTempFile, pieInfo);
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                SendNewLogMessage("Error. Market depth pie info save failed. " + error.ToString(), LogMessageType.Error);
+                return false;
             }
+
+            return true;
         }
 
         #endregion
