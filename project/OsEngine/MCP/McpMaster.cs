@@ -1300,6 +1300,7 @@ namespace OsEngine.MCP
 
         // set_params request: секрет по имени параметра (тип в запросе не приходит); shortcut: неговорящее имя (NinjaTrader «Port») не ловится.
         // BUG-0421: имя Public key (и ключевые формы api/public key) — тоже секрет, частичный идентификатор.
+        // BUG-0424: «Api key» Polygon (с пробелом) — ниже через contains "api key"; «Client Secret»/«Request Token» уже ловятся clause secret/token.
         // На проводе tool-эхо — строка content[].text: JSON-кандидат под ключом Text вскрывается рекурсивно; на source эхо уже маскировано; type=="Password" — defense-in-depth на прямом result.
         private static bool IsSecretParameterObject(JsonElement element)
         {
@@ -1323,7 +1324,8 @@ namespace OsEngine.MCP
                     || paramName.Contains("public_key", StringComparison.OrdinalIgnoreCase)
                     || paramName.Contains("publickey", StringComparison.OrdinalIgnoreCase)
                     || paramName.Contains("apikey", StringComparison.OrdinalIgnoreCase)
-                    || paramName.Contains("api_key", StringComparison.OrdinalIgnoreCase);
+                    || paramName.Contains("api_key", StringComparison.OrdinalIgnoreCase)
+                    || paramName.Contains("api key", StringComparison.OrdinalIgnoreCase);
             }
 
             return false;

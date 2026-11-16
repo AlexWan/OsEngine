@@ -512,10 +512,11 @@ namespace OsEngine.MCP.Modules
         }
 
         /// <summary>
-        /// Secret-parameter policy (BUG-0421): Password plus the String parameter named
-        /// "Public key" — a partial credential identifier, echoed and logged like Password.
-        /// Name compared to the canonical localized string exactly (identical in Eng and Ru),
-        /// no substring matching: other String parameters keep the raw echo (BUG-0137 guard).
+        /// Secret-parameter policy (BUG-0421, BUG-0424): Password plus String parameters named exactly
+        /// "Public key", "Api key" (Polygon), "Client Secret" (Deribit), "Request Token" (KiteConnect)
+        /// — credential values echoed and logged like Password. Names compared exactly (the last three
+        /// are hardcoded literals in the connectors, identical in Eng and Ru); no substring matching:
+        /// other String parameters keep the raw echo (BUG-0137 guard).
         /// </summary>
         internal static bool IsSecretParameter(IServerParameter parameter)
         {
@@ -530,12 +531,15 @@ namespace OsEngine.MCP.Modules
             }
 
             return parameter.Type == ServerParameterType.String
-                && parameter.Name == OsEngine.Language.OsLocalization.Market.ServerParamPublicKey;
+                && (parameter.Name == OsEngine.Language.OsLocalization.Market.ServerParamPublicKey
+                    || parameter.Name == "Api key"
+                    || parameter.Name == "Client Secret"
+                    || parameter.Name == "Request Token");
         }
 
         /// <summary>
         /// Masking of secret values inside a log line before it leaves MCP (BUG-0139).
-        /// Only exact matches of secret-parameter (BUG-0421: Password, Public key) values are masked, longest value first,
+        /// Only exact matches of secret-parameter (BUG-0421/0424: Password, Public key, Api key, Client Secret, Request Token) values are masked, longest value first,
         /// with the MaskSecret canon. Values shorter than 5 symbols are skipped: they are
         /// indistinguishable from ordinary words. Escaped or transformed occurrences are not covered,
         /// and a common word or number of 5+ symbols equal to a secret value will be masked.
@@ -575,8 +579,8 @@ namespace OsEngine.MCP.Modules
 
         /// <summary>
         /// Secret values of the server instance to mask in logs: Password-type parameters and the
-        /// String "Public key" parameter (BUG-0421). Other String parameters holding hand-made
-        /// tokens cannot be told apart from non-secrets.
+        /// String secret parameters accepted by IsSecretParameter (BUG-0421, BUG-0424). Other String
+        /// parameters holding hand-made tokens cannot be told apart from non-secrets.
         /// Empty values are dropped, duplicates removed, longest values first.
         /// </summary>
         private static List<string> CollectSecretValues(AServer server)
