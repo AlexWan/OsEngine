@@ -70,6 +70,15 @@ namespace OsEngine.Market.Servers.TInvest
 
             ServerParameterEnum depthParam = CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "10", "20", "50" });
             depthParam.Comment = OsLocalization.Market.SetDepthLevelsDescription;
+
+            // FEATURE-0133 sandbox mode. Deposit is created before mode so that
+            // «mode» stays the last user parameter before the AServer standard tail
+            ServerParameterInt sandboxDepositParam = CreateParameterInt(OsLocalization.Market.Label379, TInvestServerRealization.SandboxDepositDefaultRub);
+
+            ServerParameterEnum modeParam = CreateParameterEnum(OsLocalization.Market.Label378,
+                TInvestServerRealization.ModeValueCombat,
+                new List<string> { TInvestServerRealization.ModeValueCombat, TInvestServerRealization.ModeValueSandbox });
+            modeParam.Comment = OsLocalization.Market.Label382;
         }
 
         private void UseSector_ValueChange()
@@ -182,6 +191,13 @@ namespace OsEngine.Market.Servers.TInvest
                 if (int.TryParse(depthStr, out int depthValue))
                 {
                     _orderBookDepth = depthValue;
+                }
+
+                ServerParameterEnum modeParam = FindModeParameter();
+                _activeGrpcHost = GetGrpcHostForMode(modeParam == null ? null : modeParam.Value);
+                if (modeParam != null && modeParam.Value == ModeValueSandbox)
+                {
+                    SendLogMessage(OsLocalization.Market.Label380 + ". " + _activeGrpcHost, LogMessageType.System);
                 }
 
                 if (string.IsNullOrEmpty(_accessToken))
@@ -2338,6 +2354,24 @@ namespace OsEngine.Market.Servers.TInvest
         #region 6 gRPC streams creation
 
         private readonly string _gRPCHost = "https://invest-public-api.tbank.ru:443"; // prod
+        private string _activeGrpcHost = "https://invest-public-api.tbank.ru:443"; // chosen in Connect via GetGrpcHostForMode; used by CreateStreamsConnection
+
+        public const string ModeValueCombat = "Боевой";
+        public const string ModeValueSandbox = "Песочница";
+        public const int SandboxDepositDefaultRub = 5_000_000;
+
+        /// <summary>
+        /// gRPC host for the selected mode (FEATURE-0133). Sandbox only on the exact
+        /// «Песочница» value: null/empty/unknown never silently routes to sandbox
+        /// </summary>
+        public static string GetGrpcHostForMode(string modeValue)
+        {
+            if (modeValue == ModeValueSandbox)
+            {
+                return "https://sandbox-invest-public-api.tinkoff.ru:443";
+            }
+            return "https://invest-public-api.tbank.ru:443";
+        }
         private static readonly Lazy<X509Certificate2[]> _tInvestCertificates = new Lazy<X509Certificate2[]>(LoadTInvestCertificates);
         private Metadata _gRpcMetadata;
 
@@ -2481,7 +2515,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("T-Invest: client-side gRPC load balancing disabled (proxy connection)", LogMessageType.System);
                 }
 
-                _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
+                _channel = GrpcChannel.ForAddress(_activeGrpcHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
                     HttpHandler = socketsHandler
@@ -2496,6 +2530,13 @@ namespace OsEngine.Market.Servers.TInvest
                 _stopOrdersClient = new StopOrdersService.StopOrdersServiceClient(_channel);
                 _marketDataServiceClient = new MarketDataService.MarketDataServiceClient(_channel);
                 _marketDataStreamClient = new MarketDataStreamService.MarketDataStreamServiceClient(_channel);
+
+                if (IsSandboxMode())
+                {
+                    // sandbox accounts are virtual and may be dropped by the exchange between sessions:
+                    // ensure at least one exists and is funded before portfolios/streams start
+                    EnsureSandboxAccount();
+                }
 
                 try
                 {
@@ -2528,6 +2569,78 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage(exception.ToString(), LogMessageType.System);
             }
+        }
+
+        private ServerParameterEnum FindModeParameter()
+        {
+            if (ServerParameters == null)
+            {
+                return null;
+            }
+            for (int i = 0; i < ServerParameters.Count; i++)
+            {
+                if (ServerParameters[i] is ServerParameterEnum enumParam
+                    && enumParam.EnumValues != null
+                    && enumParam.EnumValues.Contains(ModeValueCombat)
+                    && enumParam.EnumValues.Contains(ModeValueSandbox))
+                {
+                    return enumParam;
+                }
+            }
+            return null;
+        }
+
+        private bool IsSandboxMode()
+        {
+            ServerParameterEnum modeParam = FindModeParameter();
+            return modeParam != null && modeParam.Value == ModeValueSandbox;
+        }
+
+        private int GetSandboxDepositRub()
+        {
+            if (ServerParameters != null)
+            {
+                string name = OsLocalization.Market.Label379;
+                for (int i = 0; i < ServerParameters.Count; i++)
+                {
+                    if (ServerParameters[i].Type == ServerParameterType.Int && ServerParameters[i].Name == name)
+                    {
+                        return ((ServerParameterInt)ServerParameters[i]).Value;
+                    }
+                }
+            }
+            return SandboxDepositDefaultRub;
+        }
+
+        // FEATURE-0133: on the sandbox contour GetAccounts returns virtual sandbox accounts.
+        // Reuse an existing one; otherwise open an account and fund it (pay-in is RUB only).
+        // Thrown errors fail the Connect as usual - there is no fallback to the live host
+        private void EnsureSandboxAccount()
+        {
+            _rateGateOrders.WaitToProceed();
+            GetAccountsResponse accounts = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+            if (accounts != null && accounts.Accounts.Count > 0)
+            {
+                return;
+            }
+
+            SandboxService.SandboxServiceClient sandboxClient = new SandboxService.SandboxServiceClient(_channel);
+
+            _rateGateOrders.WaitToProceed();
+            OpenSandboxAccountResponse opened = sandboxClient.OpenSandboxAccount(
+                new OpenSandboxAccountRequest { Name = "OsEngine" },
+                _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+
+            int depositRub = GetSandboxDepositRub();
+
+            _rateGateOrders.WaitToProceed();
+            sandboxClient.SandboxPayIn(new SandboxPayInRequest
+            {
+                AccountId = opened.AccountId,
+                Amount = new MoneyValue { Currency = "RUB", Units = depositRub }
+            }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+
+            SendLogMessage(OsLocalization.Market.Label383 + " " + opened.AccountId + ", " + depositRub + " RUB", LogMessageType.System);
         }
 
         private void ConnectGRPCStreams()
@@ -6908,6 +7021,15 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
+                if (IsSandboxMode())
+                {
+                    // no stop-order service on the T-Invest sandbox contour (url_difference.md) - explicit refusal
+                    string refusal = OsLocalization.Market.Label381;
+                    SendLogMessage(refusal, LogMessageType.Error);
+                    CreateOrderFail(order, refusal);
+                    return;
+                }
+
                 _rateGateStopOrders.WaitToProceed();
 
                 Security security = _securities.Where(s => _securityStreamMap.ContainsKey(s.NameId)).FirstOrDefault((sec) =>

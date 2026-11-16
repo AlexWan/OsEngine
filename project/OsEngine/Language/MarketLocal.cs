@@ -2396,6 +2396,30 @@ namespace OsEngine.Language
          "Eng:Test period is not set. Set the start and end dates of the test period in Tester settings._" +
          "Ru:Период тестирования не задан. Укажите даты начала и окончания периода тестирования в настройках Тестера._");
 
+        public string Label378 => OsLocalization.ConvertToLocString(
+         "Eng:Trading mode_" +
+         "Ru:Режим_");
+
+        public string Label379 => OsLocalization.ConvertToLocString(
+         "Eng:Sandbox deposit, RUB_" +
+         "Ru:Пополнение песочницы, RUB_");
+
+        public string Label380 => OsLocalization.ConvertToLocString(
+         "Eng:T-Invest SANDBOX mode. Orders never reach the exchange_" +
+         "Ru:Режим ПЕСОЧНИЦА (SANDBOX). Заявки не достигают боевого контура_");
+
+        public string Label381 => OsLocalization.ConvertToLocString(
+         "Eng:Stop orders are not available in T-Invest sandbox_" +
+         "Ru:Стоп-заявки недоступны в песочнице T-Invest_");
+
+        public string Label382 => OsLocalization.ConvertToLocString(
+         "Eng:Sandbox runs orders on real market data through the sandbox contour without touching the live account. Mode is applied on connect_" +
+         "Ru:Песочница исполняет заявки на реальных данных биржи через песочный контур, боевой счёт не затрагивается. Режим применяется при подключении_");
+
+        public string Label383 => OsLocalization.ConvertToLocString(
+         "Eng:Sandbox account created. Deposit_" +
+         "Ru:Счёт песочницы создан. Пополнение_");
+
         public string Label377 => OsLocalization.ConvertToLocString(
          "Eng:Test period was corrected to the data available. Available period from {0} to {1}_" +
          "Ru:Период тестирования скорректирован по имеющимся данным. Доступный период с {0} по {1}_");
