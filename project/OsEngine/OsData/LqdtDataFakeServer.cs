@@ -146,7 +146,11 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    SendNewLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    // response.Content — HttpContent (в интерполяции только имя типа), тело уже прочитано в cont; single-line и кап 4000 — страница отказа CDN не рвёт лог и грепы
+                    string body = (cont ?? "").Replace("\r", " ").Replace("\n", " ");
+                    if (body.Length > 4000) body = body.Substring(0, 4000) + "…";
+
+                    SendNewLogMessage($"Error response: {response.StatusCode}-{response.ReasonPhrase}. Body: {body}. Url: {url}", LogMessageType.Error);
                     return null;
                 }
             }
@@ -298,7 +302,12 @@ namespace OsEngine.OsData
                 }
                 else
                 {
-                    SendNewLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе только «Error response: 0-»
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendNewLogMessage($"Error response: {response.StatusCode}-{response.Content}. Error: {err}. Url: {client.BaseUrl}{request.Resource}", LogMessageType.Error);
                     return null;
                 }
             }
