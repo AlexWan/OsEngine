@@ -3410,26 +3410,75 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
+        // Инвариант (bug-0432): поля синхронизации времени меняются только под lock(_queryHttpLocker) CreateQuery —
+        // единственный коллер GetNonce это signed-путь CreateQuery; реентранс Monitor, отдельный lock не вводить.
+        private TimeSpan _serverTimeOffset = TimeSpan.Zero;   // серверное время минус локальные часы
+        private DateTime _lastServerTimeSync = DateTime.MinValue;   // момент последнего успешного синка; при отказе TTL не освежаем — пробым на следующем signed
+        private DateTime _lastTimeSyncFailLog = DateTime.MinValue;   // троттлинг лога отказа: не чаще раза в минуту
+
         private string GetNonce()
         {
-            var resTime = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, "api/v1/time", null, false);
+            if (_lastServerTimeSync == DateTime.MinValue
+                || _lastServerTimeSync.AddMinutes(5) < DateTime.UtcNow)
+            {
+                SyncServerTime();
+            }
+
+            // timestamp считается локально из сохранённого offset (та же схема, что BinanceServerFutures) — без REST-раундтрипа на каждый signed
+            DateTime serverNow = DateTime.UtcNow + _serverTimeOffset;
+            long timeStamp = (long)(serverNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
+
+            return (timeStamp + 500).ToString();
+        }
+
+        private void SyncServerTime()
+        {
+            // Check server time (rest-api.md): живой эндпоинт — api/v3/time, ответ разбирает ApplyTimeResponse, offset кэширует GetNonce
+            string resTime = CreateQuery(BinanceExchangeType.SpotExchange, Method.GET, "api/v3/time", null, false);
+            ApplyTimeResponse(resTime);
+        }
+
+        // true = offset обновлён. При отказе держим последний валидный offset (как Futures): при первом отказе offset=Zero — работа на локальных часах.
+        private bool ApplyTimeResponse(string resTime)
+        {
+            long serverTimeMs = 0;
+            bool ok = false;
 
             if (!string.IsNullOrEmpty(resTime))
             {
-                var result = JsonConvert.DeserializeAnonymousType(resTime, new BinanceTime());
-
-                if (result != null)
+                try
                 {
-                    return (result.serverTime + 500).ToString();
+                    // Анонимный тип: сущность BinanceTime не касаемся (её тип правит баг 0352). Битое тело = отказ ветки, наружу не кидаем: иначе ответ на /time ронял бы signed-запрос через catch CreateQuery.
+                    var result = JsonConvert.DeserializeAnonymousType(resTime, new { serverTime = 0L });
+                    ok = result != null && result.serverTime > 0;
+
+                    if (ok)
+                    {
+                        serverTimeMs = result.serverTime;
+                    }
+                }
+                catch (Exception)
+                {
+                    ok = false;
                 }
             }
 
-            DateTime yearBegin = new DateTime(1970, 1, 1);
-            var timeStamp = DateTime.UtcNow - yearBegin;
-            var r = timeStamp.TotalMilliseconds;
-            var re = Convert.ToInt64(r);
+            if (ok)
+            {
+                _serverTimeOffset = new DateTime(1970, 1, 1).AddMilliseconds(serverTimeMs) - DateTime.UtcNow;
+                _lastServerTimeSync = DateTime.UtcNow;
+                SendLogMessage("Binance Spot: serverTime синхронизирован, offset " + Math.Round(_serverTimeOffset.TotalMilliseconds) + " мс", LogMessageType.System);
+                return true;
+            }
 
-            return re.ToString();
+            if (_lastTimeSyncFailLog.AddMinutes(1) < DateTime.UtcNow)
+            {
+                _lastTimeSyncFailLog = DateTime.UtcNow;
+                string snippet = resTime == null ? "" : (resTime.Length > 200 ? resTime.Substring(0, 200) : resTime);
+                SendLogMessage("Binance Spot: sync НЕ УДАЛСЯ, timestamp по локальным часам (offset " + Math.Round(_serverTimeOffset.TotalMilliseconds) + " мс). Ответ: [" + snippet + "]", LogMessageType.Error);
+            }
+
+            return false;
         }
 
         public string SignEd25519(string payload)
