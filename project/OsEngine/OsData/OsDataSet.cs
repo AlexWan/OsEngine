@@ -2017,6 +2017,8 @@ namespace OsEngine.OsData
                 return;
             }
 
+            pie.FilterEnd = realEnd;
+
             if (pie.SetNewCandlesInPie(candles) == false)
             {
                 return;
@@ -2242,6 +2244,8 @@ namespace OsEngine.OsData
 
                 return;
             }
+
+            pie.FilterEnd = realEnd;
 
             if (pie.SetNewTradesInPie(trades) == false)
             {
@@ -3684,6 +3688,11 @@ namespace OsEngine.OsData
 
         public string _pathMyTempPieInTfFolder;
 
+        // BUG-0418: край запроса этого пирога (кламплен к TimeEnd в лоадере). Фильтр записи temp
+        // режется им, а не подкладкой End+1сут: граница окна держится не только запросом.
+        // MinValue — лоадер не задал, фильтр сохраняет прежний потолок End+1сут (обратная совместимость).
+        public DateTime FilterEnd;
+
         public int CountTriesToLoadSet
         {
             get
@@ -4077,7 +4086,9 @@ namespace OsEngine.OsData
             {
                 EnsureTempFolderExists();
 
-                DateTime realEnd = End.AddDays(1);
+                // BUG-0418: лоадер выставил край запроса (FilterEnd) — он строже подкладки End+1сут
+                // и ровно равен краю, с которым данные запрашивались; MinValue — старый потолок.
+                DateTime realEnd = FilterEnd != DateTime.MinValue ? FilterEnd : End.AddDays(1);
 
                 using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
                 {
@@ -4219,7 +4230,9 @@ namespace OsEngine.OsData
             {
                 EnsureTempFolderExists();
 
-                DateTime realEnd = End.AddDays(1);
+                // BUG-0418: лоадер выставил край запроса (FilterEnd) — он строже подкладки End+1сут
+                // и ровно равен краю, с которым данные запрашивались; MinValue — старый потолок.
+                DateTime realEnd = FilterEnd != DateTime.MinValue ? FilterEnd : End.AddDays(1);
 
                 using (StreamWriter writer = new StreamWriter(pathToTempFile, false))
                 {
