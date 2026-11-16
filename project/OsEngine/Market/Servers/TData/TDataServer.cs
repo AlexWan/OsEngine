@@ -1288,7 +1288,11 @@ namespace OsEngine.Market.Servers.TData
                     else
                     {
                         string content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        SendLogMessage($"Error response: {response.StatusCode}-{content}", LogMessageType.Error);
+                        // content — сырое тело ответа (HTML отказа CDN многострочный, до десятков КБ): single-line и кап 4000 — одна Error-строка и живые грепы (прецедент 0382 R1)
+                        string body = (content ?? "").Replace("\r", " ").Replace("\n", " ");
+                        if (body.Length > 4000) body = body.Substring(0, 4000) + "…";
+
+                        SendLogMessage($"Error response: {response.StatusCode}-{response.ReasonPhrase}. Body: {body}. Url: {_baseUrl}{url}", LogMessageType.Error);
                         return null;
                     }
                 }
