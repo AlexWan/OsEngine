@@ -164,22 +164,25 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (CandlesAll == null)
-                {
-                    return null;
-                }
-
                 List<Candle> history = CandlesAll;
 
-                if (history == null ||
-                    history.Count == 0)
+                if (history == null)
                 {
                     return null;
                 }
 
-                if (history[history.Count - 1].State != CandleState.Finished)
+                // список может параллельно перестраиваться: Count снимаем один раз, живой индекс не перечитываем
+                int count = history.Count;
+
+                if (count == 0 ||
+                    history[count - 1] == null)
                 {
-                    return history.GetRange(0, history.Count - 1);
+                    return null;
+                }
+
+                if (history[count - 1].State != CandleState.Finished)
+                {
+                    return history.GetRange(0, count - 1);
                 }
 
                 return history;
