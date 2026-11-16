@@ -74,6 +74,7 @@ namespace OsEngine.Market.Servers.TInvest
             // FEATURE-0133 sandbox mode. Deposit is created before mode so that
             // «mode» stays the last user parameter before the AServer standard tail
             ServerParameterInt sandboxDepositParam = CreateParameterInt(OsLocalization.Market.Label379, TInvestServerRealization.SandboxDepositDefaultRub);
+            sandboxDepositParam.ValueChange += SandboxDeposit_ValueChange;
 
             ServerParameterEnum modeParam = CreateParameterEnum(OsLocalization.Market.Label378,
                 TInvestServerRealization.ModeValueCombat,
@@ -84,6 +85,12 @@ namespace OsEngine.Market.Servers.TInvest
         private void UseSector_ValueChange()
         {
             Task.Run(ServerRealization.GetSecurities);
+        }
+
+        private void SandboxDeposit_ValueChange()
+        {
+            // FEATURE-0133: deposit change tops up the live sandbox session (no reconnect needed)
+            Task.Run(((TInvestServerRealization)ServerRealization).TopUpSandboxSession);
         }
     }
 
@@ -194,8 +201,9 @@ namespace OsEngine.Market.Servers.TInvest
                 }
 
                 ServerParameterEnum modeParam = FindModeParameter();
+                _sandboxSession = modeParam != null && modeParam.Value == ModeValueSandbox;
                 _activeGrpcHost = GetGrpcHostForMode(modeParam == null ? null : modeParam.Value);
-                if (modeParam != null && modeParam.Value == ModeValueSandbox)
+                if (_sandboxSession)
                 {
                     SendLogMessage(OsLocalization.Market.Label380 + ". " + _activeGrpcHost, LogMessageType.System);
                 }
@@ -2535,7 +2543,16 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // sandbox accounts are virtual and may be dropped by the exchange between sessions:
                     // ensure at least one exists and is funded before portfolios/streams start
-                    EnsureSandboxAccount();
+                    try
+                    {
+                        EnsureSandboxAccount();
+                    }
+                    catch (Exception bootstrapError)
+                    {
+                        SendLogMessage("T-Invest SANDBOX bootstrap failed. Mode: " + ModeValueSandbox +
+                            ", host: " + _activeGrpcHost + ". " + bootstrapError, LogMessageType.Error);
+                        throw;
+                    }
                 }
 
                 try
@@ -2551,6 +2568,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         // загрузка не удалась - ConnectEvent не вызываем,
                         // движок штатно переподключится
+                        DisposeChannelAfterFailedConnect();
                         return;
                     }
 
@@ -2563,11 +2581,32 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.System);
+                    DisposeChannelAfterFailedConnect();
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.System);
+                DisposeChannelAfterFailedConnect();
+            }
+        }
+
+        private void DisposeChannelAfterFailedConnect()
+        {
+            // FEATURE-0133: a failed Connect must not leak the gRPC channel (e.g. broken token)
+            ServerStatus = ServerConnectStatus.Disconnect;
+            GrpcChannel channel = _channel;
+            if (channel != null)
+            {
+                _channel = null;
+                try
+                {
+                    channel.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("T-Invest channel dispose after failed connect: " + ex.ToString(), LogMessageType.System);
+                }
             }
         }
 
@@ -2590,8 +2629,17 @@ namespace OsEngine.Market.Servers.TInvest
             return null;
         }
 
+        private bool _sandboxSession; // latched on Connect (FEATURE-0133): mode flip without reconnect must not change behaviour of an active session
+
         private bool IsSandboxMode()
         {
+            // While connected the latch rules (host and stop-service gates stay consistent
+            // for the whole session); while not connected the parameter applies live so
+            // refusals and logs react before a session is established
+            if (ServerStatus == ServerConnectStatus.Connect)
+            {
+                return _sandboxSession;
+            }
             ServerParameterEnum modeParam = FindModeParameter();
             return modeParam != null && modeParam.Value == ModeValueSandbox;
         }
@@ -2621,6 +2669,11 @@ namespace OsEngine.Market.Servers.TInvest
             GetAccountsResponse accounts = _usersClient.GetAccounts(new GetAccountsRequest(), _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
             if (accounts != null && accounts.Accounts.Count > 0)
             {
+                Account first = accounts.Accounts[0];
+                // no ACCOUNT_TYPE_SANDBOX in the proto and sandbox access_level is not
+                // guaranteed by docs - log identity so the live run proves the contour
+                SendLogMessage("Sandbox account in use: " + first.Id + ", Type=" + first.Type + ", AccessLevel=" + first.AccessLevel, LogMessageType.System);
+                TopUpSandboxCash(first.Id, ResolveSandboxDepositRub());
                 return;
             }
 
@@ -2631,7 +2684,7 @@ namespace OsEngine.Market.Servers.TInvest
                 new OpenSandboxAccountRequest { Name = "OsEngine" },
                 _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
-            int depositRub = GetSandboxDepositRub();
+            int depositRub = ResolveSandboxDepositRub();
 
             _rateGateOrders.WaitToProceed();
             sandboxClient.SandboxPayIn(new SandboxPayInRequest
@@ -2641,6 +2694,79 @@ namespace OsEngine.Market.Servers.TInvest
             }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
 
             SendLogMessage(OsLocalization.Market.Label383 + " " + opened.AccountId + ", " + depositRub + " RUB", LogMessageType.System);
+        }
+
+        private int ResolveSandboxDepositRub()
+        {
+            int value = GetSandboxDepositRub();
+            if (value <= 0)
+            {
+                // engine has no Warning level - report at Error class, then fall back to default
+                SendLogMessage(OsLocalization.Market.Label384 + " " + SandboxDepositDefaultRub + " RUB", LogMessageType.Error);
+                return SandboxDepositDefaultRub;
+            }
+            return value;
+        }
+
+        // sandbox may go below zero (NoFunds is not emulated there) - always pay the full gap to target
+        private static long ComputeSandboxTopUp(long cashRub, long targetRub)
+        {
+            if (targetRub <= 0
+                || cashRub >= targetRub)
+            {
+                return 0;
+            }
+            return targetRub - cashRub;
+        }
+
+        public void TopUpSandboxSession()
+        {
+            // ValueChange fires on the UI thread; pay-in is network IO
+            try
+            {
+                if (_sandboxSession == false
+                    || _channel == null)
+                {
+                    return;
+                }
+                for (int i = 0; i < _myPortfolios.Count; i++)
+                {
+                    TopUpSandboxCash(_myPortfolios[i].Number, ResolveSandboxDepositRub());
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage("T-Invest sandbox deposit pay-up failed. " + error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TopUpSandboxCash(string accountId, int targetRub)
+        {
+            SandboxService.SandboxServiceClient sandboxClient = new SandboxService.SandboxServiceClient(_channel);
+
+            _rateGateOrders.WaitToProceed();
+            // total portfolio amount equals the paid-in cash until the account starts trading
+            PortfolioResponse portfolio = sandboxClient.GetSandboxPortfolio(new PortfolioRequest { AccountId = accountId },
+                _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+
+            long cashRub = portfolio == null || portfolio.TotalAmountPortfolio == null
+                ? 0
+                : portfolio.TotalAmountPortfolio.Units;
+
+            long topUp = ComputeSandboxTopUp(cashRub, targetRub);
+            if (topUp <= 0)
+            {
+                return;
+            }
+
+            _rateGateOrders.WaitToProceed();
+            sandboxClient.SandboxPayIn(new SandboxPayInRequest
+            {
+                AccountId = accountId,
+                Amount = new MoneyValue { Currency = "RUB", Units = topUp }
+            }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+
+            SendLogMessage(OsLocalization.Market.Label385 + " " + accountId + ", +" + topUp + " RUB", LogMessageType.System);
         }
 
         private void ConnectGRPCStreams()
@@ -7190,6 +7316,15 @@ namespace OsEngine.Market.Servers.TInvest
 
         private bool CancelStopOrder(Order order, string source = "")
         {
+            if (IsSandboxMode())
+            {
+                // no stop-order service on the sandbox contour (url_difference.md) - explicit refusal
+                string refusal = OsLocalization.Market.Label381;
+                SendLogMessage(refusal, LogMessageType.Error);
+                CreateOrderFail(order, refusal);
+                return false;
+            }
+
             _rateGateStopOrders.WaitToProceed();
 
             CancelStopOrderRequest request = new CancelStopOrderRequest();
@@ -7303,6 +7438,13 @@ namespace OsEngine.Market.Servers.TInvest
         private List<Order> GetAllActiveStopOrders()
         {
             List<Order> result = new List<Order>();
+
+            if (IsSandboxMode())
+            {
+                // no stop-order service on the sandbox contour - skip silently to avoid
+                // error spam and draining the stop-orders rate gate on a host without the service
+                return result;
+            }
 
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
@@ -7563,6 +7705,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<StopOrder> GetStopOrdersFromServer(string accountId, StopOrderStatusOption status)
         {
+            if (IsSandboxMode())
+            {
+                // sandbox has no StopOrdersService (incl. GetActiveOrders polling) - skip before the rate gate
+                return null;
+            }
+
             _rateGateStopOrders.WaitToProceed();
 
             GetStopOrdersRequest request = new GetStopOrdersRequest();

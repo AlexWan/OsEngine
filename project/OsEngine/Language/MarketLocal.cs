@@ -2420,6 +2420,14 @@ namespace OsEngine.Language
          "Eng:Sandbox account created. Deposit_" +
          "Ru:Счёт песочницы создан. Пополнение_");
 
+        public string Label384 => OsLocalization.ConvertToLocString(
+         "Eng:Invalid sandbox deposit amount. It must be positive. Using default_" +
+         "Ru:Недопустимая сумма пополнения песочницы. Нужно положительное значение. Использован default_");
+
+        public string Label385 => OsLocalization.ConvertToLocString(
+         "Eng:Sandbox account topped up to the deposit parameter_" +
+         "Ru:Счёт песочницы пополнен до значения параметра пополнения_");
+
         public string Label377 => OsLocalization.ConvertToLocString(
          "Eng:Test period was corrected to the data available. Available period from {0} to {1}_" +
          "Ru:Период тестирования скорректирован по имеющимся данным. Доступный период с {0} по {1}_");
