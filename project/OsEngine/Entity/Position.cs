@@ -1408,7 +1408,8 @@ namespace OsEngine.Entity
    
             if (Comment != null)
             {
-                Comment = Comment.RemoveExcessFromSecurityName().Replace("#","").Replace("^", "");
+                // CR/LF would split the line-based journal record (PositionController.GetSaveString)
+                Comment = Comment.RemoveExcessFromSecurityName().Replace("#","").Replace("^", "").Replace("\r", " ").Replace("\n", " ");
             }
 
             commentString += Comment + "^";

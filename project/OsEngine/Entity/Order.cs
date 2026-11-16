@@ -542,7 +542,7 @@ namespace OsEngine.Entity
             }
             result.Append("@");
 
-            result.Append(Comment + "@");
+            result.Append(CommentEscape(Comment) + "@");
 
             result.Append(TimeDone.ToString(CultureInfo) + "@");
 
@@ -621,7 +621,7 @@ namespace OsEngine.Entity
             _volumeExecuteChange = true;
             _middlePriceChange = true;
 
-            Comment = saveArray[18];
+            Comment = CommentUnescape(saveArray[18]);
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
 
             if (saveArray.Length > 21)
@@ -662,6 +662,43 @@ namespace OsEngine.Entity
             {
                 ChildOrderNumberMarket = saveArray[25];
             }
+        }
+
+        /// <summary>
+        /// Comment carries arbitrary broker text. The saved line is nested in delimiters of
+        /// three levels ('@' fields, '#' and '^' in the position line) and stored line-based,
+        /// so these characters and CR/LF are escaped reversibly. '%' escapes itself first.
+        /// </summary>
+        private static string CommentEscape(string comment)
+        {
+            if (comment == null)
+            {
+                return "";
+            }
+
+            return comment
+                .Replace("%", "%25")
+                .Replace("@", "%40")
+                .Replace("#", "%23")
+                .Replace("^", "%5E")
+                .Replace("\r", "%0D")
+                .Replace("\n", "%0A");
+        }
+
+        private static string CommentUnescape(string comment)
+        {
+            if (string.IsNullOrEmpty(comment))
+            {
+                return comment;
+            }
+
+            return comment
+                .Replace("%0D", "\r")
+                .Replace("%0A", "\n")
+                .Replace("%40", "@")
+                .Replace("%23", "#")
+                .Replace("%5E", "^")
+                .Replace("%25", "%");
         }
     }
 
