@@ -840,14 +840,23 @@ namespace OsEngine.OsTrader.Panels
 
         private void _mdRepaintTimer_Tick(object sender, EventArgs e)
         {
-            if (IsMarketDepthAreaVisible() == false)
+            try
             {
-                return;
-            }
+                if (IsMarketDepthAreaVisible() == false)
+                {
+                    return;
+                }
 
-            foreach (KeyValuePair<AMarketDepth, MarketDepthIndicatorChart> pair in _mdIndicatorCharts)
+                foreach (KeyValuePair<AMarketDepth, MarketDepthIndicatorChart> pair in _mdIndicatorCharts)
+                {
+                    pair.Value.PaintIndicator(pair.Key);
+                }
+            }
+            catch (Exception error)
             {
-                pair.Value.PaintIndicator(pair.Key);
+                // Тик не должен ронять OsTrader: гонка данных закрыта SeriesLock, здесь —
+                // защита от teardown (стоп панели между тиками).
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
