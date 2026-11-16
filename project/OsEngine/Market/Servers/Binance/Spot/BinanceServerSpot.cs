@@ -1909,29 +1909,43 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         {
                             string mes = messsage.MessageStr;
 
-                            if (mes.Contains("\"id\":\"1"))
+                            switch (ClassifyUserDataFrame(mes))
                             {
-                                SubscribeToTheUserDataStream(mes);
-                            }
-                            else if (mes.Contains("code"))
-                            {
-                                SendLogMessage($"ConverterUserData Error. {FormatWsApiError(mes)}", LogMessageType.Error);
-                            }
-                            else if (mes.Contains("\"e\"" + ":" + "\"executionReport\""))
-                            {
-                                UpdateOrderAndMyTrade(mes);
-                            }
-                            else if (mes.Contains("\"e\"" + ":" + "\"outboundAccountPosition\""))
-                            {
-                                var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
-
-                                if (messsage.ExchangeType == BinanceExchangeType.SpotExchange)
+                                case BinanceUserDataFrame.LogonResponse:
                                 {
-                                    UpdatePortfolio(portfolios, BinanceExchangeType.SpotExchange);
+                                    SubscribeToTheUserDataStream(mes);
+                                    break;
                                 }
-                                if (messsage.ExchangeType == BinanceExchangeType.MarginExchange)
+                                case BinanceUserDataFrame.Error:
                                 {
-                                    UpdatePortfolio(portfolios, BinanceExchangeType.MarginExchange);
+                                    SendLogMessage($"ConverterUserData Error. {FormatWsApiError(mes)}", LogMessageType.Error);
+                                    break;
+                                }
+                                case BinanceUserDataFrame.ExecutionReport:
+                                {
+                                    UpdateOrderAndMyTrade(mes);
+                                    break;
+                                }
+                                case BinanceUserDataFrame.OutboundAccountPosition:
+                                {
+                                    var portfolios = JsonConvert.DeserializeAnonymousType(mes, new OutboundAccountInfo());
+
+                                    if (messsage.ExchangeType == BinanceExchangeType.SpotExchange)
+                                    {
+                                        UpdatePortfolio(portfolios, BinanceExchangeType.SpotExchange);
+                                    }
+                                    if (messsage.ExchangeType == BinanceExchangeType.MarginExchange)
+                                    {
+                                        UpdatePortfolio(portfolios, BinanceExchangeType.MarginExchange);
+                                    }
+                                    break;
+                                }
+                                default:
+                                {
+                                    // BUG-0422: unknown frames (subscribe ack id=2/3, control pings) drop
+                                    // silently, as before: routing them to Error would log 12-24 false
+                                    // errors per hour of normal re-logon life (review-20261115-018 p.6)
+                                    break;
                                 }
                             }
                         }
@@ -1943,6 +1957,45 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        internal enum BinanceUserDataFrame
+        {
+            LogonResponse,
+            Error,
+            ExecutionReport,
+            OutboundAccountPosition,
+            Unknown
+        }
+
+        // BUG-0422: user-data frames are routed by key position, not by bare substring:
+        // a "code" inside a value (clientOrderId) used to hijack good frames into the error
+        // branch. In valid JSON quotes inside values are escaped, so a "\"key\":" literal
+        // matches only at real key position. Test seam: internal, called via reflection.
+        internal static BinanceUserDataFrame ClassifyUserDataFrame(string mes)
+        {
+            if (mes == null)
+            {
+                return BinanceUserDataFrame.Unknown;
+            }
+
+            if (mes.Contains("\"id\":\"1\""))
+            {
+                return BinanceUserDataFrame.LogonResponse;
+            }
+            if (mes.Contains("\"code\":"))
+            {
+                return BinanceUserDataFrame.Error;
+            }
+            if (mes.Contains("\"e\":\"executionReport\""))
+            {
+                return BinanceUserDataFrame.ExecutionReport;
+            }
+            if (mes.Contains("\"e\":\"outboundAccountPosition\""))
+            {
+                return BinanceUserDataFrame.OutboundAccountPosition;
+            }
+            return BinanceUserDataFrame.Unknown;
         }
 
         private void SubscribeToTheUserDataStream(string messsage)

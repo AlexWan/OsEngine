@@ -2229,7 +2229,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         {
                             string mes = messsage.MessageStr;
 
-                            if (mes.Contains("code"))
+                            if (mes.Contains("\"code\":")) // BUG-0422: key position, not bare substring ("c" may contain "code")
                             {
                                 // если есть code ошибки, то пытаемся распарсить
                                 ErrorMessage _err = new ErrorMessage();
