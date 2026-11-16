@@ -53,6 +53,7 @@
 | Аллокация капитала / кластеризация ботов (HRP) | `CONTEXT_CAPITAL_ALLOCATION.md` |
 | Темы / цвета / оформление | `CONTEXT_THEMES.md` |
 | Удалённые серверы (VPS/VDS) | `CONTEXT_VPS_VDS.md` |
+| Экранирование в носителях сериализации | `CONTEXT_ESCAPING.md` |
 | Промпты | `CONTEXT_PROMPTS_ROBOTS.md`, `CONTEXT_PROMPTS_INDICATORS.md` |
 
 ## Ключевые файлы
