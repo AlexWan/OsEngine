@@ -63,7 +63,12 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
             }
             else
             {
-                SendLogMessage($"Connect server error: {response.StatusCode}", LogMessageType.Error);
+                // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе только «Connect server error: 0»
+                string err = response.ErrorException == null
+                    ? response.ErrorMessage
+                    : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                SendLogMessage($"Connect server error: {response.StatusCode}. Error: {err}", LogMessageType.Error);
             }
         }
 
@@ -508,7 +513,11 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
                 }
                 else
                 {
-                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Error response: {response.StatusCode}-{response.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                     return null;
                 }
             }
