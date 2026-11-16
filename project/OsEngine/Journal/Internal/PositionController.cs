@@ -1037,6 +1037,9 @@ namespace OsEngine.Journal.Internal
 
         private bool _needToSaveStopLimit;
 
+        // Load failure of an existing journal: empty in-memory list then must not truncate the file
+        private bool _stopLimitsLoadFailed;
+
         private void TrySaveStopLimits()
         {
             if (_startProgram == StartProgram.IsOsOptimizer
@@ -1051,6 +1054,12 @@ namespace OsEngine.Journal.Internal
             }
 
             _needToSaveStopLimit = false;
+
+            // Journal failed to load - overwriting it would destroy the only copy of the data (bug-0455)
+            if (_stopLimitsLoadFailed)
+            {
+                return;
+            }
 
             try
             {
@@ -1088,6 +1097,8 @@ namespace OsEngine.Journal.Internal
 
         public List<PositionOpenerToStopLimit> LoadStopLimits()
         {
+            _stopLimitsLoadFailed = false;
+
             try
             {
                 if (_startProgram != StartProgram.IsOsTrader)
@@ -1143,8 +1154,11 @@ namespace OsEngine.Journal.Internal
                 }
 
                 if (stopLimits.Count == 0 && orders.Count > 0)
-                { // All records are damaged: null means "load failed" and is not mistaken for an
-                  // empty journal. The damaged content is preserved in the Error log above
+                { // All records are damaged (blank lines never parse and count as damaged): null
+                  // means "load failed" and is not mistaken for an empty journal. The damaged
+                  // content is preserved in the Error log above
+                    _stopLimitsLoadFailed = true;
+                    SendNewLogMessage("StopLimits journal " + _name + ": file exists but is not readable (" + orders.Count + " line(s), 0 records loaded). Saving is suppressed until the file is repaired or deleted and the bot is restarted.", LogMessageType.Error);
                     return null;
                 }
 
@@ -1152,7 +1166,8 @@ namespace OsEngine.Journal.Internal
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                _stopLimitsLoadFailed = true;
+                SendNewLogMessage(error.ToString() + " StopLimits journal " + _name + ": file exists but is not readable. Saving is suppressed until the file is repaired or deleted and the bot is restarted.", LogMessageType.Error);
             }
 
             return null;
