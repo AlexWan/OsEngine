@@ -2228,6 +2228,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         if (_queuePrivateMessages.TryDequeue(out messsage))
                         {
                             string mes = messsage.MessageStr;
+                            // BUG-0448: null/пустая рамка — не данные. Тихий пропуск, по образцу guard в Spot (ClassifyUserDataFrame)
+                            if (string.IsNullOrEmpty(mes)) { continue; }
 
                             if (mes.Contains("code"))
                             {
