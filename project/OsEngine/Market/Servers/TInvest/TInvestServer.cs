@@ -68,7 +68,7 @@ namespace OsEngine.Market.Servers.TInvest
             ServerParameterBool fullLog = CreateParameterBoolean(OsLocalization.Market.FullLogConnector, false);
             fullLog.Comment = OsLocalization.Market.FullLogConnectorDescription;
 
-            ServerParameterEnum depthParam = CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "10", "20", "50" });
+            ServerParameterEnum depthParam = CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "10", "20", "50", "100" });
             depthParam.Comment = OsLocalization.Market.SetDepthLevelsDescription;
         }
 
