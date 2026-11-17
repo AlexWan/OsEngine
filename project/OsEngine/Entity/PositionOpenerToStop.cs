@@ -111,8 +111,8 @@ namespace OsEngine.Entity
         {
             string saveStr = "";
 
-            saveStr += Security + "&";
-            saveStr += TabName + "&";
+            saveStr += EscapeField(Security) + "&";
+            saveStr += EscapeField(TabName) + "&";
             saveStr += Number + "&";
             saveStr += LifeTimeType + "&";
             saveStr += PriceOrder + "&";
@@ -123,7 +123,7 @@ namespace OsEngine.Entity
             saveStr += _expiresBars + "&";
             saveStr += _orderCreateBarNumber + "&";
             saveStr += LastCandleTime.ToString(CultureInfo) + "&";
-            saveStr += SignalType + "&";
+            saveStr += EscapeField(SignalType) + "&";
             saveStr += TimeCreate.ToString(CultureInfo) + "&";
             saveStr += OrderPriceType +"&";
             saveStr += PositionNumber + "&";
@@ -137,8 +137,8 @@ namespace OsEngine.Entity
         {
             string[] savStr = str.Split('&');
 
-            Security = savStr[0];
-            TabName = savStr[1];
+            Security = UnescapeField(savStr[0]);
+            TabName = UnescapeField(savStr[1]);
             Number = Convert.ToInt32(savStr[2]);
             Enum.TryParse(savStr[3], out LifeTimeType);
             PriceOrder = savStr[4].ToDecimal();
@@ -149,7 +149,7 @@ namespace OsEngine.Entity
             _expiresBars = Convert.ToInt32(savStr[9]);
             _orderCreateBarNumber = Convert.ToInt32(savStr[10]);
             LastCandleTime = Convert.ToDateTime(savStr[11], CultureInfo);
-            SignalType = savStr[12];
+            SignalType = UnescapeField(savStr[12]);
             TimeCreate = Convert.ToDateTime(savStr[13], CultureInfo);
 
             try
@@ -180,6 +180,29 @@ namespace OsEngine.Entity
         }
 
         private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
+
+        // The journal is line-based ('&'-joined fields, records split by reader.ReadLine), so
+        // '&', CR and LF must never be written raw. Escaping is reversible: Security, TabName and
+        // SignalType are load-bearing after load. Order is load-bearing too: '%' escaped first on
+        // save, '%25' decoded last on load, otherwise sequences produced by the escaping itself
+        // would be decoded a second time.
+        private static string EscapeField(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+            return value.Replace("%", "%25").Replace("&", "%26").Replace("\r", "%0D").Replace("\n", "%0A");
+        }
+
+        private static string UnescapeField(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+            return value.Replace("%0A", "\n").Replace("%0D", "\r").Replace("%26", "&").Replace("%25", "%");
+        }
     }
 
     /// <summary>

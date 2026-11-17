@@ -1126,9 +1126,26 @@ namespace OsEngine.Journal.Internal
                         continue;
                     }
 
-                    PositionOpenerToStopLimit stop = new PositionOpenerToStopLimit();
-                    stop.LoadFromString(str);
-                    stopLimits.Add(stop);
+                    try
+                    {
+                        PositionOpenerToStopLimit stop = new PositionOpenerToStopLimit();
+                        stop.LoadFromString(str);
+                        stopLimits.Add(stop);
+                    }
+                    catch (Exception error)
+                    { // One damaged record must not cost the whole journal: BotTabSimple keeps the
+                      // empty result and the next TrySaveStopLimits overwrites the file with an empty list
+                        string damagedText = str.Length > 300 ? str.Substring(0, 300) + "..." : str;
+                        SendNewLogMessage("StopLimits journal " + _name + ": record on line " + (i + 1)
+                            + " skipped. Damaged record: " + damagedText + ". " + error.GetType().Name,
+                            LogMessageType.Error);
+                    }
+                }
+
+                if (stopLimits.Count == 0 && orders.Count > 0)
+                { // All records are damaged: null means "load failed" and is not mistaken for an
+                  // empty journal. The damaged content is preserved in the Error log above
+                    return null;
                 }
 
                 return stopLimits;
