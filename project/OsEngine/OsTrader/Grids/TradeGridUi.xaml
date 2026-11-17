@@ -295,6 +295,7 @@
                     <Label Name="LabelWaitSecondsOnStartConnector" Content="Wait seconds on start connector" HorizontalAlignment="Left" Margin="9,235,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxWaitSecondsOnStartConnector" Margin="220,235,16,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <CheckBox Name="CheckBoxReduceOrdersCountInMarketOnNoFundsError" Content="Reduce orders count on low deposit errors" HorizontalAlignment="Left" Margin="10,276,0,0" VerticalAlignment="Top" Width="312"/>
+                    <CheckBox Name="CheckBoxRestoreCloseOrdersCountOnFundsRecovery" Content="Restore close orders count on funds recovery" HorizontalAlignment="Left" Margin="10,302,0,0" VerticalAlignment="Top" Width="312"/>
                     <Button Name="ButtonError"  Margin="293,0,12,10" VerticalAlignment="Bottom" Height="36" Click="ButtonError_Click">
                         <Grid>
                             <Image Name="PostGreenError" Source="/Images/InstructionPosts/GreenPost.png"  Width="31" Height="25" />

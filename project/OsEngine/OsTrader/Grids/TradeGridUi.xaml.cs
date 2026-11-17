@@ -402,6 +402,10 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxReduceOrdersCountInMarketOnNoFundsError.Checked += CheckBoxReduceOrdersCountInMarketOnNoFundsError_Checked;
             CheckBoxReduceOrdersCountInMarketOnNoFundsError.Unchecked += CheckBoxReduceOrdersCountInMarketOnNoFundsError_Checked;
 
+            CheckBoxRestoreCloseOrdersCountOnFundsRecovery.IsChecked = tradeGrid.ErrorsReaction.RestoreCloseOrdersCountInMarketOnFundsRecovery;
+            CheckBoxRestoreCloseOrdersCountOnFundsRecovery.Checked += CheckBoxRestoreCloseOrdersCountOnFundsRecovery_Checked;
+            CheckBoxRestoreCloseOrdersCountOnFundsRecovery.Unchecked += CheckBoxRestoreCloseOrdersCountOnFundsRecovery_Checked;
+
             // trailing up / down
 
             CheckBoxTrailingUpIsOn.IsChecked = tradeGrid.TrailingUp.TrailingUpIsOn;
@@ -684,6 +688,7 @@ namespace OsEngine.OsTrader.Grids
             LabelWaitSecondsOnStartConnector.Content = OsLocalization.Trader.Label583;
 
             CheckBoxReduceOrdersCountInMarketOnNoFundsError.Content = OsLocalization.Trader.Label671;
+            CheckBoxRestoreCloseOrdersCountOnFundsRecovery.Content = OsLocalization.Trader.Label784;
 
             // trailing up
 
@@ -1083,6 +1088,25 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.ErrorsReaction.ReduceOrdersCountInMarketOnNoFundsError = CheckBoxReduceOrdersCountInMarketOnNoFundsError.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxRestoreCloseOrdersCountOnFundsRecovery_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.ErrorsReaction.RestoreCloseOrdersCountInMarketOnFundsRecovery = CheckBoxRestoreCloseOrdersCountOnFundsRecovery.IsChecked.Value;
+
+                if (CheckBoxRestoreCloseOrdersCountOnFundsRecovery.IsChecked == false)
+                {
+                    TradeGrid.ErrorsReaction.CancelCloseOrdersRecovery();
+                }
+
                 TradeGrid.Save();
             }
             catch
