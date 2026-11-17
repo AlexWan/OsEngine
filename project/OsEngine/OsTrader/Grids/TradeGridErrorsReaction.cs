@@ -76,9 +76,10 @@ namespace OsEngine.OsTrader.Grids
 
             result += TradeGridNoFundsRecovery.ToSaveSegments(recovery); // 9–10: target@backoff@
 
+            result += RestoreCloseOrdersCountInMarketOnFundsRecovery + "@"; // 11: kill-switch восстановления
+
             result += "@";
-            result += "@";
-            result += "@"; // три пустых поля в резерв
+            result += "@"; // два пустых поля в резерв
 
             return result;
         }
@@ -107,6 +108,15 @@ namespace OsEngine.OsTrader.Grids
                     WaitOnStartConnectorIsOn = true;
                     WaitSecondsOnStartConnector = 30;
                     ReduceOrdersCountInMarketOnNoFundsError = true;
+                }
+
+                try
+                {
+                    RestoreCloseOrdersCountInMarketOnFundsRecovery = Convert.ToBoolean(values[11]);
+                }
+                catch
+                {
+                    RestoreCloseOrdersCountInMarketOnFundsRecovery = true;
                 }
 
                 try
@@ -307,6 +317,10 @@ namespace OsEngine.OsTrader.Grids
                         int targetBeforeReduce = _myGrid.MaxCloseOrdersInMarket;
 
                         _myGrid.MaxCloseOrdersInMarket--;
+
+                        // состояние вооружаем до Save — одно сохранение на обе половины перехода
+                        string recoveryMessage = TryHandleCloseOrdersNoFunds(targetBeforeReduce);
+
                         _myGrid.Save();
                         _myGrid.RePaintGrid();
                         string message = "ERROR on close order. No money on deposit \n";
@@ -314,7 +328,10 @@ namespace OsEngine.OsTrader.Grids
                         message += "New value close orders in market: " + _myGrid.MaxCloseOrdersInMarket;
                         SendNewLogMessage(message, LogMessageType.Error);
 
-                        TryHandleCloseOrdersNoFunds(targetBeforeReduce);
+                        if (recoveryMessage != null)
+                        {
+                            SendNewLogMessage(recoveryMessage, LogMessageType.System);
+                        }
                     }
                 }
             }
@@ -331,16 +348,15 @@ namespace OsEngine.OsTrader.Grids
         // состояние восстановления MaxCloseOrdersInMarket после NoFunds-отказа:
         // вооружается при снижении, шагает +1 через выдержку, откатывается при
         // новом NoFunds. Поле читается/пишется с потока табы (события Fail)
-        // и с потока сетки (TryProcessCloseOrdersRecovery) — только под лоером
+        // и с потока сетки (TryProcessCloseOrdersRecovery) — только под _recoveryLocker
         private TradeGridNoFundsRecovery.State _recovery = TradeGridNoFundsRecovery.NotArmed();
 
         private readonly object _recoveryLocker = new object();
 
-        private void TryHandleCloseOrdersNoFunds(int targetBeforeReduce)
+        // Меняет только состояние восстановления; сохранение и лог — на вызывающем
+        // (close-ветка TryFindNoFundsError и так делает Save сразу после снижения)
+        private string TryHandleCloseOrdersNoFunds(int targetBeforeReduce)
         {
-            bool needToSave = false;
-            string logMessage = null;
-
             lock (_recoveryLocker)
             {
                 if (RestoreCloseOrdersCountInMarketOnFundsRecovery == false)
@@ -348,39 +364,30 @@ namespace OsEngine.OsTrader.Grids
                     if (_recovery.Target > 0)
                     {
                         _recovery = TradeGridNoFundsRecovery.Cancel(_recovery);
-                        needToSave = true;
                     }
+
+                    return null;
                 }
-                else if (_recovery.Target > 0)
+
+                if (_recovery.Target > 0)
                 {
                     _recovery = TradeGridNoFundsRecovery.OnNoFunds(
                         _recovery, _myGrid.MaxCloseOrdersInMarket, DateTime.Now);
-                    needToSave = true;
-                    logMessage = "NoFunds recovery: step rolled back. Target close orders in market: "
+
+                    return "NoFunds recovery: step rolled back. Target close orders in market: "
                         + _recovery.Target + ". Next retry in " + _recovery.BackoffSeconds + " s";
                 }
-                else
+
+                _recovery = TradeGridNoFundsRecovery.Arm(
+                    targetBeforeReduce, _myGrid.MaxCloseOrdersInMarket, DateTime.Now);
+
+                if (_recovery.Target > 0)
                 {
-                    _recovery = TradeGridNoFundsRecovery.Arm(
-                        targetBeforeReduce, _myGrid.MaxCloseOrdersInMarket, DateTime.Now);
-
-                    if (_recovery.Target > 0)
-                    {
-                        needToSave = true;
-                        logMessage = "NoFunds recovery armed. Target close orders in market: "
-                            + _recovery.Target + ". First retry in " + _recovery.BackoffSeconds + " s";
-                    }
+                    return "NoFunds recovery armed. Target close orders in market: "
+                        + _recovery.Target + ". First retry in " + _recovery.BackoffSeconds + " s";
                 }
-            }
 
-            if (needToSave == true)
-            {
-                _myGrid.Save();
-            }
-
-            if (logMessage != null)
-            {
-                SendNewLogMessage(logMessage, LogMessageType.System);
+                return null;
             }
         }
 

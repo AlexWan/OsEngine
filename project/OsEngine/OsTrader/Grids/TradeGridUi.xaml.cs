@@ -1109,9 +1109,9 @@ namespace OsEngine.OsTrader.Grids
 
                 TradeGrid.Save();
             }
-            catch
+            catch (Exception error)
             {
-                // ignore
+                TradeGrid.ErrorsReaction.SendNewLogMessage(error.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
 
