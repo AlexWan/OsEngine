@@ -316,7 +316,7 @@ namespace OsEngine.MCP.Modules
                 }
             }
 
-            BotPanel bot = BotFactory.GetStrategyForName(className, "", StartProgram.IsTester, resolvedScript);
+            BotPanel bot = GetBotOnUiThread(className, resolvedScript);
 
             if (bot == null)
             {
@@ -345,7 +345,7 @@ namespace OsEngine.MCP.Modules
 
         private BotDescription BuildBotDescription(string className, bool isScript)
         {
-            BotPanel bot = BotFactory.GetStrategyForName(className, "", StartProgram.IsTester, isScript);
+            BotPanel bot = GetBotOnUiThread(className, isScript);
             if (bot == null)
             {
                 throw new InvalidOperationException($"Could not instantiate robot '{className}'");
@@ -366,6 +366,18 @@ namespace OsEngine.MCP.Modules
             {
                 bot.Delete();
             }
+        }
+
+        private BotPanel GetBotOnUiThread(string className, bool isScript)
+        {
+            // Ctor-graph of a bot with GUI builds WindowsFormsHost (STA-only), but MCP requests
+            // run on MTA pool workers: marshal construction to the UI thread (same as BUG-0362).
+            if (MainWindow.GetDispatcher.CheckAccess())
+            {
+                return BotFactory.GetStrategyForName(className, "", StartProgram.IsTester, isScript);
+            }
+            return MainWindow.GetDispatcher.Invoke(() =>
+                BotFactory.GetStrategyForName(className, "", StartProgram.IsTester, isScript));
         }
 
         private List<string> GetSourcesFromBot(BotPanel bot)
