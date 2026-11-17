@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using OsEngine.Market;
 using OsEngine.Market.Servers.Tester;
 
@@ -505,16 +506,10 @@ namespace OsEngine.Entity
             result.Append(State + "@");
             result.Append(TypeOrder + "@");
             result.Append(TimeCallBack.ToString(CultureInfo) + "@");
-            result.Append(SecurityNameCode.Replace('@', '%') + "@");
+            result.Append(EscapeField(SecurityNameCode) + "@");
 
-            if (PortfolioNumber != null)
-            {
-                result.Append(PortfolioNumber.Replace('@', '%') + "@");
-            }
-            else
-            {
-                result.Append("" + "@");
-            }
+            // null-safe through EscapeField — the old explicit null branch is not needed anymore
+            result.Append(EscapeField(PortfolioNumber) + "@");
 
             result.Append(TimeCreate.ToString(CultureInfo) + "@");
             result.Append(TimeCancel.ToString(CultureInfo) + "@");
@@ -542,7 +537,7 @@ namespace OsEngine.Entity
             }
             result.Append("@");
 
-            result.Append(CommentEscape(Comment) + "@");
+            result.Append(EscapeField(Comment) + "@");
 
             result.Append(TimeDone.ToString(CultureInfo) + "@");
 
@@ -589,8 +584,8 @@ namespace OsEngine.Entity
             Enum.TryParse(saveArray[9], true, out TypeOrder);
             TimeCallBack = Convert.ToDateTime(saveArray[10], CultureInfo);
 
-            SecurityNameCode = saveArray[11].Replace('%', '@');
-            PortfolioNumber = saveArray[12].Replace('%', '@');
+            SecurityNameCode = UnescapeFieldLegacy(saveArray[11]);
+            PortfolioNumber = UnescapeFieldLegacy(saveArray[12]);
 
             TimeCreate = Convert.ToDateTime(saveArray[13], CultureInfo);
             TimeCancel = Convert.ToDateTime(saveArray[14], CultureInfo);
@@ -621,7 +616,7 @@ namespace OsEngine.Entity
             _volumeExecuteChange = true;
             _middlePriceChange = true;
 
-            Comment = CommentUnescape(saveArray[18]);
+            Comment = UnescapeField(saveArray[18]);
             TimeDone = Convert.ToDateTime(saveArray[19], CultureInfo);
 
             if (saveArray.Length > 21)
@@ -665,18 +660,19 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Comment carries arbitrary broker text. The saved line is nested in delimiters of
-        /// three levels ('@' fields, '#' and '^' in the position line) and stored line-based,
-        /// so these characters and CR/LF are escaped reversibly. '%' escapes itself first.
+        /// Broker text fields (Comment, SecurityNameCode, PortfolioNumber) are escaped reversibly.
+        /// The saved line is nested in delimiters of three levels ('@' fields, '#' and '^' in the
+        /// position line) and stored line-based, so these characters and CR/LF are escaped.
+        /// '%' escapes itself first.
         /// </summary>
-        private static string CommentEscape(string comment)
+        private static string EscapeField(string value)
         {
-            if (comment == null)
+            if (value == null)
             {
                 return "";
             }
 
-            return comment
+            return value
                 .Replace("%", "%25")
                 .Replace("@", "%40")
                 .Replace("#", "%23")
@@ -685,20 +681,40 @@ namespace OsEngine.Entity
                 .Replace("\n", "%0A");
         }
 
-        private static string CommentUnescape(string comment)
+        private static string UnescapeField(string value)
         {
-            if (string.IsNullOrEmpty(comment))
+            if (string.IsNullOrEmpty(value))
             {
-                return comment;
+                return value;
             }
 
-            return comment
+            return value
                 .Replace("%0D", "\r")
                 .Replace("%0A", "\n")
                 .Replace("%40", "@")
                 .Replace("%23", "#")
                 .Replace("%5E", "^")
                 .Replace("%25", "%");
+        }
+
+        // '%' not starting a canon escape sequence — the record of '@' in old journals
+        // written by the legacy @↔% hack (BUG-0457)
+        private static readonly Regex LegacyBarePercent =
+            new Regex("%(?!(?:25|40|23|5E|0D|0A))");
+
+        /// <summary>
+        /// Unescaping of SecurityNameCode/PortfolioNumber with back-compat for old journals: a bare
+        /// '%' that does not start an EscapeField sequence is read as '@' (legacy-hack records,
+        /// BUG-0457). A literal '%' inside an old record stays indistinguishable and reads as '@' —
+        /// same as the old loader, state is not worsened. New saves carry no bare '%'.
+        /// </summary>
+        private static string UnescapeFieldLegacy(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            return UnescapeField(LegacyBarePercent.Replace(value, "@"));
         }
     }
 

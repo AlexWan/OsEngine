@@ -3,8 +3,8 @@
 > Политика: что и как экранировать в носителях построчной сериализации. Читать перед правкой
 > `GetStringForSave` / `GetStringFofSave` / `GetSaveString` / `Set*FromString` и перед созданием
 > нового построчного формата.
-> Проверено по commit e33e66d9 и веткам `fix/bug-0446`, `fix/bug-0450`, `fix/bug-0453`
-> (PR 2153, 2154, 2155), дата проверки: 2026-11-16.
+> Проверено по commit e33e66d9 и веткам `fix/bug-0446`, `fix/bug-0450`, `fix/bug-0453`,
+> `fix/bug-0457` (PR 2153, 2154, 2155), дата проверки: 2026-11-17.
 
 ## 1. Назначение и область
 
@@ -39,19 +39,26 @@
 |---|---|---|---|---|---|---|---|
 | Журнал стоп-лимитов `Engine\<bot>DealControllerStopLimits.txt` (PositionController.cs:226, :1060) | `PositionOpenerToStopLimit` — PositionOpenerToStop.cs, GetSaveString :110, LoadFromString :136 | запись = CR/LF; поля = `&` | `% & CR LF` — `&` свои поля; CR/LF граница записи; `%` знак экранирования. Вложенности нет, поэтому набор минимален | `EscapeField` / `UnescapeField` (fix/bug-0453, PR 2155) — поля Security (:114), TabName (:115), SignalType (:126) | нет | защищён в PR 2155 (master — без эскейпа) | 2026-11-16 |
 | Журнал позиций `Engine\<bot>DealController.txt` (PositionController.cs:125, :372) | `Position` — Position.cs, GetStringForSave :1372, SetDealFromString :1505 | запись = CR/LF; поля = `#` (:1507); блоки = `^` (коммент-блок :1414, OpenOrders :1398, стоп :1439, профит :1449, лоты :1457); внутри строк ордеров = `@`, затем `*` | хвост SecurityName: `% # CR LF` — `%` знак экранирования (§2.2: при save `%` первым, при load `%25` последним); `#` разделитель полей носителя; CR/LF граница записи. Поля коммент-блока — деструктивный стрип (§5) | `EscapeSecurityName` / `UnescapeSecurityName` (fix/bug-0458; save :1498, load-скан bool-пары :1653) | стрип: Comment :1411, SignalTypeStop :1418, SignalTypeProfit :1428, SignalTypeOpen :1468, SignalTypeClose :1475; в легаси-записи с сырым `#` в имени сдвиг границы пары требует БИТЫХ или пустых флагов записи: скан идёт от `len-3` вниз до 22, слоты правее найденной пары не читает, при целых флагах истинная пара находится на ней — легаси-имя восстанавливается ЦЕЛИКОМ даже с двумя смежными сегментами `True/False/true/false` внутри (U-1a/U-1c, fix/bug-0458); литерные `%23/%0D/%0A/%25` в именах легаси ложно раскодировываются (§4.1 класс) | частично защищён: SecurityName экранирован с fix/bug-0458, стрип-семейство — BUG-0452 (§5) | 2026-11-17 |
-| Поле `Comment` строки Order (вложена в журнал позиций) | `Order` — Order.cs, GetStringForSave :486 (поле сырым в master :545), SetOrderFromString :574 (загрузка :624) | запись = CR/LF; `#` и `^` — журнал позиций; `@` — свои поля Order | `% @ # ^ CR LF` — `@` свой разделитель полей Order; `#` и `^` — Order-строка вложена в журнал позиций; CR/LF граница записи; `%` знак экранирования; `*` не нужен — Comment не попадает в сегмент сделок | `CommentEscape` / `CommentUnescape` (fix/bug-0446, PR 2153) | нет | экранирован в PR 2153 (master — сырое поле; на уровне позиции #/^ по-прежнему стрипутся — §5) | 2026-11-16 |
-| Поля `SecurityNameCode` / `PortfolioNumber` строки Order | тот же Order.cs:486/:574 | те же: CR/LF → `#` → `^` → `@` | легаси односторонний `@`→`%` (save :508/:512, load :592/:593), обратимого набора нет | нет — односторонний `Replace` | §4.2 | легаси, lossy (литерный `%` декодируется как `@`) | 2026-11-16 |
-| Сегмент сделок MyTrade (вложен в строку Order через `+ "*"`, Order.cs:540) | `MyTrade` — MyTrade.cs, GetStringFofSave :66, SetTradeFromString :85 | запись = CR/LF; `#` и `^` — журнал позиций; `@` — поля Order; `*` — сегмент сделок (Order.cs:540); `&` — свои поля MyTrade | `% @ # ^ * & CR LF` — `&` свои поля; `*` вложение в `*`-сегмент сделок (Order.cs:540, GetStringFofSave() + "*"); `@` поля Order; `#`/`^` журнал позиций; CR/LF граница записи; `%` знак экранирования | `EscapingId` / `UnescapingId` (fix/bug-0450, PR 2154) — поля NumberOrderParent, NumberTrade, NumberPosition | SecurityNameCode §4.1 | id-поля экранированы в PR 2154; SecurityNameCode — легаси | 2026-11-16 |
+| Поле `Comment` строки Order (вложена в журнал позиций) | `Order` — Order.cs, GetStringForSave :486 (поле сырым в master :545), SetOrderFromString :574 (загрузка :624) | запись = CR/LF; `#` и `^` — журнал позиций; `@` — свои поля Order | `% @ # ^ CR LF` — `@` свой разделитель полей Order; `#` и `^` — Order-строка вложена в журнал позиций; CR/LF граница записи; `%` знак экранирования; `*` не нужен — Comment не попадает в сегмент сделок | `EscapeField` / `UnescapeField` (fix/bug-0446, PR 2153; переименованы в fix/bug-0457 с `CommentEscape`/`CommentUnescape`) | нет | экранирован в PR 2153 (master — сырое поле; на уровне позиции #/^ по-прежнему стрипутся — §5) | 2026-11-17 |
+| Поля `SecurityNameCode` / `PortfolioNumber` строки Order | тот же Order.cs:486/:574 | те же: CR/LF → `#` → `^` → `@` | `% @ # ^ CR LF` — тот же набор, что у `Comment`: Broker-текст, вложен в те же уровни | `EscapeField` / `UnescapeField` + legacy-fallback `UnescapeFieldLegacy` (fix/bug-0457) | §4.2 (только чтение старых журналов) | экранирован в fix/bug-0457 (master — легаси-хак `@`→`%`, lossy) | 2026-11-17 |
+| Сегмент сделок MyTrade (вложен в строку Order через `+ "*"`, Order.cs:540) | `MyTrade` — MyTrade.cs, GetStringFofSave :66, SetTradeFromString :85 | запись = CR/LF; `#` и `^` — журнал позиций; `@` — поля Order; `*` — сегмент сделок (Order.cs:540); `&` — свои поля MyTrade | `% @ # ^ * & CR LF` — `&` свои поля; `*` вложение в `*`-сегмент сделок (Order.cs:540, GetStringFofSave() + "*"); `@` поля Order; `#`/`^` журнал позиций; CR/LF граница записи; `%` знак экранирования | `EscapingId` / `UnescapingId` (fix/bug-0450, PR 2154) — поля NumberOrderParent, NumberTrade, NumberPosition, SecurityNameCode (save); SecurityNameCode load — `UnescapingIdLegacy` (fix/bug-0457) | §4.1 (только чтение старых журналов) | id-поля экранированы в PR 2154; SecurityNameCode экранирован в fix/bug-0457 (master — легаси-хак) | 2026-11-17 |
 | Конфиги и настройки: ServerParameter `^` (ServerParameter.cs:82, :137, :192, :247, :302, :371, :436, :473); боты/раскладка `#` (BotTabIndex.cs:635, BotTabScreener.cs:538, GlobalGUILayout.cs:427); сетки `^` (TradeGridCreator.cs:319); отчёты оптимизатора `$`+`#` (OptimizerReport.cs:230); CopyTrader.cs (`^` :2201) | владельцы форматов — по файлам в скобках | записи построчные; значения разделены `^` или `#` | нет — значения движка внутренние идентификаторы, пользовательского/брокерского текста нет | нет | нет | вне политики; при появлении пользовательского текста — мигрировать по канону §2 | 2026-11-16 |
 | MCP-транспорт | JSON-сериализатор (System.Text.Json) | JSON | не применяется — экранирует сериализатор | JSON-сериализатор | нет | вне политики | 2026-11-16 |
 
-## 4. Легаси-исключения (четыре, явно)
+## 4. Легаси-исключения (четыре, два исчерпаны)
 
-1. **MyTrade `SecurityNameCode`**: save `Replace("@","%")` (MyTrade.cs:76), load
-   `Replace('%','@')` (MyTrade.cs:95). Асимметрично и lossy: литерный `%` в значении декодируется
-   как `@` (ложное декодирование); сам `%` не экранируется.
-2. **Order `SecurityNameCode` / `PortfolioNumber`**: save `Replace('@','%')` (Order.cs:508, :512),
-   load `Replace('%','@')` (Order.cs:592, :593). Тот же ложный разворот литерного `%` в `@`.
+1. **MyTrade `SecurityNameCode`** — исчерпано (fix/bug-0457). Было: save `Replace("@","%")`
+   (MyTrade.cs:76), load `Replace('%','@')` (MyTrade.cs:95) — lossy. Стало: save — `EscapingId`
+   (канон §2, голый `%` в файл не пишется); load — `UnescapingIdLegacy`: голый `%`, не начинающий
+   последовательность канона (`%25/%40/%23/%5E/%2A/%26/%0D/%0A`), читается как `@` — старые журналы
+   легаси-хака остаются читаемыми. Литерный `%` в старой записи неотличим от экранированного `@`
+   и читается как `@`, как читался раньше (наследственность не ухудшается). Коллизионный класс
+   принят (как в PR 2154): старое значение, начинающееся с последовательности канона, декодируется
+   как последовательность.
+2. **Order `SecurityNameCode` / `PortfolioNumber`** — исчерпано (fix/bug-0457). Было: save
+   `Replace('@','%')` (Order.cs:508, :512), load `Replace('%','@')` (Order.cs:592, :593). Стало:
+   save — `EscapeField` (канон §2); load — `UnescapeFieldLegacy` (fallback по набору
+   `%25/%40/%23/%5E/%0D/%0A`), наследственность и коллизионный класс — как в §4.1.
 3. **Стрип коммент-блока журнала позиций**:
    `RemoveExcessFromSecurityName().Replace("#","").Replace("^","")` применяется к Comment
    (Position.cs:1411), SignalTypeStop (:1418), SignalTypeProfit (:1428), SignalTypeOpen (:1468),
@@ -69,7 +76,7 @@ BUG-0458; легаси-записи с сырым `#` читаются скан�
 коммент-блока защищены идентично и деструктивно (lossy). Семейство стрипа заведено тикетом BUG-0452:
 
 - `Comment` (Position.cs:1411) — BUG-0452; fix/bug-0446 (PR 2153) добавил только замену CR/LF на
-  пробел; `#` и `^` по-прежнему вырезаются деструктивно. Обратимый `CommentEscape` покрывает поле
+  пробел; `#` и `^` по-прежнему вырезаются деструктивно. Обратимый `EscapeField` покрывает поле
   Comment внутри строки Order, а не коммент-блок записи позиции.
 - `SignalTypeStop` (Position.cs:1418), `SignalTypeProfit` (Position.cs:1428) — BUG-0452; стрип
   идентичен Comment, значения теряются.
@@ -78,10 +85,11 @@ BUG-0458; легаси-записи с сырым `#` читаются скан�
 
 Прочие разрывы:
 
-- BUG-0457 — `MyTrade.SecurityNameCode` остался легаси-хаком `@`→`%` после PR 2154 (§4.1):
-  брокерский текст с `%` будет ложно развёрнут в `@`.
+- BUG-0457 — закрыт (fix/bug-0457): `MyTrade.SecurityNameCode` и `SecurityNameCode` /
+  `PortfolioNumber` строки Order экранированы по канону §2; чтение старых журналов —
+  legacy-fallback §4.1/§4.2.
 
-Разрывы заведены тикетами (BUG-0452, BUG-0457); этот документ их фиксирует и не чинит.
+Разрывы заведены тикетами (BUG-0452, BUG-0457 — закрыт); этот документ их фиксирует и не чинит.
 BUG-0458 (сырой `SecurityName` в хвосте) исправлен в PR ветки `fix/bug-0458` и из списка снят.
 
 ## 6. Процедура поддержки
