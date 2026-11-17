@@ -756,6 +756,11 @@ namespace OsEngine.Market.Servers.BinanceData
 
                 response = GetStreamS3(baseS3Url, s3Url);
 
+                if (response == null)
+                {
+                    return null;
+                }
+
                 serializer = new XmlSerializer(typeof(ListBucketResult));
 
                 listBucket = (ListBucketResult)serializer.Deserialize(response);
@@ -777,6 +782,11 @@ namespace OsEngine.Market.Servers.BinanceData
                         string additionalListUrl = s3Url + "&marker=" + markerUrl;
 
                         response = GetStreamS3(baseS3Url, additionalListUrl);
+
+                        if (response == null)
+                        {
+                            return null;
+                        }
 
                         serializer = new XmlSerializer(typeof(ListBucketResult));
 
