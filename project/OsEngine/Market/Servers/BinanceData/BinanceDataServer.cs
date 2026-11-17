@@ -144,6 +144,11 @@ namespace OsEngine.Market.Servers.BinanceData
             {
                 string response = GetStringRequest("https://api.binance.com", "/api/v3/exchangeInfo");
 
+                if (string.IsNullOrEmpty(response))
+                {
+                    return;
+                }
+
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
                 if (securityInfo.symbols != null && securityInfo.symbols.Count > 0)
@@ -177,6 +182,11 @@ namespace OsEngine.Market.Servers.BinanceData
             {
                 string response = GetStringRequest("https://fapi.binance.com", "/fapi/v1/exchangeInfo");
 
+                if (string.IsNullOrEmpty(response))
+                {
+                    return;
+                }
+
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
                 if (securityInfo.symbols != null && securityInfo.symbols.Count > 0)
@@ -209,6 +219,11 @@ namespace OsEngine.Market.Servers.BinanceData
             try
             {
                 string response = GetStringRequest("https://dapi.binance.com", "/dapi/v1/exchangeInfo");
+
+                if (string.IsNullOrEmpty(response))
+                {
+                    return;
+                }
 
                 BinanceSecurityResponse securityInfo = JsonConvert.DeserializeAnonymousType(response, new BinanceSecurityResponse());
 
