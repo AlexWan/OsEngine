@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         {
             if (_client == null)
             {
-                _client = new NinjaTraderClient(((ServerParameterInt)ServerParameters[1]).Value.ToString(), ((ServerParameterString)ServerParameters[0]).Value);
+                _client = new NinjaTraderClient(((ServerParameterString)ServerParameters[0]).Value, ((ServerParameterInt)ServerParameters[1]).Value.ToString());
                 _client.Connected += ClientOnConnected;
                 _client.UpdateSecuritiesEvent += ClientOnUpdateSecuritiesEvent;
                 _client.Disconnected += ClientOnDisconnected;
