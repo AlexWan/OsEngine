@@ -2954,5 +2954,9 @@ namespace OsEngine.Language
         public string Label783 => OsLocalization.ConvertToLocString(
            "Eng:Stop by price down_" +
            "Ru:По достижении цены вниз_");
+
+        public string Label784 => OsLocalization.ConvertToLocString(
+           "Eng:Restore close orders count on funds recovery_" +
+           "Ru:Восстанавливать закрытия при возврате средств_");
     }
 }

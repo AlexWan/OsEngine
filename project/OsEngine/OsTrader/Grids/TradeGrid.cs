@@ -972,6 +972,8 @@ namespace OsEngine.OsTrader.Grids
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
+                ErrorsReaction.TryProcessCloseOrdersRecovery(DateTime.Now);
+
                 TradeGridRegime reaction = ErrorsReaction.GetReactionOnErrors(this);
 
                 if (reaction != TradeGridRegime.On)
