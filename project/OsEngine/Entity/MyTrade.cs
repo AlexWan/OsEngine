@@ -69,12 +69,12 @@ namespace OsEngine.Entity
 
             result += Volume.ToString(CultureInfo) + "&";
             result += Price.ToString(CultureInfo) + "&";
-            result += NumberOrderParent.ToString(CultureInfo) + "&";
+            result += EscapingId(NumberOrderParent) + "&";
             result += Time.ToString(CultureInfo) + "&";
-            result += NumberTrade.ToString(CultureInfo) + "&";
+            result += EscapingId(NumberTrade) + "&";
             result += Side + "&";
             result += SecurityNameCode.Replace("@","%") + "&";
-            result += NumberPosition + "&";
+            result += EscapingId(NumberPosition) + "&";
 
             return result;
         }
@@ -88,12 +88,54 @@ namespace OsEngine.Entity
 
             Volume = arraySave[0].ToDecimal();
             Price = arraySave[1].ToDecimal();
-            NumberOrderParent = arraySave[2];
+            NumberOrderParent = UnescapingId(arraySave[2]);
             Time = Convert.ToDateTime(arraySave[3], CultureInfo);
-            NumberTrade = arraySave[4];
+            NumberTrade = UnescapingId(arraySave[4]);
             Enum.TryParse(arraySave[5], out Side);
             SecurityNameCode = arraySave[6].Replace('%', '@');
-            NumberPosition = arraySave[7];
+            NumberPosition = UnescapingId(arraySave[7]);
+        }
+
+        /// <summary>
+        /// Escaping of the identifier for saving to a line. Reversible with UnescapingId
+        /// </summary>
+        private static string EscapingId(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+            // percent first so that own sequences are not re-escaped
+            return value
+                .Replace("%", "%25")
+                .Replace("@", "%40")
+                .Replace("#", "%23")
+                .Replace("^", "%5E")
+                .Replace("*", "%2A")
+                .Replace("&", "%26")
+                .Replace("\r", "%0D")
+                .Replace("\n", "%0A");
+        }
+
+        /// <summary>
+        /// Reverse unescaping of the identifier after EscapingId
+        /// </summary>
+        private static string UnescapingId(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return "";
+            }
+            // reverse order, percent last so that own "%25" decodes only after all others
+            return value
+                .Replace("%0A", "\n")
+                .Replace("%0D", "\r")
+                .Replace("%26", "&")
+                .Replace("%2A", "*")
+                .Replace("%5E", "^")
+                .Replace("%23", "#")
+                .Replace("%40", "@")
+                .Replace("%25", "%");
         }
 
         /// <summary>
