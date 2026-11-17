@@ -249,6 +249,7 @@ namespace OsEngine.Entity
 
         /// <summary>
         /// merge two candlestick data arrays
+        /// Может вернуть новый список; результат обязателен к присваиванию
         /// </summary>
         public static List<Candle> Merge(this List<Candle> oldCandles, List<Candle> candlesToMerge)
         {
@@ -289,9 +290,8 @@ namespace OsEngine.Entity
                 candlesToMerge[candlesToMerge.Count - 1].TimeStart >= oldCandles[oldCandles.Count - 1].TimeStart)
             {
                 // начало массива в новых свечках раньше. Конец позже. Перезаписываем полностью 
-                oldCandles.Clear();
-                oldCandles.AddRange(candlesToMerge);
-                return oldCandles;
+                // новый список вместо Clear()+AddRange в живом: читатели не должны видеть полупустой список посреди Array.Clear
+                return new List<Candle>(candlesToMerge);
             }
 
             // смотрим более ранние свечи в новой серии
