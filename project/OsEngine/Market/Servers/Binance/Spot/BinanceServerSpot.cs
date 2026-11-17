@@ -1387,7 +1387,16 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             try
             {
-                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                // BUG-0445: timestamp подписи берётся из кэша серверного времени, как в REST-пути CreateQuery.
+                // Локальный UtcNow при скосе часов >= serverTime+1s отбрасывается до проверки подписи
+                // и логон не завершался никогда (docs web-socket-api.md: session.logon, General API Information).
+                // Замки синхронизации времени — под общим _queryHttpLocker (инвариант bug-0432).
+                string timestamp;
+                lock (_queryHttpLocker)
+                {
+                    timestamp = GetNonce();
+                }
+
                 string payload = $"apiKey={ApiKey}&timestamp={timestamp}";
                 string signature = SignEd25519(payload);
 
