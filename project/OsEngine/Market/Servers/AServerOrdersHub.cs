@@ -472,36 +472,63 @@ namespace OsEngine.Market.Servers
                     {
                         OrderToSave curOrdInBd = col[i];
 
-                        string orderInString = curOrdInBd.SaveString;
-
-                        if (string.IsNullOrEmpty(orderInString) == false)
+                        // one damaged record must not drop the rest of the journal
+                        try
                         {
-                            Order newOrder = new Order();
-                            newOrder.SetOrderFromString(orderInString);
+                            string orderInString = curOrdInBd.SaveString;
 
-                            if (newOrder.State == OrderStateType.Fail
-                                || newOrder.State == OrderStateType.Cancel
-                                || newOrder.State == OrderStateType.Done)
+                            if (string.IsNullOrEmpty(orderInString) == false)
                             {
+                                Order newOrder = new Order();
+                                newOrder.SetOrderFromString(orderInString);
+
+                                if (newOrder.State == OrderStateType.Fail
+                                    || newOrder.State == OrderStateType.Cancel
+                                    || newOrder.State == OrderStateType.Done)
+                                {
+                                    if (_fullLogIsOn)
+                                    {
+                                        SendLogMessage("Bad State order LOAD. Ignore. NumUser: " + newOrder.NumberUser
+                                            + " NumMarket: " + newOrder.NumberMarket
+                                            + " Status: " + newOrder.State, LogMessageType.System);
+                                    }
+                                    continue;
+                                }
+                                OrderToWatch orderToWatch = new OrderToWatch();
+                                orderToWatch.Order = newOrder;
+
+                                _ordersActive.Add(orderToWatch);
+
                                 if (_fullLogIsOn)
                                 {
-                                    SendLogMessage("Bad State order LOAD. Ignore. NumUser: " + newOrder.NumberUser
+                                    SendLogMessage("New alive order LOAD. NumUser: " + newOrder.NumberUser
                                         + " NumMarket: " + newOrder.NumberMarket
                                         + " Status: " + newOrder.State, LogMessageType.System);
                                 }
-                                continue;
                             }
-                            OrderToWatch orderToWatch = new OrderToWatch();
-                            orderToWatch.Order = newOrder;
-
-                            _ordersActive.Add(orderToWatch);
-
-                            if (_fullLogIsOn)
+                        }
+                        catch (Exception e)
+                        {
+                            string badData = "";
+                            int badNumUser = 0;
+                            if (curOrdInBd != null)
                             {
-                                SendLogMessage("New alive order LOAD. NumUser: " + newOrder.NumberUser
-                                    + " NumMarket: " + newOrder.NumberMarket
-                                    + " Status: " + newOrder.State, LogMessageType.System);
+                                badNumUser = curOrdInBd.NumberUser;
+                                badData = curOrdInBd.SaveString;
                             }
+                            if (badData == null)
+                            {
+                                badData = "";
+                            }
+                            else if (badData.Length > 200)
+                            {
+                                badData = badData.Substring(0, 200);
+                            }
+
+                            SendLogMessage("Bad order record in journal. Skip. Index: " + i
+                                + " NumUser: " + badNumUser
+                                + " Data: " + badData
+                                + " " + e.ToString(), LogMessageType.Error);
                         }
                     }
                 }
