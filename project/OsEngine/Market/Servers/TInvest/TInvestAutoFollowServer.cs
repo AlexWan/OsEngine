@@ -4079,7 +4079,8 @@ namespace OsEngine.Market.Servers.TInvest
         private int GetOrderBookDepth()
         {
             // глубина стакана по стандартному параметру «полный стакан».
-            // Т-Инвест допускает только 1/10/20/50
+            // набор допустимых глубин задают релизы T-Invest API, валидность проверяет сервер:
+            // при невалидной глубине подписка отклоняется с ошибкой статуса (DEPTH_IS_INVALID)
             IServerParameter param = ServerParameters.Find(p => p.Name == OsLocalization.Market.ServerParam10);
 
             if (param != null
