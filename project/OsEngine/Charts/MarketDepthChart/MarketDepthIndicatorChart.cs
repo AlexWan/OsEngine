@@ -141,18 +141,21 @@ namespace OsEngine.Charts.MarketDepthChart
 
             _indicator = indicator;
 
-            List<MarketDepthDataSeries> series = indicator.DataSeries;
+            // Писатель (Process/ProcessTrade, тред данных) мутирует Values/Times под SeriesLock.
+            // Снимаем консистентный снапшот и рисуем только по нему: живой список
+            // даёт ArgumentOutOfRangeException в GetX/GetToolTip при параллельной мутации.
+            List<MarketDepthDataSeries> series;
+
+            lock (indicator.SeriesLock)
+            {
+                series = TakeSeriesSnapshot(indicator.DataSeries);
+            }
 
             ChartArea area = FindAreaByNameSafe("Prime");
 
-            List<MarketDepthDataSeries> seriesToPaint = series;
+            AutoScaleAxes(area, series);
 
-            if (seriesToPaint != null)
-            {
-                AutoScaleAxes(area, seriesToPaint);
-            }
-
-            for (int i = 0; series != null && i < series.Count; i++)
+            for (int i = 0; i < series.Count; i++)
             {
                 if (series[i].IsPaint == false)
                 {
@@ -172,6 +175,35 @@ namespace OsEngine.Charts.MarketDepthChart
                     PaintPoint(series[i], series[i].YAxisType);
                 }
             }
+        }
+
+        private static List<MarketDepthDataSeries> TakeSeriesSnapshot(List<MarketDepthDataSeries> live)
+        {
+            List<MarketDepthDataSeries> snapshot = new List<MarketDepthDataSeries>();
+
+            if (live == null)
+            {
+                return snapshot;
+            }
+
+            for (int i = 0; i < live.Count; i++)
+            {
+                MarketDepthDataSeries src = live[i];
+
+                MarketDepthDataSeries clone = new MarketDepthDataSeries(src.Color, src.Name, src.ChartPaintType, src.IsPaint);
+
+                clone.NameSeries = src.NameSeries;
+                clone.CanReBuildHistoricalValues = src.CanReBuildHistoricalValues;
+                clone.YAxisType = src.YAxisType;
+                clone.LineWidth = src.LineWidth;
+                clone.ZeroIsGap = src.ZeroIsGap;
+                clone.Values = new List<decimal>(src.Values);
+                clone.Times = new List<DateTime>(src.Times);
+
+                snapshot.Add(clone);
+            }
+
+            return snapshot;
         }
 
         public void ClearIndicator(AMarketDepth indicator)
@@ -245,16 +277,28 @@ namespace OsEngine.Charts.MarketDepthChart
                 {
                     int index = hit.PointIndex;
 
-                    for (int i = 0; i < _indicator.DataSeries.Count; i++)
+                    AMarketDepth indicator = _indicator;
+
+                    List<MarketDepthDataSeries> dataSeriesList;
+
+                    lock (indicator.SeriesLock)
                     {
-                        MarketDepthDataSeries dataSeries = _indicator.DataSeries[i];
+                        dataSeriesList = indicator.DataSeries;
 
-                        if (dataSeries.IsPaint == false || index >= dataSeries.Values.Count)
+                        if (dataSeriesList != null)
                         {
-                            continue;
-                        }
+                            for (int i = 0; i < dataSeriesList.Count; i++)
+                            {
+                                MarketDepthDataSeries dataSeries = dataSeriesList[i];
 
-                        title += "   " + dataSeries.Name + ": " + dataSeries.Values[index].ToString("N" + GetLabelDecimals(dataSeries.YAxisType));
+                                if (dataSeries.IsPaint == false || index >= dataSeries.Values.Count)
+                                {
+                                    continue;
+                                }
+
+                                title += "   " + dataSeries.Name + ": " + dataSeries.Values[index].ToString("N" + GetLabelDecimals(dataSeries.YAxisType));
+                            }
+                        }
                     }
                 }
                 else

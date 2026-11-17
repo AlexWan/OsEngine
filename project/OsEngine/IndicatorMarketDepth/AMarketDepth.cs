@@ -57,11 +57,14 @@ namespace OsEngine.IndicatorMarketDepth
             _lastStoreTime = DateTime.MinValue;
             _lastTradeSecond = DateTime.MinValue;
 
-            if (DataSeries != null)
+            lock (SeriesLock)
             {
-                for (int i = 0; i < DataSeries.Count; i++)
+                if (DataSeries != null)
                 {
-                    DataSeries[i].Clear();
+                    for (int i = 0; i < DataSeries.Count; i++)
+                    {
+                        DataSeries[i].Clear();
+                    }
                 }
             }
         }
@@ -86,15 +89,21 @@ namespace OsEngine.IndicatorMarketDepth
                 Parameters = null;
             }
 
-            if (DataSeries != null)
+            // Значения серий рвёт только тред-писатель: CloseSettingsUi и параметры — вне SeriesLock,
+            // чтобы Dispatcher.Invoke закрытия окна не стал ждать UI, застрявший в PaintIndicator.
+            lock (SeriesLock)
             {
-                for (int i = 0; i < DataSeries.Count; i++)
+                if (DataSeries != null)
                 {
-                    DataSeries[i].Clear();
-                    DataSeries[i].Delete();
+                    for (int i = 0; i < DataSeries.Count; i++)
+                    {
+                        DataSeries[i].Clear();
+                        DataSeries[i].Delete();
+                    }
+
+                    DataSeries.Clear();
+                    DataSeries = null;
                 }
-                DataSeries.Clear();
-                DataSeries = null;
             }
         }
 
@@ -491,6 +500,7 @@ namespace OsEngine.IndicatorMarketDepth
 
         /// <summary>
         /// Записать значение в последний слот серии (после того как базовый класс добавил слот).
+        /// Вызывать только под SeriesLock: штатные вызовы идут из OnProcess/OnProcessTrade.
         /// </summary>
         protected void SetValue(MarketDepthDataSeries series, decimal value)
         {
@@ -505,6 +515,12 @@ namespace OsEngine.IndicatorMarketDepth
         #endregion
 
         #region Processing
+
+        /// <summary>
+        /// Единый замок Values/Times всех серий: пишет тред данных (Process/ProcessTrade),
+        /// читает график через снапшот (MarketDepthIndicatorChart.PaintIndicator).
+        /// </summary>
+        public readonly object SeriesLock = new object();
 
         private ParameterMarketDepthInt _historyDepth;
 
@@ -543,60 +559,12 @@ namespace OsEngine.IndicatorMarketDepth
             _lastStoreTime = depth.Time;
             _lastDepth = depth.GetCopy();
 
-            int depthLimit = _historyDepth.ValueInt;
-
-            if (depthLimit <= 0)
+            lock (SeriesLock)
             {
-                depthLimit = 60;
-            }
-
-            for (int i = 0; i < DataSeries.Count; i++)
-            {
-                MarketDepthDataSeries series = DataSeries[i];
-
-                if (series.Values.Count == 0)
+                if (DataSeries == null)
                 {
-                    series.Values.Add(0);
+                    return;
                 }
-                else
-                {
-                    series.Values.Add(series.Values[series.Values.Count - 1]);
-                }
-
-                series.Times.Add(depth.Time);
-
-                while (series.Values.Count > depthLimit)
-                {
-                    series.Values.RemoveAt(0);
-                }
-
-                while (series.Times.Count > depthLimit)
-                {
-                    series.Times.RemoveAt(0);
-                }
-            }
-
-            try
-            {
-                OnProcess(depth);
-            }
-            catch (Exception error)
-            {
-                RegisterError(error);
-            }
-        }
-
-        public void ProcessTrade(Trade trade)
-        {
-            if (trade == null)
-            {
-                return;
-            }
-
-            if (_lastTradeSecond == DateTime.MinValue
-                || trade.Time >= _lastTradeSecond.AddSeconds(1))
-            {
-                _lastTradeSecond = trade.Time;
 
                 int depthLimit = _historyDepth.ValueInt;
 
@@ -618,7 +586,7 @@ namespace OsEngine.IndicatorMarketDepth
                         series.Values.Add(series.Values[series.Values.Count - 1]);
                     }
 
-                    series.Times.Add(trade.Time);
+                    series.Times.Add(depth.Time);
 
                     while (series.Values.Count > depthLimit)
                     {
@@ -630,15 +598,79 @@ namespace OsEngine.IndicatorMarketDepth
                         series.Times.RemoveAt(0);
                     }
                 }
+
+                try
+                {
+                    OnProcess(depth);
+                }
+                catch (Exception error)
+                {
+                    RegisterError(error);
+                }
+            }
+        }
+
+        public void ProcessTrade(Trade trade)
+        {
+            if (trade == null)
+            {
+                return;
             }
 
-            try
+            lock (SeriesLock)
             {
-                OnProcessTrade(trade);
-            }
-            catch (Exception error)
-            {
-                RegisterError(error);
+                if (DataSeries == null)
+                {
+                    return;
+                }
+
+                if (_lastTradeSecond == DateTime.MinValue
+                    || trade.Time >= _lastTradeSecond.AddSeconds(1))
+                {
+                    _lastTradeSecond = trade.Time;
+
+                    int depthLimit = _historyDepth.ValueInt;
+
+                    if (depthLimit <= 0)
+                    {
+                        depthLimit = 60;
+                    }
+
+                    for (int i = 0; i < DataSeries.Count; i++)
+                    {
+                        MarketDepthDataSeries series = DataSeries[i];
+
+                        if (series.Values.Count == 0)
+                        {
+                            series.Values.Add(0);
+                        }
+                        else
+                        {
+                            series.Values.Add(series.Values[series.Values.Count - 1]);
+                        }
+
+                        series.Times.Add(trade.Time);
+
+                        while (series.Values.Count > depthLimit)
+                        {
+                            series.Values.RemoveAt(0);
+                        }
+
+                        while (series.Times.Count > depthLimit)
+                        {
+                            series.Times.RemoveAt(0);
+                        }
+                    }
+                }
+
+                try
+                {
+                    OnProcessTrade(trade);
+                }
+                catch (Exception error)
+                {
+                    RegisterError(error);
+                }
             }
         }
 
@@ -648,35 +680,43 @@ namespace OsEngine.IndicatorMarketDepth
 
         public void Recalculate()
         {
-            int depthLimit = _historyDepth.ValueInt;
-
-            if (depthLimit <= 0)
+            lock (SeriesLock)
             {
-                depthLimit = 60;
-            }
-
-            for (int i = 0; i < DataSeries.Count; i++)
-            {
-                while (DataSeries[i].Values.Count > depthLimit)
+                if (DataSeries == null)
                 {
-                    DataSeries[i].Values.RemoveAt(0);
+                    return;
                 }
 
-                while (DataSeries[i].Times.Count > depthLimit)
-                {
-                    DataSeries[i].Times.RemoveAt(0);
-                }
-            }
+                int depthLimit = _historyDepth.ValueInt;
 
-            if (_lastDepth != null && RecalculateByLastDepth)
-            {
-                try
+                if (depthLimit <= 0)
                 {
-                    OnProcess(_lastDepth);
+                    depthLimit = 60;
                 }
-                catch (Exception error)
+
+                for (int i = 0; i < DataSeries.Count; i++)
                 {
-                    RegisterError(error);
+                    while (DataSeries[i].Values.Count > depthLimit)
+                    {
+                        DataSeries[i].Values.RemoveAt(0);
+                    }
+
+                    while (DataSeries[i].Times.Count > depthLimit)
+                    {
+                        DataSeries[i].Times.RemoveAt(0);
+                    }
+                }
+
+                if (_lastDepth != null && RecalculateByLastDepth)
+                {
+                    try
+                    {
+                        OnProcess(_lastDepth);
+                    }
+                    catch (Exception error)
+                    {
+                        RegisterError(error);
+                    }
                 }
             }
 
