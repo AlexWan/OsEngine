@@ -2977,24 +2977,25 @@ namespace OsEngine.Market.Servers.Plaza
 
         public bool CancelOrder(Order order)
         {
+            // bug-0339: сон штрафа и ожидание слота — вне _publisherLocker (иначе снащий держит все пути заявок и heartbeat); порядок: сначала сон, слот — непосредственно перед локом.
+            lock (_penaltyRemainLock)
+            {
+                if (_penaltyRemain != 0)
+                {
+                    Thread.Sleep(_penaltyRemain);
+                    _penaltyRemain = 0;
+                }
+            }
+
+            _rateGate.WaitToProceed();
+
             lock (_publisherLocker)
             {
-                _rateGate.WaitToProceed();
-
                 try
                 {
                     if (_publisher == null)
                     {
                         return false;
-                    }
-
-                    if (_penaltyRemain != 0)
-                    {
-                        lock (_penaltyRemainLock)
-                        {
-                            Thread.Sleep(_penaltyRemain);
-                            _penaltyRemain = 0;
-                        }
                     }
 
                     Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "DelOrder");
@@ -3026,24 +3027,25 @@ namespace OsEngine.Market.Servers.Plaza
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
+            // bug-0339: сон штрафа и ожидание слота — вне _publisherLocker (конвой, см. CancelOrder)
+            lock (_penaltyRemainLock)
+            {
+                if (_penaltyRemain != 0)
+                {
+                    Thread.Sleep(_penaltyRemain);
+                    _penaltyRemain = 0;
+                }
+            }
+
+            _rateGate.WaitToProceed();
+
             lock (_publisherLocker)
             {
-                _rateGate.WaitToProceed();
-
                 try
                 {
                     if (_publisher == null)
                     {
                         return;
-                    }
-
-                    if (_penaltyRemain != 0)
-                    {
-                        lock (_penaltyRemainLock)
-                        {
-                            Thread.Sleep(_penaltyRemain);
-                            _penaltyRemain = 0;
-                        }
                     }
 
                     Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "MoveOrder");
@@ -3104,24 +3106,28 @@ namespace OsEngine.Market.Servers.Plaza
 
         public void SendOrder(Order order)
         {
+            // bug-0339: сон штрафа и ожидание слота — вне _publisherLocker, иначе сон держит все пути заявок и heartbeat (конвой).
+            // Порядок W-1: сначала сон штрафа, слот гейта — непосредственно перед локом, чтобы не сжигать слоты во время сна.
+            // Остаточный риск W-3: между слотом гейта и Post держится только _publisherLocker.
+            // При Post дольше окна гейта (33 мс @30/с) в одно окно может пройти два Post; ограничено длительностью Post и принято.
+            lock (_penaltyRemainLock)
+            {
+                if (_penaltyRemain != 0)
+                {
+                    Thread.Sleep(_penaltyRemain);
+                    _penaltyRemain = 0;
+                }
+            }
+
+            _rateGate.WaitToProceed();
+
             lock (_publisherLocker)
             {
-                _rateGate.WaitToProceed();
-
                 try
                 {
                     if (_publisher == null)
                     {
                         return;
-                    }
-
-                    if (_penaltyRemain != 0)
-                    {
-                        lock (_penaltyRemainLock)
-                        {
-                            Thread.Sleep(_penaltyRemain);
-                            _penaltyRemain = 0;
-                        }
                     }
 
                     Message sendMessage = _publisher.NewMessage(MessageKeyType.KeyName, "AddOrder");
