@@ -316,9 +316,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                             var message = Encoding.UTF8.GetString(receivedData);
 
                             if (EmitOnPing == true
-                                &&
-                                (message.Contains("ping")
-                                 || message.Contains("Ping")))
+                                && (message == "ping" || message == "Ping"))
                             {
                                 await Send("pong");
                             }
