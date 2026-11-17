@@ -1680,13 +1680,15 @@ namespace OsEngine.MCP
         // а Error уходит в SetNewErrorMessage -> окно ошибки + Beep.
         private bool TryWriteStreamable(HttpListenerResponse response, byte[] bytes, string session)
         {
-            // LongRunning здесь НЕ нужен: запись пофреймовая, это был бы отдельный поток на каждый кадр,
-            // а писателей здесь строго последовательно по одному и зависший гасится за StreamableSendTimeoutMs
-            Task write = Task.Run(() =>
+            // LongRunning здесь обязателен (BUG-0459): Task.Run на насыщении ThreadPool не стартует
+            // в StreamableSendTimeoutMs, и гард принимает это за зависшего клиента — убит оказывается
+            // здоровый подписчик. Dedicated-поток стартует запись немедленно; писатель здесь
+            // последовательный по одному, зависший гасится тем же потолком
+            Task write = Task.Factory.StartNew(() =>
             {
                 response.OutputStream.Write(bytes, 0, bytes.Length);
                 response.OutputStream.Flush();
-            });
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             Exception reason;
             try
@@ -1728,13 +1730,15 @@ namespace OsEngine.MCP
         // штатные catch путей сохраняют молчаливую семантику обрыва (урок BUG-0292: обрыв != Error).
         private bool TryWriteSse(HttpListenerResponse response, byte[] bytes)
         {
-            // LongRunning здесь НЕ нужен по той же причине, что в TryWriteStreamable: писатель
-            // на коннект один, а за StreamableSendTimeoutMs гасится ожидание вызывающего, не воркер
-            Task write = Task.Run(() =>
+            // LongRunning здесь обязателен (BUG-0459) — та же причина, что в TryWriteStreamable: на насыщении
+            // ThreadPool пул-запись не стартует в потолок, и fan-out SendEvent убивает здорового подписчика
+            // (эвиденс BUG-0459: kill@+12с при 512 блокерах). Гарантия 0330 сохранена: вызывающий ждёт тот же
+            // StreamableSendTimeoutMs и гасит зависшего kill-ом; фан-аут не блокируется на медленном дольше потолка
+            Task write = Task.Factory.StartNew(() =>
             {
                 response.OutputStream.Write(bytes, 0, bytes.Length);
                 response.OutputStream.Flush();
-            });
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             Exception reason;
             try
@@ -2256,14 +2260,15 @@ namespace OsEngine.MCP
         // отложенный досыл при открытии окна, воркер живёт до TCP/http.sys таймера.
         private bool TryWriteResponse(HttpListenerResponse response, byte[] bytes, string context)
         {
-            // LongRunning здесь НЕ нужен по той же причине, что в TryWriteStreamable: писатель один,
-            // а за StreamableSendTimeoutMs гасится ожидание вызывающего, не воркер: он освобождается
+            // LongRunning здесь обязателен (BUG-0459): на насыщении ThreadPool пул-запись не стартует
+            // в потолок, и живой клиент теряет ответ — тот же класс, что в TryWriteSse/TryWriteStreamable.
+            // Факты воркера (BUG-0329, стенд): Abort при незавершённом WriteFile — no-op, воркер освобождается
             // при досылке/RST, в worst case — TCP/http.sys таймером
-            Task write = Task.Run(() =>
+            Task write = Task.Factory.StartNew(() =>
             {
                 response.OutputStream.Write(bytes, 0, bytes.Length);
                 response.OutputStream.Close();
-            });
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             Exception reason;
             try
