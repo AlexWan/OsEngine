@@ -1618,6 +1618,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return;
             }
 
+            // BUG-0467: null/binary/пустая рамка — не данные. Тихий пропуск до Contains и enqueue
+            // (у обёртки binary-кадры приходят с Data=null); по образцу guard 0466/PR 2174
+            if (string.IsNullOrEmpty(e.Data)) { return; }
             if (e.Data.Contains("\"lastUpdateId\""))
             {
                 _newMessagePublicMarketDepth.Enqueue(e.Data);
