@@ -1495,7 +1495,7 @@ namespace OsEngine.Entity
 
             result.Append("#" + StopIsMarket);
             result.Append("#" + ProfitIsMarket);
-            result.Append("#" + SecurityName);
+            result.Append("#" + EscapeSecurityName(SecurityName));
 
             return result;
         }
@@ -1646,20 +1646,67 @@ namespace OsEngine.Entity
                 _closeOrders.Add(newOrder);
             }
 
-            if(arraySave[arraySave.Length - 3] == "True" 
-                || arraySave[arraySave.Length - 3] == "False"
-                || arraySave[arraySave.Length - 3] == "true"
-                || arraySave[arraySave.Length - 3] == "false")
+            // StopIsMarket/ProfitIsMarket is the last pair of bool literals before the tail. Legacy
+            // journals wrote SecurityName raw, so a literal '#' in the name (MOEX Class#Board)
+            // shifted the pair: scan down to the CloseOrders floor (index 22) and rejoin the tail.
+            // Escaped names (new format) match on the first iteration — behaviour unchanged.
+            int pairIndex = arraySave.Length - 3;
+            while (pairIndex > 21 && !(IsBoolLiteral(arraySave[pairIndex]) && IsBoolLiteral(arraySave[pairIndex + 1])))
             {
-                StopIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 3]);
-                ProfitIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 2]);
+                pairIndex--;
             }
 
-            SecurityName = arraySave[arraySave.Length - 1];
+            if (pairIndex > 21)
+            {
+                StopIsMarket = Convert.ToBoolean(arraySave[pairIndex]);
+                ProfitIsMarket = Convert.ToBoolean(arraySave[pairIndex + 1]);
+                SecurityName = UnescapeSecurityName(string.Join("#", arraySave, pairIndex + 2, arraySave.Length - pairIndex - 2));
+            }
+            else
+            {
+                // No bool pair anywhere (junk record): keep the pre-bug-0458 positional behaviour verbatim.
+                if(arraySave[arraySave.Length - 3] == "True" 
+                    || arraySave[arraySave.Length - 3] == "False"
+                    || arraySave[arraySave.Length - 3] == "true"
+                    || arraySave[arraySave.Length - 3] == "false")
+                {
+                    StopIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 3]);
+                    ProfitIsMarket = Convert.ToBoolean(arraySave[arraySave.Length - 2]);
+                }
+
+                SecurityName = arraySave[arraySave.Length - 1];
+            }
 
             PositionStateType state;
             Enum.TryParse(arraySave[1], true, out state);
             State = state;
+        }
+
+        // CONTEXT_ESCAPING.md §2.2/§2.3, reversible %XX escaping of the SecurityName tail.
+        // Set: '%' escape char (escaped first on save, '%25' decoded last on load), '#' journal
+        // field delimiter, CR/LF record boundary. Home pattern: PositionOpenerToStop.EscapeField (PR 2155).
+        private static string EscapeSecurityName(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+            return value.Replace("%", "%25").Replace("#", "%23").Replace("\r", "%0D").Replace("\n", "%0A");
+        }
+
+        private static string UnescapeSecurityName(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+            return value.Replace("%0A", "\n").Replace("%0D", "\r").Replace("%23", "#").Replace("%25", "%");
+        }
+
+        // Same literal set the positional reader used before bug-0458.
+        private static bool IsBoolLiteral(string value)
+        {
+            return value == "True" || value == "False" || value == "true" || value == "false";
         }
 
         public string PositionSpecification
