@@ -695,8 +695,8 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        // при повреждении базы активных ордеров (LiteDB) — отодвигаем файл в сторону,
-        // при следующем обращении LiteDatabase создаст чистую
+        // при повреждении базы активных ордеров (LiteDB) — отодвигаем файлы db и WAL в сторону,
+        // при следующем обращении LiteDatabase создаст чистую пару
         private void RecoverCorruptedOrdersDb(string dbPath)
         {
             try
@@ -707,11 +707,24 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                string corruptPath = dbPath + ".corrupt-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                string corruptSuffix = ".corrupt-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                string corruptPath = dbPath + corruptSuffix;
 
                 File.Move(dbPath, corruptPath);
 
                 SendLogMessage("Corrupted active orders DB moved to: " + corruptPath, LogMessageType.System);
+
+                string logPath = Path.Combine(Path.GetDirectoryName(dbPath),
+                    Path.GetFileNameWithoutExtension(dbPath) + "-log.db");
+
+                if (File.Exists(logPath))
+                {
+                    string corruptLogPath = logPath + corruptSuffix;
+
+                    File.Move(logPath, corruptLogPath);
+
+                    SendLogMessage("Corrupted active orders DB log moved to: " + corruptLogPath, LogMessageType.System);
+                }
             }
             catch (Exception e)
             {
