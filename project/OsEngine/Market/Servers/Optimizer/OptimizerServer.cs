@@ -1061,20 +1061,48 @@ namespace OsEngine.Market.Servers.Optimizer
                     slippage = _slippageToStopOrder;
                 }
 
-                decimal realPrice = order.Price;
+                decimal realPrice;
 
-                if (order.Side == Side.Buy)
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    if (minPrice > realPrice)
+                    // after activation StopMarket is a market order: house candle rule, fill at next bar Open
+                    if (order.TimeCreate >= lastCandle.TimeStart)
                     {
-                        realPrice = lastCandle.Open;
+                        return false;
                     }
+
+                    realPrice = lastCandle.Open;
                 }
-                if (order.Side == Side.Sell)
+                else
                 {
-                    if (maxPrice < realPrice)
+                    // StopLimit fills only on a bar touching the stop line, at the better of Open/line clamped into the bar
+                    if (order.Side == Side.Buy)
                     {
-                        realPrice = lastCandle.Open;
+                        if (lastCandle.Low > order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Min(lastCandle.Open, order.Price);
+
+                        if (realPrice < lastCandle.Low)
+                        {
+                            realPrice = lastCandle.Low;
+                        }
+                    }
+                    else
+                    {
+                        if (lastCandle.High < order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Max(lastCandle.Open, order.Price);
+
+                        if (realPrice > lastCandle.High)
+                        {
+                            realPrice = lastCandle.High;
+                        }
                     }
                 }
 
@@ -1280,11 +1308,39 @@ namespace OsEngine.Market.Servers.Optimizer
                     slippage = _slippageToStopOrder;
                 }
 
-                decimal realPrice = order.Price;
+                decimal realPrice;
 
-                if (isNewDay == true)
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
+                    // after activation StopMarket is a market order: same birth gate as the market branch of this method
+                    if (order.TimeCreate >= lastTrade.Time)
+                    {
+                        return false;
+                    }
+
                     realPrice = lastTrade.Price;
+                }
+                else
+                {
+                    // StopLimit fills only on a tick touching the stop line, at the better of tick/line
+                    if (order.Side == Side.Buy)
+                    {
+                        if (lastTrade.Price > order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Min(lastTrade.Price, order.Price);
+                    }
+                    else
+                    {
+                        if (lastTrade.Price < order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Max(lastTrade.Price, order.Price);
+                    }
                 }
 
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
@@ -1483,7 +1539,49 @@ namespace OsEngine.Market.Servers.Optimizer
                     slippage = _slippageToStopOrder;
                 }
 
-                decimal realPrice = order.Price;
+                decimal realPrice;
+
+                if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    // after activation StopMarket is a market order: same birth gate as the market branch of this method
+                    if (order.TimeCreate >= lastMarketDepth.Time)
+                    {
+                        return false;
+                    }
+
+                    // fill at the best opposite quote
+                    if (order.Side == Side.Buy)
+                    {
+                        realPrice = sellBestPrice;
+                    }
+                    else
+                    {
+                        realPrice = buyBestPrice;
+                    }
+                }
+                else
+                {
+                    // StopLimit fills only on a book crossing the stop line, at the better of quote/line
+                    if (order.Side == Side.Buy)
+                    {
+                        if (sellBestPrice > order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Min(sellBestPrice, order.Price);
+                    }
+                    else
+                    {
+                        if (buyBestPrice < order.Price)
+                        {
+                            return false;
+                        }
+
+                        realPrice = Math.Max(buyBestPrice, order.Price);
+                    }
+                }
+
                 ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
