@@ -282,6 +282,10 @@ namespace OsEngine.Market.Servers.Bybit
 
         public void Dispose()
         {
+            // на время разборки состояния seamless-реконнект запрещаем:
+            // watchdog не должен пересоздавать сокеты посреди Dispose
+            _reconnectAllowed = false;
+
             try
             {
                 DisposePublicWebSocket();
@@ -327,6 +331,11 @@ namespace OsEngine.Market.Servers.Bybit
             _orderBooksInverse.Clear();
             _orderBooksOption.Clear();
             _lastMessageTimeBySocket.Clear();
+
+            // бюджет seamless-попыток приватного сокета обнуляем вместе с остальным состоянием:
+            // после полного реконнекта канал снова должен иметь все 3 попытки
+            _privateReconnectAttempts = 0;
+            _lastPrivateReconnectTime = DateTime.MinValue;
 
             Disconnect();
         }
@@ -2230,9 +2239,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                 // приватный сокет первым: ордера и исполнения критичнее рыночных данных,
                 // а публичные seamless-реконнекты держат общий лок по несколько секунд
-                if (IsSocketDeadByTimeout(webSocketPrivate, timeNow, "private"))
+                if (IsSocketDeadByTimeout(webSocketPrivate, timeNow, "private")
+                    && TrySeamlessReconnectPrivate(webSocketPrivate) == false
+                    && _reconnectAllowed)
                 {
-                    TrySeamlessReconnectPrivate(webSocketPrivate);
+                    // тихая смерть сокета и попытки исчерпаны — эскалация в полный реконнект
+                    EscalateDeadSocketToFullReconnect();
+                    return;
                 }
 
                 CheckPublicPoolAlive(_webSocketPublicSpot, Category.spot, timeNow);
@@ -2250,11 +2263,30 @@ namespace OsEngine.Market.Servers.Bybit
         {
             for (int i = 0; i < pool.Count; i++)
             {
-                if (IsSocketDeadByTimeout(pool[i].Socket, timeNow, "public " + category + " " + i))
+                if (IsSocketDeadByTimeout(pool[i].Socket, timeNow, "public " + category + " " + i)
+                    && TrySeamlessReconnectPublic(pool[i].Socket) == false
+                    && _reconnectAllowed)
                 {
-                    TrySeamlessReconnectPublic(pool[i].Socket);
+                    // тихая смерть сокета и попытки исчерпаны — эскалация в полный реконнект
+                    EscalateDeadSocketToFullReconnect();
+                    return;
                 }
             }
+        }
+
+        private void EscalateDeadSocketToFullReconnect()
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+            message += OsLocalization.Market.Message102;
+
+            SendLogMessage(message, LogMessageType.Error);
+            ServerStatus = ServerConnectStatus.Disconnect;
+            DisconnectEvent();
         }
 
         private bool IsSocketDeadByTimeout(WebSocket socket, DateTime timeNow, string socketName)
@@ -2731,23 +2763,33 @@ namespace OsEngine.Market.Servers.Bybit
                     }
 
                     if (wrapperLinear != null
-                        && wrapperLinear.Socket?.ReadyState == WebSocketState.Open)
+                        && wrapperLinear.Socket != null)
                     {
                         string symbolName = security.Name.Replace(".P", "");
                         string tradeTopic = $"publicTrade.{symbolName}";
                         string depthTopic = $"orderbook.{marketDepthDeep}.{symbolName}";
 
-                        wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tradeTopic}\" ] }}");
-                        wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{depthTopic}\" ] }}");
-
+                        // топики фиксируем до отправки: если сокет умрёт в момент подписки,
+                        // seamless-реконнект восстановит подписки по этому списку
                         wrapperLinear.Subscriptions.Add(tradeTopic);
                         wrapperLinear.Subscriptions.Add(depthTopic);
+
+                        if (wrapperLinear.Socket?.ReadyState == WebSocketState.Open)
+                        {
+                            wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tradeTopic}\" ] }}");
+                            wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{depthTopic}\" ] }}");
+                        }
 
                         if (_extendedMarketData)
                         {
                             string tickerTopic = $"tickers.{symbolName}";
-                            wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tickerTopic}\" ] }}");
                             wrapperLinear.Subscriptions.Add(tickerTopic);
+
+                            if (wrapperLinear.Socket?.ReadyState == WebSocketState.Open)
+                            {
+                                wrapperLinear.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tickerTopic}\" ] }}");
+                            }
+
                             GetFundingData(symbolName);
                         }
                     }
@@ -2801,23 +2843,32 @@ namespace OsEngine.Market.Servers.Bybit
                     }
 
                     if (wrapperInverse != null
-                        && wrapperInverse.Socket?.ReadyState == WebSocketState.Open)
+                        && wrapperInverse.Socket != null)
                     {
                         string symbolName = security.Name.Replace(".I", "");
                         string tradeTopic = $"publicTrade.{symbolName}";
                         string depthTopic = $"orderbook.{marketDepthDeep}.{symbolName}";
 
-                        wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tradeTopic}\" ] }}");
-                        wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{depthTopic}\" ] }}");
-
+                        // топики фиксируем до отправки: если сокет умрёт в момент подписки,
+                        // seamless-реконнект восстановит подписки по этому списку
                         wrapperInverse.Subscriptions.Add(tradeTopic);
                         wrapperInverse.Subscriptions.Add(depthTopic);
+
+                        if (wrapperInverse.Socket?.ReadyState == WebSocketState.Open)
+                        {
+                            wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tradeTopic}\" ] }}");
+                            wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{depthTopic}\" ] }}");
+                        }
 
                         if (_extendedMarketData)
                         {
                             string tickerTopic = $"tickers.{symbolName}";
-                            wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tickerTopic}\" ] }}");
                             wrapperInverse.Subscriptions.Add(tickerTopic);
+
+                            if (wrapperInverse.Socket?.ReadyState == WebSocketState.Open)
+                            {
+                                wrapperInverse.Socket?.SendAsync($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"{tickerTopic}\" ] }}");
+                            }
                         }
                     }
                 }
