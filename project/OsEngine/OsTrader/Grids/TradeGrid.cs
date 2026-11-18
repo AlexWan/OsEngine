@@ -1998,16 +1998,48 @@ namespace OsEngine.OsTrader.Grids
 
             _openOrdersBlockWarnTime = DateTime.Now;
 
-            List<Candle> warnCandles = Tab.CandlesAll;
-            decimal warnLastPrice = warnCandles == null || warnCandles.Count == 0 ? 0 : warnCandles[warnCandles.Count - 1].Close;
+            decimal warnBid = 0;
+            decimal warnAsk = 0;
+            decimal warnLastPrice = 0;
+            int warnCandlesCount = 0;
+
+            // живой список свечей trim-ит поток сервера (AServer.cs RemoveRange), Tab может быть в teardown:
+            // читаем в локальные снапшоты под защитой — гонка не должна срывать return гейта (хвост тика после хелпера).
+            // текст тогда выйдет с нулями, но факт блока и причина обязаны дойти до лога.
+            try
+            {
+                warnBid = Tab.PriceBestBid;
+                warnAsk = Tab.PriceBestAsk;
+                List<Candle> warnCandles = Tab.CandlesAll;
+                warnCandlesCount = warnCandles == null ? 0 : warnCandles.Count;
+
+                if (warnCandlesCount > 0)
+                {
+                    warnLastPrice = warnCandles[warnCandlesCount - 1].Close;
+                }
+            }
+            catch (Exception)
+            {
+                warnBid = 0;
+                warnAsk = 0;
+                warnLastPrice = 0;
+            }
 
             string message = "Grid open orders gate blocked for "
                 + (int)(DateTime.Now - _openOrdersBlockedSince).TotalSeconds + "s. Gate: " + gateReason
-                + ". Bid: " + Tab.PriceBestBid + ", Ask: " + Tab.PriceBestAsk
-                + ", LastPrice: " + warnLastPrice + ", Candles: " + (warnCandles == null ? 0 : warnCandles.Count)
+                + ". Bid: " + warnBid + ", Ask: " + warnAsk
+                + ", LastPrice: " + warnLastPrice + ", Candles: " + warnCandlesCount
                 + ". Orders are not placed until market data arrives.";
 
-            SendNewLogMessage(message, LogMessageType.Warning);
+            try
+            {
+                SendNewLogMessage(message, LogMessageType.Warning);
+            }
+            catch (Exception)
+            {
+                // осознанно молчим: бросок подписчика лога не причина срывать хвост тика (TrySetStopAndProfit/TrySetLimitProfit).
+                // штамп warnTime выше уже выставлен: потеря варнинга = подавление на BlockWarnRepeatMinutes, не краш и не Error.
+            }
         }
 
         private void TrySetOpenOrders()
