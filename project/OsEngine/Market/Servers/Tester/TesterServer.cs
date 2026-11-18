@@ -1652,7 +1652,11 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.Side == Side.Sell)
             {
-                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < maxPrice)
+                // Price==0 is a placeholder, not a quote: before the first candle maxPrice/minPrice stay
+                // unpopulated (0 / decimal.MaxValue) and the Touch variants would execute at decimal.MaxValue
+                // via the clamp below; the caller fills the price whenever a candle exists, so wait for one
+                if (order.Price > 0
+                    && ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < maxPrice)
                     ||
                     (OrderExecutionType == OrderExecutionType.Touch && order.Price <= maxPrice)
                     ||
@@ -1663,7 +1667,7 @@ namespace OsEngine.Market.Servers.Tester
                     (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                      _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                      order.Price <= maxPrice)
-                    )
+                    ))
                 {
                     // execute / исполняем
                     decimal realPrice = order.Price;
