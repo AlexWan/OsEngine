@@ -1962,12 +1962,61 @@ namespace OsEngine.OsTrader.Grids
         // безномера приходят и как "" (null -> "" после round-trip журнала сетки), поэтому IsNullOrEmpty, а не != null
         private static bool CanCancel(Order o) => !string.IsNullOrEmpty(o.NumberMarket);
 
+        // bug-0493: гейты «нет рыночных данных» в TrySetOpenOrders молча останавливали сетку на неограниченное время.
+        // Только наблюдаемость: гейты по-прежнему делают return, варнинг после непрерывной блокировки
+        // BlockWarnAfterSeconds и не чаще раза в BlockWarnRepeatMinutes.
+        private DateTime _openOrdersBlockedSince = DateTime.MinValue;
+
+        private string _openOrdersBlockedGate = null;
+
+        private DateTime _openOrdersBlockWarnTime = DateTime.MinValue;
+
+        private const int BlockWarnAfterSeconds = 30;
+
+        private const int BlockWarnRepeatMinutes = 10;
+
+        private void WarnAboutOpenOrdersBlock(string gateReason)
+        {
+            if (_openOrdersBlockedGate != gateReason)
+            {
+                _openOrdersBlockedGate = gateReason;
+                _openOrdersBlockedSince = DateTime.Now;
+                _openOrdersBlockWarnTime = DateTime.MinValue;
+                return;
+            }
+
+            if ((DateTime.Now - _openOrdersBlockedSince).TotalSeconds < BlockWarnAfterSeconds)
+            {
+                return;
+            }
+
+            if (_openOrdersBlockWarnTime != DateTime.MinValue
+                && (DateTime.Now - _openOrdersBlockWarnTime).TotalMinutes < BlockWarnRepeatMinutes)
+            {
+                return;
+            }
+
+            _openOrdersBlockWarnTime = DateTime.Now;
+
+            List<Candle> warnCandles = Tab.CandlesAll;
+            decimal warnLastPrice = warnCandles == null || warnCandles.Count == 0 ? 0 : warnCandles[warnCandles.Count - 1].Close;
+
+            string message = "Grid open orders gate blocked for "
+                + (int)(DateTime.Now - _openOrdersBlockedSince).TotalSeconds + "s. Gate: " + gateReason
+                + ". Bid: " + Tab.PriceBestBid + ", Ask: " + Tab.PriceBestAsk
+                + ", LastPrice: " + warnLastPrice + ", Candles: " + (warnCandles == null ? 0 : warnCandles.Count)
+                + ". Orders are not placed until market data arrives.";
+
+            SendNewLogMessage(message, LogMessageType.Warning);
+        }
+
         private void TrySetOpenOrders()
         {
             List<Candle> candles = Tab.CandlesAll;
 
             if (candles == null || candles.Count == 0)
             {
+                WarnAboutOpenOrdersBlock("candles");
                 return;
             }
 
@@ -1975,14 +2024,19 @@ namespace OsEngine.OsTrader.Grids
 
             if (lastPrice == 0)
             {
+                WarnAboutOpenOrdersBlock("lastPrice");
                 return;
             }
 
             if (Tab.PriceBestAsk == 0
                 || Tab.PriceBestBid == 0)
             {
+                WarnAboutOpenOrdersBlock("bid_ask");
                 return;
             }
+
+            _openOrdersBlockedSince = DateTime.MinValue;
+            _openOrdersBlockedGate = null;
 
             List<TradeGridLine> linesAll = GridCreator.Lines;
 
