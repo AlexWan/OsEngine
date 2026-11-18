@@ -84,6 +84,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string s;
         public string[,] b;
         public string[,] a;
+        public string u;
     }
 
     public class ResponseOrder

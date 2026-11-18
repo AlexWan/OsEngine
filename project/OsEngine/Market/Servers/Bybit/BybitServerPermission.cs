@@ -291,10 +291,14 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     "api.bybit.com",
                     "api-demo.bybit.com",
-                    "api.bybit.nl",
-                    "api.byhkbit.com",
-                    "api.bybit-tr.com",
-                    "api.bybit.kz"
+                    "api.bybit.eu",
+                    "api.spark-fintech.com",
+                    "api.bybit.tr",
+                    "api.bybit.kz",
+                    "api.bybitgeorgia.ge",
+                    "api.bybit.ae",
+                    "api.bybit.id",
+                    "api.manepa.jp"
                 };
 
                 return pingIpDomens;
