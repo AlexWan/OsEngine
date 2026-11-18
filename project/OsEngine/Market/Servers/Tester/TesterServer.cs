@@ -1438,7 +1438,8 @@ namespace OsEngine.Market.Servers.Tester
                 { // test with using candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
 
-                    if (order.Price == 0)
+                    // no candle of this series arrived yet: leave price unfilled, execution takes it from the first candle
+                    if (order.Price == 0 && lastCandle != null)
                     {
                         order.Price = lastCandle.Open;
                     }
@@ -1507,6 +1508,12 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.IsStopOrProfit)
             {
+                if (lastCandle == null)
+                {
+                    // stop cannot trigger on a series without a single candle: silently wait for the first one
+                    return false;
+                }
+
                 int slippage = 0;
 
                 if (_slippageToStopOrder > 0)
@@ -1547,6 +1554,12 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.TypeOrder == OrderPriceType.Market)
             {
+                if (lastCandle == null)
+                {
+                    // market fills on its own next candle; with none delivered yet - silent wait, as below for the same candle
+                    return false;
+                }
+
                 if (order.TimeCreate >= lastCandle.TimeStart)
                 {
                     return false;
@@ -1639,7 +1652,11 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.Side == Side.Sell)
             {
-                if ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < maxPrice)
+                // Price==0 is a placeholder, not a quote: before the first candle maxPrice/minPrice stay
+                // unpopulated (0 / decimal.MaxValue) and the Touch variants would execute at decimal.MaxValue
+                // via the clamp below; the caller fills the price whenever a candle exists, so wait for one
+                if (order.Price > 0
+                    && ((OrderExecutionType == OrderExecutionType.Intersection && order.Price < maxPrice)
                     ||
                     (OrderExecutionType == OrderExecutionType.Touch && order.Price <= maxPrice)
                     ||
@@ -1650,7 +1667,7 @@ namespace OsEngine.Market.Servers.Tester
                     (OrderExecutionType == OrderExecutionType.FiftyFifty &&
                      _lastOrderExecutionTypeInFiftyFiftyType == OrderExecutionType.Touch &&
                      order.Price <= maxPrice)
-                    )
+                    ))
                 {
                     // execute / исполняем
                     decimal realPrice = order.Price;
