@@ -1000,7 +1000,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 { // running on candles / прогон на свечках
                     Candle lastCandle = security.LastCandle;
 
-                    if (order.Price == 0)
+                    // no candle of this series arrived yet: leave price unfilled, execution takes it from the first candle
+                    if (order.Price == 0 && lastCandle != null)
                     {
                         order.Price = lastCandle.Open;
                     }
@@ -1047,6 +1048,12 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (order.IsStopOrProfit)
             {
+                if (lastCandle == null)
+                {
+                    // stop cannot trigger on a series without a single candle: silently wait for the first one
+                    return false;
+                }
+
                 int slippage = 0;
 
                 if (_slippageToStopOrder > 0)
