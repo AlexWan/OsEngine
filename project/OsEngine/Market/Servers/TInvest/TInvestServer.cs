@@ -3339,7 +3339,7 @@ namespace OsEngine.Market.Servers.TInvest
                         OrderBookInstrument instrument = new OrderBookInstrument
                         {
                             InstrumentId = instrumentUid,
-                            Depth = 10,
+                            Depth = _orderBookDepth, // upstream moved original subscribe to the connector depth parameter - resubscribe must mirror it
                             OrderBookType = _filterOutDealerData ? OrderBookType.Exchange : OrderBookType.All
                         };
 
