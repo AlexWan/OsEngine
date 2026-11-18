@@ -622,8 +622,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             order.SecurityClassCode = sec.NameClass;
             order.PortfolioNumber = PortfolioName;
 
+            _myOrderNumbers.Add(order.NumberUser);
+
             return order;
         }
+
+        private HashSet<int> _myOrderNumbers = new HashSet<int>();
 
         List<Order> _ordersActive = new List<Order>();
         List<Order> _ordersCancel = new List<Order>();
@@ -650,6 +654,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void Server_NewOrderIncomeEvent(Order order)
         {
+            if (_myOrderNumbers.Contains(order.NumberUser) == false)
+            {
+                return;
+            }
+
             if (order.State == OrderStateType.None)
             {
                 this.SetNewError("Error 10. Order with state NONE");
