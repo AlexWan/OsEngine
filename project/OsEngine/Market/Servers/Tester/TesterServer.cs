@@ -1755,6 +1755,11 @@ namespace OsEngine.Market.Servers.Tester
 
             if (order.IsStopOrProfit)
             {
+                if (lastTrade == null)
+                {
+                    // stop cannot trigger on a series without a single tick: silently wait for the first one
+                    return false;
+                }
                 int slippage = 0;
                 if (_slippageToStopOrder > 0)
                 {
