@@ -1792,6 +1792,16 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 SecurityOptimizer security = GetMySecurity(order);
 
+                // BUG-0475: no data series for this stop. CheckOrders skips null security forever
+                // (:981), so the stop would stay a phantom Active on the board. Veto here: Fail is
+                // terminal for the bot, same rejection path as the ExecuteOrder preamble (:1705-:1752).
+                if (security == null)
+                {
+                    SendLogMessage("Stop order rejected. No test data series for security " + order.SecurityNameCode, LogMessageType.Error);
+                    OrdersActive.Remove(orderOnBoard);
+                    FailedOperationOrder(order);
+                    return;
+                }
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
                     if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
