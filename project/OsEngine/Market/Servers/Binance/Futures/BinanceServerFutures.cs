@@ -1782,6 +1782,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 return;
             }
+            // BUG-0466: null/binary/пустая рамка — не данные. Тихий пропуск до Contains и enqueue
+            // (у обёртки binary-кадры приходят с Data=null); по образцу guard 0448
+            if (string.IsNullOrEmpty(e.Data)) { return; }
             if (e.Data.Contains("\"depthUpdate\""))
             {
                 _queuePublicMessagesMarketDepths.Enqueue(e.Data);
