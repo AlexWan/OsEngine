@@ -17,6 +17,8 @@ namespace OsEngine
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            System.IO.Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
             // bug-20261012-005: страховка фазы старта. Первой строкой тела (C4): ниже может бросить,
             // ServerMaster-лог ещё не активирован, оконного состояния и Reboot нет — рутин самостоятельный
             Logging.StartupCrashGuard.Attach();

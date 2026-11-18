@@ -450,6 +450,8 @@ namespace OsEngine.Market.Servers
 
         private void LoadOrdersFromFile()
         {
+            string dbPath = "";
+
             try
             {
                 string dir = Directory.GetCurrentDirectory();
@@ -461,6 +463,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 dir += _server.ServerNameUnique + "_active_orders.db";
+                dbPath = dir;
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
@@ -534,6 +537,11 @@ namespace OsEngine.Market.Servers
                     }
                 }
             }
+            catch (LiteDB.LiteException liteEx)
+            {
+                SendLogMessage("Active orders DB corrupted. Recreating empty. " + liteEx.Message, LogMessageType.Error);
+                RecoverCorruptedOrdersDb(dbPath);
+            }
             catch (Exception e)
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
@@ -542,6 +550,8 @@ namespace OsEngine.Market.Servers
 
         private void SaveOrdersInFile()
         {
+            string dbPath = "";
+
             try
             {
                 string dir = Directory.GetCurrentDirectory();
@@ -553,6 +563,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 dir += _server.ServerNameUnique + "_active_orders.db";
+                dbPath = dir;
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
@@ -658,6 +669,18 @@ namespace OsEngine.Market.Servers
                     _lastSaveErrorMessageTime = DateTime.MinValue;
                 }
             }
+            catch (LiteDB.LiteException liteEx)
+            {
+                // throttled: вызывается из потока хаба каждый тик
+                if (_lastSaveErrorMessageTime == DateTime.MinValue
+                    || (DateTime.Now - _lastSaveErrorMessageTime).TotalSeconds >= 60)
+                {
+                    _lastSaveErrorMessageTime = DateTime.Now;
+                    SendLogMessage("Active orders DB corrupted. Recreating empty. " + liteEx.Message, LogMessageType.Error);
+                }
+
+                RecoverCorruptedOrdersDb(dbPath);
+            }
             catch (Exception e)
             {
                 _saveFailuresCount++;
@@ -669,6 +692,30 @@ namespace OsEngine.Market.Servers
                     _lastSaveErrorMessageTime = DateTime.Now;
                     SendLogMessage("SaveOrdersInFile error. Active orders are not saved. " + e, LogMessageType.Error);
                 }
+            }
+        }
+
+        // при повреждении базы активных ордеров (LiteDB) — отодвигаем файл в сторону,
+        // при следующем обращении LiteDatabase создаст чистую
+        private void RecoverCorruptedOrdersDb(string dbPath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(dbPath)
+                    || File.Exists(dbPath) == false)
+                {
+                    return;
+                }
+
+                string corruptPath = dbPath + ".corrupt-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+
+                File.Move(dbPath, corruptPath);
+
+                SendLogMessage("Corrupted active orders DB moved to: " + corruptPath, LogMessageType.System);
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
 
