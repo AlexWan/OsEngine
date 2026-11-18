@@ -1471,6 +1471,10 @@ namespace OsEngine.Market.Servers.Tester
                         {
                             security = GetMySecurity(order);
                             order.MySecurityInTester = security;
+                            if (security == null)
+                            {
+                                continue; // BUG-0476: re-lookup may return null (data-gate in GetMySecurity). Silent wait as the :1419 gate: cache is already wiped, next frame re-runs the initial lookup
+                            }
                         }
 
                         MarketDepth depth = security.LastMarketDepth;
