@@ -2284,6 +2284,16 @@ namespace OsEngine.Market.Servers.Tester
                     order.MySecurityInTester = security;
                 }
 
+                // BUG-0467: no data series for this stop — it could never be checked (CheckOrders skips
+                // null-security forever): veto here, or it stays a phantom Active on the board. Fail is
+                // terminal for the bot, same rejection path as the ExecuteOrder preamble (:2198-:2245).
+                if (security == null)
+                {
+                    SendLogMessage("Stop order rejected. No test data series for security " + order.SecurityNameCode, LogMessageType.Error);
+                    OrdersActive.Remove(orderOnBoard);
+                    FailedOperationOrder(order);
+                    return;
+                }
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
                     if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
