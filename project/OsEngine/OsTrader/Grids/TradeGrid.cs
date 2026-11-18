@@ -650,7 +650,8 @@ namespace OsEngine.OsTrader.Grids
                     TradeGridLine line = GridCreator.Lines[curNumber];
 
                     if (line.Position != null
-                        && line.Position.OpenActive)
+                        && line.Position.OpenActive
+                        && CanCancel(line.Position.OpenOrders[^1]))
                     {
                         Tab.CloseOrder(line.Position.OpenOrders[^1]);
                     }
@@ -1342,7 +1343,7 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.CloseOrders[^1];
 
-                if (order.NumberMarket != null
+                if (CanCancel(order)
                     && order.LastCancelTryLocalTime.AddSeconds(5) < DateTime.Now)
                 {
                     if (order.Price != line.Position.ProfitOrderPrice
@@ -1538,6 +1539,11 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < ordersToCancelBadPrice.Count; i++)
                 {
                     //Tab.SetNewLogMessage("Отзыв ордера по не правильной цене", LogMessageType.System);
+                    if (!CanCancel(ordersToCancelBadPrice[i]))
+                    {
+                        continue;
+                    }
+
                     Tab.CloseOrder(ordersToCancelBadPrice[i]);
                 }
 
@@ -1554,6 +1560,11 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < ordersToCancelBadLines.Count; i++)
                 {
                     //Tab.SetNewLogMessage("Отзыв ордера по количеству", LogMessageType.System);
+                    if (!CanCancel(ordersToCancelBadLines[i]))
+                    {
+                        continue;
+                    }
+
                     Tab.CloseOrder(ordersToCancelBadLines[i]);
                 }
 
@@ -1570,6 +1581,11 @@ namespace OsEngine.OsTrader.Grids
                 for (int i = 0; i < ordersToCancelOpenOrders.Count; i++)
                 {
                     //Tab.SetNewLogMessage("Отзыв ордера по дыре в сетке", LogMessageType.System);
+                    if (!CanCancel(ordersToCancelOpenOrders[i]))
+                    {
+                        continue;
+                    }
+
                     Tab.CloseOrder(ordersToCancelOpenOrders[i]);
                 }
 
@@ -1589,6 +1605,11 @@ namespace OsEngine.OsTrader.Grids
                 {
                     for (int i = 0; i < ordersToCancelCloseOrders.Count; i++)
                     {
+                        if (!CanCancel(ordersToCancelCloseOrders[i]))
+                        {
+                            continue;
+                        }
+
                         Tab.CloseOrder(ordersToCancelCloseOrders[i]);
                     }
 
@@ -1803,7 +1824,7 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.OpenOrders[^1];
 
-                if (order.NumberMarket != null)
+                if (CanCancel(order))
                 {
                     Tab.CloseOrder(order);
                     cancelledOrders++;
@@ -1899,7 +1920,8 @@ namespace OsEngine.OsTrader.Grids
                     decimal volumeCloseOrder = orderToClose.Volume;
                     decimal volumeExecuteCloseOrder = orderToClose.VolumeExecute;
 
-                    if (volumePosOpen != (volumeCloseOrder - volumeExecuteCloseOrder))
+                    if (volumePosOpen != (volumeCloseOrder - volumeExecuteCloseOrder)
+                        && CanCancel(orderToClose))
                     {
                         Tab.CloseOrder(orderToClose);
                     }
@@ -1925,7 +1947,7 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.CloseOrders[^1];
 
-                if (order.NumberMarket != null
+                if (CanCancel(order)
                    && order.TypeOrder != OrderPriceType.Market)
                 {
                     Tab.CloseOrder(order);
@@ -1935,6 +1957,10 @@ namespace OsEngine.OsTrader.Grids
 
             return cancelledOrders;
         }
+
+        // отзыв возможен только с биржевым номером: AServer.CancelOrder безномера отклоняет с ERROR-логом каждый тик — спам;
+        // безномера приходят и как "" (null -> "" после round-trip журнала сетки), поэтому IsNullOrEmpty, а не != null
+        private static bool CanCancel(Order o) => !string.IsNullOrEmpty(o.NumberMarket);
 
         private void TrySetOpenOrders()
         {

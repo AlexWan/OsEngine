@@ -6305,6 +6305,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades, string source = "")
         {
+            // без биржевого номера заявки на бирже нет: None без вызова API и без расхода rate-gate (и без ANE на OrderId=null)
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                SendLogMessage("GetOrderStatusWithTrades. Пустой биржевой номер заявки, NumberUser: " + order.NumberUser, LogMessageType.System);
+                return OrderStateType.None;
+            }
             lock (_rageGateOrdersLocker)
             {
                 _rateGateOrders.WaitToProceed();
@@ -7084,6 +7090,11 @@ namespace OsEngine.Market.Servers.TInvest
 
         private bool CancelStopOrder(Order order, string source = "")
         {
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                SendLogMessage(OsLocalization.Market.Label293 + " Пустой биржевой номер заявки, NumberUser: " + order.NumberUser, LogMessageType.Error);
+                return false;
+            }
             _rateGateStopOrders.WaitToProceed();
 
             CancelStopOrderRequest request = new CancelStopOrderRequest();
