@@ -1388,11 +1388,22 @@ namespace OsEngine.Market.Servers.Optimizer
                         MarketDepth tradeN = new MarketDepth();
                         tradeN.SetMarketDepthFromString(reader.ReadLine());
 
-                        decimal open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
+                        decimal open = 0m;
+
+                        if (tradeN.Bids != null && tradeN.Bids.Count > 0)
+                        {
+                            open = (decimal)Convert.ToDouble(tradeN.Bids[0].Price);
+                        }
+
+                        if (open == 0 && tradeN.Asks != null && tradeN.Asks.Count > 0)
+                        {
+                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
+                        }
 
                         if (open == 0)
                         {
-                            open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
+                            // no price in this sample (one-sided book: limit up/down, auction) / в пробе нет цены: стакан с одной стороной
+                            continue;
                         }
 
                         if (open.ToString(culture).Split('.').Length > 1)
@@ -1469,6 +1480,12 @@ namespace OsEngine.Market.Servers.Optimizer
                                 countFive++;
                             }
                         }
+                    }
+
+                    if (minPriceStep == decimal.MaxValue)
+                    {
+                        // none of the 20 probes gave a usable price — file is unusable, drop it / ни одна из 20 проб не дала цены — файл непригоден, отсев
+                        throw new InvalidDataException("Market depth file has no usable price sample in header: " + name);
                     }
 
 
