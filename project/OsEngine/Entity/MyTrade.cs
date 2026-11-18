@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace OsEngine.Entity
 {
@@ -73,7 +74,7 @@ namespace OsEngine.Entity
             result += Time.ToString(CultureInfo) + "&";
             result += EscapingId(NumberTrade) + "&";
             result += Side + "&";
-            result += SecurityNameCode.Replace("@","%") + "&";
+            result += EscapingId(SecurityNameCode) + "&";
             result += EscapingId(NumberPosition) + "&";
 
             return result;
@@ -92,12 +93,13 @@ namespace OsEngine.Entity
             Time = Convert.ToDateTime(arraySave[3], CultureInfo);
             NumberTrade = UnescapingId(arraySave[4]);
             Enum.TryParse(arraySave[5], out Side);
-            SecurityNameCode = arraySave[6].Replace('%', '@');
+            SecurityNameCode = UnescapingIdLegacy(arraySave[6]);
             NumberPosition = UnescapingId(arraySave[7]);
         }
 
         /// <summary>
-        /// Escaping of the identifier for saving to a line. Reversible with UnescapingId
+        /// Escaping of the identifier fields (NumberOrderParent, NumberTrade, NumberPosition,
+        /// SecurityNameCode) for saving to a line. Reversible with UnescapingId
         /// </summary>
         private static string EscapingId(string value)
         {
@@ -136,6 +138,26 @@ namespace OsEngine.Entity
                 .Replace("%23", "#")
                 .Replace("%40", "@")
                 .Replace("%25", "%");
+        }
+
+        // '%' not starting a canon escape sequence — the record of '@' in old journals
+        // written by the legacy @↔% hack (BUG-0457)
+        private static readonly Regex LegacyBarePercent =
+            new Regex("%(?!(?:25|40|23|5E|2A|26|0D|0A))");
+
+        /// <summary>
+        /// Unescaping of SecurityNameCode with back-compat for old journals: a bare '%' that does
+        /// not start an EscapingId sequence is read as '@' (legacy-hack records, BUG-0457).
+        /// A literal '%' inside an old record stays indistinguishable and reads as '@' —
+        /// same as the old loader, state is not worsened. New saves carry no bare '%'.
+        /// </summary>
+        private static string UnescapingIdLegacy(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            return UnescapingId(LegacyBarePercent.Replace(value, "@"));
         }
 
         /// <summary>
