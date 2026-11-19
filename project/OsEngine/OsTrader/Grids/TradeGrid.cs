@@ -1962,12 +1962,93 @@ namespace OsEngine.OsTrader.Grids
         // безномера приходят и как "" (null -> "" после round-trip журнала сетки), поэтому IsNullOrEmpty, а не != null
         private static bool CanCancel(Order o) => !string.IsNullOrEmpty(o.NumberMarket);
 
+        // bug-0493: гейты «нет рыночных данных» в TrySetOpenOrders молча останавливали сетку на неограниченное время.
+        // Только наблюдаемость: гейты по-прежнему делают return, варнинг после непрерывной блокировки
+        // BlockWarnAfterSeconds и не чаще раза в BlockWarnRepeatMinutes.
+        private DateTime _openOrdersBlockedSince = DateTime.MinValue;
+
+        private string _openOrdersBlockedGate = null;
+
+        private DateTime _openOrdersBlockWarnTime = DateTime.MinValue;
+
+        private const int BlockWarnAfterSeconds = 30;
+
+        private const int BlockWarnRepeatMinutes = 10;
+
+        private void WarnAboutOpenOrdersBlock(string gateReason)
+        {
+            if (_openOrdersBlockedGate != gateReason)
+            {
+                _openOrdersBlockedGate = gateReason;
+                _openOrdersBlockedSince = DateTime.Now;
+                _openOrdersBlockWarnTime = DateTime.MinValue;
+                return;
+            }
+
+            if ((DateTime.Now - _openOrdersBlockedSince).TotalSeconds < BlockWarnAfterSeconds)
+            {
+                return;
+            }
+
+            if (_openOrdersBlockWarnTime != DateTime.MinValue
+                && (DateTime.Now - _openOrdersBlockWarnTime).TotalMinutes < BlockWarnRepeatMinutes)
+            {
+                return;
+            }
+
+            _openOrdersBlockWarnTime = DateTime.Now;
+
+            decimal warnBid = 0;
+            decimal warnAsk = 0;
+            decimal warnLastPrice = 0;
+            int warnCandlesCount = 0;
+
+            // живой список свечей trim-ит поток сервера (AServer.cs RemoveRange), Tab может быть в teardown:
+            // читаем в локальные снапшоты под защитой — гонка не должна срывать return гейта (хвост тика после хелпера).
+            // текст тогда выйдет с нулями, но факт блока и причина обязаны дойти до лога.
+            try
+            {
+                warnBid = Tab.PriceBestBid;
+                warnAsk = Tab.PriceBestAsk;
+                List<Candle> warnCandles = Tab.CandlesAll;
+                warnCandlesCount = warnCandles == null ? 0 : warnCandles.Count;
+
+                if (warnCandlesCount > 0)
+                {
+                    warnLastPrice = warnCandles[warnCandlesCount - 1].Close;
+                }
+            }
+            catch (Exception)
+            {
+                warnBid = 0;
+                warnAsk = 0;
+                warnLastPrice = 0;
+            }
+
+            string message = "Grid open orders gate blocked for "
+                + (int)(DateTime.Now - _openOrdersBlockedSince).TotalSeconds + "s. Gate: " + gateReason
+                + ". Bid: " + warnBid + ", Ask: " + warnAsk
+                + ", LastPrice: " + warnLastPrice + ", Candles: " + warnCandlesCount
+                + ". Orders are not placed until market data arrives.";
+
+            try
+            {
+                SendNewLogMessage(message, LogMessageType.Warning);
+            }
+            catch (Exception)
+            {
+                // осознанно молчим: бросок подписчика лога не причина срывать хвост тика (TrySetStopAndProfit/TrySetLimitProfit).
+                // штамп warnTime выше уже выставлен: потеря варнинга = подавление на BlockWarnRepeatMinutes, не краш и не Error.
+            }
+        }
+
         private void TrySetOpenOrders()
         {
             List<Candle> candles = Tab.CandlesAll;
 
             if (candles == null || candles.Count == 0)
             {
+                WarnAboutOpenOrdersBlock("candles");
                 return;
             }
 
@@ -1975,14 +2056,19 @@ namespace OsEngine.OsTrader.Grids
 
             if (lastPrice == 0)
             {
+                WarnAboutOpenOrdersBlock("lastPrice");
                 return;
             }
 
             if (Tab.PriceBestAsk == 0
                 || Tab.PriceBestBid == 0)
             {
+                WarnAboutOpenOrdersBlock("bid_ask");
                 return;
             }
+
+            _openOrdersBlockedSince = DateTime.MinValue;
+            _openOrdersBlockedGate = null;
 
             List<TradeGridLine> linesAll = GridCreator.Lines;
 
