@@ -1457,8 +1457,13 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         List<Trade> lastTrades = security.LastTradeSeries;
 
+                        // BUG-0488: in day lacunas (weekends, holidays, holes in the archive) the file for
+                        // the new day is not found and LastTradeSeries keeps yesterday's trades; stops are
+                        // executed on them. Freshness gate by TimeNow: ServerTime is frozen in a lacuna
+                        // (written only on data arrival), so it cannot be the predicate.
                         if (lastTrades != null
                             && lastTrades.Count != 0
+                            && lastTrades[lastTrades.Count - 1].Time.Date == TimeNow.Date
                             && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count - 1], false, security.IsNewDayTrade))
                         {
                             i--;
@@ -1467,7 +1472,10 @@ namespace OsEngine.Market.Servers.Tester
                     }
                     else
                     {
-                        if (order.MySecurityInTester.LastMarketDepth.Time.Day != ServerTime.Day)
+                        // BUG-0488: same as with the trade series above: on the other side of the day
+                        // boundary a stale depth must not execute orders (stops bypass price guards inside
+                        // CheckOrdersInMarketDepthTest). Predicate and re-lookup trigger by date from TimeNow.
+                        if (order.MySecurityInTester.LastMarketDepth.Time.Date != TimeNow.Date)
                         {
                             security = GetMySecurity(order);
                             order.MySecurityInTester = security;
@@ -1475,6 +1483,12 @@ namespace OsEngine.Market.Servers.Tester
                             {
                                 continue; // BUG-0476: re-lookup may return null (data-gate in GetMySecurity). Silent wait as the :1419 gate: cache is already wiped, next frame re-runs the initial lookup
                             }
+                        }
+
+                        if (security?.LastMarketDepth == null
+                            || security.LastMarketDepth.Time.Date != TimeNow.Date)
+                        {
+                            continue;
                         }
 
                         MarketDepth depth = security.LastMarketDepth;
