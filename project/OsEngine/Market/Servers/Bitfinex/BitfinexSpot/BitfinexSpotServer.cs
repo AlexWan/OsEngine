@@ -2296,7 +2296,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (tradeData == null || tradeData.Count < 4)
                 {
-                    SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateTrade> Trade payload json empty or too short", LogMessageType.Error);
                     return;
                 }
 
@@ -2305,7 +2305,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 // трейд, т.к. Convert.ToDecimal(null)=0. Текст Error — штатный.
                 if (tradeData == null || tradeData.Count < 4 || tradeData[2] == null || tradeData[3] == null)
                 {
-                    SendLogMessage("UpdateTrade> Trade payload json empty or too short", LogMessageType.Error);
+                    SendLogMessage("UpdateTrade> Trade payload fields are null", LogMessageType.Error);
                     return;
                 }
 
