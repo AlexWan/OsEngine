@@ -1930,8 +1930,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     // NewTradesEvent is a forward-only live tape, history is loaded via
                     // GetTickDataToSecurity. Re-subscription after reconnect is on the
                     // consumer (NeedToReconnectEvent), the connector keeps no channel state.
-                    if ((message.Contains("te")
-                        || message.Contains("tu"))
+                    if (message.Contains("te")
                         && _channelIdTrade != 0
                         && !message.Contains("event"))
                     {
@@ -2275,10 +2274,8 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private void UpdateTrade(string message)
         {
-            //if (message.Contains("tu"))
-            //{
-            //    return;
-            //}
+            // tu (trade updated) comes for the same trade as te with identical id and payload (Bitfinex WS v2):
+            // only te is routed in PublicMessageTradesReader, otherwise NewTradesEvent fires twice per trade.
 
             try
             {
