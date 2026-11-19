@@ -374,6 +374,74 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     else
                     {
+                        // bug-0023 F2: order book staleness. Predicates and re-subscription live here only (C1);
+                        // the reader failure hook just raises the pending flag, no stream access from reader thread
+                        List<string> obProbes = OrderBookProbeSnapshot();
+
+                        if (obProbes.Count > 0)
+                        {
+                            DateTime obNowUtc = DateTime.UtcNow;
+                            int obBudget = _obResubBudgetPerTick;
+
+                            foreach (string obUid in obProbes)
+                            {
+                                _lastOrderBookTimeUtc.TryGetValue(obUid, out DateTime obLast);
+                                _obResubLastTryUtc.TryGetValue(obUid, out DateTime obTry);
+                                _obResubAttempts.TryGetValue(obUid, out int obAtt);
+                                _obResubPending.TryGetValue(obUid, out bool obPnd);
+
+                                // R1: schedule fetch only for instruments where something can actually happen, not every book every tick.
+                                // raw gap below is a cheap superset of the session-silence decision (silence <= raw)
+                                if (obAtt < _obResubCap)
+                                {
+                                    bool obRawAged = obLast != DateTime.MinValue && obNowUtc - obLast >= _obStalenessThreshold;
+                                    if (obPnd == false && obRawAged == false)
+                                        continue;
+                                }
+                                else if (obAtt != 2)
+                                {
+                                    continue;
+                                }
+
+                                TradingDay obDay = GetTradingDayForOrderBookProbe(obUid);
+
+                                bool obNeedTimer = NeedResubscribeOrderBook(obDay, obNowUtc, obLast, obTry, obAtt);
+                                bool obNeedOnFailure = NeedResubscribeOrderBookAfterFailure(obDay, obNowUtc, obTry, obAtt, obPnd);
+
+                                if (obNeedTimer == false && obNeedOnFailure == false)
+                                {
+                                    // single Error when both attempts are spent and the book still silent in session (attempts marked 3 to log once);
+                                    // R4: no lastOb != MinValue condition — the canonical failure case is "subscription refused, no books ever"
+                                    if (obAtt == 2
+                                        && InTradingSessionUtc(obDay, obNowUtc)
+                                        && OrderBookSessionSilence(obDay, obNowUtc, obLast) >= _obStalenessThreshold)
+                                    {
+                                        _obResubAttempts[obUid] = 3;
+                                        Security obSec = GetSecurityByIdFast(obUid);
+                                        SendLogMessage("Order book for " + (obSec == null ? obUid : obSec.Name)
+                                            + " is stale, resubscribe attempts exhausted", LogMessageType.Error);
+                                    }
+                                    continue;
+                                }
+
+                                if (obBudget == 0)
+                                    continue;   // R3: the rest wait for the next tick — md-lock never held for minutes by a resub volley
+
+                                obBudget--;
+
+                                _obResubAttempts[obUid] = obAtt + 1;
+                                _obResubLastTryUtc[obUid] = obNowUtc;
+                                if (obNeedOnFailure)
+                                    _obResubPending.TryRemove(obUid, out _);   // R2: pending consumed on execution, not left armed
+
+                                Security obSecName = GetSecurityByIdFast(obUid);
+                                SendLogMessage("Order book resubscribe for " + (obSecName == null ? obUid : obSecName.Name)
+                                    + ". Attempt " + (obAtt + 1) + " of 2", LogMessageType.System);
+
+                                ResubscribeOrderBookOnStream(obUid);
+                            }
+                        }
+
                         if (_lastTimeGetPortfolio.AddSeconds(10) < DateTime.Now)
                         {
                             GetPortfolios();
@@ -504,6 +572,14 @@ namespace OsEngine.Market.Servers.TInvest
                 _lastMdTime = DateTime.UtcNow;
                 _lastPortfolioDataTime = DateTime.UtcNow;
                 _lastPositionsDataTime = DateTime.UtcNow;
+
+                // bug-0023 F2: dispose reinitializes order book staleness state (R3), R1: including the schedule cache
+                _lastOrderBookTimeUtc.Clear();
+                _obResubLastTryUtc.Clear();
+                _obResubAttempts.Clear();
+                _obResubPending.Clear();
+                _obSchedules.Clear();
+                _obScheduleNextFetchUtc = DateTime.MinValue;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -2429,6 +2505,14 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
+                // bug-0023 F2: full (re)connect reinitializes order book staleness state (R3), R1: including the schedule cache
+                _lastOrderBookTimeUtc.Clear();
+                _obResubLastTryUtc.Clear();
+                _obResubAttempts.Clear();
+                _obResubPending.Clear();
+                _obSchedules.Clear();
+                _obScheduleNextFetchUtc = DateTime.MinValue;
+
                 _gRpcMetadata = new Metadata();
 
                 _gRpcMetadata.Add("Authorization", $"Bearer {_accessToken}");
@@ -2953,6 +3037,15 @@ namespace OsEngine.Market.Servers.TInvest
         private bool _useStreamForMarketData = true;
 
         private DateTime _lastMarketDataTime = DateTime.MinValue;
+
+        // bug-0023 F2: order book staleness state, per instrument uid
+        private readonly ConcurrentDictionary<string, DateTime> _lastOrderBookTimeUtc = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, DateTime> _obResubLastTryUtc = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, int> _obResubAttempts = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<string, bool> _obResubPending = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<DateTime, TradingSchedulesResponse> _obSchedules = new ConcurrentDictionary<DateTime, TradingSchedulesResponse>();
+        private DateTime _obScheduleNextFetchUtc = DateTime.MinValue;
+
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
         private DateTime _lastPositionsDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
@@ -2976,6 +3069,318 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
+
+        #region bug-0023 F2 order book staleness detection
+
+        private static readonly TimeSpan _obStalenessThreshold = TimeSpan.FromMinutes(15);
+        private static readonly TimeSpan _obResubDebounce = TimeSpan.FromMinutes(5);
+        private const int _obResubCap = 2;
+        private const int _obResubBudgetPerTick = 2;
+
+        // decision is pure (unit-testable): timer path, staleness of OrderBook by instrument
+        private bool NeedResubscribeOrderBook(TradingDay day, DateTime nowUtc, DateTime lastObUtc, DateTime lastTryUtc, int attempts)
+        {
+            if (lastObUtc == DateTime.MinValue)
+                return false;   // no book received yet on this connection, no fact to age
+            if (attempts >= _obResubCap)
+                return false;
+            if (lastTryUtc != DateTime.MinValue && nowUtc - lastTryUtc < _obResubDebounce)
+                return false;
+            if (OrderBookSessionSilence(day, nowUtc, lastObUtc) < _obStalenessThreshold)
+                return false;   // R3: raw gap over-counts clearing and pre-open silence — false trigger right after clearing end
+            return InTradingSessionUtc(day, nowUtc);
+        }
+
+        // decision is pure (unit-testable): failure path armed by the reader hook (C1/C3: shares cap and debounce)
+        // R2: session-gated like the timer path — a Sunday replay must not burn an attempt on a closed market
+        private bool NeedResubscribeOrderBookAfterFailure(TradingDay day, DateTime nowUtc, DateTime lastTryUtc, int attempts, bool pending)
+        {
+            if (pending == false)
+                return false;
+            if (attempts >= _obResubCap)
+                return false;
+            if (lastTryUtc != DateTime.MinValue && nowUtc - lastTryUtc < _obResubDebounce)
+                return false;
+            return InTradingSessionUtc(day, nowUtc);
+        }
+
+        // C4 fail-closed: no schedule / unknown exchange / outside session or clearing break -> never trigger
+        private static bool InTradingSessionUtc(TradingDay day, DateTime nowUtc)
+        {
+            if (day == null || day.IsTradingDay == false || day.Intervals.Count == 0)
+                return false;
+
+            if (day.ClearingStartTime != null && day.ClearingEndTime != null
+                && nowUtc >= day.ClearingStartTime.ToDateTime()
+                && nowUtc <= day.ClearingEndTime.ToDateTime())
+            {
+                return false;
+            }
+
+            for (int i = 0; i < day.Intervals.Count; i++)
+            {
+                var interval = day.Intervals[i].Interval;
+                if (interval == null || interval.StartTs == null || interval.EndTs == null)
+                    continue;
+
+                if (nowUtc >= interval.StartTs.ToDateTime() && nowUtc < interval.EndTs.ToDateTime())
+                    return true;
+            }
+
+            return false;
+        }
+
+        // R3: the silence that matters — anchored at the later of last book / current interval start, clearing time subtracted.
+        // MinValue lastOb anchors at the current interval start: "no book since session start" ages too (R4 canonical case)
+        private static TimeSpan OrderBookSessionSilence(TradingDay day, DateTime nowUtc, DateTime lastObUtc)
+        {
+            if (day == null || day.Intervals.Count == 0)
+                return TimeSpan.Zero;
+
+            DateTime anchor = lastObUtc;
+
+            for (int i = 0; i < day.Intervals.Count; i++)
+            {
+                var interval = day.Intervals[i].Interval;
+                if (interval == null || interval.StartTs == null || interval.EndTs == null)
+                    continue;
+
+                DateTime start = interval.StartTs.ToDateTime();
+                DateTime end = interval.EndTs.ToDateTime();
+                if (nowUtc >= start && nowUtc < end && start > anchor)
+                    anchor = start;
+            }
+
+            double silenceMs = (nowUtc - anchor).TotalMilliseconds;
+
+            if (day.ClearingStartTime != null && day.ClearingEndTime != null)
+            {
+                DateTime clearingStart = day.ClearingStartTime.ToDateTime();
+                DateTime clearingEnd = day.ClearingEndTime.ToDateTime();
+                double overlapMs = (nowUtc < clearingEnd ? nowUtc : clearingEnd)
+                    .Subtract(anchor > clearingStart ? anchor : clearingStart).TotalMilliseconds;
+                if (overlapMs > 0)
+                    silenceMs -= overlapMs;
+            }
+
+            return TimeSpan.FromMilliseconds(silenceMs < 0 ? 0 : silenceMs);
+        }
+
+        // R1: feature-private schedule cache _obSchedules — shared _tradingSchedules untouched (legacy unlocked race = separate ticket);
+        // C4: fetch not often than 1/min, fail-closed
+        private TradingDay GetTradingDayForOrderBookProbe(string instrumentUid)
+        {
+            DateTime mskDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _mskTimeZone).Date;
+
+            if (!_obSchedules.TryGetValue(mskDate, out TradingSchedulesResponse response) || response == null)
+            {
+                if (DateTime.UtcNow < _obScheduleNextFetchUtc)
+                    return null;
+
+                try
+                {
+                    TradingSchedulesRequest request = new TradingSchedulesRequest
+                    {
+                        From = Timestamp.FromDateTime(DateTime.UtcNow.Date),
+                        To = Timestamp.FromDateTime(TimeZoneInfo.ConvertTimeToUtc(mskDate.AddDays(1).AddTicks(-1), _mskTimeZone))
+                    };
+
+                    _rateGateInstruments.WaitToProceed();
+                    response = _instrumentsClient.TradingSchedules(request, _gRpcMetadata);
+                }
+                catch
+                {
+                    response = null;
+                }
+
+                if (response == null)
+                {
+                    _obScheduleNextFetchUtc = DateTime.UtcNow.AddMinutes(1);
+                    return null;
+                }
+
+                _obSchedules[mskDate] = response;
+            }
+
+            Security sec = GetSecurityByIdFast(instrumentUid);
+            if (sec == null || string.IsNullOrEmpty(sec.Exchange))
+                return null;
+
+            return SelectObTradingDay(response, sec.Exchange, mskDate);
+        }
+
+        // R6: live Instrument.exchange holds lower-case SCHEDULE scheme names ("moex_mrng_evng_e_wknd_dlr"),
+        // while TradingSchedules answers upper-case - so matching is case-insensitive. Three passes, most
+        // specific first, each scanning ALL entries: API entry order is not a guarantee, one combined pass
+        // would let MOEX_PLUS win over MOEX for exchange "MOEX". No match (incl. exchange "unknown")
+        // returns null - fail-closed by design.
+        private TradingDay SelectObTradingDay(TradingSchedulesResponse response, string rawExchange, DateTime mskDate)
+        {
+            string root = rawExchange.Split('_')[0];
+
+            TradingDay day = PickDayForSchedule(response, mskDate,
+                scheduleName => scheduleName.Equals(rawExchange, StringComparison.OrdinalIgnoreCase));
+            if (day == null)
+                day = PickDayForSchedule(response, mskDate,
+                    scheduleName => scheduleName.Equals(root, StringComparison.OrdinalIgnoreCase));
+            if (day == null)
+                // shortcut: prefix fallback is the least exact answer, only for exchange values that are not scheme names
+                day = PickDayForSchedule(response, mskDate,
+                    scheduleName => scheduleName.StartsWith(root + "_", StringComparison.OrdinalIgnoreCase));
+
+            return day;
+        }
+
+        // R1: today is picked by its date, not Days[0] — the window spans two days and at night Days[0] is yesterday
+        private TradingDay PickDayForSchedule(TradingSchedulesResponse response, DateTime mskDate, Func<string, bool> scheduleMatches)
+        {
+            for (int i = 0; i < response.Exchanges.Count; i++)
+            {
+                if (!scheduleMatches(response.Exchanges[i].Exchange))
+                    continue;
+
+                for (int d = 0; d < response.Exchanges[i].Days.Count; d++)
+                {
+                    TradingDay day = response.Exchanges[i].Days[d];
+                    if (day.Date == null)
+                        continue;
+
+                    DateTime dayUtc = day.Date.ToDateTime();
+                    // shortcut: both midnight conventions (UTC / MSK) tolerated until a live probe pins one
+                    if (dayUtc.Date == mskDate || dayUtc.Add(_mskTimeZone.BaseUtcOffset).Date == mskDate)
+                        return day;
+                }
+            }
+
+            return null;
+        }
+
+        // instruments with an order book subscription record on a live stream wrapper
+        private List<string> OrderBookProbeSnapshot()
+        {
+            List<string> list = new List<string>();
+
+            lock (_marketDataStreamLocker)
+            {
+                if (_marketDataStreams == null)
+                    return list;
+
+                for (int i = 0; i < _marketDataStreams.Count; i++)
+                {
+                    var subs = _marketDataStreams[i].Subscriptions;
+
+                    for (int s = 0; s < subs.Count; s++)
+                    {
+                        var ob = subs[s].SubscribeOrderBookRequest;
+                        if (ob == null)
+                            continue;
+
+                        for (int n = 0; n < ob.Instruments.Count; n++)
+                        {
+                            string uid = ob.Instruments[n].InstrumentId;
+                            if (!list.Contains(uid))
+                                list.Add(uid);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        // R2: permanent statuses keep failing, do not spend attempts on them
+        private static bool OrderBookSubscriptionFailureIsRetryable(SubscriptionStatus status)
+        {
+            switch (status)
+            {
+                case SubscriptionStatus.InstrumentNotFound:
+                case SubscriptionStatus.SubscriptionActionIsInvalid:
+                case SubscriptionStatus.DepthIsInvalid:
+                case SubscriptionStatus.IntervalIsInvalid:
+                case SubscriptionStatus.LimitIsExceeded:
+                case SubscriptionStatus.TooManyRequests:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
+        // R1: re-subscribe by Subscribe on the live stream (the connector has no unsubscribe mechanism);
+        // the subscriptions record of the instrument is replaced so next TryReconnectDataStream does not duplicate it.
+        // Called only from ConnectionCheckThread (C1)
+        private void ResubscribeOrderBookOnStream(string instrumentUid)
+        {
+            try
+            {
+                lock (_marketDataStreamLocker)
+                {
+                    if (_marketDataStreams == null)
+                        return;
+
+                    for (int i = 0; i < _marketDataStreams.Count; i++)
+                    {
+                        MarketDataStreamWrapper wrapper = _marketDataStreams[i];
+
+                        int oldIndex = -1;
+
+                        for (int s = 0; s < wrapper.Subscriptions.Count; s++)
+                        {
+                            var ob = wrapper.Subscriptions[s].SubscribeOrderBookRequest;
+                            if (ob != null && ob.Instruments.Any(inst => inst.InstrumentId == instrumentUid))
+                            {
+                                oldIndex = s;
+                                break;
+                            }
+                        }
+
+                        if (oldIndex == -1)
+                            continue;
+
+                        OrderBookInstrument instrument = new OrderBookInstrument
+                        {
+                            InstrumentId = instrumentUid,
+                            Depth = _orderBookDepth, // upstream moved original subscribe to the connector depth parameter - resubscribe must mirror it
+                            OrderBookType = _filterOutDealerData ? OrderBookType.Exchange : OrderBookType.All
+                        };
+
+                        MarketDataRequest request = new MarketDataRequest
+                        {
+                            SubscribeOrderBookRequest = new SubscribeOrderBookRequest
+                            {
+                                SubscriptionAction = SubscriptionAction.Subscribe,
+                                Instruments = { instrument }
+                            }
+                        };
+
+                        wrapper.Subscriptions[oldIndex] = request;
+
+                        if (wrapper.StreamClient == null)
+                        {
+                            wrapper.IsConnected = false;
+                            return;
+                        }
+
+                        _rateGateSubscribeMd.WaitToProceed();
+
+                        Task writeTask = wrapper.StreamClient.RequestStream.WriteAsync(request);
+                        if (writeTask.Wait(_streamWaitTimeout) == false)
+                        {
+                            ObserveTaskFault(writeTask);
+                            // standard path: ConnectionCheckThread sees IsConnected=false and restarts the stream
+                            wrapper.IsConnected = false;
+                        }
+
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Order book resubscribe error: " + ex.Message, LogMessageType.System);
+            }
+        }
+
+        #endregion
 
         public void Subscribe(Security security)
         {
@@ -3585,6 +3990,12 @@ namespace OsEngine.Market.Servers.TInvest
                 else if (marketData.Orderbook != null)
                 {
                     OrderBook orderbook = marketData.Orderbook;
+
+                    // bug-0023 F2 (C2): first statement - fresh book disarms staleness state, cap not sticky
+                    _lastOrderBookTimeUtc[orderbook.InstrumentUid] = DateTime.UtcNow;
+                    _obResubAttempts.TryRemove(orderbook.InstrumentUid, out _);
+                    _obResubPending.TryRemove(orderbook.InstrumentUid, out _);
+
                     Security security = GetSecurityByIdFast(orderbook.InstrumentUid);
                     if (security == null)
                     {
@@ -3746,10 +4157,18 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "order book"));
+
+                                // bug-0023 C1: reader only arms pending flag, decision is ConnectionCheckThread's
+                                if (OrderBookSubscriptionFailureIsRetryable(sub.SubscriptionStatus))
+                                {
+                                    _obResubPending[sub.InstrumentUid] = true;
+                                }
                             }
                             else
                             {
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                                // bug-0115: Success is a fact to age from - seed the staleness clock, else first-book silence never trips
+                                _lastOrderBookTimeUtc[sub.InstrumentUid] = DateTime.UtcNow;
                             }
                         }
                     }
