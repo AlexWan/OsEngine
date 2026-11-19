@@ -2234,7 +2234,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             // BUG-0448: null/пустая рамка — не данные. Тихий пропуск, по образцу guard в Spot (ClassifyUserDataFrame)
                             if (string.IsNullOrEmpty(mes)) { continue; }
 
-                            if (mes.Contains("code"))
+                            if (mes.Contains("\"code\":")) // BUG-0422: key position, not bare substring ("c" may contain "code")
                             {
                                 // если есть code ошибки, то пытаемся распарсить
                                 ErrorMessage _err = new ErrorMessage();
