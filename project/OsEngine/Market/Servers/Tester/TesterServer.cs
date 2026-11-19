@@ -55,6 +55,9 @@ namespace OsEngine.Market.Servers.Tester
                 _needToReloadSecurities = true;
             }
 
+            // BUG-0485: the list must exist before the worker thread can reach CheckOrders
+            OrdersActive = new List<Order>();
+
             if (_worker == null)
             {
                 _worker = new Thread(WorkThreadArea);
@@ -77,8 +80,6 @@ namespace OsEngine.Market.Servers.Tester
             MarginPayments = new List<ChargeInfo>();
             TaxPayments = new List<ChargeInfo>();
             LoadMarginAndTaxTables();
-
-            OrdersActive = new List<Order>();
 
             CheckSet();
         }
@@ -912,7 +913,25 @@ namespace OsEngine.Market.Servers.Tester
                     NumberGen.ResetToZeroInTester();
                 }
 
-                OrdersActive.Clear();
+                // BUG-0485: TestingStart runs on its own start thread (TesterServerUi button spawns
+                // a Thread :891; the MCP path goes through TesterApi), while the worker may still be
+                // iterating the previous run's list
+                _ordersEmitDepth++;
+                try
+                {
+                    lock (_ordersActiveLocker)
+                    {
+                        OrdersActive.Clear();
+                    }
+                }
+                finally
+                {
+                    _ordersEmitDepth--;
+                    if (_ordersEmitDepth == 0)
+                    {
+                        DrainDeferredOrderEvents();
+                    }
+                }
 
                 DividendPayments?.Clear();
                 _processedDividendKeys?.Clear();
@@ -970,10 +989,16 @@ namespace OsEngine.Market.Servers.Tester
                 TestingFastIsActivate = false;
             }
 
-            if (TestingFastEvent != null)
+            // BUG-0485 rework round 4: called from under _ordersActiveLocker on the FF path
+            // (CheckWaitOrdersRegime); the raise goes through the deferred queue (see TesterRegime)
+            EmitOrderEventDelayed(() =>
             {
-                TestingFastEvent();
-            }
+                Action handler = TestingFastEvent;
+                if (handler != null)
+                {
+                    handler();
+                }
+            });
         }
 
         public bool TestingFastIsActivate;
@@ -1221,10 +1246,19 @@ namespace OsEngine.Market.Servers.Tester
                 }
                 _testerRegime = value;
 
-                if (TestRegimeChangeEvent != null)
+                // BUG-0485 rework round 4: the fast-forward path reaches this setter under
+                // _ordersActiveLocker (ExecuteOnBoardOrder -> CheckWaitOrdersRegime -> Pause, and
+                // TestingFastOnOff -> Play). The field is written synchronously, so no worker logic
+                // sees a change; the raise leaves the locker region via the deferred queue.
+                TesterRegime regime = value;
+                EmitOrderEventDelayed(() =>
                 {
-                    TestRegimeChangeEvent(_testerRegime);
-                }
+                    Action<TesterRegime> handler = TestRegimeChangeEvent;
+                    if (handler != null)
+                    {
+                        handler(regime);
+                    }
+                });
             }
         }
         private TesterRegime _testerRegime;
@@ -1392,6 +1426,30 @@ namespace OsEngine.Market.Servers.Tester
 
         private void CheckOrders()
         {
+            // BUG-0485: worker-thread side of the OrdersActive contract. Re-entrancy is required:
+            // on day rollover CheckRejectOrdersOnClearing calls CancelOnBoardOrder, which takes
+            // the same locker. A foreign callback never runs under _ordersActiveLocker: events
+            // raised inside the region are deferred to the region exit (EmitOrderEventDelayed).
+            _ordersEmitDepth++;
+            try
+            {
+                lock (_ordersActiveLocker)
+                {
+                    CheckOrdersLocked();
+                }
+            }
+            finally
+            {
+                _ordersEmitDepth--;
+                if (_ordersEmitDepth == 0)
+                {
+                    DrainDeferredOrderEvents();
+                }
+            }
+        }
+
+        private void CheckOrdersLocked()
+        {
             if (OrdersActive.Count == 0)
             {
                 return;
@@ -1507,6 +1565,8 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        // BUG-0485: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInCandleTest(Order order, Candle lastCandle)
         {
             decimal minPrice = decimal.MaxValue;
@@ -1757,6 +1817,8 @@ namespace OsEngine.Market.Servers.Tester
             return false;
         }
 
+        // BUG-0485: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime, bool isNewDay)
         {
             SecurityTester security = null;
@@ -1964,6 +2026,8 @@ namespace OsEngine.Market.Servers.Tester
             return false;
         }
 
+        // BUG-0485: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInMarketDepthTest(Order order, MarketDepth lastMarketDepth)
         {
             if (lastMarketDepth == null)
@@ -2215,6 +2279,58 @@ namespace OsEngine.Market.Servers.Tester
 
         private List<Order> OrdersActive;
 
+        // BUG-0485: OrdersActive is shared between the test worker thread (CheckOrders, day-rollover
+        // cancel storm) and foreign caller threads (ExecuteOrder / CancelOrder from non-gated user
+        // strategy threads). Every access must hold this locker; Monitor is re-entrant by design.
+        // Fan-out delegates (UI/painter order and trade handlers) are NEVER invoked while this locker
+        // is held — see EmitOrderEventDelayed.
+        private object _ordersActiveLocker = new object();
+
+        // BUG-0485: the locker must never wrap a foreign callback: worker emit under the locker plus
+        // a synchronous Dispatcher.Invoke subscriber (order painter :936) is an ABBA freeze on the UI
+        // thread (master had no locker, so the class was created by the locking fix). The outermost
+        // locker region on a thread counts in _ordersEmitDepth; delegate raises go through the queue
+        // while depth > 0 and replay in FIFO order on the emitting thread once the region exits.
+        // Per [ThreadStatic], so no cross-thread sharing and no lock on the queue itself.
+        [ThreadStatic] private static int _ordersEmitDepth;
+
+        [ThreadStatic] private static List<Action> _ordersEventsDeferred;
+
+        private static void EmitOrderEventDelayed(Action emit)
+        {
+            if (_ordersEmitDepth == 0)
+            {
+                emit();
+                return;
+            }
+
+            if (_ordersEventsDeferred == null)
+            {
+                _ordersEventsDeferred = new List<Action>();
+            }
+
+            _ordersEventsDeferred.Add(emit);
+        }
+
+        private static void DrainDeferredOrderEvents()
+        {
+            // detach-before-fire: a subscriber that re-enters emission cannot double-fire the batch;
+            // an exception inside the region body still drains the queue (the call site is in finally),
+            // an exception inside a handler aborts the rest of the batch as the inline fan-out does today
+            List<Action> deferred = _ordersEventsDeferred;
+            _ordersEventsDeferred = null;
+
+            if (deferred == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < deferred.Count; i++)
+            {
+                deferred[i]();
+            }
+        }
+
         private int _iteratorNumbersOrders;
 
         private int _iteratorNumbersMyTrades;
@@ -2231,67 +2347,87 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if (OrdersActive.Count != 0)
+            Order orderOnBoard = null;
+
+            // BUG-0485: single lock region from the duplicate check through OrdersActive.Add, so
+            // that the check -> Add window cannot be entered by a foreign thread with same NumberUser.
+            // Gate rejections (FailedOperationOrder) raise at the region exit via the deferred queue.
+            _ordersEmitDepth++;
+            try
             {
-                for (int i = 0; i < OrdersActive.Count; i++)
+                lock (_ordersActiveLocker)
                 {
-                    if (OrdersActive[i].NumberUser == order.NumberUser)
+                    if (OrdersActive.Count != 0)
                     {
-                        SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
+                        for (int i = 0; i < OrdersActive.Count; i++)
+                        {
+                            if (OrdersActive[i].NumberUser == order.NumberUser)
+                            {
+                                SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
+                                FailedOperationOrder(order);
+                                return;
+                            }
+                        }
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
                         FailedOperationOrder(order);
                         return;
                     }
+
+                    if (order.Volume <= 0)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
+                        FailedOperationOrder(order);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
+                    {
+                        SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
+                        FailedOperationOrder(order);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
+                    {
+                        SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
+                        FailedOperationOrder(order);
+                        return;
+                    }
+
+                    orderOnBoard = new Order();
+                    orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
+                    orderOnBoard.NumberUser = order.NumberUser;
+                    orderOnBoard.PortfolioNumber = order.PortfolioNumber;
+                    orderOnBoard.Price = order.Price;
+                    orderOnBoard.SecurityNameCode = order.SecurityNameCode;
+                    orderOnBoard.Side = order.Side;
+                    orderOnBoard.State = OrderStateType.Active;
+                    orderOnBoard.ServerType = order.ServerType;
+                    orderOnBoard.TimeCallBack = ServerTime;
+                    orderOnBoard.TimeCreate = ServerTime;
+                    orderOnBoard.TypeOrder = order.TypeOrder;
+                    orderOnBoard.Volume = order.Volume;
+                    orderOnBoard.Comment = order.Comment;
+                    orderOnBoard.LifeTime = order.LifeTime;
+                    orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
+                    orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
+                    orderOnBoard.OrderTypeTime = order.OrderTypeTime;
+
+                    OrdersActive.Add(orderOnBoard);
                 }
             }
-
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            finally
             {
-                SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
+                _ordersEmitDepth--;
+                if (_ordersEmitDepth == 0)
+                {
+                    DrainDeferredOrderEvents();
+                }
             }
-
-            if (order.Volume <= 0)
-            {
-                SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
-            {
-                SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
-            {
-                SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            Order orderOnBoard = new Order();
-            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
-            orderOnBoard.NumberUser = order.NumberUser;
-            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
-            orderOnBoard.Price = order.Price;
-            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
-            orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Active;
-            orderOnBoard.ServerType = order.ServerType;
-            orderOnBoard.TimeCallBack = ServerTime;
-            orderOnBoard.TimeCreate = ServerTime;
-            orderOnBoard.TypeOrder = order.TypeOrder;
-            orderOnBoard.Volume = order.Volume;
-            orderOnBoard.Comment = order.Comment;
-            orderOnBoard.LifeTime = order.LifeTime;
-            orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
-            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
-            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
-
-            OrdersActive.Add(orderOnBoard);
 
             if (NewOrderIncomeEvent != null)
             {
@@ -2318,22 +2454,76 @@ namespace OsEngine.Market.Servers.Tester
                 if (security == null)
                 {
                     SendLogMessage("Stop order rejected. No test data series for security " + order.SecurityNameCode, LogMessageType.Error);
-                    OrdersActive.Remove(orderOnBoard);
+                    _ordersEmitDepth++;
+                    try
+                    {
+                        lock (_ordersActiveLocker)
+                        {
+                            OrdersActive.Remove(orderOnBoard);
+                        }
+                    }
+                    finally
+                    {
+                        _ordersEmitDepth--;
+                        if (_ordersEmitDepth == 0)
+                        {
+                            DrainDeferredOrderEvents();
+                        }
+                    }
                     FailedOperationOrder(order);
                     return;
                 }
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
-                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    // BUG-0485: the candle-test scans and mutates OrdersActive. Keep test + removal
+                    // atomic against foreign-thread Execute/Cancel
+                    bool executedOnSubmission = false;
+                    _ordersEmitDepth++;
+                    try
                     {
-                        OrdersActive.Remove(orderOnBoard);
+                        lock (_ordersActiveLocker)
+                        {
+                            executedOnSubmission = CheckOrdersInCandleTest(orderOnBoard, security.LastCandle);
+
+                            if (executedOnSubmission)
+                            {
+                                OrdersActive.Remove(orderOnBoard);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _ordersEmitDepth--;
+                        if (_ordersEmitDepth == 0)
+                        {
+                            DrainDeferredOrderEvents();
+                        }
                     }
                 }
                 else if (security.DataType == SecurityTesterDataType.Tick)
                 {
-                    if (CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true, security.IsNewDayTrade))
+                    // BUG-0485: same as above: the tick-test scans and mutates OrdersActive
+                    bool executedOnSubmission = false;
+                    _ordersEmitDepth++;
+                    try
                     {
-                        OrdersActive.Remove(orderOnBoard);
+                        lock (_ordersActiveLocker)
+                        {
+                            executedOnSubmission = CheckOrdersInTickTest(orderOnBoard, security.LastTrade, true, security.IsNewDayTrade);
+
+                            if (executedOnSubmission)
+                            {
+                                OrdersActive.Remove(orderOnBoard);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _ordersEmitDepth--;
+                        if (_ordersEmitDepth == 0)
+                        {
+                            DrainDeferredOrderEvents();
+                        }
                     }
                 }
             }
@@ -2432,39 +2622,64 @@ namespace OsEngine.Market.Servers.Tester
         {
             Order orderToClose = null;
 
-            if (OrdersActive.Count != 0)
+            // BUG-0485: lookup + removal atomic against the worker thread (see _ordersActiveLocker);
+            // Message46/Fail above raise at the region exit, the Cancel event below is deferred when
+            // this method re-enters from a locker region (day/session storm), direct at depth==0 so
+            // UI-thread cancels keep their thread affinity
+            _ordersEmitDepth++;
+            try
             {
-                for (int i = 0; i < OrdersActive.Count; i++)
+                lock (_ordersActiveLocker)
                 {
-                    if (OrdersActive[i].NumberUser == order.NumberUser)
+                    if (OrdersActive.Count != 0)
                     {
-                        orderToClose = OrdersActive[i];
+                        for (int i = 0; i < OrdersActive.Count; i++)
+                        {
+                            if (OrdersActive[i].NumberUser == order.NumberUser)
+                            {
+                                orderToClose = OrdersActive[i];
+                                // BUG-0485: first match wins, same idiom as the remove loop below
+                                break;
+                            }
+                        }
+                    }
+
+                    if (orderToClose == null)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
+                        FailedOperationOrder(order);
+                        return;
+                    }
+
+                    for (int i = 0; i < OrdersActive.Count; i++)
+                    {
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
+                        {
+                            OrdersActive.RemoveAt(i);
+                            break;
+                        }
                     }
                 }
             }
-
-            if (orderToClose == null)
+            finally
             {
-                SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            for (int i = 0; i < OrdersActive.Count; i++)
-            {
-                if (OrdersActive[i].NumberUser == order.NumberUser)
+                _ordersEmitDepth--;
+                if (_ordersEmitDepth == 0)
                 {
-                    OrdersActive.RemoveAt(i);
-                    break;
+                    DrainDeferredOrderEvents();
                 }
             }
 
             orderToClose.State = OrderStateType.Cancel;
 
-            if (NewOrderIncomeEvent != null)
+            EmitOrderEventDelayed(() =>
             {
-                NewOrderIncomeEvent(orderToClose);
-            }
+                Action<Order> handler = NewOrderIncomeEvent;
+                if (handler != null)
+                {
+                    handler(orderToClose);
+                }
+            });
         }
 
         private void FailedOperationOrder(Order order)
@@ -2484,10 +2699,14 @@ namespace OsEngine.Market.Servers.Tester
             orderOnBoard.Comment = order.Comment;
             orderOnBoard.ServerType = order.ServerType;
 
-            if (NewOrderIncomeEvent != null)
+            EmitOrderEventDelayed(() =>
             {
-                NewOrderIncomeEvent(orderOnBoard);
-            }
+                Action<Order> handler = NewOrderIncomeEvent;
+                if (handler != null)
+                {
+                    handler(orderOnBoard);
+                }
+            });
         }
 
         private void ExecuteOnBoardOrder(Order order, decimal price, DateTime time, int slippage)
@@ -2538,10 +2757,14 @@ namespace OsEngine.Market.Servers.Tester
             order.State = OrderStateType.Done;
             order.Price = realPrice;
 
-            if (NewOrderIncomeEvent != null)
+            EmitOrderEventDelayed(() =>
             {
-                NewOrderIncomeEvent(order);
-            }
+                Action<Order> handler = NewOrderIncomeEvent;
+                if (handler != null)
+                {
+                    handler(order);
+                }
+            });
 
             ChangePosition(order);
 
@@ -2561,10 +2784,16 @@ namespace OsEngine.Market.Servers.Tester
 
             _myTrades.Add(trade);
 
-            if (NewMyTradeEvent != null)
+            // BUG-0485: the trade record stays written inside the locker, the handler goes to the
+            // deferred queue (see _ordersEmitDepth)
+            EmitOrderEventDelayed(() =>
             {
-                NewMyTradeEvent(trade);
-            }
+                Action<MyTrade> handler = NewMyTradeEvent;
+                if (handler != null)
+                {
+                    handler(trade);
+                }
+            });
         }
 
         private List<MyTrade> _myTrades;
