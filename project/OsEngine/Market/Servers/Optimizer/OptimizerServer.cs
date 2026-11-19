@@ -1464,6 +1464,12 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 return false;
             }
+            if ((lastMarketDepth.Asks == null || (lastMarketDepth.Asks != null && lastMarketDepth.Asks.Count == 0)) ||
+                 (lastMarketDepth.Bids == null || (lastMarketDepth.Bids != null && lastMarketDepth.Bids.Count == 0)))
+            {
+                // BUG-0479: empty book side (limit up/down, auction) — silent wait, port of TesterServer.cs:1946 gate
+                return false;
+            }
             decimal sellBestPrice = lastMarketDepth.Asks[0].Price.ToDecimal();
             decimal buyBestPrice = lastMarketDepth.Bids[0].Price.ToDecimal();
 
