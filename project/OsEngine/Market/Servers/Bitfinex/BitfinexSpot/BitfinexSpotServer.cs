@@ -1779,7 +1779,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private int _channelIdTrade;
 
-        // chanId->symbol dictionaries: written by WS reader threads, cleared by Dispose (UnsubscribeFromAllChannels) from AServer thread
+        // chanId->symbol dictionaries: written by WS reader threads; Dispose (UnsubscribeFromAllChannels) clears them from AServer daemon, UI or MCP thread (AServer.Delete)
         private readonly object _channelDictionariesLocker = new object();
 
         private Dictionary<int, string> _tradeDictionary = new Dictionary<int, string>();
