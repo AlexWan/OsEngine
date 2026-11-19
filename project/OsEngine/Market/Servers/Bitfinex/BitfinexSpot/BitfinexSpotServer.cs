@@ -1887,6 +1887,38 @@ namespace OsEngine.Market.Servers.Bitfinex
                         }
                     }
 
+                    // Snapshot frame [chanId,[[...]]] arrives on every subscribe/resubscribe.
+                    // It is logged and dropped here: it must not reach UpdateTrade below.
+                    // Own try-catch so a malformed frame cannot trigger the reader-level
+                    // 5-second sleep in the outer catch. Guard before any element access.
+                    if (message.Contains("[["))
+                    {
+                        try
+                        {
+                            List<object> root = JsonConvert.DeserializeObject<List<object>>(message);
+
+                            System.Collections.IList snapshot = root != null && root.Count >= 2
+                                ? root[1] as System.Collections.IList
+                                : null;
+
+                            if (snapshot != null)
+                            {
+                                SendLogMessage("Trades snapshot on channel " + Convert.ToInt32(root[0])
+                                    + ": " + snapshot.Count + " trades. Not replayed", LogMessageType.System);
+
+                                continue;
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            SendLogMessage("Trades snapshot parse failed: " + exception.Message, LogMessageType.Error);
+                        }
+                    }
+
+                    // Live updates (te/tu) only. Snapshot replay is a deliberate rejection:
+                    // NewTradesEvent is a forward-only live tape, history is loaded via
+                    // GetTickDataToSecurity. Re-subscription after reconnect is on the
+                    // consumer (NeedToReconnectEvent), the connector keeps no channel state.
                     if ((message.Contains("te")
                         || message.Contains("tu"))
                         && _channelIdTrade != 0
