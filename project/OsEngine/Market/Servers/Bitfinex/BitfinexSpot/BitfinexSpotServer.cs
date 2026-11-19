@@ -1707,24 +1707,23 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (webSocketPublicMarketDepths != null && webSocketPublicMarketDepths?.ReadyState == WebSocketState.Open)
                     {
+                        List<int> depthChanIds;
+
                         lock (_channelDictionariesLocker)
                         {
-                            int depthCount = _depthDictionary.Count;
-
-                            int k = 0;
-
-                            while (k < depthCount)
-                            {
-                                int chanId = new List<int>(_depthDictionary.Keys)[k];
-
-                                string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
-
-                                webSocketPublicMarketDepths.SendAsync(message);
-
-                                k++;
-                            }
+                            depthChanIds = new List<int>(_depthDictionary.Keys);
 
                             _depthDictionary.Clear();
+                        }
+
+                        // Send outside the lock: its sync throw raises OnError -> SendLogMessage on the holding thread
+                        // (WebSocketOsEngine.cs :223); UI-marshalling log subscribers (Log.cs :1360) then deadlock
+                        // against AServer.Delete() waiting on the same locker
+                        for (int k = 0; k < depthChanIds.Count; k++)
+                        {
+                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + depthChanIds[k] + "}";
+
+                            webSocketPublicMarketDepths.SendAsync(message);
                         }
                     }
                 }
@@ -1735,24 +1734,21 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (webSocketPublicTrades != null && webSocketPublicTrades?.ReadyState == WebSocketState.Open)
                     {
+                        List<int> tradeChanIds;
+
                         lock (_channelDictionariesLocker)
                         {
-                            int tradeCount = _tradeDictionary.Count;
-
-                            int j = 0;
-
-                            while (j < tradeCount)
-                            {
-                                int chanId = new List<int>(_tradeDictionary.Keys)[j];
-
-                                string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
-
-                                webSocketPublicTrades.SendAsync(message);
-
-                                j++;
-                            }
+                            tradeChanIds = new List<int>(_tradeDictionary.Keys);
 
                             _tradeDictionary.Clear();
+                        }
+
+                        // Send outside the lock, see depth block above
+                        for (int j = 0; j < tradeChanIds.Count; j++)
+                        {
+                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + tradeChanIds[j] + "}";
+
+                            webSocketPublicTrades.SendAsync(message);
                         }
                     }
                 }
