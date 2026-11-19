@@ -2241,7 +2241,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 List<object> root = JsonConvert.DeserializeObject<List<object>>(message);
 
-                if (root == null && root.Count < 2)
+                if (root == null || root.Count < 3 || root[2] == null)
                 {
                     SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
                     return;
@@ -2251,7 +2251,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 int channelId = Convert.ToInt32(root[0]);
 
-                if (tradeData == null && tradeData.Count < 4)
+                if (tradeData == null || tradeData.Count < 4)
                 {
                     SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
                     return;
