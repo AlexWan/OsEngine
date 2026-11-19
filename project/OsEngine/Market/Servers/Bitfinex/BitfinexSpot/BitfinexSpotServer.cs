@@ -1707,22 +1707,24 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (webSocketPublicMarketDepths != null && webSocketPublicMarketDepths?.ReadyState == WebSocketState.Open)
                     {
-                        int depthCount = _depthDictionary.Count;
+                        List<int> depthChanIds;
 
-                        int k = 0;
-
-                        while (k < depthCount)
+                        lock (_channelDictionariesLocker)
                         {
-                            int chanId = new List<int>(_depthDictionary.Keys)[k];
+                            depthChanIds = new List<int>(_depthDictionary.Keys);
 
-                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
-
-                            webSocketPublicMarketDepths.SendAsync(message);
-
-                            k++;
+                            _depthDictionary.Clear();
                         }
 
-                        _depthDictionary.Clear();
+                        // Send outside the lock: its sync throw raises OnError -> SendLogMessage on the holding thread
+                        // (WebSocketOsEngine.cs :223); UI-marshalling log subscribers (Log.cs :1360) then deadlock
+                        // against AServer.Delete() waiting on the same locker
+                        for (int k = 0; k < depthChanIds.Count; k++)
+                        {
+                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + depthChanIds[k] + "}";
+
+                            webSocketPublicMarketDepths.SendAsync(message);
+                        }
                     }
                 }
 
@@ -1732,22 +1734,22 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (webSocketPublicTrades != null && webSocketPublicTrades?.ReadyState == WebSocketState.Open)
                     {
-                        int tradeCount = _tradeDictionary.Count;
+                        List<int> tradeChanIds;
 
-                        int j = 0;
-
-                        while (j < tradeCount)
+                        lock (_channelDictionariesLocker)
                         {
-                            int chanId = new List<int>(_tradeDictionary.Keys)[j];
+                            tradeChanIds = new List<int>(_tradeDictionary.Keys);
 
-                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + chanId + "}";
-
-                            webSocketPublicTrades.SendAsync(message);
-
-                            j++;
+                            _tradeDictionary.Clear();
                         }
 
-                        _tradeDictionary.Clear();
+                        // Send outside the lock, see depth block above
+                        for (int j = 0; j < tradeChanIds.Count; j++)
+                        {
+                            string message = "{\"event\":\"unsubscribe\",\"chanId\":" + tradeChanIds[j] + "}";
+
+                            webSocketPublicTrades.SendAsync(message);
+                        }
                     }
                 }
 
@@ -1772,6 +1774,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         private int _currentChannelIdDepth;
 
         private int _channelIdTrade;
+
+        // chanId->symbol dictionaries: written by WS reader threads; Dispose (UnsubscribeFromAllChannels) clears them from AServer daemon, UI or MCP thread (AServer.Delete)
+        private readonly object _channelDictionariesLocker = new object();
 
         private Dictionary<int, string> _tradeDictionary = new Dictionary<int, string>();
 
@@ -1808,10 +1813,13 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         int key = Convert.ToInt32(responseDepth.ChanId);
 
-                        if (!_depthDictionary.ContainsKey(key))
+                        lock (_channelDictionariesLocker)
                         {
-                            _depthDictionary.Add(key, responseDepth.Symbol);
-                            _currentChannelIdDepth = key;
+                            if (!_depthDictionary.ContainsKey(key))
+                            {
+                                _depthDictionary.Add(key, responseDepth.Symbol);
+                                _currentChannelIdDepth = key;
+                            }
                         }
                     }
 
@@ -1880,10 +1888,13 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         int key = Convert.ToInt32(responseTrade.ChanId);
 
-                        if (!_tradeDictionary.ContainsKey(key))
+                        lock (_channelDictionariesLocker)
                         {
-                            _tradeDictionary.Add(key, responseTrade.Symbol);
-                            _channelIdTrade = key;
+                            if (!_tradeDictionary.ContainsKey(key))
+                            {
+                                _tradeDictionary.Add(key, responseTrade.Symbol);
+                                _channelIdTrade = key;
+                            }
                         }
                     }
 
@@ -3107,9 +3118,12 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             string symbol = "";
 
-            if (_tradeDictionary.TryGetValue(channelId, out symbol))
+            lock (_channelDictionariesLocker)
             {
-                return symbol;
+                if (_tradeDictionary.TryGetValue(channelId, out symbol))
+                {
+                    return symbol;
+                }
             }
             return null;
         }
@@ -3118,9 +3132,12 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             string symbol = "";
 
-            if (_depthDictionary.TryGetValue(channelId, out symbol))
+            lock (_channelDictionariesLocker)
             {
-                return symbol;
+                if (_depthDictionary.TryGetValue(channelId, out symbol))
+                {
+                    return symbol;
+                }
             }
             return null;
         }
