@@ -2257,13 +2257,25 @@ namespace OsEngine.Market.Servers.Bitfinex
                     return;
                 }
 
+                // Рабочий гейт формы кадра: выше стоящие проверки намеренно не исправлены
+                // (линия BUG-0501); без них null/короткий массив дали бы молчаливый нулевой
+                // трейд, т.к. Convert.ToDecimal(null)=0. Текст Error — штатный.
+                if (tradeData == null || tradeData.Count < 4 || tradeData[2] == null || tradeData[3] == null)
+                {
+                    SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
+                    return;
+                }
+
                 Trade newTrade = new Trade();
 
                 newTrade.SecurityNameCode = GetSymbolByKeyInTrades(channelId);
                 newTrade.Id = tradeData[0].ToString();
-                newTrade.Price = tradeData[3].ToString().ToDecimal();
+                // BUG-0498: число берём из boxed-значения напрямую. ToString() текущей культуры
+                // на comma-culture даёт «4,12E-05» для |Double|<1e-4, а ToDecimal()->ToDouble()
+                // парсит экспоненту только по InvariantCulture и молча возвращает 0.
+                newTrade.Price = Convert.ToDecimal(tradeData[3]);
 
-                decimal volume = tradeData[2].ToString().ToDecimal();
+                decimal volume = Convert.ToDecimal(tradeData[2]);
 
                 if (volume < 0)
                 {
@@ -2273,6 +2285,14 @@ namespace OsEngine.Market.Servers.Bitfinex
                 newTrade.Volume = volume;
                 newTrade.Side = volume > 0 ? Side.Buy : Side.Sell;
                 newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(tradeData[1]));
+
+                // BUG-0498: пыльные трейды (<1e-4) раньше терялись в нуль; строка подтверждает
+                // работу парсинга на живом потоке
+                if (volume > 0 && volume < 0.0001m)
+                {
+                    SendLogMessage("UpdateTrade> Dust Trade Parsed. Sec: " + newTrade.SecurityNameCode
+                        + " Volume: " + volume, LogMessageType.System);
+                }
 
                 NewTradesEvent?.Invoke(newTrade);
             }
