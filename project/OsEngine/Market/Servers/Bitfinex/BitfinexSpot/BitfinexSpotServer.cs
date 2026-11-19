@@ -396,6 +396,8 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(750));
 
+        private readonly object _portfoliosSyncLock = new object();
+
         public void GetPortfolios()
         {
             CreateQueryPortfolio();
@@ -418,11 +420,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Portfolio portfolio = new Portfolio();
-
-                    portfolio.Number = "BitfinexSpotPortfolio";
-                    portfolio.ValueBegin = 1;
-                    portfolio.ValueCurrent = 1;
+                    List<PositionOnBoard> positions = new List<PositionOnBoard>();
 
                     List<List<string>> wallets = JsonConvert.DeserializeObject<List<List<string>>>(response.Content);
 
@@ -448,16 +446,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                                 position.ValueBlocked = 0;
                             }
 
-                            portfolio.SetNewPosition(position);
+                            positions.Add(position);
                         }
                     }
 
-                    _portfolios.Add(portfolio);
-
-                    if (_portfolios.Count != 0)
-                    {
-                        PortfolioEvent?.Invoke(_portfolios);
-                    }
+                    SyncPortfolio(positions);
                 }
                 else
                 {
@@ -467,6 +460,38 @@ namespace OsEngine.Market.Servers.Bitfinex
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Bitfinex exposes exactly one portfolio. A REST snapshot and every WS 'wu' frame must update
+        /// the existing entry in place (SetNewPosition); a new entry per frame grew _portfolios without
+        /// bound (bug-0521). REST (AServer thread) and WS (socket thread) are serialised by the lock.
+        /// </summary>
+        private void SyncPortfolio(List<PositionOnBoard> positions)
+        {
+            lock (_portfoliosSyncLock)
+            {
+                Portfolio portfolio = _portfolios.Find(p => p.Number == "BitfinexSpotPortfolio");
+
+                if (portfolio == null)
+                {
+                    portfolio = new Portfolio();
+
+                    portfolio.Number = "BitfinexSpotPortfolio";
+                    portfolio.ValueBegin = 1;
+                    portfolio.ValueCurrent = 1;
+                    portfolio.ServerType = ServerType.BitfinexSpot;
+
+                    _portfolios.Add(portfolio);
+                }
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    portfolio.SetNewPosition(positions[i]);
+                }
+
+                PortfolioEvent?.Invoke(_portfolios);
             }
         }
 
@@ -2497,12 +2522,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                     return;
                 }
 
-                Portfolio portfolio = new Portfolio();
-
-                portfolio.Number = "BitfinexSpotPortfolio";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
-                portfolio.ServerType = ServerType.BitfinexSpot;
+                List<PositionOnBoard> positions = new List<PositionOnBoard>();
 
                 if (wallet[0].ToString() == "exchange")
                 {
@@ -2525,15 +2545,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                     {
                         position.ValueBlocked = 0;
                     }
-                    portfolio.SetNewPosition(position);
+
+                    positions.Add(position);
                 }
 
-                _portfolios.Add(portfolio);
-
-                if (_portfolios.Count > 0)
-                {
-                    PortfolioEvent?.Invoke(_portfolios);
-                }
+                SyncPortfolio(positions);
             }
             catch (Exception exception)
             {
