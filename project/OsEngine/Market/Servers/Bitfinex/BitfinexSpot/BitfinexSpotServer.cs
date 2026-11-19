@@ -73,6 +73,11 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
+                lock (_portfolioValueBeginsLock)
+                {
+                    _portfolioValueBegins.Clear();
+                }
+
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -131,6 +136,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                 _securities?.Clear();
                 _portfolios?.Clear();
                 _subscribedSecurities?.Clear();
+
+                lock (_portfolioValueBeginsLock)
+                {
+                    _portfolioValueBegins.Clear();
+                }
 
                 DeleteWebSocketConnection();
             }
@@ -398,6 +408,31 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private readonly object _portfoliosSyncLock = new object();
 
+        // Wallet updates ('wu' and REST wallets) carry only the current BALANCE ([2]);
+        // the API has no start-of-period metric (docs: ws-auth-wallets / rest-auth-wallets).
+        // Latch the first observed balance per currency so ValueBegin keeps the engine-wide
+        // "balance at session start" semantics; reset on Connect/Dispose (TraderNet pattern).
+        private readonly Dictionary<string, decimal> _portfolioValueBegins = new Dictionary<string, decimal>();
+
+        private readonly object _portfolioValueBeginsLock = new object();
+
+        private decimal GetOrLatchPortfolioValueBegin(string currency, decimal observedBalance)
+        {
+            lock (_portfolioValueBeginsLock)
+            {
+                decimal begin;
+
+                if (_portfolioValueBegins.TryGetValue(currency, out begin))
+                {
+                    return begin;
+                }
+
+                _portfolioValueBegins[currency] = observedBalance;
+
+                return observedBalance;
+            }
+        }
+
         public void GetPortfolios()
         {
             CreateQueryPortfolio();
@@ -434,7 +469,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                             position.PortfolioName = "BitfinexSpotPortfolio";
                             position.SecurityNameCode = wallet[1].ToString();
-                            position.ValueBegin = wallet[2].ToString().ToDecimal();
+                            position.ValueBegin = GetOrLatchPortfolioValueBegin(wallet[1].ToString(), wallet[2].ToString().ToDecimal());
 
                             if (wallet[4] != null)
                             {
@@ -2540,7 +2575,8 @@ namespace OsEngine.Market.Servers.Bitfinex
                     // null while not calculated yet -> fall back to [2]. Mirrors REST path (CreateQueryPortfolio).
                     decimal balance = Convert.ToDecimal(wallet[2]);
 
-                    position.ValueBegin = balance;
+                    // Begin latched at first snapshot of this currency (see _portfolioValueBegins).
+                    position.ValueBegin = GetOrLatchPortfolioValueBegin(wallet[1].ToString(), balance);
                     position.ValueCurrent = wallet[4] != null ? Convert.ToDecimal(wallet[4]) : balance;
 
                     if (wallet[4] != null)
