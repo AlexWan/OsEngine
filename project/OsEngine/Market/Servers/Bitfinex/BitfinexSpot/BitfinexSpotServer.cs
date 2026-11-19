@@ -2444,12 +2444,17 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     position.PortfolioName = "BitfinexSpotPortfolio";
                     position.SecurityNameCode = wallet[1].ToString();
-                    position.ValueCurrent = wallet[2].ToString().ToDecimal();
-                    position.ValueBegin = wallet[2].ToString().ToDecimal();
+
+                    // Docs (ws-auth-wallets): [2]=BALANCE total, [4]=BALANCE_AVAILABLE is the current one,
+                    // null while not calculated yet -> fall back to [2]. Mirrors REST path (CreateQueryPortfolio).
+                    decimal balance = wallet[2].ToString().ToDecimal();
+
+                    position.ValueBegin = balance;
+                    position.ValueCurrent = wallet[4] != null ? wallet[4].ToString().ToDecimal() : balance;
 
                     if (wallet[4] != null)
                     {
-                        position.ValueBlocked = wallet[2].ToString().ToDecimal() - wallet[4].ToString().ToDecimal();
+                        position.ValueBlocked = balance - wallet[4].ToString().ToDecimal();
                     }
                     else
                     {
