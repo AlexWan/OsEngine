@@ -259,31 +259,21 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            // И по каждому источнику должно быть именно 2 дня.
+            // Намерение 6.1.3/6.1.4: покрытие интервала. Счётчик календарных дат зависел от выравнивания
+            // таймстемпов и резал полное покрытие (bug-0535). Ширина покрытия инвариантна к сдвигу границ;
+            // данные шире окна (целые архивы без обрезки) — не ошибка, раньше третья дата их пенализировала.
+            // Допуск 3 ч — на первый/последний тик, пагинацию и wall-clock сдвиги; меньше дневного архива (24 ч),
+            // поэтому пропуск любого дня даёт shortfall >= 21 ч и ловится.
+            // shortcut: инструмент, залитый внутри окна (startTime = Expiration, OKXDataServer.cs:569), даёт
+            // span < окна и ложный Error 10 — класс false-fail для такого инструмента, не конфигурация D1.
+            DateTime startTimeReal = trades[0].Time;
+            DateTime endTimeReal = trades[trades.Count - 1].Time;
 
-            int daysCount = 1;
-
-            DateTime startTimeReal = DateTime.Now;
-            DateTime endTimeReal = DateTime.Now;
-
-            int curDay = trades[0].Time.Day;
-            startTimeReal = trades[0].Time;
-            endTimeReal = trades[trades.Count - 1].Time;
-
-            for (int i = 0; i < trades.Count; i++)
+            if (endTimeReal - startTimeReal < (endTime - startTime) - TimeSpan.FromHours(3))
             {
-                if (trades[i].Time.Day != curDay)
-                {
-                    daysCount++;
-                    curDay = trades[i].Time.Day;
-                }
-            }
-
-            if (daysCount != 2)
-            {
-                SetNewError("Error 10. Days in trades is not 2. " + timeFrame.ToString() + "\n"
-                    + " StartTime: " + startTimeReal.ToString()
-                    + " EndTime: " + endTimeReal.ToString());
+                SetNewError("Error 10. Trades do not cover the requested interval. " + timeFrame.ToString() + "\n"
+                    + " Requested: " + startTime.ToString() + " - " + endTime.ToString()
+                    + " Actual: " + startTimeReal.ToString() + " - " + endTimeReal.ToString());
             }
         }
 
