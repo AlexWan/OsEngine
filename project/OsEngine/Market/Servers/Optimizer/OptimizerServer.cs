@@ -1828,8 +1828,15 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (orderOnBoard.IsStopOrProfit)
             {
+                // BUG-0482: after teardown no data series ever appears (CheckOrders is dead), a silent return leaves the stop a phantom Active. Veto: same form as BUG-0475 below.
                 if (_candleSeriesTesterActivate == null)
                 {
+                    SendLogMessage("Stop order rejected. Tester is cleared", LogMessageType.Error);
+                    lock (_ordersActiveLocker)
+                    {
+                        OrdersActive.Remove(orderOnBoard);
+                    }
+                    FailedOperationOrder(order);
                     return;
                 }
 
