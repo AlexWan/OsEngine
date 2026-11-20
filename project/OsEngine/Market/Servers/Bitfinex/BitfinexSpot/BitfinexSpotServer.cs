@@ -435,15 +435,21 @@ namespace OsEngine.Market.Servers.Bitfinex
                             position.PortfolioName = "BitfinexSpotPortfolio";
                             position.SecurityNameCode = wallet[1].ToString();
                             position.ValueBegin = wallet[2].ToString().ToDecimal();
-                            position.ValueCurrent = wallet[4].ToString().ToDecimal();
 
                             if (wallet[4] != null)
                             {
+                                position.ValueCurrent = wallet[4].ToString().ToDecimal();
                                 position.ValueBlocked = wallet[2].ToString().ToDecimal() - wallet[4].ToString().ToDecimal();
                             }
                             else
                             {
+                                // BUG-0534: [4]=BALANCE_AVAILABLE — Float/Null по docs/reference/ws-auth-wallets
+                                // (shared Wallet layout, «available balance is null if the value has not yet
+                                // been calculated»): фолбэк на [2]=BALANCE, та же семантика, что WS 'wu' (fix/bug-0514)
+                                position.ValueCurrent = wallet[2].ToString().ToDecimal();
                                 position.ValueBlocked = 0;
+                                SendLogMessage("CreateQueryPortfolio> Available balance not calculated. Wallet: "
+                                    + position.SecurityNameCode + ". Fallback to BALANCE", LogMessageType.System);
                             }
 
                             positions.Add(position);
