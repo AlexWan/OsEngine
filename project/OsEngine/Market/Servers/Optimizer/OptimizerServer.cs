@@ -48,6 +48,9 @@ namespace OsEngine.Market.Servers.Optimizer
             CreatePortfolio(portfolioStratValue);
             NumberServer = num;
 
+            // BUG-0478: the list must exist before the worker thread can reach CheckOrders
+            OrdersActive = new List<Order>();
+
             Task.Run(WorkThreadArea);
 
             _candleManager = new CandleManager(this, StartProgram.IsOsOptimizer);
@@ -56,8 +59,6 @@ namespace OsEngine.Market.Servers.Optimizer
             _candleManager.TypeTesterData = dataStorage.TypeTesterData;
 
             _candleSeriesTesterActivate = new List<SecurityOptimizer>();
-
-            OrdersActive = new List<Order>();
         }
 
         private bool _dividendsIsOn;
@@ -964,6 +965,17 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void CheckOrders()
         {
+            // BUG-0478: worker-thread side of the OrdersActive contract. Re-entrancy is required:
+            // on day rollover CheckRejectOrdersOnClearing calls CancelOnBoardOrder, which takes
+            // the same locker.
+            lock (_ordersActiveLocker)
+            {
+                CheckOrdersLocked();
+            }
+        }
+
+        private void CheckOrdersLocked()
+        {
             if (OrdersActive.Count == 0)
             {
                 return;
@@ -1024,6 +1036,8 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+        // BUG-0478: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInCandleTest(Order order, Candle lastCandle)
         {
             decimal minPrice = decimal.MaxValue;
@@ -1263,6 +1277,8 @@ namespace OsEngine.Market.Servers.Optimizer
             return false;
         }
 
+        // BUG-0478: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime, bool isNewDay)
         {
             SecurityOptimizer security = _candleSeriesTesterActivate.Find(s => s.Security.Name == order.SecurityNameCode);
@@ -1458,6 +1474,8 @@ namespace OsEngine.Market.Servers.Optimizer
             return false;
         }
 
+        // BUG-0478: mutates OrdersActive. Every call path (CheckOrders, worker loop and the
+        // submission stop-fire) holds _ordersActiveLocker. New callers must lock around this call.
         private bool CheckOrdersInMarketDepthTest(Order order, MarketDepth lastMarketDepth)
         {
             if (lastMarketDepth == null)
@@ -1707,6 +1725,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private List<Order> OrdersActive;
 
+        // BUG-0478: OrdersActive is shared between the test worker thread (CheckOrders, day-rollover
+        // cancel storm) and foreign caller threads (ExecuteOrder / CancelOrder from non-gated user
+        // strategy threads). Every access must hold this locker; Monitor is re-entrant by design.
+        private object _ordersActiveLocker = new object();
+
         private int _iteratorNumbersOrders;
 
         private int _iteratorNumbersMyTrades;
@@ -1723,66 +1746,73 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            if (OrdersActive.Count != 0)
+            Order orderOnBoard;
+
+            // BUG-0478: single lock region from the duplicate check through OrdersActive.Add, so
+            // that the check -> Add window cannot be entered by a foreign thread with same NumberUser
+            lock (_ordersActiveLocker)
             {
-                for (int i = 0; i < OrdersActive.Count; i++)
+                if (OrdersActive.Count != 0)
                 {
-                    if (OrdersActive[i].NumberUser == order.NumberUser)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
-                        FailedOperationOrder(order);
-                        return;
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
+                        {
+                            SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
+                            FailedOperationOrder(order);
+                            return;
+                        }
                     }
                 }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
+                    FailedOperationOrder(order);
+                    return;
+                }
+
+                if (order.Volume <= 0)
+                {
+                    SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
+                    FailedOperationOrder(order);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
+                {
+                    SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
+                    FailedOperationOrder(order);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
+                {
+                    SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
+                    FailedOperationOrder(order);
+                    return;
+                }
+
+                orderOnBoard = new Order();
+                orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
+                orderOnBoard.NumberUser = order.NumberUser;
+                orderOnBoard.PortfolioNumber = order.PortfolioNumber;
+                orderOnBoard.Price = order.Price;
+                orderOnBoard.SecurityNameCode = order.SecurityNameCode;
+                orderOnBoard.Side = order.Side;
+                orderOnBoard.State = OrderStateType.Active;
+                orderOnBoard.TimeCallBack = ServerTime;
+                orderOnBoard.TimeCreate = ServerTime;
+                orderOnBoard.TypeOrder = order.TypeOrder;
+                orderOnBoard.Volume = order.Volume;
+                orderOnBoard.Comment = order.Comment;
+                orderOnBoard.LifeTime = order.LifeTime;
+                orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
+                orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
+                orderOnBoard.OrderTypeTime = order.OrderTypeTime;
+
+                OrdersActive.Add(orderOnBoard);
             }
-
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage(OsLocalization.Market.Message40, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (order.Volume <= 0)
-            {
-                SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.PortfolioNumber))
-            {
-                SendLogMessage(OsLocalization.Market.Message43, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(order.SecurityNameCode))
-            {
-                SendLogMessage(OsLocalization.Market.Message44, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            Order orderOnBoard = new Order();
-            orderOnBoard.NumberMarket = _iteratorNumbersOrders++.ToString();
-            orderOnBoard.NumberUser = order.NumberUser;
-            orderOnBoard.PortfolioNumber = order.PortfolioNumber;
-            orderOnBoard.Price = order.Price;
-            orderOnBoard.SecurityNameCode = order.SecurityNameCode;
-            orderOnBoard.Side = order.Side;
-            orderOnBoard.State = OrderStateType.Active;
-            orderOnBoard.TimeCallBack = ServerTime;
-            orderOnBoard.TimeCreate = ServerTime;
-            orderOnBoard.TypeOrder = order.TypeOrder;
-            orderOnBoard.Volume = order.Volume;
-            orderOnBoard.Comment = order.Comment;
-            orderOnBoard.LifeTime = order.LifeTime;
-            orderOnBoard.IsStopOrProfit = order.IsStopOrProfit;
-            orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
-            orderOnBoard.OrderTypeTime = order.OrderTypeTime;
-
-            OrdersActive.Add(orderOnBoard);
 
             if (NewOrderIncomeEvent != null)
             {
@@ -1804,15 +1834,26 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (security == null)
                 {
                     SendLogMessage("Stop order rejected. No test data series for security " + order.SecurityNameCode, LogMessageType.Error);
-                    OrdersActive.Remove(orderOnBoard);
+                    lock (_ordersActiveLocker)
+                    {
+                        OrdersActive.Remove(orderOnBoard);
+                    }
                     FailedOperationOrder(order);
                     return;
                 }
                 if (security.DataType == SecurityTesterDataType.Candle)
                 { // testing with using candles / прогон на свечках
-                    if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
+                    // BUG-0478: the candle-test scans and mutates OrdersActive. Keep test + removal
+                    // atomic against foreign-thread Execute/Cancel
+                    bool executedOnSubmission;
+                    lock (_ordersActiveLocker)
                     {
-                        OrdersActive.Remove(orderOnBoard);
+                        executedOnSubmission = CheckOrdersInCandleTest(orderOnBoard, security.LastCandle);
+
+                        if (executedOnSubmission)
+                        {
+                            OrdersActive.Remove(orderOnBoard);
+                        }
                     }
                 }
             }
@@ -1895,30 +1936,36 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             Order orderToClose = null;
 
-            if (OrdersActive.Count != 0)
+            // BUG-0478: lookup + removal atomic against the worker thread (see _ordersActiveLocker)
+            lock (_ordersActiveLocker)
             {
+                if (OrdersActive.Count != 0)
+                {
+                    for (int i = 0; i < OrdersActive.Count; i++)
+                    {
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
+                        {
+                            orderToClose = OrdersActive[i];
+                            // BUG-0478: first match wins, same idiom as the remove loop below
+                            break;
+                        }
+                    }
+                }
+
+                if (orderToClose == null)
+                {
+                    SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
+                    FailedOperationOrder(order);
+                    return;
+                }
+
                 for (int i = 0; i < OrdersActive.Count; i++)
                 {
                     if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        orderToClose = OrdersActive[i];
+                        OrdersActive.RemoveAt(i);
+                        break;
                     }
-                }
-            }
-
-            if (orderToClose == null)
-            {
-                SendLogMessage(OsLocalization.Market.Message46, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
-            for (int i = 0; i < OrdersActive.Count; i++)
-            {
-                if (OrdersActive[i].NumberUser == order.NumberUser)
-                {
-                    OrdersActive.RemoveAt(i);
-                    break;
                 }
             }
 
