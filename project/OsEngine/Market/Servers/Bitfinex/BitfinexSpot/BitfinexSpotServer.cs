@@ -2367,7 +2367,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
                 List<object> tradeData = JsonConvert.DeserializeObject<List<object>>(tradeDataJson);
 
-                if (tradeData == null)
+                if (tradeData == null || tradeData.Count < 11)
                 {
                     SendLogMessage("UpdateMyTrade> Trade payload json is null", LogMessageType.Error);
                     return;
