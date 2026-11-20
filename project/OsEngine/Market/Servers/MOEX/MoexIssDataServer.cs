@@ -808,18 +808,17 @@ namespace OsEngine.Market.Servers.MOEX
                 }
             }
 
+            // LOTSIZE читаем, где колонка есть в columns ответа (TQBR, CETS — факт дампа runs#350);
+            // нет/ноль/null -> 1
             sec.Lot = 1m;
 
-            if (board == "TQBR")
+            decimal lotSize;
+            string lotSizeValue = IssCell(row, ColIndex(columns, "LOTSIZE"));
+            if (lotSizeValue != null
+                && decimal.TryParse(lotSizeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out lotSize)
+                && lotSize > 0)
             {
-                decimal lotSize;
-                string lotSizeValue = IssCell(row, ColIndex(columns, "LOTSIZE"));
-                if (lotSizeValue != null
-                    && decimal.TryParse(lotSizeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out lotSize)
-                    && lotSize > 0)
-                {
-                    sec.Lot = lotSize;
-                }
+                sec.Lot = lotSize;
             }
 
             sec.VolumeStep = 1m;
