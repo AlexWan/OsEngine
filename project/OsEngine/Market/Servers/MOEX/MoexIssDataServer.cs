@@ -760,17 +760,22 @@ namespace OsEngine.Market.Servers.MOEX
 
             sec.PriceStep = priceStep;
 
-            // F1: DECIMALS применяем только когда шаг пришёл из MINSTEP (TQBR/RFUD) и только после
-            // PriceStep: сеттер шага пересчитывает _decimals (Security.cs:68-93). Фолбэк шаг -> Decimals=0.
+            // F1 (ТЗ-ред.3, tr270): V1 Error 16 — точное равенство Decimals и числа
+            // дробных знаков PriceStep (Var_1_Securities.IsCompairDecimalsAndStep).
+            // ISS его нарушает на 39 бумагах CETS (CNYRUB_TMS dec=6 при step=0.0001).
+            // Колонку DECIMALS применяем только согласованную со шагом: больше знаков —
+            // клампим к знакам шага (не 0), меньше — не перебиваем (сеттер шага уже
+            // посчитал знаки, Security.cs:68-93). Фолбэк шаг (>=1) -> Decimals=0 там же.
             if (stepFromColumn)
             {
+                int stepDigits = StepFractionDigits(priceStep);
                 string decimalsValue = IssCell(row, ColIndex(columns, "DECIMALS"));
                 int decimals;
                 if (decimalsValue != null
                     && int.TryParse(decimalsValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out decimals)
-                    && decimals >= 0)
+                    && decimals >= stepDigits)
                 {
-                    sec.Decimals = decimals;
+                    sec.Decimals = stepDigits;
                 }
             }
 
@@ -848,6 +853,15 @@ namespace OsEngine.Market.Servers.MOEX
             }
 
             return sec;
+        }
+
+        // Число дробных знаков шага без хвостовых нулей — та же мерка, что у V1
+        // Error 16 (Var_1_Securities.IsCompairDecimalsAndStep, tr270).
+        private static int StepFractionDigits(decimal step)
+        {
+            string stepText = step.ToString(CultureInfo.InvariantCulture).TrimEnd('0');
+            int dotIndex = stepText.IndexOf('.');
+            return dotIndex < 0 ? 0 : stepText.Length - dotIndex - 1;
         }
 
         // Индекс колонки по имени в securities.columns; колонки нет — -1 (вызывающий даёт дефолт).
