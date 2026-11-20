@@ -304,6 +304,12 @@ namespace OsEngine.Market.Servers.MFD
                 minutes = "6";
             }
 
+            if (minutes == "")
+            {
+                // Экспорт mfd.ru знает только Period 1–6 (1m/5m/10m/15m/30m/1h); неподдерживаемый ТФ -> null по контракту OsEngine, запрос не уходит
+                return null;
+            }
+
             List<Candle> candles = GetCandles(security, startTime, endTime, minutes);
             return candles;
         }
@@ -324,7 +330,7 @@ namespace OsEngine.Market.Servers.MFD
             requestStr += "?TickerGroup=" + security.NameClass.Split('#')[1];
             requestStr += "&Tickers=" + security.NameId.Split('#')[1];
             requestStr += "&Alias=false&Period=" + minutesCount;
-            requestStr += "&timeframeValue =" + minutesCount;
+            requestStr += "&timeframeValue=" + "1"; // эталон формы mfd: множитель 1, код периода — в Period
             requestStr += "&timeframeDatePart=day&StartDate=" + startTime.Date.ToString("dd/MM/yyyy").Replace("/", ".");
             requestStr += "&EndDate=" + endTime.Date.ToString("dd/MM/yyyy").Replace("/", ".");
             requestStr += "&SaveFormat=0&SaveMode=1&FileName=" + fileName;
