@@ -10,6 +10,7 @@ using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Windows;
 
@@ -175,6 +176,9 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<string> names = new List<string>();
 
+            // F3: анкету синтетики истёкших берём у фьючерса той же базы, шаблон — первое вхождение базы
+            Dictionary<string, Security> templates = new Dictionary<string, Security>();
+
             for (int i = 0; i < allFutures.Count; i++)
             {
                 if (allFutures[i].Name.Length == 0
@@ -201,11 +205,32 @@ namespace OsEngine.Market.Servers.MOEX
                 }
 
                 names.Add(name);
+                templates[name] = allFutures[i];
             }
 
             for (int i = 0; i < names.Count; i++)
             {
-                securities.AddRange(GetFutNamesForTenYears(names[i], allFutures[0].NameId));
+                Security template;
+                if (templates.TryGetValue(names[i], out template) == false)
+                {
+                    template = allFutures[0]; // шаблона базы нет — явный фолбэк на первый фьючерс
+                }
+
+                List<Security> synthSecurities = GetFutNamesForTenYears(names[i], template.NameId);
+
+                foreach (Security synth in synthSecurities)
+                {
+                    synth.PriceStep = template.PriceStep;
+                    synth.PriceStepCost = template.PriceStepCost;
+                    synth.Decimals = template.Decimals;
+                    synth.Lot = template.Lot;
+                    synth.VolumeStep = 1m;
+                    synth.SecurityType = template.SecurityType;
+                    synth.Exchange = template.Exchange;
+                    synth.State = SecurityStateType.Close; // истёкший контракт — Close безусловно
+                }
+
+                securities.AddRange(synthSecurities);
             }
 
             return securities;
@@ -673,13 +698,14 @@ namespace OsEngine.Market.Servers.MOEX
             {
                 JObject json = JObject.Parse(responses[i]);
 
+                JArray columnsArray = json["securities"]["columns"] as JArray;
                 JArray dataArray = (JArray)json["securities"]["data"];
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
                     JArray innerArray = (JArray)dataArray[j];
 
-                    Security newSec = new Security();
+                    Security newSec = MapIssSecurity(columnsArray, innerArray, classes[i]);
                     newSec.Name = innerArray[0].ToString();
                     newSec.NameId = newSec.Name + "#" + classes[i];
 
@@ -703,6 +729,165 @@ namespace OsEngine.Market.Servers.MOEX
             }
 
             return result;
+        }
+
+        // bug-0530 (BUG-0529): анкетные поля строки store `securities`. Маппинг по ИМЕНАМ колонок
+        // из `securities.columns` — состав колонок различен по рынкам, позиции использовать нельзя.
+        // Дефолты по ТЗ-ред.2 (F1/F2/F4); бросать запрещено: нет колонки (ColIndex -1) -> дефолт.
+        private static Security MapIssSecurity(JArray columns, JArray row, string classParam)
+        {
+            Security sec = new Security();
+            sec.Exchange = "MOEX";
+
+            string board = "";
+            string[] classParts = classParam == null ? new string[0] : classParam.Split('#');
+            if (classParts.Length > 2)
+            {
+                board = classParts[2];
+            }
+
+            int minStepIndex = ColIndex(columns, "MINSTEP");
+            string minStepValue = IssCell(row, minStepIndex);
+            decimal priceStep = 0m;
+            bool stepFromColumn = minStepValue != null
+                && decimal.TryParse(minStepValue, NumberStyles.Number, CultureInfo.InvariantCulture, out priceStep)
+                && priceStep > 0;
+
+            if (stepFromColumn == false)
+            {
+                priceStep = 1m; // индексы/CETS и пропавшая колонка — фолбэк шаг
+            }
+
+            sec.PriceStep = priceStep;
+
+            // F1: DECIMALS применяем только когда шаг пришёл из MINSTEP (TQBR/RFUD) и только после
+            // PriceStep: сеттер шага пересчитывает _decimals (Security.cs:68-93). Фолбэк шаг -> Decimals=0.
+            if (stepFromColumn)
+            {
+                string decimalsValue = IssCell(row, ColIndex(columns, "DECIMALS"));
+                int decimals;
+                if (decimalsValue != null
+                    && int.TryParse(decimalsValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out decimals)
+                    && decimals >= 0)
+                {
+                    sec.Decimals = decimals;
+                }
+            }
+
+            if (board == "TQBR")
+            {
+                sec.State = IssCell(row, ColIndex(columns, "STATUS")) == "A"
+                    ? SecurityStateType.Activ : SecurityStateType.Close;
+            }
+            else if (board == "RFUD")
+            {
+                DateTime lastTradeDate;
+                string lastTradeDateValue = IssCell(row, ColIndex(columns, "LASTTRADEDATE"));
+                sec.State = lastTradeDateValue != null
+                    && DateTime.TryParse(lastTradeDateValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out lastTradeDate)
+                    && lastTradeDate.Date >= DateTime.Today
+                    ? SecurityStateType.Activ : SecurityStateType.Close;
+            }
+            else
+            {
+                sec.State = SecurityStateType.Activ; // индексы и валюта — доска не протухает
+            }
+
+            sec.PriceStepCost = priceStep;
+
+            if (board == "RFUD")
+            {
+                // F2: у фьючерсов стоимость шага — колонка STEPPRICE, нет/ноль — сам шаг
+                decimal stepCost;
+                string stepCostValue = IssCell(row, ColIndex(columns, "STEPPRICE"));
+                if (stepCostValue != null
+                    && decimal.TryParse(stepCostValue, NumberStyles.Number, CultureInfo.InvariantCulture, out stepCost)
+                    && stepCost > 0)
+                {
+                    sec.PriceStepCost = stepCost;
+                }
+            }
+
+            sec.Lot = 1m;
+
+            if (board == "TQBR")
+            {
+                decimal lotSize;
+                string lotSizeValue = IssCell(row, ColIndex(columns, "LOTSIZE"));
+                if (lotSizeValue != null
+                    && decimal.TryParse(lotSizeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out lotSize)
+                    && lotSize > 0)
+                {
+                    sec.Lot = lotSize;
+                }
+            }
+
+            sec.VolumeStep = 1m;
+
+            if (board == "RFUD")
+            {
+                // SECTYPE в RFUD — код базового актива ("BR"), тип из него брать нельзя
+                sec.SecurityType = SecurityType.Futures;
+            }
+            else if (board == "CETS")
+            {
+                sec.SecurityType = SecurityType.CurrencyPair;
+            }
+            else if (board == "TQBR")
+            {
+                sec.SecurityType = SecurityType.Stock;
+                string secType = IssCell(row, ColIndex(columns, "SECTYPE"));
+                // F4: ветка Fund работает, только пока в columns ответа есть SECTYPE; без колонки мертва
+                if (secType == "ETF" || secType == "J")
+                {
+                    sec.SecurityType = SecurityType.Fund;
+                }
+            }
+            else
+            {
+                sec.SecurityType = SecurityType.Index; // RTSI/SNDX и прочие индексные доски
+            }
+
+            return sec;
+        }
+
+        // Индекс колонки по имени в securities.columns; колонки нет — -1 (вызывающий даёт дефолт).
+        private static int ColIndex(JArray columns, string columnName)
+        {
+            if (columns == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < columns.Count; i++)
+            {
+                if (string.Equals(IssCell(columns, i), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        // Ячейка строки/колонок в инвариантном формате; за границами или JSON null — null.
+        private static string IssCell(JArray array, int index)
+        {
+            if (array == null || index < 0 || index >= array.Count)
+            {
+                return null;
+            }
+
+            JToken token = array[index];
+
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                return null;
+            }
+
+            return token is IFormattable formattable
+                ? formattable.ToString(null, CultureInfo.InvariantCulture)
+                : token.ToString();
         }
 
         public event Action<List<Security>> SecurityEvent;
