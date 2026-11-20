@@ -353,7 +353,41 @@ namespace OsEngine.Market.Servers.TInvest
                                     continue;
                                 }
 
-                                if (TryReconnectDataStream(streamToReconnect) == true)
+                                // FIX-0472 (R6): гашение livelock мгновенных respawn при исчерпании
+                                // токенного бюджета стримов (80001, детектор — в catch читателя).
+                                // Эскалация проверяется ДО временного гейта: третий блок эскалирует сразу
+                                bool fix472Escalate = false;
+                                if (streamToReconnect.StreamBlockCount >= 3)
+                                {
+                                    fix472Escalate = true;
+                                    SendLogMessage("FIX-0472: stream " + streamToReconnect.Name
+                                        + " blocked 3 times (token stream budget). Forced disconnect.", LogMessageType.System);
+                                }
+                                else if (DateTime.UtcNow < streamToReconnect.StreamBlockedUntilUtc)
+                                {
+                                    // пропуск respawn — success-ветка (чекпойнт ОдБ (a)), НЕ fallthrough
+                                    // в форс-дисконнект; тихо, первая пропуска — одна System-строка
+                                    if ((streamToReconnect.StreamBlockedUntilUtc - DateTime.UtcNow).TotalSeconds > 110)
+                                    {
+                                        SendLogMessage("FIX-0472: respawn of " + streamToReconnect.Name
+                                            + " skipped. Stream blocked by broker until "
+                                            + streamToReconnect.StreamBlockedUntilUtc.ToString("HH:mm:ss") + " UTC", LogMessageType.System);
+                                    }
+                                    continue;
+                                }
+                                else if (streamToReconnect.StreamBlockCount > 0 && GetFreeMdStreamSlots() <= 0)
+                                {
+                                    // блок истёк, но бюджета нет — всё ещё пропуск (не цикл respawn)
+                                    if (DateTime.UtcNow - _lastFix472NoticeUtc > TimeSpan.FromSeconds(60))
+                                    {
+                                        _lastFix472NoticeUtc = DateTime.UtcNow;
+                                        SendLogMessage("FIX-0472: respawn of " + streamToReconnect.Name
+                                            + " skipped. No free stream slots per tariff", LogMessageType.System);
+                                    }
+                                    continue;
+                                }
+
+                                if (!fix472Escalate && TryReconnectDataStream(streamToReconnect) == true)
                                 {
                                     streamToReconnect.LastMessageTime = DateTime.UtcNow;
                                     SendLogMessage(OsLocalization.Market.Label295 + $"\n{streamToReconnect.Name}. ConnectionCheckThread()", LogMessageType.System);
@@ -377,6 +411,21 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     else
                     {
+                        // FIX-0472 (Часть 4): возврат в стрим-режим только при подтверждённом
+                        // бюджете (GetFreeMdStreamSlots с перевызовом протухшего тарифа, R1).
+                        // Already-polled подписки не промоутятся — новые пойдут в стримы
+                        if (_useStreamForMarketData == false
+                            && _marketDataStreams != null
+                            && GetFreeMdStreamSlots() > 0)
+                        {
+                            _useStreamForMarketData = true;
+                            if (DateTime.UtcNow - _lastFix472NoticeUtc > TimeSpan.FromSeconds(60))
+                            {
+                                _lastFix472NoticeUtc = DateTime.UtcNow;
+                                SendLogMessage("FIX-0472: market data stream budget is free. New subscriptions go to streams", LogMessageType.System);
+                            }
+                        }
+
                         // bug-0023 F2: order book staleness. Predicates and re-subscription live here only (C1);
                         // the reader failure hook just raises the pending flag, no stream access from reader thread
                         List<string> obProbes = OrderBookProbeSnapshot();
@@ -646,6 +695,22 @@ namespace OsEngine.Market.Servers.TInvest
 
         // лимит стримов маркет-даты: обновляется из тарифа пользователя (GetUserTariff)
         private int _maxMarketDataStreams = 16;
+
+        // FIX-0472 (R1/R4): бюджет стримов по тарифу. Снимок пишется в начале ПОПЫТКИ GetUserLimits,
+        // -1 = тариф неизвестен. All-агрегаты — по всем записям StreamLimits (консервативно:
+        // LimitAll = минимальный Limit записи, OpenAll = сумма Open)
+        private int _tariffMdStreamLimit = -1;
+        private int _tariffMdStreamOpen = 0;
+        private int _tariffStreamLimitAll = -1;
+        private int _tariffStreamOpenAll = 0;
+        private DateTime _tariffMdStreamTime = DateTime.MinValue;
+
+        // FIX-0472 (R7.2): монотонный суффикс имён обёрток: (Count+1) переиспользует имена после
+        // удалений пустых стримов ватчдогом и ломает поиск потерянного стрима по имени
+        private int _streamNameSeq = 0;
+
+        // FIX-0472: троттл System-уведомлений пропуска/раслипанию (не чаще одного в минуту)
+        private DateTime _lastFix472NoticeUtc = DateTime.MinValue;
 
         // единый deadline для unary-вызовов: на мёртвом канале вызов обязан упасть
         // за секунды (DeadlineExceeded), а не висеть до TCP-таймаута
@@ -2463,6 +2528,14 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void GetUserLimits()
         {
+            // FIX-0472 (R1): время ПОПЫТКИ — неуспешный вызов не должен провоцировать
+            // перевызов на каждый запрос бюджета; тариф до ответа считается неизвестным
+            _tariffMdStreamTime = DateTime.UtcNow;
+            _tariffMdStreamLimit = -1;
+            _tariffMdStreamOpen = 0;
+            _tariffStreamLimitAll = -1;
+            _tariffStreamOpenAll = 0;
+
             GetUserTariffRequest request = new GetUserTariffRequest();
             GetUserTariffResponse response = null;
             try
@@ -2483,10 +2556,17 @@ namespace OsEngine.Market.Servers.TInvest
                 return;
 
             string limits = "";
+            int limitAll = 0;
+            int openAll = 0;
             for (int i = 0; i < response.StreamLimits.Count; i++)
             {
                 StreamLimit sl = response.StreamLimits[i];
                 limits += $"\n {sl.Open}/{sl.Limit}: {sl.Streams}";
+
+                // FIX-0472 (R4): All-агрегат по всем записям: самый тесный Limit, суммарный Open
+                if (sl.Limit > 0 && (limitAll == 0 || sl.Limit < limitAll))
+                    limitAll = sl.Limit;
+                openAll += sl.Open;
 
                 for (int j = 0; j < sl.Streams.Count; j++)
                 {
@@ -2494,11 +2574,45 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         // запас в один стрим - на переподключение
                         _maxMarketDataStreams = Math.Max(2, sl.Limit - 1);
+
+                        // FIX-0472: снимок тарифа для GetFreeMdStreamSlots (учитываем Open, а не только Limit)
+                        _tariffMdStreamLimit = sl.Limit;
+                        _tariffMdStreamOpen = sl.Open;
                     }
                 }
             }
 
+            _tariffStreamLimitAll = limitAll;
+            _tariffStreamOpenAll = openAll;
+
             SendLogMessage($"User stream limits: {limits}", LogMessageType.User);
+        }
+
+        /// <summary>
+        /// FIX-0472 (1.2): свободные слоты MD-стримов с учётом токенного бюджета брокера.
+        /// Формула с ДВОЙНЫМ запасом: -1 внутри min (общий лимит на все сервисы) и ещё -1 на
+        /// переподключение; +3 — фиксированные не-MD стримы коннектора (портфель/позиции/ордера).
+        /// На минимальном тарифе бюджет схлопывается в 0 — консервативно, в polling (M-B8).
+        /// Перевызв тарифа при возрасте &gt; 2 минут (R1); тариф неизвестен — только локальная сторона.
+        /// </summary>
+        private int GetFreeMdStreamSlots()
+        {
+            if (DateTime.UtcNow - _tariffMdStreamTime > TimeSpan.FromMinutes(2))
+            {
+                GetUserLimits();
+            }
+
+            int localCount = _marketDataStreams == null ? 0 : _marketDataStreams.Count;
+            int localFree = Math.Max(0, _maxMarketDataStreams - localCount);
+
+            if (_tariffMdStreamLimit <= 0 || _tariffStreamLimitAll <= 0)
+                return localFree;
+
+            int serverFree = Math.Max(0,
+                Math.Min(_tariffMdStreamLimit, _tariffStreamLimitAll - 1)
+                - 1 - Math.Max(Math.Max(_tariffMdStreamOpen, _tariffStreamOpenAll), localCount + 3));
+
+            return Math.Min(serverFree, localFree);
         }
 
         private static X509Certificate2[] LoadTInvestCertificates()
@@ -2646,6 +2760,10 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void ConnectGRPCStreams()
         {
+            // FIX-0472 (Часть 4): реконнект сбрасывает латч polling — при подтверждённом
+            // бюджете новые подписки снова пойдут в стримы (предикат ватчдога ниже)
+            _useStreamForMarketData = true;
+
             RepeatedField<string> accountsList = new RepeatedField<string>();
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
@@ -2948,6 +3066,9 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     catch (Exception ex)
                     {
+                        // FIX-0472 (2.1): страховка — при наблюдаемой форме (80001 статусом после
+                        // «успешного» создания) запись буферизуется и сюда не всплывает;
+                        // первичный детектор — классификатор R5 в catch читателя
                         SendLogMessage("Ping settings write failed on " + streamWrapper.Name + ": " + ex.Message, LogMessageType.System);
                     }
 
@@ -3467,11 +3588,12 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (streamWrapperCommon == null)
                 {
-                    if (_marketDataStreams.Count < _maxMarketDataStreams)
+                    // FIX-0472 (1.2/1.3): бюджет с учётом токенного лимита брокера, не голый локальный кэп
+                    if (GetFreeMdStreamSlots() > 0)
                     {
                         streamWrapperCommon = new MarketDataStreamWrapper()
                         {
-                            Name = "Market data stream " + (_marketDataStreams.Count + 1) + " Common",
+                            Name = "Market data stream " + (++_streamNameSeq) + " Common",
                             IsConnected = false,
                             LastMessageTime = DateTime.UtcNow,
                         };
@@ -3509,11 +3631,12 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (streamWrapperMarketDepth == null)
                 {
-                    if (_marketDataStreams.Count < _maxMarketDataStreams)
+                    // FIX-0472 (1.2/1.3): бюджет с учётом токенного лимита брокера, не голый локальный кэп
+                    if (GetFreeMdStreamSlots() > 0)
                     {
                         streamWrapperMarketDepth = new MarketDataStreamWrapper()
                         {
-                            Name = "Market data stream " + (_marketDataStreams.Count + 1) + " MarketDepth",
+                            Name = "Market data stream " + (++_streamNameSeq) + " MarketDepth",
                             IsConnected = false,
                             LastMessageTime = DateTime.UtcNow,
                         };
@@ -3915,6 +4038,14 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     _lastMarketDataTime = DateTime.UtcNow;
                     streamWrapper.LastMessageTime = _lastMarketDataTime;
+
+                    // FIX-0472 (чекпойнт ОдБ (b)): первое сообщение после блока обнуляет счётчик —
+                    // разрозненные транзиенты не накапливаются в эскалацию
+                    if (streamWrapper.StreamBlockCount != 0)
+                    {
+                        streamWrapper.StreamBlockCount = 0;
+                    }
+
                     ProcessMarketDataResponse(marketData, streamWrapper);
                 }
 
@@ -3947,6 +4078,21 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     // штатная остановка коннектора
                     return;
+                }
+
+                // FIX-0472 (R5): первичный детектор исчерпания токенного бюджета стримов —
+                // сервер отбивает живой стрим статусом ResourceExhausted (80001). Блокируем
+                // respawn на 120 с; ОДИН Error на блок (Error = окно+Beep, не спамим).
+                // Cancelled/Disposal — не блокер (наше следствие реконнекта). ServerStatus не трогаем
+                if (ex is RpcException rpcExMd && rpcExMd.StatusCode == StatusCode.ResourceExhausted
+                    && streamWrapper.Subscriptions.Count > 0)
+                {
+                    streamWrapper.StreamBlockedUntilUtc = DateTime.UtcNow.AddSeconds(120);
+                    streamWrapper.StreamBlockCount++;
+                    streamWrapper.LastReconnectError = rpcExMd;
+                    SendLogMessage($"FIX-0472: broker refused stream {streamWrapper.Name} (ResourceExhausted, subs="
+                        + streamWrapper.Subscriptions.Count + "). Stream blocked for 120s, respawn suppressed. Detail: "
+                        + rpcExMd.Status.Detail, LogMessageType.Error);
                 }
 
                 SendLogMessage($"TInvest stream {streamWrapper.Name} exception: " + ex.Message, LogMessageType.System);

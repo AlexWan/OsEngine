@@ -22,5 +22,11 @@ namespace OsEngine.Market.Servers.TInvest.Entity
 
         // время запроса GetMySubscriptions для реконсиляции подписок (минимальное значение - не запрошено)
         public DateTime ReconcileRequestTime { get; set; }
+
+        // FIX-0472 (R5/R7.1): состояние блока стрима по бюджету брокера (80001).
+        // Ставит читатель при ResourceExhausted, читает ватчдог перед respawn
+        public DateTime StreamBlockedUntilUtc { get; set; }
+        public int StreamBlockCount { get; set; }
+        public Exception LastReconnectError { get; set; }
     }
 }
