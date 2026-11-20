@@ -1426,8 +1426,13 @@ namespace OsEngine.Market.Servers.Tester
 
                     List<Trade> lastTrades = security.LastTradeSeries;
 
+                    // BUG-0492: in day lacunas (weekends, holidays, holes in the archive) the tick file
+                    // yields nothing for the new day and LastTradeSeries keeps yesterday's trades; stops
+                    // are executed on them. Freshness gate by TimeNow: ServerTime is frozen in a lacuna
+                    // (written only on data arrival), so it cannot be the predicate.
                     if (lastTrades != null
                         && lastTrades.Count != 0
+                        && lastTrades[lastTrades.Count - 1].Time.Date == TimeNow.Date
                         && CheckOrdersInTickTest(order, lastTrades[lastTrades.Count - 1], false, security.IsNewDayTrade))
                     {
                         i--;
