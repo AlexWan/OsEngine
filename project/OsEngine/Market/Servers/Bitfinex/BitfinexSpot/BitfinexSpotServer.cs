@@ -2289,7 +2289,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (root == null || root.Count < 3 || root[2] == null)
                 {
-                    SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateTrade> Root json empty or too short", LogMessageType.Error);
                     return;
                 }
 
@@ -2299,7 +2299,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (tradeData == null || tradeData.Count < 4)
                 {
-                    SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateTrade> Trade payload json empty or too short", LogMessageType.Error);
                     return;
                 }
 
@@ -2308,7 +2308,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 // трейд, т.к. Convert.ToDecimal(null)=0. Текст Error — штатный.
                 if (tradeData == null || tradeData.Count < 4 || tradeData[2] == null || tradeData[3] == null)
                 {
-                    SendLogMessage("UpdateTrade> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateTrade> Trade payload fields are null", LogMessageType.Error);
                     return;
                 }
 
@@ -2369,7 +2369,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (tradeData == null)
                 {
-                    SendLogMessage("UpdateMyTrade> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateMyTrade> Trade payload json is null", LogMessageType.Error);
                     return;
                 }
 
@@ -2417,7 +2417,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (rootArray == null)
                 {
-                    SendLogMessage("UpdateOrder> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateOrder> Root json is null", LogMessageType.Error);
                     return;
                 }
 
@@ -2425,7 +2425,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (orderDataList == null)
                 {
-                    SendLogMessage("UpdateOrder> Received empty json", LogMessageType.Error);
+                    SendLogMessage("UpdateOrder> Order payload json is null", LogMessageType.Error);
                     return;
                 }
 
