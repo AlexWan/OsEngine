@@ -1565,11 +1565,13 @@ namespace OsEngine.Market.Servers.TInvest
                                 }
                                 catch (Exception ex)
                                 {
-                                    // код ошибки в начале Detail (live-формат tr262: Detail="30051"); Contains по наивному подстроке ловит эхо чужих чисел
+                                    // код в начале Detail с нецифровым разделителем (live tr262: Detail="30051"); граница не даёт «300511» загейтить соседний код
                                     if (ex is RpcException rpcMargin
                                         && rpcMargin.StatusCode == StatusCode.InvalidArgument
                                         && rpcMargin.Status.Detail != null
-                                        && rpcMargin.Status.Detail.StartsWith("30051", StringComparison.Ordinal))
+                                        && (rpcMargin.Status.Detail == "30051"
+                                            || (rpcMargin.Status.Detail.StartsWith("30051", StringComparison.Ordinal)
+                                                && !char.IsDigit(rpcMargin.Status.Detail[5]))))
                                     {
                                         // TryAdd — ровно один маркер на аккаунт при гонке потоков (watchdog и ридер портфелей)
                                         if ((_marginDisabledAccounts ??= new ConcurrentDictionary<string, bool>()).TryAdd(account.Id, true))
