@@ -361,29 +361,36 @@ namespace OsEngine.Market.Servers.TInvest
                                 {
                                     fix472Escalate = true;
                                     SendLogMessage("FIX-0472: stream " + streamToReconnect.Name
-                                        + " blocked 3 times (token stream budget). Forced disconnect.", LogMessageType.System);
+                                        + " blocked 3 times (token stream budget). Forced disconnect. Last error: "
+                                        + (streamToReconnect.LastReconnectError == null
+                                            ? "(none)" : streamToReconnect.LastReconnectError.Message), LogMessageType.System);
                                 }
                                 else if (DateTime.UtcNow < streamToReconnect.StreamBlockedUntilUtc)
                                 {
                                     // пропуск respawn — success-ветка (чекпойнт ОдБ (a)), НЕ fallthrough
-                                    // в форс-дисконнект; тихо, первая пропуска — одна System-строка
-                                    if ((streamToReconnect.StreamBlockedUntilUtc - DateTime.UtcNow).TotalSeconds > 110)
+                                    // в форс-дисконнект. Sleep обязателен: вершина цикла в Connect не спит.
+                                    // Уведомление — через троттл 60 с, не чаще остальных
+                                    if (DateTime.UtcNow - _lastFix472NoticeUtc > TimeSpan.FromSeconds(60))
                                     {
+                                        _lastFix472NoticeUtc = DateTime.UtcNow;
                                         SendLogMessage("FIX-0472: respawn of " + streamToReconnect.Name
                                             + " skipped. Stream blocked by broker until "
                                             + streamToReconnect.StreamBlockedUntilUtc.ToString("HH:mm:ss") + " UTC", LogMessageType.System);
                                     }
+                                    Thread.Sleep(2000);
                                     continue;
                                 }
                                 else if (streamToReconnect.StreamBlockCount > 0 && GetFreeMdStreamSlots() <= 0)
                                 {
-                                    // блок истёк, но бюджета нет — всё ещё пропуск (не цикл respawn)
+                                    // блок истёк, но бюджета нет — всё ещё пропуск (не цикл respawn),
+                                    // Sleep обязателен (см. выше)
                                     if (DateTime.UtcNow - _lastFix472NoticeUtc > TimeSpan.FromSeconds(60))
                                     {
                                         _lastFix472NoticeUtc = DateTime.UtcNow;
                                         SendLogMessage("FIX-0472: respawn of " + streamToReconnect.Name
                                             + " skipped. No free stream slots per tariff", LogMessageType.System);
                                     }
+                                    Thread.Sleep(2000);
                                     continue;
                                 }
 
@@ -3593,7 +3600,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         streamWrapperCommon = new MarketDataStreamWrapper()
                         {
-                            Name = "Market data stream " + (++_streamNameSeq) + " Common",
+                            Name = "Market data stream " + Interlocked.Increment(ref _streamNameSeq) + " Common",
                             IsConnected = false,
                             LastMessageTime = DateTime.UtcNow,
                         };
@@ -3636,7 +3643,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         streamWrapperMarketDepth = new MarketDataStreamWrapper()
                         {
-                            Name = "Market data stream " + (++_streamNameSeq) + " MarketDepth",
+                            Name = "Market data stream " + Interlocked.Increment(ref _streamNameSeq) + " MarketDepth",
                             IsConnected = false,
                             LastMessageTime = DateTime.UtcNow,
                         };
