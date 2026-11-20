@@ -259,31 +259,39 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            // И по каждому источнику должно быть именно 2 дня.
-
-            int daysCount = 1;
-
-            DateTime startTimeReal = DateTime.Now;
-            DateTime endTimeReal = DateTime.Now;
-
-            int curDay = trades[0].Time.Day;
-            startTimeReal = trades[0].Time;
-            endTimeReal = trades[trades.Count - 1].Time;
+            // Намерение 6.1.3/6.1.4: покрытие интервала. Счётчик календарных дат (bug-0535) резал полное
+            // покрытие на необрезаемых архивах; чистый span (U-1) режет сессионные биржи без внутридневной
+            // обрезки. Error 10, если интервал не покрыт (span < окна-3ч) И нет сессионного паттерна:
+            // обе даты окна затронуты и концевая дата докачана не ниже 75% сегмента.
+            // Данные шире окна (голова/хвост вне границ) — норма, источники не обрезаются.
+            // Дыра внутри дня при целом span не ловится (зона D3 Validation_Trades), как и старым счётчиком.
+            // shortcut: укороченный торговый день глубже 75% сегмента (праздник <17:16 wall) => ложный Error 10;
+            // апгрейд — оракул по TradingTimes. Expiration-инструмент с листингом внутри окна и earliest-кламп
+            // (BybitData :512-514, BinanceData :542-554) проходят через D при плотной докачке до конца окна.
+            DateTime spanStart = trades[0].Time;
+            DateTime spanEnd = trades[0].Time;
+            DateTime endDayStart = endTime.Date > startTime ? endTime.Date : startTime;
+            DateTime endDayLast = DateTime.MinValue;
+            bool startDayTouched = false;
 
             for (int i = 0; i < trades.Count; i++)
             {
-                if (trades[i].Time.Day != curDay)
-                {
-                    daysCount++;
-                    curDay = trades[i].Time.Day;
-                }
+                DateTime t = trades[i].Time;
+                if (t < spanStart) spanStart = t;
+                if (t > spanEnd) spanEnd = t;
+                if (t >= startTime && t < endDayStart) startDayTouched = true;
+                if (t >= endDayStart && t <= endTime && t > endDayLast) endDayLast = t;
             }
 
-            if (daysCount != 2)
+            bool covered = spanEnd - spanStart >= (endTime - startTime) - TimeSpan.FromHours(3);
+            bool sessionPattern = startDayTouched && endDayLast != DateTime.MinValue
+                && (endDayLast - endDayStart).TotalHours >= (endTime - endDayStart).TotalHours * 0.75;
+
+            if (!covered && !sessionPattern)
             {
-                SetNewError("Error 10. Days in trades is not 2. " + timeFrame.ToString() + "\n"
-                    + " StartTime: " + startTimeReal.ToString()
-                    + " EndTime: " + endTimeReal.ToString());
+                SetNewError("Error 10. Trades do not cover the requested interval. " + timeFrame.ToString() + "\n"
+                    + " Requested: " + startTime.ToString() + " - " + endTime.ToString()
+                    + " Actual: " + spanStart.ToString() + " - " + spanEnd.ToString());
             }
         }
 
