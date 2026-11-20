@@ -4489,6 +4489,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name. Will be written to position property: SignalTypeClose</param>
         public void CloseAtMarket(Position position, decimal volume, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeClose = signalType;
             CloseAtMarket(position, volume);
         }
@@ -4536,6 +4540,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name. Will be written to position property: SignalTypeClose</param>
         public void CloseAtLimit(Position position, decimal priceLimit, decimal volume, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeClose = signalType;
             CloseAtLimit(position, priceLimit, volume);
         }
