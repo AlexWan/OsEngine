@@ -91,6 +91,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     IRestResponse responseMessage = CreatePublicQuery("/future/public/client", Method.GET);
 
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("Connect: response is null", LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent?.Invoke();
+                        return;
+                    }
+
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         try
@@ -209,7 +217,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     IRestResponse response = CreatePublicQuery("/future/market/v3/public/symbol/list", Method.GET, "");
 
-                    if (response.StatusCode == HttpStatusCode.OK && response != null)
+                    if (response == null)
+                    {
+                        SendLogMessage("GetSecurities: response is null", LogMessageType.Error);
+                        return;
+                    }
+
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
                         XTFuturesResponseRest<XTFuturesSymbolListResult> securityList =
                             JsonConvert.DeserializeObject<XTFuturesResponseRest<XTFuturesSymbolListResult>>(response.Content);
@@ -458,7 +472,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     IRestResponse response = CreatePrivateQuery("/future/user/v1/position", Method.GET);
 
-                    if (response == null || response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
+                    if (response == null)
+                    {
+                        SendLogMessage("CreateQueryPositions: response is null", LogMessageType.Error);
+                        return;
+                    }
+
+                    if (response.StatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(response.Content))
                     {
                         SendLogMessage($"CreateQueryPositions: {response.StatusCode} || {response.Content}", LogMessageType.Error);
                         return;
@@ -691,12 +711,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     IRestResponse responseMessage = CreatePublicQuery("/future/market/v1/public/q/kline", Method.GET, param);
 
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("CreateQueryCandles: response is null", LogMessageType.Error);
+                        return null;
+                    }
+
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
-                        if (responseMessage == null)
-                        {
-                            return null;
-                        }
 
                         XTFuturesResponseRest<List<XTFuturesCandle>> symbols = JsonConvert.DeserializeObject<XTFuturesResponseRest<List<XTFuturesCandle>>>(responseMessage.Content);
 
@@ -2119,6 +2141,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, body);
 
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("CancelAllOrders: response is null", LogMessageType.Error);
+                        return;
+                    }
+
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
@@ -2149,6 +2177,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/cancel-all", Method.POST, null, body: jsonRequest);
+
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("CancelAllOrdersToSecurity: response is null", LogMessageType.Error);
+                        return;
+                    }
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
@@ -2187,6 +2221,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     };
 
                     IRestResponse response = CreatePrivateQuery("/future/trade/v1/order/cancel", Method.POST, query: null, body: body);
+
+                    if (response == null)
+                    {
+                        SendLogMessage("CancelOrder: response is null", LogMessageType.Error);
+                        return false;
+                    }
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
@@ -2280,6 +2320,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 try
                 {
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/list-open-order", Method.POST);
+
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("GetAllOpenOrders: response is null", LogMessageType.Error);
+                        return;
+                    }
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
@@ -2441,6 +2487,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     IRestResponse response = CreatePrivateQuery("/future/trade/v1/order/trade-list", Method.GET, query: "orderId=" + orderIdStr);
 
+                    if (response == null)
+                    {
+                        SendLogMessage("CreateQueryMyTrade: response is null", LogMessageType.Error);
+                        return;
+                    }
+
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         XTFuturesResponseRest<XTFuturesTradeHistoryResult> stateResponse =
@@ -2577,6 +2629,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     IRestResponse responseMessage = CreatePrivateQuery("/future/trade/v1/order/list-history", Method.GET, query);
 
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("GetAllHistoricalOrders: response is null", LogMessageType.Error);
+                        return;
+                    }
+
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
                         XTFuturesResponseRest<XTFuturesOrderResult> stateResponse =
@@ -2691,6 +2749,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 try
                 {
                     IRestResponse responseMessage = CreatePrivateQuery("/future/user/v1/user/listen-key", Method.GET);
+
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage("GetListenKey: response is null", LogMessageType.Error);
+                        return null;
+                    }
 
                     XTFuturesResponseRest<string> stateResponse = JsonConvert.DeserializeObject<XTFuturesResponseRest<string>>(responseMessage.Content);
 
