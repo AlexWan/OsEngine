@@ -287,9 +287,18 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 newSecurities.Add(newSecurity);
                             }
 
-                            _listSecurities = newSecurities;
+                            // гейт вырожденного снимка (review-20261121-012): пустой после фильтра успех не обнуляет список —
+                            // AServer рефетчит только при пустом своём (:1429), пустая публикация мертва (:2384)
+                            if (newSecurities.Count > 0)
+                            {
+                                _listSecurities = newSecurities;
 
-                            SecurityEvent?.Invoke(_listSecurities);
+                                SecurityEvent?.Invoke(_listSecurities);
+                            }
+                            else
+                            {
+                                SendLogMessage("XTFutures WARNING FIX0573 Securities response empty after filter. Previous list kept", LogMessageType.System);
+                            }
                         }
                         else
                         {
