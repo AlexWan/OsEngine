@@ -2299,8 +2299,11 @@ namespace OsEngine.OsTrader
         /// </summary>
         private bool TabsScreenerIsActive()
         {
-            if (_activePanel.TabsScreener == null ||
-                _activePanel.TabsScreener.Count == 0)
+            // Each getter call returns a NEW snapshot: use one for null+Count (BUG-0359)
+            List<BotTabScreener> screenerTabs = _activePanel.TabsScreener;
+
+            if (screenerTabs == null ||
+                screenerTabs.Count == 0)
             {
                 return false;
             }
@@ -2326,9 +2329,12 @@ namespace OsEngine.OsTrader
 
                 if (TabsScreenerIsActive())
                 {
-                    for (int i = 0; i < _activePanel.TabsScreener.Count; i++)
+                    // One snapshot: re-invoking the getter on Count/[i] is a refetch race (BUG-0359)
+                    List<BotTabScreener> screenerTabs = _activePanel.TabsScreener;
+
+                    for (int i = 0; i < screenerTabs.Count; i++)
                     {
-                        if (_activePanel.TabsScreener[i].IsLoadTabs == true)
+                        if (screenerTabs[i].IsLoadTabs == true)
                         {
                             SendNewLogMessage(OsLocalization.Trader.Label183, LogMessageType.Error);
                             return;

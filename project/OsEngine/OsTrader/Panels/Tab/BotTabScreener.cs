@@ -858,9 +858,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<Journal.Journal> journals = new List<Journal.Journal>();
 
-                for (int i = 0; i < Tabs.Count; i++)
+                // Tabs is mutated by the screener worker under _tabsLocker: snapshot via CopyTabsInto (BUG-0359)
+                List<BotTabSimple> tabs = new List<BotTabSimple>();
+                CopyTabsInto(tabs);
+
+                for (int i = 0; i < tabs.Count; i++)
                 {
-                    journals.Add(Tabs[i].GetJournal());
+                    journals.Add(tabs[i].GetJournal());
                 }
 
                 return journals;
@@ -879,13 +883,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if (Tabs == null ||
-                    Tabs.Count == 0)
+                // Tabs is mutated by the screener worker under _tabsLocker: snapshot via CopyTabsInto (BUG-0359)
+                List<BotTabSimple> tabs = new List<BotTabSimple>();
+                CopyTabsInto(tabs);
+
+                if (tabs.Count == 0)
                 {
                     return false;
                 }
-
-                List<BotTabSimple> tabs = Tabs;
 
                 for (int i2 = 0; i2 < tabs.Count; i2++)
                 {
