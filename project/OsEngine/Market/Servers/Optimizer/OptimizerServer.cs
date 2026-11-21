@@ -202,6 +202,13 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public void TestingStart()
         {
+            // per-run state must not leak into a restarted run; strictly under the lock added by 0478,
+            // otherwise the Add-vs-iterate race returns. Silent: no NewOrderIncomeEvent for dropped orders.
+            lock (_ordersActiveLocker)
+            {
+                OrdersActive.Clear();
+            }
+
             _serverTime = DateTime.MinValue;
 
             _lastCheckSessionOrdersTime = DateTime.MinValue;
