@@ -4309,6 +4309,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; i < positions.Count; i++)
                     {
+                        if (positions[i] == null)
+                        {
+                            continue;
+                        }
                         CloseAtMarket(positions[i], positions[i].OpenVolume, signalType);
                     }
                 }
