@@ -361,6 +361,9 @@ namespace OsEngine
                     return;
                 }
 
+                // S-01: штатный graceful завершается watchdog-Kill, ProcessExit на нём не горит — след на входе, чтобы отличать его от внешнего kill
+                try { Logging.StartupCrashGuard.LogStartup("BeginGracefulShutdown programmatic=" + programmatic); } catch { }
+
                 if (programmatic)
                 {
                     _isProgrammaticClose = true;
