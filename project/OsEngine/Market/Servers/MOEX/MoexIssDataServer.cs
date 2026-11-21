@@ -749,8 +749,10 @@ namespace OsEngine.Market.Servers.MOEX
             int minStepIndex = ColIndex(columns, "MINSTEP");
             string minStepValue = IssCell(row, minStepIndex);
             decimal priceStep = 0m;
+            // NumberStyles.Float, не Number: JValue-токен может отдать шаг с экспонентой
+            // ("1E-05") или ведущей точкой (".5") — Number молча сливал в фолбэк (U-13/U-15)
             bool stepFromColumn = minStepValue != null
-                && decimal.TryParse(minStepValue, NumberStyles.Number, CultureInfo.InvariantCulture, out priceStep)
+                && decimal.TryParse(minStepValue, NumberStyles.Float, CultureInfo.InvariantCulture, out priceStep)
                 && priceStep > 0;
 
             if (stepFromColumn == false)
@@ -760,23 +762,16 @@ namespace OsEngine.Market.Servers.MOEX
 
             sec.PriceStep = priceStep;
 
-            // F1 (ТЗ-ред.3, tr270): V1 Error 16 — точное равенство Decimals и числа
-            // дробных знаков PriceStep (Var_1_Securities.IsCompairDecimalsAndStep).
-            // ISS его нарушает на 39 бумагах CETS (CNYRUB_TMS dec=6 при step=0.0001).
-            // Колонку DECIMALS применяем только согласованную со шагом: больше знаков —
-            // клампим к знакам шага (не 0), меньше — не перебиваем (сеттер шага уже
-            // посчитал знаки, Security.cs:68-93). Фолбэк шаг (>=1) -> Decimals=0 там же.
+            // F1 (ТЗ-ред.3b, R-08): V1 Error 16 — точное равенство Decimals и числа
+            // дробных знаков PriceStep (Var_1_Securities.IsCompairDecimalsAndStep),
+            // S-01/U-03 пинят оракул. Decimals при шаге из колонки — всегда знаки шага:
+            // сеттер Security (Security.cs:68-93) не совпадает с оракулом на шаге >=1
+            // ("1.5" -> 0) и на длинных дробях. Колонка DECIMALS ISS не используется:
+            // на фактических данных она согласована со знаком (tr293), а при рассогласовании
+            // (39 бумаг CETS, tr270) оракул требует именно знаки шага. Фолбэк шаг >=1 -> 0.
             if (stepFromColumn)
             {
-                int stepDigits = StepFractionDigits(priceStep);
-                string decimalsValue = IssCell(row, ColIndex(columns, "DECIMALS"));
-                int decimals;
-                if (decimalsValue != null
-                    && int.TryParse(decimalsValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out decimals)
-                    && decimals >= stepDigits)
-                {
-                    sec.Decimals = stepDigits;
-                }
+                sec.Decimals = StepFractionDigits(priceStep);
             }
 
             if (board == "TQBR")
@@ -806,7 +801,7 @@ namespace OsEngine.Market.Servers.MOEX
                 decimal stepCost;
                 string stepCostValue = IssCell(row, ColIndex(columns, "STEPPRICE"));
                 if (stepCostValue != null
-                    && decimal.TryParse(stepCostValue, NumberStyles.Number, CultureInfo.InvariantCulture, out stepCost)
+                    && decimal.TryParse(stepCostValue, NumberStyles.Float, CultureInfo.InvariantCulture, out stepCost)
                     && stepCost > 0)
                 {
                     sec.PriceStepCost = stepCost;
@@ -820,7 +815,7 @@ namespace OsEngine.Market.Servers.MOEX
             decimal lotSize;
             string lotSizeValue = IssCell(row, ColIndex(columns, "LOTSIZE"));
             if (lotSizeValue != null
-                && decimal.TryParse(lotSizeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out lotSize)
+                && decimal.TryParse(lotSizeValue, NumberStyles.Float, CultureInfo.InvariantCulture, out lotSize)
                 && lotSize > 0)
             {
                 sec.Lot = lotSize;
