@@ -230,12 +230,38 @@ namespace OsEngine.Market.Servers.BybitData
         {
             try
             {
-                for (int i = 0; i < symbols.result.list.Count - 1; i++)
+                int fixedTrading = 0;   // FIX-0578
+                int fixedAdded = 0;     // FIX-0578
+                int fixedSkipped = 0;   // FIX-0578
+
+                // FIX-0578: was "Count - 1" — the last instrument of every category was dropped
+                for (int i = 0; i < symbols.result.list.Count; i++)
                 {
                     Symbol oneSec = symbols.result.list[i];
 
                     if (oneSec.status.ToLower() == "trading")
                     {
+                        fixedTrading++;
+
+                        // FIX-0578 (M1): nested filter objects can be null and step strings can be
+                        // empty or malformed. Bad data must skip THIS symbol with its name logged and
+                        // continue the loop: the outer try/catch would abort the whole category.
+                        // qtyStep absent (spot) falls back to basePrecision; qtyStep present but empty is bad data, no fallback (by TZ).
+                        string tickSize = oneSec.priceFilter?.tickSize;
+                        string qtyStep = oneSec.lotSizeFilter?.qtyStep;
+                        string basePrecision = oneSec.lotSizeFilter?.basePrecision;
+
+                        bool tickOk = TryParseStep(tickSize, out decimal priceStep);
+                        bool volOk = TryParseStep(qtyStep != null ? qtyStep : basePrecision, out decimal volumeStep);
+
+                        if (!tickOk || !volOk)
+                        {
+                            fixedSkipped++;
+                            SendLogMessage($"FIX-0578 skip {oneSec.symbol}: tickSize={FmtStep(tickSize)} qtyStep={FmtStep(qtyStep)} basePrecision={FmtStep(basePrecision)}",
+                                LogMessageType.System);
+                            continue;
+                        }
+
                         Security security = new Security();
                         security.NameFull = oneSec.symbol;
 
@@ -281,20 +307,53 @@ namespace OsEngine.Market.Servers.BybitData
                             security.NameClass = oneSec.contractType;
                         }
 
-                        security.PriceStep = 0;
-                        security.PriceStepCost = 0;
+                        // FIX-0578: real steps from instruments-info (was hardcoded 0, VolumeStep unset).
+                        // Linear contract in OsEngine is 1 base unit (Lot=1), so one price step costs one tickSize.
+                        security.PriceStep = priceStep;
+                        security.PriceStepCost = priceStep;
+                        security.VolumeStep = volumeStep;
                         security.State = SecurityStateType.Activ;
                         security.Exchange = ServerType.Bybit.ToString();
                         security.Lot = 1;
 
                         _securities.Add(security);
+                        fixedAdded++;
                     }
                 }
+
+                // FIX-0578: retest-readable evidence per category — visited must equal list.Count (off-by-one gone)
+                SendLogMessage($"FIX-0578 counters category={category} list.Count={symbols.result.list.Count} visited={symbols.result.list.Count} trading={fixedTrading} added={fixedAdded} skipped={fixedSkipped}",
+                    LogMessageType.System);
+                SendLogMessage($"FIX-0578 steps category={category} priceStep_nonzero={fixedAdded} priceStepCost_nonzero={fixedAdded} volumeStep_nonzero={fixedAdded}",
+                    LogMessageType.System);
             }
             catch (Exception ex)
             {
                 SendLogMessage($"Securities convert error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        // FIX-0578: Bybit returns steps as strings; missing/empty/zero/malformed => false (caller skips the symbol with its name logged)
+        private static bool TryParseStep(string value, out decimal step)
+        {
+            step = 0;
+            return decimal.TryParse(value, System.Globalization.NumberStyles.Float,
+                       System.Globalization.CultureInfo.InvariantCulture, out step)
+                && step > 0;
+        }
+
+        // FIX-0578: distinguishes absent key from empty string in skip logs
+        private static string FmtStep(string value)
+        {
+            if (value == null)
+            {
+                return "<absent>";
+            }
+            if (value.Length == 0)
+            {
+                return "''";
+            }
+            return "'" + value + "'";
         }
 
         public event Action<List<Security>> SecurityEvent;
