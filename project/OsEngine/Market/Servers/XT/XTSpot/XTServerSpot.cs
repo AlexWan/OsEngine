@@ -274,7 +274,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (!int.TryParse(item.pricePrecision, out int pricePrecision))
                         {
                             // XT отдаёт невалидную pricePrecision: одна битая запись не должна рвать весь список
-                            SendLogMessage("GetSecurities: skip " + item.symbol + ", bad pricePrecision: " + item.pricePrecision, LogMessageType.System);
+                            SendLogMessage(("GetSecurities: skip " + item.symbol + ", bad pricePrecision: " + item.pricePrecision).Replace("\r", "\\r").Replace("\n", "\\n"), LogMessageType.System);
                             continue;
                         }
 
