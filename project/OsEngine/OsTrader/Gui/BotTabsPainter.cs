@@ -1205,10 +1205,13 @@ colum10.HeaderText = "Action";
 
             row.Cells.Add(new DataGridViewTextBoxCell());
 
-            if (bot.TabsSimple.Count != 0 &&
-                bot.TabsSimple[0].Security != null)
+            // Each getter call returns a NEW snapshot: Count/[0] from separate calls tear (BUG-0359)
+            List<BotTabSimple> simpleTabs = bot.TabsSimple;
+
+            if (simpleTabs.Count != 0 &&
+                simpleTabs[0].Security != null)
             {
-                row.Cells[3].Value = bot.TabsSimple[0].Security.Name;
+                row.Cells[3].Value = simpleTabs[0].Security.Name;
             }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
@@ -1422,15 +1425,18 @@ colum9.HeaderText = "Journal";
                         continue;
                     }
 
-                    if (bot.TabsSimple.Count != 0 &&
-                        bot.TabsSimple[0].Security != null)
+                    // One snapshot per bot: re-invoking the getter on Count/[0] is a refetch race (BUG-0359)
+                    List<BotTabSimple> simpleTabs = bot.TabsSimple;
+
+                    if (simpleTabs.Count != 0 &&
+                        simpleTabs[0].Security != null)
                     {
                         if (row.Cells[3].Value == null
                             ||
                             (row.Cells[3].Value != null
-                            && row.Cells[3].Value.ToString() != bot.TabsSimple[0].Security.Name))
+                            && row.Cells[3].Value.ToString() != simpleTabs[0].Security.Name))
                         {
-                            row.Cells[3].Value = bot.TabsSimple[0].Security.Name;
+                            row.Cells[3].Value = simpleTabs[0].Security.Name;
                         }
                     }
 
@@ -1480,11 +1486,14 @@ colum9.HeaderText = "Journal";
                 {
                     BotPanel curRobot = _master.PanelsArray[i];
 
-                    if (curRobot.TabsSimple != null)
+                    // One snapshot per bot: re-invoking the getter on Count/[i] is a refetch race (BUG-0359)
+                    List<BotTabSimple> simpleTabs = curRobot.TabsSimple;
+
+                    if (simpleTabs != null)
                     {
-                        for (int i2 = 0; i2 < curRobot.TabsSimple.Count; i2++)
+                        for (int i2 = 0; i2 < simpleTabs.Count; i2++)
                         {
-                            if (curRobot.TabsSimple[i2].TabName == botTabName)
+                            if (simpleTabs[i2].TabName == botTabName)
                             {
                                 foundBot = curRobot;
                                 findTheBot = true;
@@ -1493,15 +1502,21 @@ colum9.HeaderText = "Journal";
                         }
                     }
 
-                    if (curRobot.TabsScreener != null)
-                    {
-                        for (int i2 = 0; i2 < curRobot.TabsScreener.Count; i2++)
-                        {
-                            BotTabScreener screener = curRobot.TabsScreener[i2];
+                    List<BotTabScreener> screenerTabs = curRobot.TabsScreener;
 
-                            for (int j = 0; j < screener.Tabs.Count; j++)
+                    if (screenerTabs != null)
+                    {
+                        for (int i2 = 0; i2 < screenerTabs.Count; i2++)
+                        {
+                            BotTabScreener screener = screenerTabs[i2];
+
+                            // screener .Tabs is a live list: snapshot via CopyTabsInto (2100 contract)
+                            List<BotTabSimple> screenerInnerTabs = new List<BotTabSimple>();
+                            screener.CopyTabsInto(screenerInnerTabs);
+
+                            for (int j = 0; j < screenerInnerTabs.Count; j++)
                             {
-                                if (screener.Tabs[j].TabName == botTabName)
+                                if (screenerInnerTabs[j].TabName == botTabName)
                                 {
                                     foundBot = curRobot;
                                     findTheBot = true;
@@ -1511,11 +1526,13 @@ colum9.HeaderText = "Journal";
                         }
                     }
 
-                    if (curRobot.TabsPair != null)
+                    List<BotTabPair> pairTabs = curRobot.TabsPair;
+
+                    if (pairTabs != null)
                     {
-                        for (int i2 = 0; i2 < curRobot.TabsPair.Count; i2++)
+                        for (int i2 = 0; i2 < pairTabs.Count; i2++)
                         {
-                            BotTabPair pair = curRobot.TabsPair[i2];
+                            BotTabPair pair = pairTabs[i2];
 
                             for (int j = 0; j < pair.Pairs.Count; j++)
                             {
