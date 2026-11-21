@@ -1923,9 +1923,13 @@ position => position.State != PositionStateType.OpeningFail
         private readonly object _botTabsLocker = new object();
 
         /// <summary>
-        /// Atomic snapshot of _botTabs for all readers outside the locker:
-        /// mutators run under _botTabsLocker including from the screener worker thread
-        /// (NewTabCreateEvent -> TabCreate), so a lockless Count/[i] walk tears (BUG-0359)
+        /// Atomic snapshot of _botTabs for readers outside the locker: a lockless Count/[i]
+        /// walk tears against the cross-thread mutator (MCP calls TabCreate/TabDelete under
+        /// _botTabsLocker; the screener NewTabCreateEvent chain is a reader, not a mutator).
+        /// Not a full mutator barrier: GetTabs() hands out the live list and BotTabOptions :1389 /
+        /// BotTabScreener :1777 Clear/Add through it unlocked (synthetic CandleEngine bots,
+        /// confined to the UI thread today) - a hole in the invariant. Snapshot writes are
+        /// silent no-ops (bot.TabsSimple[0] = tab at :1391/:1779).
         /// </summary>
         private List<IIBotTab> GetBotTabsSnapshot()
         {
@@ -2641,17 +2645,22 @@ position => position.State != PositionStateType.OpeningFail
             {
                 if (signal == SignalType.CloseAll)
                 {
-                    for (int i = 0; i < TabsSimple.Count; i++)
+                    // One snapshot per getter: re-fetched Count/[i] tears the loop into
+                    // the catch and aborts CloseAll halfway (BUG-0359 delta, review-20261121-018)
+                    List<BotTabSimple> simpleTabs = TabsSimple;
+                    for (int i = 0; i < simpleTabs.Count; i++)
                     {
-                        TabsSimple[i].CloseAllAtMarket();
+                        simpleTabs[i].CloseAllAtMarket();
                     }
-                    for (int i = 0; i < TabsScreener.Count; i++)
+                    List<BotTabScreener> screenerTabs = TabsScreener;
+                    for (int i = 0; i < screenerTabs.Count; i++)
                     {
-                        TabsScreener[i].CloseAllPositionAtMarket();
+                        screenerTabs[i].CloseAllPositionAtMarket();
                     }
-                    for (int i = 0; i < TabsPair.Count; i++)
+                    List<BotTabPair> pairTabs = TabsPair;
+                    for (int i = 0; i < pairTabs.Count; i++)
                     {
-                        TabsPair[i].CloseAllPositionAtMarket();
+                        pairTabs[i].CloseAllPositionAtMarket();
                     }
 
                     return;
@@ -2666,15 +2675,21 @@ position => position.State != PositionStateType.OpeningFail
 
                 BotTabSimple tabWithPosition = null;
 
-                for (int i = 0; i < TabsSimple.Count; i++)
+                // Same snapshot as the Checks below: a re-fetched [i] on the action line
+                // can hand out a different tab and misroute the command (BUG-0359 delta)
+                List<BotTabSimple> simpleTabs2 = TabsSimple;
+
+                for (int i = 0; i < simpleTabs2.Count; i++)
                 {
-                    List<Position> posOnThisTab = TabsSimple[i].PositionsAll;
+                    BotTabSimple tab = simpleTabs2[i];
+
+                    List<Position> posOnThisTab = tab.PositionsAll;
 
                     for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
                     {
                         if (posOnThisTab[i2].Number == position.Number)
                         {
-                            tabWithPosition = TabsSimple[i];
+                            tabWithPosition = tab;
                         }
                     }
 
@@ -2686,9 +2701,11 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (tabWithPosition == null)
                 {
-                    for (int i = 0; i < TabsScreener.Count; i++)
+                    List<BotTabScreener> screenerTabs2 = TabsScreener;
+
+                    for (int i = 0; i < screenerTabs2.Count; i++)
                     {
-                        tabWithPosition = TabsScreener[i].GetTabWithThisPosition(position.Number);
+                        tabWithPosition = screenerTabs2[i].GetTabWithThisPosition(position.Number);
 
                         if (tabWithPosition != null)
                         {
@@ -2699,9 +2716,11 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (tabWithPosition == null)
                 {
-                    for (int i = 0; i < TabsPair.Count; i++)
+                    List<BotTabPair> pairTabs2 = TabsPair;
+
+                    for (int i = 0; i < pairTabs2.Count; i++)
                     {
-                        tabWithPosition = TabsPair[i].GetTabWithThisPosition(position.Number);
+                        tabWithPosition = pairTabs2[i].GetTabWithThisPosition(position.Number);
 
                         if (tabWithPosition != null)
                         {
