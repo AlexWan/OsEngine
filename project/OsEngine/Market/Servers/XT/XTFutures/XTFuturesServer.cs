@@ -260,7 +260,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 if (!int.TryParse(symbols.pricePrecision, out int pricePrecision))
                                 {
                                     // XT отдаёт невалидную pricePrecision: одна битая запись не должна рвать весь список
-                                    SendLogMessage("GetSecurities: skip " + symbols.symbol + ", bad pricePrecision: " + symbols.pricePrecision, LogMessageType.System);
+                                    SendLogMessage(("GetSecurities: skip " + symbols.symbol + ", bad pricePrecision: " + symbols.pricePrecision).Replace("\r", "\\r").Replace("\n", "\\n"), LogMessageType.System);
                                     continue;
                                 }
 
@@ -271,7 +271,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                                 if (stepDecimals > 0 && stepDecimals != newSecurity.Decimals)
                                 {
-                                    SendLogMessage("XTFutures WARNING FIX0526 Decimals adjusted by PriceStep. Symbol: " + symbols.symbol + " | pricePrecision: " + symbols.pricePrecision + " | minStepPrice: " + symbols.minStepPrice + " | Decimals: " + stepDecimals, LogMessageType.System);
+                                    SendLogMessage(("XTFutures WARNING FIX0526 Decimals adjusted by PriceStep. Symbol: " + symbols.symbol + " | pricePrecision: " + symbols.pricePrecision + " | minStepPrice: " + symbols.minStepPrice + " | Decimals: " + stepDecimals).Replace("\r", "\\r").Replace("\n", "\\n"), LogMessageType.System);
                                     newSecurity.Decimals = stepDecimals;
                                 }
 
