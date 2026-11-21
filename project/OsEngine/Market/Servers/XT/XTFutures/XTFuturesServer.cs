@@ -232,6 +232,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         {
                             SendLogMessage("Securities loaded. Count: " + securityList.result.symbols.Count, LogMessageType.System);
 
+                            // symbol/list — полный снимок API: каждый приём заменяет список целиком, накопления между приёмами нет
+                            List<Security> newSecurities = new List<Security>();
+
                             for (int i = 0; i < securityList.result.symbols.Count; i++)
                             {
                                 XTFuturesSymbol symbols = securityList.result.symbols[i];
@@ -281,8 +284,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
                                 newSecurity.VolumeStep = symbols.contractSize.ToDecimal();
 
-                                _listSecurities.Add(newSecurity);
+                                newSecurities.Add(newSecurity);
                             }
+
+                            _listSecurities = newSecurities;
 
                             SecurityEvent?.Invoke(_listSecurities);
                         }
@@ -2046,13 +2051,21 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private decimal GetVolume(string securityName)
             {
+                // приём symbol/list заменяет список целиком в любой момент — читаем один снимок ссылки (прецедент bug-0257)
+                List<Security> securities = _listSecurities;
+
+                if (securities == null)
+                {
+                    return 1;
+                }
+
                 decimal minVolume = 1;
 
-                for (int i = 0; i < _listSecurities.Count; i++)
+                for (int i = 0; i < securities.Count; i++)
                 {
-                    if (_listSecurities[i].Name == securityName)
+                    if (securities[i].Name == securityName)
                     {
-                        minVolume = _listSecurities[i].MinTradeAmount;
+                        minVolume = securities[i].MinTradeAmount;
                         break;
                     }
                 }
