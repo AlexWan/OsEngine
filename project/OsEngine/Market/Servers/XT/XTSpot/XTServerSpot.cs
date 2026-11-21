@@ -282,8 +282,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         if (string.IsNullOrEmpty(item.quantityPrecision) == false)
                         {
-                            newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityPrecision);
-                            newSecurity.VolumeStep = Convert.ToInt32(item.quantityPrecision).GetValueByDecimals();
+                            // XT sometimes returns garbage in quantityPrecision: bad value skips only this symbol, not the whole list
+                            if (!int.TryParse(item.quantityPrecision, out int quantityPrecision))
+                            {
+                                SendLogMessage("GetSecurities: skip " + item.symbol + ", bad quantityPrecision: " + item.quantityPrecision, LogMessageType.System);
+                                continue;
+                            }
+
+                            newSecurity.DecimalsVolume = quantityPrecision;
+                            newSecurity.VolumeStep = quantityPrecision.GetValueByDecimals();
                         }
 
                         newSecurity.PriceStep = pricePrecision.GetValueByDecimals();
