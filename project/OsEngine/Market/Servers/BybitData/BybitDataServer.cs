@@ -233,11 +233,17 @@ namespace OsEngine.Market.Servers.BybitData
                 int fixedTrading = 0;   // FIX-0578
                 int fixedAdded = 0;     // FIX-0578
                 int fixedSkipped = 0;   // FIX-0578
+                int fixedVisited = 0;   // FIX-0578: real loop iterations, not list.Count echo
+                int fixedStepPrice = 0; // FIX-0578: real non-zero step counts on added securities
+                int fixedStepCost = 0;  // FIX-0578
+                int fixedStepVol = 0;   // FIX-0578
+                List<string> fixedSkipLoges = new List<string>(); // FIX-0578: emitted after the loop (bulk-skip spam guard)
 
                 // FIX-0578: was "Count - 1" — the last instrument of every category was dropped
                 for (int i = 0; i < symbols.result.list.Count; i++)
                 {
                     Symbol oneSec = symbols.result.list[i];
+                    fixedVisited++;
 
                     if (oneSec.status.ToLower() == "trading")
                     {
@@ -257,8 +263,7 @@ namespace OsEngine.Market.Servers.BybitData
                         if (!tickOk || !volOk)
                         {
                             fixedSkipped++;
-                            SendLogMessage($"FIX-0578 skip {oneSec.symbol}: tickSize={FmtStep(tickSize)} qtyStep={FmtStep(qtyStep)} basePrecision={FmtStep(basePrecision)}",
-                                LogMessageType.System);
+                            fixedSkipLoges.Add($"FIX-0578 skip {oneSec.symbol}: tickSize={FmtStep(tickSize)} qtyStep={FmtStep(qtyStep)} basePrecision={FmtStep(basePrecision)}");
                             continue;
                         }
 
@@ -318,13 +323,23 @@ namespace OsEngine.Market.Servers.BybitData
 
                         _securities.Add(security);
                         fixedAdded++;
+                        fixedStepPrice += security.PriceStep > 0 ? 1 : 0;
+                        fixedStepCost += security.PriceStepCost > 0 ? 1 : 0;
+                        fixedStepVol += security.VolumeStep > 0 ? 1 : 0;
                     }
                 }
 
-                // FIX-0578: retest-readable evidence per category — visited must equal list.Count (off-by-one gone)
-                SendLogMessage($"FIX-0578 counters category={category} list.Count={symbols.result.list.Count} visited={symbols.result.list.Count} trading={fixedTrading} added={fixedAdded} skipped={fixedSkipped}",
+                // FIX-0578: skip logas after the loop — N bad symbols must not spam mid-loop
+                for (int s = 0; s < fixedSkipLoges.Count; s++)
+                {
+                    SendLogMessage(fixedSkipLoges[s], LogMessageType.System);
+                }
+
+                // FIX-0578: retest-readable evidence per category — visited is the real iteration counter (off-by-one gone)
+                SendLogMessage($"FIX-0578 counters category={category} list.Count={symbols.result.list.Count} visited={fixedVisited} trading={fixedTrading} added={fixedAdded} skipped={fixedSkipped}",
                     LogMessageType.System);
-                SendLogMessage($"FIX-0578 steps category={category} priceStep_nonzero={fixedAdded} priceStepCost_nonzero={fixedAdded} volumeStep_nonzero={fixedAdded}",
+                // FIX-0578: step counts read back from Security fields of added securities (real, not the added counter)
+                SendLogMessage($"FIX-0578 steps category={category} priceStep_nonzero={fixedStepPrice} priceStepCost_nonzero={fixedStepCost} volumeStep_nonzero={fixedStepVol}",
                     LogMessageType.System);
             }
             catch (Exception ex)
