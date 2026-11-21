@@ -4335,6 +4335,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (position == null)
+                {
+                    return;
+                }
+
                 if (_connector.IsConnected == false
                     || _connector.IsReadyToTrade == false)
                 {
@@ -4343,11 +4348,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 if (volume <= 0 || position.OpenVolume <= 0)
-                {
-                    return;
-                }
-
-                if (position == null)
                 {
                     return;
                 }
