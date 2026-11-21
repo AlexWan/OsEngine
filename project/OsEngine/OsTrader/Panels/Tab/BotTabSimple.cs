@@ -5183,7 +5183,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                position.SignalTypeStop = signalType;
+                position.SignalTypeProfit = signalType;
                 position.ProfitIsIceberg = true;
                 position.ProfitIcebergOrdersCount = icebergOrdersCount;
                 position.ProfitIcebergMillisecondsDistance = icebergMillisecondsDistance;
