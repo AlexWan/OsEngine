@@ -1824,7 +1824,8 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.OpenOrders[^1];
 
-                if (CanCancel(order))
+                if (CanCancel(order)
+                    && !ShouldSkipCancellingOrder(order))
                 {
                     Tab.CloseOrder(order);
                     cancelledOrders++;
@@ -1948,7 +1949,8 @@ namespace OsEngine.OsTrader.Grids
                 Order order = lines[i].Position.CloseOrders[^1];
 
                 if (CanCancel(order)
-                   && order.TypeOrder != OrderPriceType.Market)
+                   && order.TypeOrder != OrderPriceType.Market
+                   && !ShouldSkipCancellingOrder(order))
                 {
                     Tab.CloseOrder(order);
                     cancelledOrders++;
@@ -1961,6 +1963,41 @@ namespace OsEngine.OsTrader.Grids
         // отзыв возможен только с биржевым номером: AServer.CancelOrder безномера отклоняет с ERROR-логом каждый тик — спам;
         // безномера приходят и как "" (null -> "" после round-trip журнала сетки), поэтому IsNullOrEmpty, а не != null
         private static bool CanCancel(Order o) => !string.IsNullOrEmpty(o.NumberMarket);
+
+        // bug-0176 (#99): после реконнекта подтверждение снятия может быть потеряно и ордер
+        // остаётся Active c IsSendToCancel. TryCancelClosing/OpeningOrders дёргали Tab.CloseOrder
+        // каждый цикл Process — шторм отмен (живьём tr278: до 90 вызовов на ордер, с 5-го
+        // молчаливый MUTED на стороне AServer), CloseForced не завершался.
+        // Освежается отменой, реально ушедшей в коннектор (AServer.CancelOrder пингует LastCancelTryLocalTime)
+        private const int StuckCancelTimeoutSeconds = 60;
+
+        // NumberUser «залипшего в отмене» ордера, за которым уже выдан Error в текущем эпизоде
+        private int _stuckCancelLoggedOrderNumber;
+
+        private bool ShouldSkipCancellingOrder(Order order)
+        {
+            if (order.IsSendToCancel == false)
+            {
+                return false;
+            }
+
+            // отмена в полёте: ждём событие состояния, не дёргаем
+            if (DateTime.Now - order.LastCancelTryLocalTime < TimeSpan.FromSeconds(StuckCancelTimeoutSeconds))
+            {
+                return true;
+            }
+
+            // залип: не дёргаем и дальше, но молчать нельзя — ордер может жить на бирже
+            if (_stuckCancelLoggedOrderNumber != order.NumberUser)
+            {
+                _stuckCancelLoggedOrderNumber = order.NumberUser;
+                SendNewLogMessage("Order is stuck in cancelling since " + StuckCancelTimeoutSeconds
+                    + " seconds. Cancel is not re-sent. NumberUser: " + order.NumberUser
+                    + ". Check order state on the exchange", LogMessageType.Error);
+            }
+
+            return true;
+        }
 
         // bug-0493: гейты «нет рыночных данных» в TrySetOpenOrders молча останавливали сетку на неограниченное время.
         // Только наблюдаемость: гейты по-прежнему делают return, варнинг после непрерывной блокировки
@@ -2334,13 +2371,21 @@ namespace OsEngine.OsTrader.Grids
 
             bool havePositions = false;
 
+            // bug-0176 (#99): строки, пропущенные из-за залипших (после реконнекта) Active closing-ордеров
+            int stuckCloseActiveLines = 0;
+
             for (int i = 0; i < lines.Count; i++)
             {
                 TradeGridLine line = lines[i];
 
-                if (line.Position == null
-                    || line.Position.CloseActive == true)
+                if (line.Position == null)
                 {
+                    continue;
+                }
+
+                if (line.Position.CloseActive == true)
+                {
+                    stuckCloseActiveLines++;
                     continue;
                 }
 
@@ -2390,9 +2435,22 @@ namespace OsEngine.OsTrader.Grids
             if (Regime == TradeGridRegime.CloseForced
                 && havePositions == false)
             {
-                string message = "Close Forced regime ended. No positions \n";
-                message += "New regime: Off";
-                SendNewLogMessage(message, LogMessageType.Signal);
+                if (stuckCloseActiveLines > 0)
+                {
+                    // bug-0176 (#99): писать «No positions» при живых позициях с фантомными
+                    // closing-ордерами — врать. Говорим правду и уходим в Off
+                    string stuckMessage = "CloseForced ended with stuck orders \n";
+                    stuckMessage += "Levels with unclosable active orders: " + stuckCloseActiveLines + "\n";
+                    stuckMessage += "New regime: Off";
+                    SendNewLogMessage(stuckMessage, LogMessageType.Error);
+                }
+                else
+                {
+                    string message = "Close Forced regime ended. No positions \n";
+                    message += "New regime: Off";
+                    SendNewLogMessage(message, LogMessageType.Signal);
+                }
+
                 Regime = TradeGridRegime.Off;
                 RePaintGrid();
                 _needToSave = true;
@@ -2499,16 +2557,24 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if (string.IsNullOrEmpty(position.OpenOrders[^1].NumberMarket))
                         {
-                            if (position.OpenOrders[^1].State == OrderStateType.None
-                                && _lastNoneOrderTime == DateTime.MinValue)
+                            Order orphan = position.OpenOrders[^1];
+
+                            if (_noMarketOrderSince == null)
                             {
-                                _lastNoneOrderTime = DateTime.Now;
+                                _noMarketOrderSince = new Dictionary<int, DateTime>();
                             }
-                            else if (position.OpenOrders[^1].State == OrderStateType.None
-                                && _lastNoneOrderTime.AddMinutes(5) < DateTime.Now)
-                            {// 5ть минут висит ордер со статусом NONE. Утерян
+
+                            if (!_noMarketOrderSince.ContainsKey(orphan.NumberUser))
+                            {
+                                _noMarketOrderSince[orphan.NumberUser] = DateTime.Now;
+                            }
+                            else if (_noMarketOrderSince[orphan.NumberUser].AddMinutes(5) < DateTime.Now)
+                            {// 5ть минут висит неконечный ордер без номера биржи. Утерян (обычно обрыв связи).
+                                // Снимаем сироту из активных, иначе он блокирует Process насовсем;
+                                // события коннектора после реконнекта перепишут реальный журнал по NumberMarket
                                 position.OpenOrders.RemoveAt(position.OpenOrders.Count - 1);
-                                SendNewLogMessage("Remove NONE open order. Five minutes rule", LogMessageType.Error);
+                                _noMarketOrderSince.Remove(orphan.NumberUser);
+                                SendNewLogMessage("Remove orphan open order. Five minutes rule", LogMessageType.Error);
                                 return true;
                             }
 
@@ -2520,16 +2586,22 @@ namespace OsEngine.OsTrader.Grids
                     {
                         if (string.IsNullOrEmpty(position.CloseOrders[^1].NumberMarket))
                         {
-                            if (position.CloseOrders[^1].State == OrderStateType.None
-                                && _lastNoneOrderTime == DateTime.MinValue)
+                            Order orphan = position.CloseOrders[^1];
+
+                            if (_noMarketOrderSince == null)
                             {
-                                _lastNoneOrderTime = DateTime.Now;
+                                _noMarketOrderSince = new Dictionary<int, DateTime>();
                             }
-                            else if (position.CloseOrders[^1].State == OrderStateType.None
-                                && _lastNoneOrderTime.AddMinutes(5) < DateTime.Now)
-                            {// 5ть минут висит ордер со статусом NONE. Утерян
+
+                            if (!_noMarketOrderSince.ContainsKey(orphan.NumberUser))
+                            {
+                                _noMarketOrderSince[orphan.NumberUser] = DateTime.Now;
+                            }
+                            else if (_noMarketOrderSince[orphan.NumberUser].AddMinutes(5) < DateTime.Now)
+                            {// 5ть минут висит неконечный ордер без номера биржи. Утерян (обычно обрыв связи)
                                 position.CloseOrders.RemoveAt(position.CloseOrders.Count - 1);
-                                SendNewLogMessage("Remove NONE close order. Five minutes rule", LogMessageType.Error);
+                                _noMarketOrderSince.Remove(orphan.NumberUser);
+                                SendNewLogMessage("Remove orphan close order. Five minutes rule", LogMessageType.Error);
                                 return true;
                             }
 
@@ -2539,15 +2611,20 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            if (_lastNoneOrderTime != DateTime.MinValue)
+            // сирот нет — таймеры больше не нужны
+            if (_noMarketOrderSince != null && _noMarketOrderSince.Count > 0)
             {
-                _lastNoneOrderTime = DateTime.MinValue;
+                _noMarketOrderSince.Clear();
             }
 
             return false;
         }
 
-        private DateTime _lastNoneOrderTime;
+        // bug-0176 (#99): было одно общее поле-таймер на все ордера и чистка только State==None;
+        // сирота в Wait/Active после реконнекта не чистился никогда и вечно блокировал Process.
+        // Таймер теперь per-order по NumberUser, чистка для любого неконечного состояния
+        // (OpenActive/CloseActive = Active/Pending/None/Partial)
+        private Dictionary<int, DateTime> _noMarketOrderSince;
 
         public bool HaveOrdersTryToCancelLastSecond()
         {
