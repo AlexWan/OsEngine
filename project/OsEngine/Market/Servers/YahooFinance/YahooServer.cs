@@ -174,6 +174,8 @@ namespace OsEngine.Market.Servers.YahooFinance
                                 security.PriceStep = 1;
                                 security.Decimals = 0;
                                 security.PriceStepCost = 1;
+                                // источник (CSV Nasdaq / chart API) шаг объёма не отдаёт — минимальная целостная единица, паттерн OsEngine
+                                security.VolumeStep = 1;
                                 security.State = SecurityStateType.Activ;
                                 security.Exchange = ServerType.YahooFinance.ToString();
 
@@ -210,6 +212,7 @@ namespace OsEngine.Market.Servers.YahooFinance
             security.PriceStep = 1;
             security.Decimals = 0;
             security.PriceStepCost = 1;
+            security.VolumeStep = 1; // как в GetSecurities: источник шаг объёма не отдаёт
             security.State = SecurityStateType.Activ;
             security.Exchange = ServerType.YahooFinance.ToString();
 
