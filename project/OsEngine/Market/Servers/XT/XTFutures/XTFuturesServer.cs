@@ -243,6 +243,16 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                 newSecurity.State = SecurityStateType.Activ;
                                 newSecurity.PriceStep = symbols.minStepPrice.ToDecimal();
                                 newSecurity.Decimals = Convert.ToInt32(symbols.pricePrecision);
+
+                                // XT отдаёт несогласованные pricePrecision/minStepPrice (bug-0527). Шаг цены — сетка ордеров, доверяем ему
+                                int stepDecimals = newSecurity.PriceStep.ToStringWithNoEndZero().DecimalsCount();
+
+                                if (stepDecimals > 0 && stepDecimals != newSecurity.Decimals)
+                                {
+                                    SendLogMessage("XTFutures WARNING FIX0526 Decimals adjusted by PriceStep. Symbol: " + symbols.symbol + " | pricePrecision: " + symbols.pricePrecision + " | minStepPrice: " + symbols.minStepPrice + " | Decimals: " + stepDecimals, LogMessageType.System);
+                                    newSecurity.Decimals = stepDecimals;
+                                }
+
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.DecimalsVolume = symbols.contractSize.DecimalsCount();
                                 newSecurity.MinTradeAmount = symbols.contractSize.ToDecimal();
