@@ -256,7 +256,15 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                                 newSecurity.State = SecurityStateType.Activ;
                                 newSecurity.PriceStep = symbols.minStepPrice.ToDecimal();
-                                newSecurity.Decimals = Convert.ToInt32(symbols.pricePrecision);
+
+                                if (!int.TryParse(symbols.pricePrecision, out int pricePrecision))
+                                {
+                                    // XT отдаёт невалидную pricePrecision: одна битая запись не должна рвать весь список
+                                    SendLogMessage("GetSecurities: skip " + symbols.symbol + ", bad pricePrecision: " + symbols.pricePrecision, LogMessageType.System);
+                                    continue;
+                                }
+
+                                newSecurity.Decimals = pricePrecision;
 
                                 // XT отдаёт несогласованные pricePrecision/minStepPrice (bug-0527). Шаг цены — сетка ордеров, доверяем ему
                                 int stepDecimals = newSecurity.PriceStep.ToStringWithNoEndZero().DecimalsCount();
