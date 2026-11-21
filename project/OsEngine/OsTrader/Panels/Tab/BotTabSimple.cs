@@ -2704,6 +2704,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
         public void BuyAtMarketToPosition(Position position, decimal volume, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeOpen = signalType;
             BuyAtMarketToPosition(position, volume);
         }
@@ -3909,6 +3913,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">the opening signal. It will be written to the position as SignalTypeOpen</param>
         public void SellAtMarketToPosition(Position position, decimal volume, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeOpen = signalType;
             SellAtMarketToPosition(position, volume);
         }
@@ -4617,6 +4625,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int ordersCount, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeClose = signalType;
             CloseAtIceberg(position, priceLimit, volume, ordersCount);
         }
@@ -4667,6 +4679,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount, int minMillisecondsDistance, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeClose = signalType;
             CloseAtIcebergMarket(position, volume, ordersCount, minMillisecondsDistance);
         }
@@ -4691,6 +4707,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeStop = signalType;
             CloseAtStop(position, priceActivation, priceOrder);
         }
@@ -4872,6 +4892,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtStopMarket(Position position, decimal priceActivation, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeStop = signalType;
             CloseAtStopMarket(position, priceActivation);
         }
@@ -4979,6 +5003,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeStop = signalType;
             CloseAtTrailingStop(position, priceActivation, priceOrder);
         }
@@ -5032,6 +5060,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeStop = signalType;
             CloseAtTrailingStopMarket(position, priceActivation);
         }
@@ -5056,6 +5088,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfit(Position position, decimal priceActivation, decimal priceOrder, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeProfit = signalType;
             CloseAtProfit(position, priceActivation, priceOrder);
         }
@@ -5123,6 +5159,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signalType">close position signal name</param>
         public void CloseAtProfitMarket(Position position, decimal priceActivation, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeProfit = signalType;
             CloseAtProfitMarket(position, priceActivation);
         }
