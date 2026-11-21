@@ -277,6 +277,15 @@ namespace OsEngine.Market.Servers.MFD
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            // mfd.ru clamps future windows to real data and ignores actualTime, so an invalid request would return candles.
+            // Invalid parameters -> null before the request (D2 7.2.2/7.2.3, GateIoData/Bcs pattern)
+            if (startTime >= endTime
+                || actualTime > endTime
+                || actualTime > DateTime.Now)
+            {
+                return null;
+            }
+
             string minutes = "";
 
             if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes == 1)
