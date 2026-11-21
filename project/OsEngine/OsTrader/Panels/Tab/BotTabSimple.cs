@@ -4952,6 +4952,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder)
         {
+            if (position == null)
+            {
+                return;
+            }
             if (position.Direction == Side.Buy &&
                 position.StopOrderRedLine > priceActivation)
             {
@@ -4990,6 +4994,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation)
         {
+            if (position == null)
+            {
+                return;
+            }
             if (position.Direction == Side.Buy &&
                 position.StopOrderRedLine > priceActivation)
             {
