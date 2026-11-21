@@ -1416,9 +1416,18 @@ namespace OsEngine.OsTrader
 
             List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
 
-            for (int i = 0; i < PanelsArray.Count; i++)
+            // Called from a pool thread: PanelsArray is mutated by the UI thread.
+            // Take the atomic snapshot per the 2100 contract (GetPanelsArraySnapshot)
+            BotPanel[] panelsSnapshot = GetPanelsArraySnapshot();
+
+            for (int i = 0; i < panelsSnapshot.Length; i++)
             {
-                BotPanel bot = PanelsArray[i];
+                BotPanel bot = panelsSnapshot[i];
+
+                if (bot == null)
+                {
+                    continue;
+                }
 
                 List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
@@ -1471,7 +1480,7 @@ namespace OsEngine.OsTrader
             {
                 Security sec = null;
 
-                if (tabsWithMySecInAllBots.Count > 0)
+                if (tabsWithMySecInAllBots.Count > 0 && tabsWithMySecInAllBots[0] != null)
                 {
                     sec = tabsWithMySecInAllBots[0].Security;
                 }
@@ -1492,9 +1501,18 @@ namespace OsEngine.OsTrader
         {
             List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
 
-            for (int i = 0; i < PanelsArray.Count; i++)
+            // Called from a pool thread: PanelsArray is mutated by the UI thread.
+            // Take the atomic snapshot per the 2100 contract (GetPanelsArraySnapshot)
+            BotPanel[] panelsSnapshot = GetPanelsArraySnapshot();
+
+            for (int i = 0; i < panelsSnapshot.Length; i++)
             {
-                BotPanel bot = PanelsArray[i];
+                BotPanel bot = panelsSnapshot[i];
+
+                if (bot == null)
+                {
+                    continue;
+                }
 
                 List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
@@ -1544,22 +1562,61 @@ namespace OsEngine.OsTrader
         {
             PositionOnBoard myPosOnBoards = null;
 
-            for(int i = 0;i < server.Portfolios.Count;i++)
+            // Called from a pool thread: Portfolios and PositionOnBoard are mutated by connector
+            // threads without locks (Portfolio.SetNewPosition), so both lists are copied first.
+            // A torn copy degrades to empty, same as 2220 / CreateOpenPositionsSnapshot
+            List<Portfolio> portfolios = new List<Portfolio>();
+
+            try
             {
-                Portfolio portf = server.Portfolios[i];
+                portfolios.AddRange(server.Portfolios);
+            }
+            catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+            {
+                SendNewLogMessage("ClosePositionOnBoardWithFakePoses portfolios copy skipped. " + error.ToString(), LogMessageType.Error);
+                portfolios = new List<Portfolio>();
+            }
+
+            for(int i = 0;i < portfolios.Count;i++)
+            {
+                Portfolio portf = portfolios[i];
+
+                if (portf == null)
+                {
+                    continue;
+                }
 
                 List<PositionOnBoard> posesInPortfolio = portf.GetPositionOnBoard();
 
+                // Portfolios without positions keep PositionOnBoard == null (the list is created
+                // in SetNewPosition). This is the normal path, the gate must stay before the copy
                 if(posesInPortfolio == null)
                 {
                     continue;
                 }
 
-                for (int j = 0;j < posesInPortfolio.Count;j++)
+                List<PositionOnBoard> posesCopy = new List<PositionOnBoard>();
+
+                try
                 {
-                    if (posesInPortfolio[j].SecurityNameCode == fullName)
+                    posesCopy.AddRange(posesInPortfolio);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    SendNewLogMessage("ClosePositionOnBoardWithFakePoses positions copy skipped. " + error.ToString(), LogMessageType.Error);
+                    posesCopy = new List<PositionOnBoard>();
+                }
+
+                for (int j = 0;j < posesCopy.Count;j++)
+                {
+                    if (posesCopy[j] == null)
                     {
-                        myPosOnBoards = posesInPortfolio[j];
+                        continue;
+                    }
+
+                    if (posesCopy[j].SecurityNameCode == fullName)
+                    {
+                        myPosOnBoards = posesCopy[j];
                         break;
                     }
                 }
@@ -1570,7 +1627,11 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            if(myPosOnBoards.ValueCurrent == 0)
+            // ValueCurrent is mutated by connector threads: read it once so that (Volume, Side)
+            // of the closing order are always taken from the same position state
+            decimal valueSnapshot = myPosOnBoards.ValueCurrent;
+
+            if(valueSnapshot == 0)
             {
                 return;
             }
@@ -1587,18 +1648,18 @@ namespace OsEngine.OsTrader
                 return;
             }
 
-            Order order = CreateOrderToClosePosition(secName, server, myPosOnBoards, sec);
+            Order order = CreateOrderToClosePosition(secName, server, myPosOnBoards, sec, valueSnapshot);
 
             server.ExecuteOrder(order);
         }
 
-        private Order CreateOrderToClosePosition(string secName, Market.Servers.IServer server, PositionOnBoard pos, Security sec)
+        private Order CreateOrderToClosePosition(string secName, Market.Servers.IServer server, PositionOnBoard pos, Security sec, decimal valueSnapshot)
         {
             Order newOrder = new Order();
 
             newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
             newOrder.State = OrderStateType.Active;
-            newOrder.Volume = Math.Abs(pos.ValueCurrent);
+            newOrder.Volume = Math.Abs(valueSnapshot);
             newOrder.Price = 0;
             newOrder.TimeCreate = server.ServerTime;
             newOrder.TypeOrder = OrderPriceType.Market;
@@ -1608,7 +1669,7 @@ namespace OsEngine.OsTrader
             newOrder.ServerType = server.ServerType;
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
 
-            if(pos.ValueCurrent > 0)
+            if(valueSnapshot > 0)
             {
                 newOrder.Side = Side.Sell;
             }
@@ -1624,33 +1685,74 @@ namespace OsEngine.OsTrader
         {
             List<BotTabSimple> botTabSimples = new List<BotTabSimple>();
 
-            if (bot.TabsSimple != null &&
-                bot.TabsSimple.Count > 0)
+            // TabsSimple/TabsScreener getters already return atomic snapshots under _botTabsLocker,
+            // but each call is a NEW list: fetch each once, re-invoke on Count/[i]/Add is a refetch race
+            List<BotTabSimple> tabs = bot.TabsSimple;
+
+            if (tabs != null)
             {
-                for (int i = 0; i < bot.TabsSimple.Count; i++)
+                for (int i = 0; i < tabs.Count; i++)
                 {
-                    if (bot.TabsSimple[i].Connector.SecurityName == secName 
-                        && bot.TabsSimple[i].Connector.ServerType == server.ServerType)
+                    BotTabSimple tab = tabs[i];
+
+                    if (tab == null)
                     {
-                        botTabSimples.Add(bot.TabsSimple[i]);
+                        continue;
+                    }
+
+                    // hoisted once: Connector is set to null by tab.Delete() from another thread
+                    ConnectorCandles conn = tab.Connector;
+
+                    if (conn == null)
+                    {
+                        continue;
+                    }
+
+                    if (conn.SecurityName == secName
+                        && conn.ServerType == server.ServerType)
+                    {
+                        botTabSimples.Add(tab);
                     }
                 }
-
             }
 
-            if (bot.TabsScreener != null &&
-                bot.TabsScreener.Count > 0)
-            {
-                for (int j = 0; j < bot.TabsScreener.Count; j++)
-                {
-                    List<BotTabSimple> tabsInScreener = bot.TabsScreener[j].Tabs;
+            List<BotTabScreener> screeners = bot.TabsScreener;
 
-                    for (int i = 0; tabsInScreener != null && i < tabsInScreener.Count; i++)
+            if (screeners != null)
+            {
+                for (int j = 0; j < screeners.Count; j++)
+                {
+                    if (screeners[j] == null)
                     {
-                        if (tabsInScreener[i].Connector.SecurityName == secName
-                            && tabsInScreener[i].Connector.ServerType == server.ServerType)
+                        continue;
+                    }
+
+                    // .Tabs is a live field mutated under _tabsLocker; for external readers
+                    // there is CopyTabsInto (2100 contract), take it instead of reading live
+                    List<BotTabSimple> tabsInScreener = new List<BotTabSimple>();
+                    screeners[j].CopyTabsInto(tabsInScreener);
+
+                    for (int i = 0; i < tabsInScreener.Count; i++)
+                    {
+                        BotTabSimple tab = tabsInScreener[i];
+
+                        if (tab == null)
                         {
-                            botTabSimples.Add(tabsInScreener[i]);
+                            continue;
+                        }
+
+                        // hoisted once: Connector is set to null by tab.Delete() from another thread
+                        ConnectorCandles conn = tab.Connector;
+
+                        if (conn == null)
+                        {
+                            continue;
+                        }
+
+                        if (conn.SecurityName == secName
+                            && conn.ServerType == server.ServerType)
+                        {
+                            botTabSimples.Add(tab);
                         }
                     }
                 }
@@ -1663,9 +1765,18 @@ namespace OsEngine.OsTrader
         {
             List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
 
-            for (int i = 0; i < PanelsArray.Count; i++)
+            // Called from a pool thread: PanelsArray is mutated by the UI thread.
+            // Take the atomic snapshot per the 2100 contract (GetPanelsArraySnapshot)
+            BotPanel[] panelsSnapshot = GetPanelsArraySnapshot();
+
+            for (int i = 0; i < panelsSnapshot.Length; i++)
             {
-                BotPanel bot = PanelsArray[i];
+                BotPanel bot = panelsSnapshot[i];
+
+                if (bot == null)
+                {
+                    continue;
+                }
 
                 List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
@@ -1683,7 +1794,7 @@ namespace OsEngine.OsTrader
 
             Security sec = null;
 
-            if (tabsWithMySecInAllBots.Count > 0)
+            if (tabsWithMySecInAllBots.Count > 0 && tabsWithMySecInAllBots[0] != null)
             {
                 sec = tabsWithMySecInAllBots[0].Security;
             }
