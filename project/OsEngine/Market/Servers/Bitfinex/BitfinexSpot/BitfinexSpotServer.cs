@@ -2415,7 +2415,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 List<object> rootArray = JsonConvert.DeserializeObject<List<object>>(message);
 
-                if (rootArray == null)
+                if (rootArray == null || rootArray.Count < 3)
                 {
                     SendLogMessage("UpdateOrder> Root json is null", LogMessageType.Error);
                     return;
@@ -2423,7 +2423,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 List<object> orderDataList = JsonConvert.DeserializeObject<List<object>>(rootArray[2].ToString());
 
-                if (orderDataList == null)
+                if (orderDataList == null || orderDataList.Count < 17)
                 {
                     SendLogMessage("UpdateOrder> Order payload json is null", LogMessageType.Error);
                     return;
