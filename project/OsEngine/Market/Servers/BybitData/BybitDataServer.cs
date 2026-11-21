@@ -329,7 +329,7 @@ namespace OsEngine.Market.Servers.BybitData
                     }
                 }
 
-                // FIX-0578: skip logas after the loop — N bad symbols must not spam mid-loop
+                // FIX-0578: skip log entries are emitted after the loop — N bad symbols must not spam mid-loop
                 for (int s = 0; s < fixedSkipLoges.Count; s++)
                 {
                     SendLogMessage(fixedSkipLoges[s], LogMessageType.System);
