@@ -728,9 +728,7 @@ namespace OsEngine.OsTrader.Gui
                             break;
                         }
 
-                        BotPanel panel = _master.PanelsArray[i];
-                        _master.PanelsArray[i] = _master.PanelsArray[swapIndex];
-                        _master.PanelsArray[swapIndex] = panel;
+                        _master.SwapPanels(i, swapIndex);
                         _master.Save();
                         RePaintTable();
                         break;
@@ -767,9 +765,7 @@ namespace OsEngine.OsTrader.Gui
                             break;
                         }
 
-                        BotPanel panel = _master.PanelsArray[i];
-                        _master.PanelsArray[i] = _master.PanelsArray[swapIndex];
-                        _master.PanelsArray[swapIndex] = panel;
+                        _master.SwapPanels(i, swapIndex);
                         _master.Save();
                         RePaintTable();
                         break;
