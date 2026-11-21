@@ -1431,11 +1431,35 @@ namespace OsEngine.OsTrader
 
             for(int i = 0;i< tabsWithMySecInAllBots.Count;i++)
             {
+                List<Position> positionsOpen = tabsWithMySecInAllBots[i].PositionsOpenAll;
 
-                List<Position> poses = tabsWithMySecInAllBots[i].PositionsOpenAll;
-
-                for(int j = 0; poses != null && j < poses.Count; j++)
+                if (positionsOpen == null)
                 {
+                    continue;
+                }
+
+                // Called from a pool thread (ClearPositionOnBoardEvent): the live list is mutated
+                // concurrently, so iterate over a local copy like DeleteOpenPositionsWithSecurity below
+                List<Position> poses = new List<Position>();
+
+                try
+                {
+                    poses.AddRange(positionsOpen);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    // Torn copy degrades to empty, same as PositionController.CreateOpenPositionsSnapshot
+                    SendNewLogMessage("CancelOrdersWithSecurity open positions copy skipped. " + error.ToString(), LogMessageType.Error);
+                    poses = new List<Position>();
+                }
+
+                for(int j = 0; j < poses.Count; j++)
+                {
+                    if (poses[j] == null)
+                    {
+                        continue;
+                    }
+
                     if (poses[j].SecurityName == secName)
                     {
                         tabsWithMySecInAllBots[i].CloseAllOrderToPosition(poses[j]);
@@ -1490,10 +1514,24 @@ namespace OsEngine.OsTrader
 
                 List<Position> poses = new List<Position>();
 
-                poses.AddRange(tabsWithMySecInAllBots[i].PositionsOpenAll);
+                try
+                {
+                    poses.AddRange(tabsWithMySecInAllBots[i].PositionsOpenAll);
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                {
+                    // Torn copy degrades to empty, same as PositionController.CreateOpenPositionsSnapshot
+                    SendNewLogMessage("DeleteOpenPositionsWithSecurity open positions copy skipped. " + error.ToString(), LogMessageType.Error);
+                    poses = new List<Position>();
+                }
 
                 for (int j = 0; poses != null && j < poses.Count; j++)
                 {
+                    if (poses[j] == null)
+                    {
+                        continue;
+                    }
+
                     if (poses[j].SecurityName == secName)
                     {
                         tabsWithMySecInAllBots[i]._journal.DeletePosition(poses[j]);
