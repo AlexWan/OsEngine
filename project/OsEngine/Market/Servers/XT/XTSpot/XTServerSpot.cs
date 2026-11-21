@@ -271,10 +271,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         newSecurity.NameId = item.id;
                         newSecurity.SecurityType = SecurityType.CurrencyPair;
 
-                        if (string.IsNullOrEmpty(item.pricePrecision) == false)
+                        if (!int.TryParse(item.pricePrecision, out int pricePrecision))
                         {
-                            newSecurity.Decimals = Convert.ToInt32(item.pricePrecision);
+                            // XT отдаёт невалидную pricePrecision: одна битая запись не должна рвать весь список
+                            SendLogMessage("GetSecurities: skip " + item.symbol + ", bad pricePrecision: " + item.pricePrecision, LogMessageType.System);
+                            continue;
                         }
+
+                        newSecurity.Decimals = pricePrecision;
 
                         if (string.IsNullOrEmpty(item.quantityPrecision) == false)
                         {
@@ -282,7 +286,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             newSecurity.VolumeStep = Convert.ToInt32(item.quantityPrecision).GetValueByDecimals();
                         }
 
-                        newSecurity.PriceStep = Convert.ToInt32(item.pricePrecision).GetValueByDecimals();
+                        newSecurity.PriceStep = pricePrecision.GetValueByDecimals();
                         newSecurity.PriceStepCost = newSecurity.PriceStep;
                         newSecurity.State = SecurityStateType.Activ;
 
