@@ -5296,6 +5296,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void CloseAllOrderToPosition(Position position)
         {
+            if (position == null)
+            {
+                return;
+            }
             try
             {
                 position.StopOrderIsActive = false;
@@ -5318,6 +5322,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 		/// <param name = "signalType" > close position signal name. Will be written to position property: SignalTypeClose</param>
         public void CloseAllOrderToPosition(Position position, string signalType)
         {
+            if (position == null)
+            {
+                return;
+            }
             position.SignalTypeClose = signalType;
             CloseAllOrderToPosition(position);
         }
