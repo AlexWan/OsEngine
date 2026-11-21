@@ -415,6 +415,13 @@ static class V2Units
         Set("_pollLocker", locker);
         SetNew("_subscribeRetryCounts");
         SetNew("_activeStopOrders");
+        SetNew("_marginDisabledAccounts");            // UO: гейт 30051 (bug-0554) — инициализатор поля не исполнен, Clear() в Connect
+        // UO: bug-0023 (7f0ef8aaf, влит в master позже этого набора) расширил Dispose этими словарями (:579-583)
+        SetNew("_lastOrderBookTimeUtc");
+        SetNew("_obResubLastTryUtc");
+        SetNew("_obResubAttempts");
+        SetNew("_obResubPending");
+        SetNew("_obSchedules");
         Set("_stopOrdersLocker", "_stopOrdersLocker");
         Set("_maxMarketDataStreams", 0);            // подписка идёт в poll-ветку без сети (тот же приём, что фан-аут тест)
         Set("_marketDataStreamLocker", "_marketDataStreamLocker");   // UO: lok-поля-строки (=new) не инициализированы

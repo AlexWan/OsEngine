@@ -159,6 +159,9 @@ namespace OsEngine.Market.Servers.TInvest
                 // обязана пройти, иначе при быстром реконнекте портфели останутся пустыми
                 _lastTimeGetPortfolio = DateTime.MinValue;
 
+                // настройки маржи на договоре могли измениться за время дисконнекта — 30051 обнаружим заново
+                _marginDisabledAccounts.Clear();
+
                 _marketDataStreams = new List<MarketDataStreamWrapper>();
                 _securityStreamMap = new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
@@ -1471,6 +1474,9 @@ namespace OsEngine.Market.Servers.TInvest
 
         private DateTime _lastTimeGetPortfolio;
 
+        // Счета, которым API детерминированно отвергает маржу (RpcException 30051). До Connect по ним GetMarginAttributes не вызывается
+        private ConcurrentDictionary<string, bool> _marginDisabledAccounts = new ConcurrentDictionary<string, bool>();
+
         public void GetPortfolios()
         {
             if (_securitiesDictionary.Count == 0)
@@ -1548,13 +1554,37 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             GetMarginAttributesResponse marginAttributes = null;
 
-                            try
+                            // 30051 на счёте детерминирован (маржинальная торговля выключена) — до реконнекта API не дёргаем
+                            // shortcut: null-путь = гейт не поднят (headless-харнесс без инициализаторов полей), в рантайме поле инициализировано
+                            if (_marginDisabledAccounts == null
+                                || !_marginDisabledAccounts.ContainsKey(account.Id))
                             {
-                                marginAttributes = _usersClient.GetMarginAttributes(new GetMarginAttributesRequest() { AccountId = account.Id }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
-                            }
-                            catch (Exception ex)
-                            {
-                                SendLogMessage("Error getting margin attributes. Account: " + account.Id + ". " + ex.ToString(), LogMessageType.System);
+                                try
+                                {
+                                    marginAttributes = _usersClient.GetMarginAttributes(new GetMarginAttributesRequest() { AccountId = account.Id }, _gRpcMetadata, deadline: DateTime.UtcNow + _unaryTimeout);
+                                }
+                                catch (Exception ex)
+                                {
+                                    // код в начале Detail с нецифровым разделителем (live tr262: Detail="30051"); граница не даёт «300511» загейтить соседний код
+                                    if (ex is RpcException rpcMargin
+                                        && rpcMargin.StatusCode == StatusCode.InvalidArgument
+                                        && rpcMargin.Status.Detail != null
+                                        && (rpcMargin.Status.Detail == "30051"
+                                            || (rpcMargin.Status.Detail.StartsWith("30051", StringComparison.Ordinal)
+                                                && !char.IsDigit(rpcMargin.Status.Detail[5]))))
+                                    {
+                                        // TryAdd — ровно один маркер на аккаунт при гонке потоков (watchdog и ридер портфелей)
+                                        if ((_marginDisabledAccounts ??= new ConcurrentDictionary<string, bool>()).TryAdd(account.Id, true))
+                                        {
+                                            // маржа, включённая в живом сеансе, не поднимется до реконнекта
+                                            SendLogMessage("Margin attributes disabled on account " + account.Id + ". " + ex.ToString(), LogMessageType.System);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        SendLogMessage("Error getting margin attributes. Account: " + account.Id + ". " + ex.ToString(), LogMessageType.System);
+                                    }
+                                }
                             }
 
                             GetPortfolios(portfolioResponse, marginAttributes);
