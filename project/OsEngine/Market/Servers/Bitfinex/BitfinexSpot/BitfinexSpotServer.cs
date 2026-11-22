@@ -471,11 +471,16 @@ namespace OsEngine.Market.Servers.Bitfinex
                     {
                         List<JToken> wallet = wallets[i];
 
+                        // BUG-0547 S-3/G1: Null and Boolean in [0]..[2] corrupt the money path
+                        // (null currency -> ArgumentNullException in the latch, Null balance ->
+                        // phantom position latched at 0 for the session, negative ValueBlocked),
+                        // so such rows are malformed too. [3] is unused; [4]=Null is the
+                        // documented BUG-0534 edge — there only structured tail cells stay skipped.
                         if (wallet == null
                             || wallet.Count < 5
-                            || IsStructuredWalletCell(wallet[0])
-                            || IsStructuredWalletCell(wallet[1])
-                            || IsStructuredWalletCell(wallet[2])
+                            || IsMalformedWalletCell(wallet[0])
+                            || IsMalformedWalletCell(wallet[1])
+                            || IsMalformedWalletCell(wallet[2])
                             || IsStructuredWalletCell(wallet[3])
                             || IsStructuredWalletCell(wallet[4]))
                         {
@@ -532,6 +537,15 @@ namespace OsEngine.Market.Servers.Bitfinex
         private static bool IsStructuredWalletCell(JToken cell)
         {
             return cell != null && (cell.Type == JTokenType.Object || cell.Type == JTokenType.Array);
+        }
+
+        private static bool IsMalformedWalletCell(JToken cell)
+        {
+            return cell == null
+                || cell.Type == JTokenType.Null
+                || cell.Type == JTokenType.Boolean
+                || cell.Type == JTokenType.Object
+                || cell.Type == JTokenType.Array;
         }
 
         private static string WalletCellToString(JToken cell)
