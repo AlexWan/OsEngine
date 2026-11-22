@@ -695,6 +695,8 @@ namespace OsEngine.Market.Servers.MOEX
             }
 
             List<string> responses = new List<string>();
+            // bug-0620: фолбэки PriceStep на класс; Warning — одна строка на ответ, обнуляется после каждого
+            int stepFallbackCount = 0;
 
             for (int i = 0; i < requests.Count; i++)
             {
@@ -725,7 +727,13 @@ namespace OsEngine.Market.Servers.MOEX
                         continue;
                     }
 
-                    Security newSec = MapIssSecurity(columnsArray, innerArray, classes[i]);
+                    bool priceStepFallback;
+                    Security newSec = MapIssSecurity(columnsArray, innerArray, classes[i], out priceStepFallback);
+
+                    if (priceStepFallback)
+                    {
+                        stepFallbackCount++;
+                    }
                     newSec.Name = innerArray[0].ToString();
                     newSec.NameId = newSec.Name + "#" + classes[i];
 
@@ -746,6 +754,16 @@ namespace OsEngine.Market.Servers.MOEX
 
                     result.Add(newSec);
                 }
+
+                // bug-0620: фолбэк не молчит — одна Warning-строка на класс (per-row зашумит на бордах ~42k строк)
+                if (stepFallbackCount > 0)
+                {
+                    SendLogMessage("GetSecurities: PriceStep fallback 1 used for " + stepFallbackCount
+                        + " of " + dataArray.Count + " in " + classes[i] + " (MINSTEP missing or unparsed)",
+                        LogMessageType.Warning);
+                }
+
+                stepFallbackCount = 0;
             }
 
             return result;
@@ -754,7 +772,7 @@ namespace OsEngine.Market.Servers.MOEX
         // bug-0530 (BUG-0529): анкетные поля строки store `securities`. Маппинг по ИМЕНАМ колонок
         // из `securities.columns` — состав колонок различен по рынкам, позиции использовать нельзя.
         // Дефолты по ТЗ-ред.2 (F1/F2/F4); бросать запрещено: нет колонки (ColIndex -1) -> дефолт.
-        private static Security MapIssSecurity(JArray columns, JArray row, string classParam)
+        private static Security MapIssSecurity(JArray columns, JArray row, string classParam, out bool priceStepFallback)
         {
             Security sec = new Security();
             sec.Exchange = "MOEX";
@@ -769,6 +787,8 @@ namespace OsEngine.Market.Servers.MOEX
             int minStepIndex = ColIndex(columns, "MINSTEP");
             string minStepValue = IssCell(row, minStepIndex);
             decimal priceStep = 0m;
+            // out-параметр обязан быть присвоен до всех выходов метода (CS0177)
+            priceStepFallback = false;
             // NumberStyles.Float, не Number: JValue-токен может отдать шаг с экспонентой
             // ("1E-05") или ведущей точкой (".5") — Number молча сливал в фолбэк (U-13/U-15)
             bool stepFromColumn = minStepValue != null
@@ -777,7 +797,8 @@ namespace OsEngine.Market.Servers.MOEX
 
             if (stepFromColumn == false)
             {
-                priceStep = 1m; // индексы/CETS и пропавшая колонка — фолбэк шаг
+                priceStep = 1m; // индексы/депозиты — колонки MINSTEP нет (норма); фолбэк — страховка schema drift
+                priceStepFallback = true;
             }
 
             sec.PriceStep = priceStep;
