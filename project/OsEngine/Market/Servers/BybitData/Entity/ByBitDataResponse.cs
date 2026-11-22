@@ -35,6 +35,20 @@ namespace OsEngine.Market.Servers.BybitData.Entity
         public string upperFundingRate { get; set; }
         public string lowerFundingRate { get; set; }
         public string optionsType { get; set; }
+        // FIX-0578: instrument filters from V5 instruments-info (price/volume steps)
+        public PriceFilter priceFilter { get; set; }
+        public LotSizeFilter lotSizeFilter { get; set; }
+    }
+
+    public class PriceFilter
+    {
+        public string tickSize { get; set; }
+    }
+
+    public class LotSizeFilter
+    {
+        public string qtyStep { get; set; }
+        public string basePrecision { get; set; }
     }
 
     public class BybitDataCandlesResponse<T>
