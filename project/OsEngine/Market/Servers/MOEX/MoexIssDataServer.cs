@@ -518,13 +518,33 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<string> result = new List<string>();
 
+            if (string.IsNullOrEmpty(request))
+            {
+                SendLogMessage("GetEngines: empty response", LogMessageType.Error);
+                return result;
+            }
+
             JObject json = JObject.Parse(request);
 
-            JArray dataArray = (JArray)json["engines"]["data"];
+            JArray dataArray = (json["engines"] as JObject)?["data"] as JArray;
+
+            if (dataArray == null)
+            {
+                SendLogMessage("GetEngines: no data in response", LogMessageType.Error);
+                return result;
+            }
 
             for (int i = 0; i < dataArray.Count; i++)
             {
-                JArray innerArray = (JArray)dataArray[i];
+                JArray innerArray = dataArray[i] as JArray;
+
+                if (innerArray == null || innerArray.Count < 2)
+                {
+                    SendLogMessage("GetEngines: skip malformed row, row index " + i + ", cells: "
+                        + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                    continue;
+                }
+
                 string str = innerArray[1].ToString();
 
                 if (str == "state" ||
@@ -569,13 +589,33 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetMarkets: empty response #" + i + " (" + engines[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray dataArray = (JArray)json["markets"]["data"];
+                JArray dataArray = (json["markets"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetMarkets: no data in response #" + i + " (" + engines[i] + ")", LogMessageType.Error);
+                    continue;
+                }
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
-                    JArray innerArray = (JArray)dataArray[j];
+                    JArray innerArray = dataArray[j] as JArray;
+
+                    if (innerArray == null || innerArray.Count < 2)
+                    {
+                        SendLogMessage("GetMarkets: skip malformed row in " + engines[i] + ", row index " + j + ", cells: "
+                            + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                        continue;
+                    }
+
                     string str = engines[i] + "#" + innerArray[1].ToString();
                     result.Add(str);
                 }
@@ -615,9 +655,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetClasses: empty response #" + i + " (" + markets[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray dataArray = (JArray)json["boards"]["data"];
+                JArray dataArray = (json["boards"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetClasses: no data in response #" + i + " (" + markets[i] + ")", LogMessageType.Error);
+                    continue;
+                }
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
@@ -706,10 +758,24 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                // bug-0597: пустой/битый ответ — пропускаем ответ, анкеты остальных сохраняем (фатал терял весь набор)
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetSecurities: empty response #" + i + " (" + classes[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray columnsArray = json["securities"]["columns"] as JArray;
-                JArray dataArray = (JArray)json["securities"]["data"];
+                JArray dataArray = (json["securities"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetSecurities: no data in response #" + i + " (" + classes[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
+                JArray columnsArray = (json["securities"] as JObject)?["columns"] as JArray;
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
@@ -1172,13 +1238,31 @@ namespace OsEngine.Market.Servers.MOEX
 
             JObject json = JObject.Parse(response);
 
-            JArray dataArray = (JArray)json["candles"]["data"];
+            JArray dataArray = (json["candles"] as JObject)?["data"] as JArray;
+
+            if (dataArray == null)
+            {
+                // bug-0597: error-конверт без data — штатный null-контракт пустого ответа (:1146), без исключения наружу
+                SendLogMessage("Get500LastCandles: no candles data. Url: " + str, LogMessageType.Error);
+                return null;
+            }
 
             int timeShift = GetTimeShiftHours();
 
             for (int j = 0; j < dataArray.Count; j++)
             {
-                JArray innerArray = (JArray)dataArray[j];
+                JArray innerArray = dataArray[j] as JArray;
+
+                if (innerArray == null || innerArray.Count < 7
+                    || IssCell(innerArray, 0) == null || IssCell(innerArray, 1) == null
+                    || IssCell(innerArray, 2) == null || IssCell(innerArray, 3) == null
+                    || IssCell(innerArray, 5) == null || IssCell(innerArray, 6) == null)
+                {
+                    // JSON-null в обязательных OHLC/V/Time до гейта давал тихую свечу OHLC=0 или FormatException наружу
+                    SendLogMessage("Get500LastCandles: skip malformed row, row index " + j + ", cells: "
+                        + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                    continue;
+                }
 
                 Candle candle = new Candle();
                 candle.Open = innerArray[0].ToString().ToDecimal();
