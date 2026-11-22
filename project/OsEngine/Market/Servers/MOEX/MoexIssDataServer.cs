@@ -722,10 +722,24 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                // bug-0597: пустой/битый ответ — пропускаем ответ, анкеты остальных сохраняем (фатал терял весь набор)
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetSecurities: empty response #" + i + " (" + classes[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray columnsArray = json["securities"]["columns"] as JArray;
-                JArray dataArray = (JArray)json["securities"]["data"];
+                JArray dataArray = (json["securities"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetSecurities: no data in response #" + i + " (" + classes[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
+                JArray columnsArray = (json["securities"] as JObject)?["columns"] as JArray;
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
