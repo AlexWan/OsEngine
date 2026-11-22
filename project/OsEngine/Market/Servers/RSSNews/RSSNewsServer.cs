@@ -321,7 +321,7 @@ namespace OsEngine.Market.Servers.RSSNews
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            LogMessageEvent(message, messageType);
+            LogMessageEvent?.Invoke(message, messageType);
         }
 
         #endregion

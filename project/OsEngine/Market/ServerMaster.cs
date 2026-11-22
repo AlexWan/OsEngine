@@ -1269,7 +1269,7 @@ namespace OsEngine.Market
                 }
                 catch (Exception error)
                 {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                    LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
             }
         }
