@@ -246,6 +246,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         _securities = new List<Security>();
                     }
 
+                    int diagBefore = _securities.Count;
+                    // diag BUG-0574 accumulation probe, System only. Not for PR.
+                    SendLogMessage("FIX0574 diag symbol list recv. _securities before: " + diagBefore, LogMessageType.System);
+
                     ResponseMessageRest<ResponseSymbols> symbols =
                     JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
 
@@ -322,6 +326,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         _securities.Add(newSecurity);
                     }
+
+                    int diagAfter = _securities.Count;
+                    SendLogMessage("FIX0574 diag symbol list ingested. filtered added: " + (diagAfter - diagBefore)
+                        + ", _securities after: " + diagAfter, LogMessageType.System);
+                    SendLogMessage("FIX0574 diag SecurityEvent raise. payload: " + diagAfter, LogMessageType.System);
 
                     SecurityEvent(_securities);
                 }
