@@ -639,12 +639,21 @@ namespace OsEngine.Market.Servers.MFD
 
                 StringBuilder builder = new StringBuilder();
 
-                using (StreamReader reader = new StreamReader(fileName))
+                try
                 {
-                    while (!reader.EndOfStream)
+                    using (StreamReader reader = new StreamReader(fileName))
                     {
-                        builder.Append(reader.ReadLine() + "\n");
+                        while (!reader.EndOfStream)
+                        {
+                            builder.Append(reader.ReadLine() + "\n");
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    // tmpData залочен/удалён в окне между записью и чтением (AV, backup, чужой handle) — не выпускать сырой IOException в AServer
+                    SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
+                    return null;
                 }
 
                 return builder.ToString();
