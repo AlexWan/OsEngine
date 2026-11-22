@@ -518,9 +518,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<string> result = new List<string>();
 
+            if (string.IsNullOrEmpty(request))
+            {
+                SendLogMessage("GetEngines: empty response", LogMessageType.Error);
+                return result;
+            }
+
             JObject json = JObject.Parse(request);
 
-            JArray dataArray = (JArray)json["engines"]["data"];
+            JArray dataArray = (json["engines"] as JObject)?["data"] as JArray;
+
+            if (dataArray == null)
+            {
+                SendLogMessage("GetEngines: no data in response", LogMessageType.Error);
+                return result;
+            }
 
             for (int i = 0; i < dataArray.Count; i++)
             {
@@ -577,9 +589,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetMarkets: empty response #" + i + " (" + engines[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray dataArray = (JArray)json["markets"]["data"];
+                JArray dataArray = (json["markets"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetMarkets: no data in response #" + i + " (" + engines[i] + ")", LogMessageType.Error);
+                    continue;
+                }
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
@@ -631,9 +655,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
+                if (string.IsNullOrEmpty(responses[i]))
+                {
+                    SendLogMessage("GetClasses: empty response #" + i + " (" + markets[i] + ")", LogMessageType.Error);
+                    continue;
+                }
+
                 JObject json = JObject.Parse(responses[i]);
 
-                JArray dataArray = (JArray)json["boards"]["data"];
+                JArray dataArray = (json["boards"] as JObject)?["data"] as JArray;
+
+                if (dataArray == null)
+                {
+                    SendLogMessage("GetClasses: no data in response #" + i + " (" + markets[i] + ")", LogMessageType.Error);
+                    continue;
+                }
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
