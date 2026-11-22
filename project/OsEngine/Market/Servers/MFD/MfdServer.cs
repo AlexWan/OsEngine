@@ -4,6 +4,7 @@ using OsEngine.Market.Servers.Entity;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -379,6 +380,8 @@ namespace OsEngine.Market.Servers.MFD
 
             List<Candle> result = new List<Candle>();
 
+            int badLines = 0;
+
             for (int i = 1; i < lines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(lines[i]))
@@ -388,20 +391,73 @@ namespace OsEngine.Market.Servers.MFD
 
                 string[] line = lines[i].Split(';');
 
-                DateTime timeStart = DateTimeParseHelper.ParseFromTwoStrings(line[2], line[3]);
+                // HTTP 200 от mfd.ru может быть HTML/обрезком: string.ToDecimal молча превращает мусор в нули (данные-призрак).
+                // Валидация до присваивания; форма дат/времени задаётся запросом: DateFormat=yyyyMMdd, TimeFormat=HHmmss.
+                // Длины проверяются по отдельным полям: при mis-split конкатенация склеивает сдвиг в «валидную» 14-значную дату.
+                if (line.Length < 9 ||
+                    !TryParseMfdDecimal(line[4], out decimal open) ||
+                    !TryParseMfdDecimal(line[5], out decimal high) ||
+                    !TryParseMfdDecimal(line[6], out decimal low) ||
+                    !TryParseMfdDecimal(line[7], out decimal close) ||
+                    !TryParseMfdDecimal(line[8], out decimal volume) ||
+                    line[2].Length != 8 ||
+                    line[3].Length != 6 ||
+                    !DateTime.TryParseExact(line[2] + line[3], "yyyyMMddHHmmss",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime timeStart))
+                {
+                    if (badLines++ == 0)
+                    {
+                        SendLogMessage($"GetCandles: invalid data line {i + 1}: {lines[i]}", LogMessageType.Error);
+                    }
+
+                    continue;
+                }
 
                 Candle candle = new Candle();
-                candle.Open = line[4].ToDecimal();
-                candle.High = line[5].ToDecimal();
-                candle.Low = line[6].ToDecimal();
-                candle.Close = line[7].ToDecimal();
-                candle.Volume = line[8].ToDecimal();
+                candle.Open = open;
+                candle.High = high;
+                candle.Low = low;
+                candle.Close = close;
+                candle.Volume = volume;
                 candle.TimeStart = timeStart;
 
                 result.Add(candle);
             }
 
+            if (badLines > 0)
+            {
+                SendLogMessage($"GetCandles: skipped {badLines} invalid lines", LogMessageType.Error);
+            }
+
             return result;
+        }
+
+        /// <summary>
+        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль
+        /// </summary>
+        private static bool TryParseMfdDecimal(string value, out decimal result)
+        {
+            result = 0m;
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            if (value.Contains("E"))
+            {
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
+                {
+                    result = Convert.ToDecimal(doubleValue);
+                    return true;
+                }
+
+                return false;
+            }
+
+            return decimal.TryParse(
+                value.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                NumberStyles.Number, CultureInfo.InvariantCulture, out result);
         }
 
         //  private object locker = new object();
