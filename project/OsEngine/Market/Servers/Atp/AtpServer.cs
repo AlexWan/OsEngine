@@ -1904,7 +1904,7 @@ namespace OsEngine.Market.Servers.Atp
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            LogMessageEvent(message, messageType);
+            LogMessageEvent?.Invoke(message, messageType);
         }
 
         private void HandlerException(Exception exception)

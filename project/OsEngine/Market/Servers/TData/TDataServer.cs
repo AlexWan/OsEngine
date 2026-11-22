@@ -1409,7 +1409,7 @@ namespace OsEngine.Market.Servers.TData
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            LogMessageEvent(message, messageType);
+            LogMessageEvent?.Invoke(message, messageType);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
