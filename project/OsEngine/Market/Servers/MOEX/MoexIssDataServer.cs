@@ -65,6 +65,31 @@ namespace OsEngine.Market.Servers.MOEX
             return 0;
         }
 
+        /// <summary>
+        /// Точка инъекции «сейчас» для юнит-тестов (bug-0619). Возвращает текущий момент в UTC,
+        /// по умолчанию — системный UTC.
+        /// </summary>
+        internal static Func<DateTime> NowProviderUtc { get; set; } = delegate { return DateTime.UtcNow; };
+
+        /// <summary>
+        /// «Сейчас» по бирже. Анкетные даты ISS датированы Москвой (UTC+3, без летнего времени),
+        /// локальные сутки хоста вне MSK наступают раньше или позже биржевых (bug-0619).
+        /// </summary>
+        private static DateTime ExchangeNow()
+        {
+            Func<DateTime> provider = NowProviderUtc;
+            DateTime utcNow = provider == null ? DateTime.UtcNow : provider();
+
+            // Kind=Utc здесь физически сдвинут на +3 часа и врал бы; сравниваем как Unspecified с Unspecified
+            return DateTime.SpecifyKind(utcNow.AddMilliseconds(TimeManager.MoscowUtcOffsetMs),
+                DateTimeKind.Unspecified);
+        }
+
+        private static DateTime ExchangeToday()
+        {
+            return ExchangeNow().Date;
+        }
+
         #region 1 Constructor, Status, Connection
 
         public MoexDataServerRealization()
@@ -243,6 +268,9 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<Security> newSecurities = new List<Security>();
 
+            // bug-0619: база года — от биржевого «сейчас», не от даты хоста
+            int currentYear = ExchangeNow().Year;
+
             for (int i = 0; i < 8; i++)
             {
                 if(futName == "BR"
@@ -252,11 +280,11 @@ namespace OsEngine.Market.Servers.MOEX
                     || futName == "KC"
                     || futName == "W4")
                 {
-                    newSecurities.AddRange(GetFuturesForOneYearOncePerMonth(futName, idEnding, DateTime.Now.Year - i - 2000));
+                    newSecurities.AddRange(GetFuturesForOneYearOncePerMonth(futName, idEnding, currentYear - i - 2000));
                 }
                 else
                 {
-                    newSecurities.AddRange(GetFuturesForOneYearOncePerQuarter(futName, idEnding, DateTime.Now.Year - i - 2000));
+                    newSecurities.AddRange(GetFuturesForOneYearOncePerQuarter(futName, idEnding, currentYear - i - 2000));
                 }
              }
 
@@ -268,6 +296,15 @@ namespace OsEngine.Market.Servers.MOEX
             int futEnd = Convert.ToInt32(year.ToString().Substring(1, 1));
 
             List<Security> sec = new List<Security>();
+
+            // bug-0619: стражи читают биржевое «сейчас» (дата хоста вне MSK даёт не те сутки).
+            // shortcut: снимок по одному на метод — один в GetFutNamesForTenYears и по снимку в каждом
+            // PerMonth/PerQuarter, то есть 9 вызовов ExchangeNow() на одно имя базы, ×N баз на выгрузку;
+            // биржевая полночь между ними даёт перечень от разных суток (±1 строка до следующей
+            // выгрузки). Единый снимок на выгрузку = вариант B (параметр DateTime из
+            // CreateFuturesSection).
+            // Страж перед декабрём (Month < 11): дефект вынесен как moved to BUG-0601, здесь не правится.
+            DateTime exchangeNow = ExchangeNow();
 
             // 1 BRF6
             // 2 BRG6
@@ -290,8 +327,8 @@ namespace OsEngine.Market.Servers.MOEX
             month1.NameFull = futName + "-1." + year;
             sec.Add(month1);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 2)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 2)
             {
                 return sec;
             }
@@ -304,8 +341,8 @@ namespace OsEngine.Market.Servers.MOEX
             month2.NameFull = futName + "-2." + year;
             sec.Add(month2);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 3)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 3)
             {
                 return sec;
             }
@@ -318,8 +355,8 @@ namespace OsEngine.Market.Servers.MOEX
             month3.NameFull = futName + "-3." + year;
             sec.Add(month3);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 4)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 4)
             {
                 return sec;
             }
@@ -332,8 +369,8 @@ namespace OsEngine.Market.Servers.MOEX
             month4.NameFull = futName + "-4." + year;
             sec.Add(month4);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 5)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 5)
             {
                 return sec;
             }
@@ -346,8 +383,8 @@ namespace OsEngine.Market.Servers.MOEX
             month5.NameFull = futName + "-5." + year;
             sec.Add(month5);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 6)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 6)
             {
                 return sec;
             }
@@ -360,8 +397,8 @@ namespace OsEngine.Market.Servers.MOEX
             month6.NameFull = futName + "-6." + year;
             sec.Add(month6);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 7)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 7)
             {
                 return sec;
             }
@@ -374,8 +411,8 @@ namespace OsEngine.Market.Servers.MOEX
             month7.NameFull = futName + "-7." + year;
             sec.Add(month7);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 8)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 8)
             {
                 return sec;
             }
@@ -388,8 +425,8 @@ namespace OsEngine.Market.Servers.MOEX
             month8.NameFull = futName + "-8." + year;
             sec.Add(month8);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 9)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 9)
             {
                 return sec;
             }
@@ -402,8 +439,8 @@ namespace OsEngine.Market.Servers.MOEX
             month9.NameFull = futName + "-9." + year;
             sec.Add(month9);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 10)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 10)
             {
                 return sec;
             }
@@ -416,8 +453,8 @@ namespace OsEngine.Market.Servers.MOEX
             month10.NameFull = futName + "-10." + year;
             sec.Add(month10);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 11)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 11)
             {
                 return sec;
             }
@@ -430,8 +467,8 @@ namespace OsEngine.Market.Servers.MOEX
             month11.NameFull = futName + "-11." + year;
             sec.Add(month11);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 11)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 11)
             {
                 return sec;
             }
@@ -455,8 +492,12 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<Security> sec = new List<Security>();
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 3)
+            // bug-0619: стражи читают биржевое «сейчас» (дата хоста вне MSK даёт не те сутки);
+            // снимок по одному на метод, см. shortcut в GetFuturesForOneYearOncePerMonth
+            DateTime exchangeNow = ExchangeNow();
+
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 3)
             {
                 return sec;
             }
@@ -468,8 +509,8 @@ namespace OsEngine.Market.Servers.MOEX
             one.NameFull = futName + "-3." + year;
             sec.Add(one);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 6)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 6)
             {
                 return sec;
             }
@@ -481,8 +522,8 @@ namespace OsEngine.Market.Servers.MOEX
             two.NameFull = futName + "-6." + year;
             sec.Add(two);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 9)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 9)
             {
                 return sec;
             }
@@ -494,8 +535,8 @@ namespace OsEngine.Market.Servers.MOEX
             three.NameFull = futName + "-9." + year;
             sec.Add(three);
 
-            if (DateTime.Now.Year == 2000 + year &&
-                DateTime.Now.Month < 12)
+            if (exchangeNow.Year == 2000 + year &&
+                exchangeNow.Month < 12)
             {
                 return sec;
             }
@@ -871,7 +912,7 @@ namespace OsEngine.Market.Servers.MOEX
                 string lastTradeDateValue = IssCell(row, ColIndex(columns, "LASTTRADEDATE"));
                 sec.State = lastTradeDateValue != null
                     && DateTime.TryParse(lastTradeDateValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out lastTradeDate)
-                    && lastTradeDate.Date >= DateTime.Today
+                    && lastTradeDate.Date >= ExchangeToday()
                     ? SecurityStateType.Activ : SecurityStateType.Close;
             }
             else
