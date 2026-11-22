@@ -1202,13 +1202,31 @@ namespace OsEngine.Market.Servers.MOEX
 
             JObject json = JObject.Parse(response);
 
-            JArray dataArray = (JArray)json["candles"]["data"];
+            JArray dataArray = (json["candles"] as JObject)?["data"] as JArray;
+
+            if (dataArray == null)
+            {
+                // bug-0597: error-конверт без data — штатный null-контракт пустого ответа (:1146), без исключения наружу
+                SendLogMessage("Get500LastCandles: no candles data. Url: " + str, LogMessageType.Error);
+                return null;
+            }
 
             int timeShift = GetTimeShiftHours();
 
             for (int j = 0; j < dataArray.Count; j++)
             {
-                JArray innerArray = (JArray)dataArray[j];
+                JArray innerArray = dataArray[j] as JArray;
+
+                if (innerArray == null || innerArray.Count < 7
+                    || IssCell(innerArray, 0) == null || IssCell(innerArray, 1) == null
+                    || IssCell(innerArray, 2) == null || IssCell(innerArray, 3) == null
+                    || IssCell(innerArray, 5) == null || IssCell(innerArray, 6) == null)
+                {
+                    // JSON-null в обязательных OHLC/V/Time до гейта давал тихую свечу OHLC=0 или FormatException наружу
+                    SendLogMessage("Get500LastCandles: skip malformed row, row index " + j + ", cells: "
+                        + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                    continue;
+                }
 
                 Candle candle = new Candle();
                 candle.Open = innerArray[0].ToString().ToDecimal();
