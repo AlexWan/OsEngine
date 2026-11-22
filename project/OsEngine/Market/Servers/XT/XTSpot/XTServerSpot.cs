@@ -241,17 +241,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             {
                 try
                 {
-                    if (_securities == null)
-                    {
-                        _securities = new List<Security>();
-                    }
-
-                    int diagBefore = _securities.Count;
+                    int diagBefore = _securities == null ? 0 : _securities.Count;
                     // diag BUG-0574 accumulation probe, System only. Not for PR.
                     SendLogMessage("FIX0574 diag symbol list recv. _securities before: " + diagBefore, LogMessageType.System);
 
                     ResponseMessageRest<ResponseSymbols> symbols =
                     JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseSymbols>());
+
+                    // symbol/list — полный снимок API: каждый приём заменяет список целиком, накопления между приёмами нет
+                    List<Security> newSecurities = new List<Security>();
 
                     for (int i = 0; i < symbols.result.symbols.Count; i++)
                     {
@@ -324,15 +322,24 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
                         }
 
-                        _securities.Add(newSecurity);
+                        newSecurities.Add(newSecurity);
                     }
 
-                    int diagAfter = _securities.Count;
-                    SendLogMessage("FIX0574 diag symbol list ingested. filtered added: " + (diagAfter - diagBefore)
-                        + ", _securities after: " + diagAfter, LogMessageType.System);
-                    SendLogMessage("FIX0574 diag SecurityEvent raise. payload: " + diagAfter, LogMessageType.System);
+                    SendLogMessage("FIX0574 diag symbol list ingested. filtered added: " + newSecurities.Count
+                        + ", _securities after: " + newSecurities.Count, LogMessageType.System);
 
-                    SecurityEvent(_securities);
+                    if (newSecurities.Count > 0)
+                    {
+                        _securities = newSecurities;
+
+                        SendLogMessage("FIX0574 diag SecurityEvent raise. payload: " + newSecurities.Count, LogMessageType.System);
+                        SecurityEvent?.Invoke(_securities);
+                    }
+                    else
+                    {
+                        // гейт вырожденного снимка (прецедент BUG-0573, review-20261121-012): пустой после фильтра успех не обнуляет список
+                        SendLogMessage("XTSpot WARNING FIX0574 Securities response empty after filter. Previous list kept", LogMessageType.System);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1747,11 +1754,19 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private int GetDecimalsVolume(string security)
             {
-                for (int i = 0; i < _securities.Count; i++)
+                // приём symbol/list заменяет список целиком в любой момент — читаем один снимок ссылки (прецедент bug-0257)
+                List<Security> securities = _securities;
+
+                if (securities == null)
                 {
-                    if (security == _securities[i].Name)
+                    return 0;
+                }
+
+                for (int i = 0; i < securities.Count; i++)
+                {
+                    if (security == securities[i].Name)
                     {
-                        return _securities[i].DecimalsVolume;
+                        return securities[i].DecimalsVolume;
                     }
                 }
 
