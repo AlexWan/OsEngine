@@ -196,29 +196,86 @@ namespace OsEngine.Market.Servers.BybitData
                 parametrs.Add("limit", "1000");
                 parametrs.Add("category", category);
 
-                HttpResponseMessage responseMessage = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
-                string response_msg = responseMessage.Content.ReadAsStringAsync().Result;
+                // BUG-0578: итерация по nextPageCursor до пустого курсора. Первый запрос — без cursor.
+                int pageCount = 0;
+                const int MaxPages = 20;
+                HashSet<string> seenCursors = new HashSet<string>();
+                string nextCursor = "";
 
-                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                while (true)
                 {
+                    if (pageCount > 0)
+                    {
+                        parametrs["cursor"] = nextCursor;
+                    }
+                    pageCount++;
+
+                    HttpResponseMessage responseMessage = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+                    if (responseMessage == null)
+                    {
+                        SendLogMessage($"Securities error. category={category}, page={pageCount}: no http response", LogMessageType.Error);
+                        break;
+                    }
+                    string response_msg = responseMessage.Content.ReadAsStringAsync().Result;
+
+                    // BUG-0578 постоянные page-логи: пагинация и любая обрезка должны быть видны в логе движка
+                    SendLogMessage($"Securities page category={category} http={(int)responseMessage.StatusCode} bytes={response_msg.Length} request_no={pageCount}", LogMessageType.System);
+
+                    if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    {
+                        SendLogMessage($"Securities error. category={category}, page={pageCount}. Code: {responseMessage.StatusCode} || msg: {response_msg}", LogMessageType.Error);
+                        break;
+                    }
+
                     ByBitDataResponse<ListSymbols> responseSymbols = JsonConvert.DeserializeObject<ByBitDataResponse<ListSymbols>>(response_msg);
-
-                    if (responseSymbols != null
-                        && responseSymbols.retCode == "0"
-                        && responseSymbols.retMsg == "OK")
+                    if (responseSymbols == null)
                     {
-                        ConvertSecurities(responseSymbols, category);
+                        SendLogMessage($"Securities error. category={category}, page={pageCount}: response body is not a valid envelope", LogMessageType.Error);
+                        break;
                     }
-                    else
+                    if (responseSymbols.retCode != "0" || responseSymbols.retMsg != "OK")
                     {
-                        SendLogMessage($"Securities downloading error. Code: {responseSymbols.retCode}\n"
+                        SendLogMessage($"Securities downloading error. category={category}, page={pageCount}. Code: {responseSymbols.retCode}\n"
                             + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
+                        break;
                     }
+                    if (responseSymbols.result == null || responseSymbols.result.list == null)
+                    {
+                        SendLogMessage($"Securities error. category={category}, page={pageCount}: result is null or list is null in envelope", LogMessageType.Error);
+                        break;
+                    }
+
+                    string pageCursorRaw = responseSymbols.result.nextPageCursor;
+                    string pageCursor = pageCursorRaw ?? "";
+                    string cursorState = pageCursorRaw == null
+                        ? "NULL"
+                        : pageCursor.Length == 0 ? "EMPTY" : $"NONEMPTY len={pageCursorRaw.Length}";
+                    SendLogMessage($"Securities page category={category} request_no={pageCount} list_count={responseSymbols.result.list.Count} cursor={cursorState}", LogMessageType.System);
+
+                    if (pageCursor.Length > 0 && seenCursors.Contains(pageCursor))
+                    {
+                        SendLogMessage($"Securities pagination error. category={category}: API repeated cursor at page={pageCount}. Duplicate page not loaded, loaded pages kept", LogMessageType.Error);
+                        break;
+                    }
+
+                    ConvertSecurities(responseSymbols, category);
+
+                    SendLogMessage($"Securities page category={category} request_no={pageCount} added, total_loaded={_securities.Count}", LogMessageType.System);
+
+                    if (pageCursor.Length == 0)
+                    {
+                        break;
+                    }
+                    if (pageCount >= MaxPages)
+                    {
+                        SendLogMessage($"Securities pagination error. category={category}: page cap {MaxPages} reached, cursor still set. Loaded pages kept", LogMessageType.Error);
+                        break;
+                    }
+                    seenCursors.Add(pageCursor);
+                    nextCursor = pageCursor;
                 }
-                else
-                {
-                    SendLogMessage($"Securities error. Code: {responseMessage.StatusCode} || msg: {response_msg}", LogMessageType.Error);
-                }
+
+                SendLogMessage($"Securities category={category}: pages={pageCount}, total_loaded={_securities.Count}", LogMessageType.System);
             }
             catch (Exception ex)
             {
