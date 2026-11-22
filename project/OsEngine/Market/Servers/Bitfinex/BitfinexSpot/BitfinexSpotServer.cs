@@ -1490,6 +1490,8 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
+            _privateFrameBufferedLogged = false;
+            _privateAuthBufferedLogged = false;
             try
             {
                 GenerateAuthenticate();
@@ -1556,8 +1558,10 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect
-                    || e?.Data == null
+                // Статус-гейт убран: auth-ответ и chan-0 снапшоты приходят до флипа ServerStatus
+                // и терялись. Кадры окна «Open → активация» буферизуются (рост ограничен окном до
+                // активации всех сокетов), роутер читает их по FIFO после флипа, Connect() пересоздаёт очередь
+                if (e?.Data == null
                     || string.IsNullOrEmpty(e?.Data))
                 {
                     return;
@@ -1578,11 +1582,35 @@ namespace OsEngine.Market.Servers.Bitfinex
                     return;
                 }
 
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    LogPrivateFrameBufferedBeforeActivation(e.Data);
+                }
+
                 FIFOListWebSocketPrivateMessage?.Enqueue(e.Data);
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool _privateFrameBufferedLogged;
+        private bool _privateAuthBufferedLogged;
+
+        // Фиксированные сообщения, payload не логируется: в кадре могут быть ключи и номера портфелей
+        private void LogPrivateFrameBufferedBeforeActivation(string data)
+        {
+            if (data.IndexOf("\"event\":\"auth\"", StringComparison.Ordinal) >= 0
+                && !_privateAuthBufferedLogged)
+            {
+                _privateAuthBufferedLogged = true;
+                SendLogMessage("WebSocket private authentication received before sockets activation. Buffered.", LogMessageType.System);
+            }
+            else if (!_privateFrameBufferedLogged)
+            {
+                _privateFrameBufferedLogged = true;
+                SendLogMessage("WebSocket private frame buffered before sockets activation.", LogMessageType.System);
             }
         }
 
