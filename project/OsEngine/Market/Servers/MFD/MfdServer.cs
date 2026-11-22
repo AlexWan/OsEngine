@@ -493,16 +493,25 @@ namespace OsEngine.Market.Servers.MFD
 
         private string GetFileRequest(string url)
         {
-            if (!Directory.Exists(@"Data\Temp\MfdTempFiles\"))
-            {
-                Directory.CreateDirectory(@"Data\Temp\MfdTempFiles\");
-            }
-
             string fileName = @"Data\Temp\MfdTempFiles\tmpData" + ".txt";
 
-            if (File.Exists(fileName))
+            try
             {
-                File.Delete(fileName);
+                if (!Directory.Exists(@"Data\Temp\MfdTempFiles\"))
+                {
+                    Directory.CreateDirectory(@"Data\Temp\MfdTempFiles\");
+                }
+
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                // tmp-путь залочен/недоступен (AV, backup, чужой handle) — не выпускать IOException в AServer; старый tmpData не читать как свежий
+                SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
+                return null;
             }
 
             RestRequest request = new RestRequest(Method.GET);
