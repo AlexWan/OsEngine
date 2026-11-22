@@ -179,15 +179,37 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            DateTime startTimeReal = trades[0].Time;
-            DateTime endTimeReal = trades[trades.Count - 1].Time;
+            // Намерение 6.1.3/6.1.4: покрытие интервала. Перенос критерия D1 (bug-0535/PR 2210): точное
+            // совпадение дат резало полное покрытие на архивах со своей границей (OKXData — 16:00 UTC);
+            // чистый span режет сессионные биржи (Finam, Polygon). Error 6, если интервал не покрыт
+            // (span < окна-3ч) И нет сессионного паттерна: обе даты окна затронуты и концевая дата
+            // докачана не ниже 75% сегмента. Данные шире окна (голова/хвост вне границ) — норма.
+            // Дыра внутри окна при целом span не ловится (зона D3 Validation_Trades).
+            // shortcut: укороченный торговый день глубже 75% сегмента => ложный Error 6; апгрейд — оракул TradingTimes.
+            DateTime spanStart = trades[0].Time;
+            DateTime spanEnd = trades[0].Time;
+            DateTime endDayStart = endTime.Date > startTime ? endTime.Date : startTime;
+            DateTime endDayLast = DateTime.MinValue;
+            bool startDayTouched = false;
 
-            if (startTime.Date != startTimeReal.Date ||
-                endTime.Date != endTimeReal.Date)
+            for (int i = 0; i < trades.Count; i++)
             {
-                SetNewError("Error 6. Time Start or time End in real data is wrong. Tf " + timeFrame.ToString() + "\n"
-                    + " StartTimeReal: " + startTimeReal.ToString()
-                    + " EndTimeReal: " + endTimeReal.ToString() + "| Security: " + secName);
+                DateTime t = trades[i].Time;
+                if (t < spanStart) spanStart = t;
+                if (t > spanEnd) spanEnd = t;
+                if (t >= startTime && t < endDayStart) startDayTouched = true;
+                if (t >= endDayStart && t <= endTime && t > endDayLast) endDayLast = t;
+            }
+
+            bool covered = spanEnd - spanStart >= (endTime - startTime) - TimeSpan.FromHours(3);
+            bool sessionPattern = startDayTouched && endDayLast != DateTime.MinValue
+                && (endDayLast - endDayStart).TotalHours >= (endTime - endDayStart).TotalHours * 0.75;
+
+            if (!covered && !sessionPattern)
+            {
+                SetNewError("Error 6. Trades do not cover the requested interval. Tf " + timeFrame.ToString() + "\n"
+                    + " Requested: " + startTime.ToString() + " - " + endTime.ToString()
+                    + " Actual: " + spanStart.ToString() + " - " + spanEnd.ToString() + "| Security: " + secName);
             }
         }
 
