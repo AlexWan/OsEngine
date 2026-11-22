@@ -35,15 +35,24 @@ namespace OsEngine.Market.Servers.Finam
         {
             ServerStatus = ServerConnectStatus.Disconnect;
             _tokenProvider = new FinamTokenProvider(this);
-
-            if (!Directory.Exists(@"Data\Temp\FinamTempFiles\"))
-            {
-                Directory.CreateDirectory(@"Data\Temp\FinamTempFiles\");
-            }
         }
 
         public void Connect(WebProxy proxy)
         {
+            try
+            {
+                if (!Directory.Exists(@"Data\Temp\FinamTempFiles\"))
+                {
+                    Directory.CreateDirectory(@"Data\Temp\FinamTempFiles\");
+                }
+            }
+            catch (Exception ex)
+            {
+                // tmp-путь залочен/недоступен (AV, backup, чужой handle) — не выпускать бросок в ServerMaster/AServer; ConnectEvent не поднят, реконнект повторит
+                SendLogMessage($"Temp files folder error.\n{ex.Message}", LogMessageType.Error);
+                return;
+            }
+
             string token = GetToken();
 
             if (string.IsNullOrWhiteSpace(token))
@@ -75,14 +84,25 @@ namespace OsEngine.Market.Servers.Finam
 
         public void Dispose()
         {
-            string[] files = Directory.GetFiles(@"Data\Temp\FinamTempFiles\");
-
-            if (files.Length > 0)
+            try
             {
-                for (int i = 0; i < files.Length; i++)
+                if (Directory.Exists(@"Data\Temp\FinamTempFiles\"))
                 {
-                    File.Delete(files[i]);
+                    string[] files = Directory.GetFiles(@"Data\Temp\FinamTempFiles\");
+
+                    if (files.Length > 0)
+                    {
+                        for (int i = 0; i < files.Length; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                // залоченный tmp не мешает отключению; каталога нет — Exists, не бросаем (F1: AServer Dispose :1362 до Connect)
+                SendLogMessage($"Temp files cleanup error.\n{ex.Message}", LogMessageType.Error);
             }
 
             if (ServerStatus != ServerConnectStatus.Disconnect)

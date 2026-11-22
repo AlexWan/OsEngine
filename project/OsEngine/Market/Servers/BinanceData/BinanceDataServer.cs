@@ -32,17 +32,26 @@ namespace OsEngine.Market.Servers.BinanceData
         public BinanceDataServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-
-            if (!Directory.Exists(_tempDirectory))
-            {
-                Directory.CreateDirectory(_tempDirectory);
-            }
         }
 
         public void Connect(WebProxy proxy)
         {
             try
             {
+                try
+                {
+                    if (!Directory.Exists(_tempDirectory))
+                    {
+                        Directory.CreateDirectory(_tempDirectory);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // tmp-путь залочен/недоступен — отказ от коннекта с различимым Error, не HTTP-след
+                    SendLogMessage($"Temp files folder error.\n{ex.Message}", LogMessageType.Error);
+                    return;
+                }
+
                 RestRequest request = new(Method.GET);
                 RestClient client = new("https://data.binance.vision/?prefix=data/");
                 request.AddHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36");
@@ -72,14 +81,25 @@ namespace OsEngine.Market.Servers.BinanceData
 
         public void Dispose()
         {
-            string[] files = Directory.GetFiles(_tempDirectory);
-
-            if (files.Length > 0)
+            try
             {
-                for (int i = 0; i < files.Length; i++)
+                if (Directory.Exists(_tempDirectory))
                 {
-                    File.Delete(files[i]);
+                    string[] files = Directory.GetFiles(_tempDirectory);
+
+                    if (files.Length > 0)
+                    {
+                        for (int i = 0; i < files.Length; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                // залоченный tmp не мешает отключению; каталога нет — Exists, не бросаем (F1: AServer Dispose :1362 до Connect)
+                SendLogMessage($"Temp files cleanup error.\n{ex.Message}", LogMessageType.Error);
             }
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
