@@ -536,6 +536,89 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
+        /// <summary>
+        /// Docs (ws-auth-wallets): the authenticated channel 0 automatically delivers a full wallets
+        /// snapshot [0,"ws",[[TYPE,CURRENCY,BALANCE,UNSETTLED,BALANCE_AVAILABLE,...],...]] on every
+        /// subscribe/reconnect. The frame had no branch in PrivateMessageReader and was silently
+        /// dropped (bug-0526). Field semantics mirror the 'wu' WS path and the REST wallets path.
+        /// </summary>
+        private void UpdatePortfolioSnapshot(string json)
+        {
+            try
+            {
+                List<object> root = JsonConvert.DeserializeObject<List<object>>(json);
+
+                if (root == null || root.Count < 3 || root[2] == null)
+                {
+                    SendLogMessage("UpdatePortfolioSnapshot> Invalid wallets snapshot frame", LogMessageType.Error);
+                    return;
+                }
+
+                List<List<object>> wallets =
+                    JsonConvert.DeserializeObject<List<List<object>>>(root[2].ToString());
+
+                if (wallets == null || wallets.Count == 0)
+                {
+                    SendLogMessage("UpdatePortfolioSnapshot> Empty wallets snapshot", LogMessageType.System);
+                    return;
+                }
+
+                List<PositionOnBoard> positions = new List<PositionOnBoard>();
+
+                for (int i = 0; i < wallets.Count; i++)
+                {
+                    List<object> wallet = wallets[i];
+
+                    if (wallet == null || wallet.Count < 5 || wallet[2] == null)
+                    {
+                        SendLogMessage("UpdatePortfolioSnapshot> Malformed wallet entry skipped", LogMessageType.Error);
+                        continue;
+                    }
+
+                    // [5]=DESCRIPTION/[6]=META не читаем: на счёте с реальной историей сделок live (tr314)
+                    // они приходят объектами, и binding строки List<string> ронял весь кадр
+                    // (JsonReaderException). Читаемое поле — то же, что у 'wu'
+                    if (wallet[0] as string == "exchange" && wallet[1] != null)
+                    {
+                        PositionOnBoard position = new PositionOnBoard();
+
+                        position.PortfolioName = "BitfinexSpotPortfolio";
+                        position.SecurityNameCode = wallet[1].ToString();
+
+                        decimal balance = Convert.ToDecimal(wallet[2]);
+                        position.ValueBegin = balance;
+
+                        if (wallet[4] != null)
+                        {
+                            position.ValueCurrent = Convert.ToDecimal(wallet[4]);
+                            position.ValueBlocked = balance - Convert.ToDecimal(wallet[4]);
+                        }
+                        else
+                        {
+                            // [4]=BALANCE_AVAILABLE is Float/Null по docs ("null if the value has not yet
+                            // been calculated") — фолбэк на [2], та же семантика, что 'wu' (bug-0514) и REST (BUG-0534)
+                            position.ValueCurrent = balance;
+                            position.ValueBlocked = 0;
+                        }
+
+                        positions.Add(position);
+                    }
+                }
+
+                if (positions.Count == 0)
+                {
+                    SendLogMessage("UpdatePortfolioSnapshot> Snapshot without exchange wallets", LogMessageType.System);
+                    return;
+                }
+
+                SyncPortfolio(positions);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region 5 Data
@@ -2072,6 +2155,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                     else if (message.StartsWith("[0,\"wu\",["))
                     {
                         UpdatePortfolio(message);
+                    }
+                    else if (message.StartsWith("[0,\"ws\",["))
+                    {
+                        UpdatePortfolioSnapshot(message);
                     }
                 }
                 catch (Exception exception)
