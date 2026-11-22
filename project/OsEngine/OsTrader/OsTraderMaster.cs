@@ -1397,9 +1397,19 @@ namespace OsEngine.OsTrader
 
         private void StopBotsWhoTradeSecurity(string secName, Market.Servers.IServer server)
         {
-            for (int i = 0; i < PanelsArray.Count; i++)
+            // Called from a pool thread: PanelsArray is mutated by the UI thread.
+            // Take the atomic snapshot per the 2100 contract (GetPanelsArraySnapshot)
+            // Currently dead code: the call site in ServerMaster_ClearPositionOnBoardEvent is commented out
+            BotPanel[] panelsSnapshot = GetPanelsArraySnapshot();
+
+            for (int i = 0; i < panelsSnapshot.Length; i++)
             {
-                BotPanel bot = PanelsArray[i];
+                BotPanel bot = panelsSnapshot[i];
+
+                if (bot == null)
+                {
+                    continue;
+                }
 
                 List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
