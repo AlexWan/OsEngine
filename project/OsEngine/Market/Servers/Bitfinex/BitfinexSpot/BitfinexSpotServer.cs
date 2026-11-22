@@ -1490,6 +1490,8 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
+            _privateFrameBufferedLogged = false;
+            _privateAuthBufferedLogged = false;
             try
             {
                 GenerateAuthenticate();
@@ -1556,8 +1558,11 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect
-                    || e?.Data == null
+                // Статус-гейт убран: auth-ответ и chan-0 снапшоты приходят до флипа ServerStatus
+                // и терялись. Кадры окна до активации буферизуются очередью; рост ограничен
+                // периодом до ближайшего реконнекта/Dispose, роутер читает по FIFO после флипа,
+                // Connect() пересоздаёт очередь
+                if (e?.Data == null
                     || string.IsNullOrEmpty(e?.Data))
                 {
                     return;
@@ -1578,11 +1583,49 @@ namespace OsEngine.Market.Servers.Bitfinex
                     return;
                 }
 
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    LogPrivateFrameBufferedBeforeActivation(e.Data);
+                }
+
                 FIFOListWebSocketPrivateMessage?.Enqueue(e.Data);
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool _privateFrameBufferedLogged;
+        private bool _privateAuthBufferedLogged;
+
+        // Фиксированные сообщения, payload не логируется: в кадре могут быть ключи и номера портфелей
+        private void LogPrivateFrameBufferedBeforeActivation(string data)
+        {
+            // Сбой логирования поглощается: helper вызывается из WS-callback приёма, выпущенное
+            // исключение (бьющий или неподписанный LogMessageEvent) убило бы receive-луп
+            // WebSocketOsEngine и кадр; флаг ставим только после успеха, чтобы неудачная попытка
+            // не глушила buffered-строки всей сессии
+            try
+            {
+                if (data.IndexOf("\"event\":\"auth\"", StringComparison.Ordinal) >= 0)
+                {
+                    if (_privateAuthBufferedLogged)
+                    {
+                        return;
+                    }
+                    SendLogMessage("WebSocket private authentication received before sockets activation. Buffered.", LogMessageType.System);
+                    _privateAuthBufferedLogged = true;
+                }
+                else if (!_privateFrameBufferedLogged)
+                {
+                    SendLogMessage("WebSocket private frame buffered before sockets activation.", LogMessageType.System);
+                    _privateFrameBufferedLogged = true;
+                }
+            }
+            catch (Exception)
+            {
+                // Молча: логгер здесь — сам источник отказа, логировать отказ им же нельзя
             }
         }
 
