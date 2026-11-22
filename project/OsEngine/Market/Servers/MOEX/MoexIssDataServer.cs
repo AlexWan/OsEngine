@@ -524,7 +524,15 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < dataArray.Count; i++)
             {
-                JArray innerArray = (JArray)dataArray[i];
+                JArray innerArray = dataArray[i] as JArray;
+
+                if (innerArray == null || innerArray.Count < 2)
+                {
+                    SendLogMessage("GetEngines: skip malformed row, row index " + i + ", cells: "
+                        + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                    continue;
+                }
+
                 string str = innerArray[1].ToString();
 
                 if (str == "state" ||
@@ -575,7 +583,15 @@ namespace OsEngine.Market.Servers.MOEX
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
-                    JArray innerArray = (JArray)dataArray[j];
+                    JArray innerArray = dataArray[j] as JArray;
+
+                    if (innerArray == null || innerArray.Count < 2)
+                    {
+                        SendLogMessage("GetMarkets: skip malformed row in " + engines[i] + ", row index " + j + ", cells: "
+                            + (innerArray == null ? 0 : innerArray.Count), LogMessageType.Error);
+                        continue;
+                    }
+
                     string str = engines[i] + "#" + innerArray[1].ToString();
                     result.Add(str);
                 }
