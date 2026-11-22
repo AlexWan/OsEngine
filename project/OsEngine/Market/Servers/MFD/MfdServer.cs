@@ -369,6 +369,12 @@ namespace OsEngine.Market.Servers.MFD
 
             string response = GetFileRequest(requestStr);
 
+            if (response == null)
+            {
+                // файл не загружен (отказ транспорта, HTTP != OK, пустое тело); GetFileRequest уже залогировал Error. null по контракту свечей — OsDataSet трактует как «нет данных»
+                return null;
+            }
+
             string[] lines = response.Split('\n');
 
             List<Candle> result = new List<Candle>();
