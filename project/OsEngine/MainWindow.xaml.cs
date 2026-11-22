@@ -62,6 +62,9 @@ namespace OsEngine
 
             Logging.StartupCrashGuard.Detach();
 
+            // BUG-0544: метка штатного выхода — отсутствие метки при смерти процесса = Kill/смерть
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => { try { Logging.StartupCrashGuard.LogStartup("ProcessExit: normal shutdown"); } catch { } };
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
             System.Windows.Forms.Application.ThreadException += WinForms_ThreadException; // BUG-0202, см. хендлер
@@ -80,33 +83,33 @@ namespace OsEngine
                 if (winVersion < 6)
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message1);
-                    AbortStartup();
+                    AbortStartup(1);
                     return;
                 }
                 if (!CheckDotNetVersion())
                 {
-                    AbortStartup();
+                    AbortStartup(2);
                     return;
                 }
 
                 if (!CheckWorkWithDirectory())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message2);
-                    AbortStartup();
+                    AbortStartup(3);
                     return;
                 }
 
                 if (!CheckOutSomeLibrariesNearby())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message6);
-                    AbortStartup();
+                    AbortStartup(4);
                     return;
                 }
 
                 if (!CheckAlreadyWorkEngine())
                 {
                     MessageBox.Show(OsLocalization.MainWindow.Message7);
-                    AbortStartup();
+                    AbortStartup(5);
                     return;
                 }
 
@@ -114,7 +117,7 @@ namespace OsEngine
             catch (Exception)
             {
                 MessageBox.Show(OsLocalization.MainWindow.Message3);
-                AbortStartup();
+                AbortStartup(6);
                 return;
             }
 
@@ -261,7 +264,7 @@ namespace OsEngine
 
                 if (_applicationShutdownRequested || Dispatcher.HasShutdownStarted)
                 { // завершение инициировано извне (Application.Shutdown) — окна не показываем
-                    TerminateNow();
+                    TerminateNow("closing");
                     return;
                 }
 
@@ -320,8 +323,11 @@ namespace OsEngine
         public bool ShutdownInProgress => Interlocked.CompareExchange(ref _shutdownRequested, 0, 0) != 0;
 
         /// <summary>Немедленное завершение: из любого потока, без WPF-операций, Kill не ждёт UI-диспетчер.</summary>
-        private void TerminateNow()
+        private void TerminateNow(string caller)
         {
+            // BUG-0544: след ДО reentry-guard — повторный вход тоже виден; Kill иначе неотличим от внешнего TerminateProcess
+            try { Logging.StartupCrashGuard.LogStartup("TerminateNow caller=" + caller); } catch { }
+
             if (Interlocked.CompareExchange(ref _shutdownRequested, 1, 0) != 0)
             {
                 return;
@@ -354,6 +360,9 @@ namespace OsEngine
                 {
                     return;
                 }
+
+                // S-01: штатный graceful завершается watchdog-Kill, ProcessExit на нём не горит — след на входе, чтобы отличать его от внешнего kill
+                try { Logging.StartupCrashGuard.LogStartup("BeginGracefulShutdown programmatic=" + programmatic); } catch { }
 
                 if (programmatic)
                 {
@@ -396,8 +405,10 @@ namespace OsEngine
         }
 
         /// <summary>Явный выход при неудачной инициализации (OnExplicitShutdown не завершит процесс по последнему окну).</summary>
-        private void AbortStartup()
+        private void AbortStartup(int point)
         {
+            // BUG-0544: 1=OS<6, 2=.NET, 3=каталог, 4=библиотеки, 5=уже_работает, 6=catch конструктора
+            try { Logging.StartupCrashGuard.LogStartup("AbortStartup point=" + point); } catch { }
             try { Process.GetCurrentProcess().Kill(); } catch { }
         }
 
@@ -462,6 +473,7 @@ namespace OsEngine
         {
             if (e.ExceptionObject is OutOfMemoryException)
             { // фатальное исключение: не строим отчёт, лог и UI-диалог под OOM
+                try { Logging.StartupCrashGuard.LogStartup("AppDomain THREAD OOM (not reported)."); } catch { }
                 return;
             }
 
@@ -582,6 +594,7 @@ namespace OsEngine
                 if (e.Exception is OutOfMemoryException)
                 { // фатальное исключение: не строим отчёт, лог и UI-диалог (под OOM это само по себе
                   // рискованно), не выставляем e.Handled и даём процессу завершиться штатным крашем
+                    try { Logging.StartupCrashGuard.LogStartup("Dispatcher UI OOM (not reported)."); } catch { }
                     return;
                 }
 
@@ -761,7 +774,7 @@ namespace OsEngine
 
                 // новый процесс уже стартовал; старый завершается немедленно (Immediate).
                 // Вне обработки отказа Start, чтобы не «воскрешать» MCP при уже начатом завершении.
-                TerminateNow();
+                TerminateNow("terminal_launch");
             }
             catch (Exception ex)
             {
@@ -824,7 +837,7 @@ namespace OsEngine
             try
             {
                 // контракт terminal_kill — немедленное убийство без grace
-                TerminateNow();
+                TerminateNow("terminal_kill");
             }
             catch (Exception ex)
             {
@@ -1011,7 +1024,7 @@ namespace OsEngine
                 return;
             }
 
-            TerminateNow();
+            TerminateNow("reboot");
         }
 
         #region Block and Unblock interface
