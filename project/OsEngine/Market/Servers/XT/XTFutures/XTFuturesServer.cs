@@ -1621,7 +1621,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     _lastSeqNum = Convert.ToInt64(marketDepth.fu);
 
-                    depth.Time = DateTime.UtcNow;
+                    // guard обязан видеть итоговое время биржи, иначе emit-время не защищено (WServerTester Error 13)
+                    depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(marketDepth.t));
 
                     if (depth.Time <= _lastTimeMd)
                     {
@@ -1633,12 +1634,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         _lastTimeMd = depth.Time;
                     }
 
-                    _lastTimeMd = depth.Time;
-
                     ApplyLevels(marketDepth.b, depth.Bids, isBid: true);
                     ApplyLevels(marketDepth.a, depth.Asks, isBid: false);
-
-                    depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(marketDepth.t));
 
                     List<MarketDepthLevel> topBids = new List<MarketDepthLevel>();
 
