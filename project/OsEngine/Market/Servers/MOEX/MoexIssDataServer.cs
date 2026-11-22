@@ -621,7 +621,17 @@ namespace OsEngine.Market.Servers.MOEX
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
-                    JArray innerArray = (JArray)dataArray[j];
+                    // bug-0596: дефектная строка boards.data — пропуск с логом:
+                    // падение здесь гасит весь поток анкет (catch в GetSecurities :125)
+                    JArray innerArray = dataArray[j] as JArray;
+
+                    if (innerArray == null || innerArray.Count < 3)
+                    {
+                        SendLogMessage("GetClasses: skip malformed row in " + markets[i]
+                            + ", row index " + j + ", cells: " + (innerArray == null ? 0 : innerArray.Count),
+                            LogMessageType.Error);
+                        continue;
+                    }
 
                     string code = innerArray[2].ToString();
 
@@ -703,7 +713,17 @@ namespace OsEngine.Market.Servers.MOEX
 
                 for (int j = 0; j < dataArray.Count; j++)
                 {
-                    JArray innerArray = (JArray)dataArray[j];
+                    // bug-0596: короткая/скалярная строка securities.data — пропуск с логом,
+                    // позиционные [0]/[2] ниже иначе роняют весь поток анкет
+                    JArray innerArray = dataArray[j] as JArray;
+
+                    if (innerArray == null || innerArray.Count < 3)
+                    {
+                        SendLogMessage("GetSecurities: skip malformed row in " + classes[i]
+                            + ", row index " + j + ", cells: " + (innerArray == null ? 0 : innerArray.Count),
+                            LogMessageType.Error);
+                        continue;
+                    }
 
                     Security newSec = MapIssSecurity(columnsArray, innerArray, classes[i]);
                     newSec.Name = innerArray[0].ToString();
@@ -1184,7 +1204,8 @@ namespace OsEngine.Market.Servers.MOEX
 
         #region 4 Queries
 
-        private string GetRequest(string url)
+        // bug-0596: шов для юнит-стенда (Artifacts/Tests/bug-0596) — моки ISS-ответов без сети
+        protected virtual string GetRequest(string url)
         {
             try
             {
