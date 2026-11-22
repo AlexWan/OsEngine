@@ -283,6 +283,22 @@ namespace OsEngine.OsTrader
             }
         }
 
+        /// <summary>Atomically swaps two bots: the pair of index writes must be atomic for snapshot readers (2100)</summary>
+        internal void SwapPanels(int index1, int index2)
+        {
+            lock (_panelsArrayLocker)
+            {
+                if (PanelsArray == null || index1 < 0 || index1 >= PanelsArray.Count
+                    || index2 < 0 || index2 >= PanelsArray.Count)
+                {
+                    return;
+                }
+                BotPanel panel = PanelsArray[index1];
+                PanelsArray[index1] = PanelsArray[index2];
+                PanelsArray[index2] = panel;
+            }
+        }
+
         /// <summary>
         /// The bot to which the interface is currently connected
         /// </summary>
