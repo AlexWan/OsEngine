@@ -501,6 +501,8 @@ namespace OsEngine.Market.Servers.MFD
 
             List<Trade> trades = new List<Trade>();
 
+            int badTicks = 0;
+
             for (int i = 1; i < lines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(lines[i]))
@@ -510,18 +512,68 @@ namespace OsEngine.Market.Servers.MFD
 
                 string[] line = lines[i].Split(';');
 
-                DateTime timeStart = DateTimeParseHelper.ParseFromTwoStrings(line[2], line[3]);
+                // HTTP 200 от mfd.ru может быть HTML/обрезком: string.ToDecimal молча превращает мусор в нулевые тики (данные-призрак).
+                // Валидация до присваивания; форма дат/времени задаётся запросом: DateFormat=yyyyMMdd, TimeFormat=HHmmss.
+                // Длины проверяются по отдельным полям: при mis-split конкатенация склеивает сдвиг в «валидную» 14-значную дату.
+                if (line.Length < 6 ||
+                    !TryParseMfdTickDecimal(line[4], out decimal price) ||
+                    !TryParseMfdTickDecimal(line[5], out decimal volume) ||
+                    line[2].Length != 8 ||
+                    line[3].Length != 6 ||
+                    !DateTime.TryParseExact(line[2] + line[3], "yyyyMMddHHmmss",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime timeStart))
+                {
+                    if (badTicks++ == 0)
+                    {
+                        SendLogMessage($"GetTickDataToSecurity: invalid data line {i + 1}: {lines[i]}", LogMessageType.Error);
+                    }
+
+                    continue;
+                }
 
                 Trade trade = new Trade();
-                trade.Price = line[4].ToDecimal();
-                trade.Volume = line[5].ToDecimal();
+                trade.Price = price;
+                trade.Volume = volume;
                 trade.Time = timeStart;
                 trade.SecurityNameCode = security.Name;
 
                 trades.Add(trade);
             }
 
+            if (badTicks > 0)
+            {
+                SendLogMessage($"GetTickDataToSecurity: skipped {badTicks} invalid lines", LogMessageType.Error);
+            }
+
             return trades;
+        }
+
+        /// <summary>
+        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль
+        /// </summary>
+        private static bool TryParseMfdTickDecimal(string value, out decimal result)
+        {
+            result = 0m;
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            if (value.Contains("E"))
+            {
+                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
+                {
+                    result = Convert.ToDecimal(doubleValue);
+                    return true;
+                }
+
+                return false;
+            }
+
+            return decimal.TryParse(
+                value.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
+                NumberStyles.Number, CultureInfo.InvariantCulture, out result);
         }
 
         #endregion
