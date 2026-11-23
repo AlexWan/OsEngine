@@ -300,10 +300,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 _securitiesDict[sec.Name] = sec;
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
         }
 
         public event Action<List<Security>> SecurityEvent;

@@ -290,7 +290,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (SecurityEvent != null)
                 {
-                    SecurityEvent.Invoke(_securities);
+                    SecurityEvent?.Invoke(_securities);
                 }
             }
 

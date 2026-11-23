@@ -117,10 +117,7 @@ namespace OsEngine.Market.Servers.MFD
                 }
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
 
             SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
         }

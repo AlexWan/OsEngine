@@ -135,7 +135,7 @@ namespace OsEngine.Market.Servers.BinanceData
                 SendLogMessage($"{_securities.Count} securities loaded", LogMessageType.System);
             }
 
-            SecurityEvent(_securities);
+            SecurityEvent?.Invoke(_securities);
         }
 
         private void GetSpotSecurities()

@@ -402,7 +402,7 @@ namespace OsEngine.Market.Servers.RSSNews
 
             securities.Add(fakeSec);
 
-            SecurityEvent(securities);
+            SecurityEvent?.Invoke(securities);
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)

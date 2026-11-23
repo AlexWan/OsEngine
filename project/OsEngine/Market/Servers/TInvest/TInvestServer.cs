@@ -926,7 +926,7 @@ namespace OsEngine.Market.Servers.TInvest
             if (snapshot.Count > 0
                 && SecurityEvent != null)
             {
-                SecurityEvent.Invoke(snapshot);
+                SecurityEvent?.Invoke(snapshot);
             }
         }
 

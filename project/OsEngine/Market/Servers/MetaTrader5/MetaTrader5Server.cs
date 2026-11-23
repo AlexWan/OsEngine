@@ -269,10 +269,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     return;
                 }
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
+                SecurityEvent?.Invoke(_securities);
 
                 SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
             }
@@ -528,10 +525,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                         CalculatePriceStep(ref sec);
                     }
 
-                    if (SecurityEvent != null)
-                    {
-                        SecurityEvent(_securities);
-                    }
+                    SecurityEvent?.Invoke(_securities);
 
                     Thread.Sleep(60000);
                 }

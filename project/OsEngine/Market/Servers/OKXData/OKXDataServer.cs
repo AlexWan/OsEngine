@@ -158,7 +158,7 @@ namespace OsEngine.Market.Servers.OKXData
                 SendLogMessage($"{_securities.Count} securities loaded", LogMessageType.System);
             }
 
-            SecurityEvent(_securities);
+            SecurityEvent?.Invoke(_securities);
         }
 
         private SecurityRespOkxData GetFuturesSecurities()
@@ -320,10 +320,7 @@ namespace OsEngine.Market.Servers.OKXData
                 SendLogMessage("UpdatePairs: empty response, old securities table is kept", LogMessageType.System);
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
+            SecurityEvent?.Invoke(_securities);
         }
 
         public event Action<List<Security>> SecurityEvent;

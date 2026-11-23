@@ -294,7 +294,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
             }
 
-            SecurityEvent(_securities);
+            SecurityEvent?.Invoke(_securities);
         }
 
         private string NameClass(string character)

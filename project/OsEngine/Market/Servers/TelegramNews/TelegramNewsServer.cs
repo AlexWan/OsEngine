@@ -1266,7 +1266,7 @@ namespace OsEngine.Market.Servers.TelegramNews
 
             securities.Add(fakeSec);
 
-            SecurityEvent(securities);
+            SecurityEvent?.Invoke(securities);
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)

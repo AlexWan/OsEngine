@@ -713,7 +713,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             {
                 if (_allSecuritiesLoaded)
                 {
-                    SecurityEvent(_securities);
+                    SecurityEvent?.Invoke(_securities);
                     return;
                 }
                 SendLogMessage("Securities not dowloaded. Wait, please", LogMessageType.System);

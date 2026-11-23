@@ -270,7 +270,7 @@ namespace OsEngine.Market.Servers.Deribit
                 }
             }
 
-            SecurityEvent(securities);
+            SecurityEvent?.Invoke(securities);
         }
 
         private SecurityType GetSecurityType(string kind)

@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.Pionex
                             _securities.Add(newSecurity);
                         }
 
-                        SecurityEvent(_securities);
+                        SecurityEvent?.Invoke(_securities);
                     }
                     else
                     {

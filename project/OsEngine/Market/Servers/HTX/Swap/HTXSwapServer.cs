@@ -466,7 +466,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             _securitiesDict[sec.Name] = sec;
                         }
 
-                        SecurityEvent(securities);
+                        SecurityEvent?.Invoke(securities);
                     }
                     else
                     {

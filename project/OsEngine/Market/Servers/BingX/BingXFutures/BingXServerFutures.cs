@@ -388,7 +388,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 }
             }
 
-            SecurityEvent(securities);
+            SecurityEvent?.Invoke(securities);
         }
 
         public event Action<List<Security>> SecurityEvent;

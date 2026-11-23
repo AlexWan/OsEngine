@@ -473,10 +473,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             _securities = local.OrderBy(s => s.Name).ToList();
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(_securities);
-            }
+            SecurityEvent?.Invoke(_securities);
         }
 
         private List<Security> CreateHistoricalSecurities(List<Security> securities)

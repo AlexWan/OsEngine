@@ -274,7 +274,7 @@ namespace OsEngine.Market.Servers.Mexc
 
                         if (SecurityEvent != null)
                         {
-                            SecurityEvent.Invoke(securities);
+                            SecurityEvent?.Invoke(securities);
                         }
                     }
                 }
