@@ -1105,9 +1105,10 @@ namespace OsEngine.Market.AutoFollow
 
         public void SendNewLogMessage(string message, LogMessageType messageType)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent.Invoke(message, messageType);
+                handler(message, messageType);
             }
             else
             {

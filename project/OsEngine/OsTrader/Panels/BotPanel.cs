@@ -727,7 +727,7 @@ namespace OsEngine.OsTrader.Panels
                 }
                 catch (Exception error)
                 {
-                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                    LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
                 }
 
                 if (_tabBotTab != null)
@@ -1699,7 +1699,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             catch (Exception error)
             {
-                LogMessageEvent(error.ToString(), LogMessageType.Error);
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1761,7 +1761,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             catch (Exception error)
             {
-                LogMessageEvent(error.ToString(), LogMessageType.Error);
+                LogMessageEvent?.Invoke(error.ToString(), LogMessageType.Error);
             }
         }
 

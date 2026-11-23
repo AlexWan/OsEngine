@@ -3532,10 +3532,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         private Log _logMaster;
@@ -4050,10 +4047,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

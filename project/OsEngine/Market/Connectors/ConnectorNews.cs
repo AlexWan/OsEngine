@@ -642,9 +642,10 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void SendNewLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent(message, type);
+                handler(message, type);
             }
             else if (type == LogMessageType.Error)
             { // if nobody is subscribed to us and there is an error in the log / если на нас никто не подписан и в логе ошибка

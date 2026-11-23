@@ -919,10 +919,7 @@ namespace OsEngine.Market.Servers
         {
             string messageUpdated = "ComparePositionsModule: " + message;
 
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(messageUpdated, type);
-            }
+            LogMessageEvent?.Invoke(messageUpdated, type);
         }
 
         /// <summary>

@@ -896,9 +896,10 @@ namespace OsEngine.Market
         /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent(message, type);
+                handler(message, type);
             }
             else if (type == LogMessageType.Error)
             { // if nobody is substribed to us and there is a log error / если на нас никто не подписан и в логе ошибка
