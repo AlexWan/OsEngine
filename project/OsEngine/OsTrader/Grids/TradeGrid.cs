@@ -1968,11 +1968,16 @@ namespace OsEngine.OsTrader.Grids
         // остаётся Active c IsSendToCancel. TryCancelClosing/OpeningOrders дёргали Tab.CloseOrder
         // каждый цикл Process — шторм отмен (живьём tr278: до 90 вызовов на ордер, с 5-го
         // молчаливый MUTED на стороне AServer), CloseForced не завершался.
-        // Освежается отменой, реально ушедшей в коннектор (AServer.CancelOrder пингует LastCancelTryLocalTime)
+        // LastCancelTryLocalTime пингует AServer.CancelOrder при каждом вызове, включая
+        // подавленный счётчиком NumberOfCalls; больше его никто не обновляет
         private const int StuckCancelTimeoutSeconds = 60;
 
-        // NumberUser «залипшего в отмене» ордера, за которым уже выдан Error в текущем эпизоде
-        private int _stuckCancelLoggedOrderNumber;
+        // NumberUser «залипших в отмене» ордеров, за которыми Error уже выдан (см. ShouldSkipCancellingOrder).
+        // Флаг поордерный: при single-slot-переменной чередование залипших ордеров (A→B→C→A)
+        // перебивает слот каждый цикл и Error деградирует в спам (живьём tr296: 207 строк на каждый NU).
+        // shortcut: запись живёт до конца жизни сетки — эпизод не заканчивается (IsSendToCancel нигде
+        // не сбрасывается, отдельный follow-up), рост = число залипших ордеров
+        private HashSet<int> _stuckCancelLoggedOrderNumbers;
 
         private bool ShouldSkipCancellingOrder(Order order)
         {
@@ -1987,10 +1992,16 @@ namespace OsEngine.OsTrader.Grids
                 return true;
             }
 
-            // залип: не дёргаем и дальше, но молчать нельзя — ордер может жить на бирже
-            if (_stuckCancelLoggedOrderNumber != order.NumberUser)
+            // залип: не дёргаем и дальше, но молчать нельзя — ордер может жить на бирже.
+            // Error ровно один раз на ордер за жизнь сетки
+            if (_stuckCancelLoggedOrderNumbers == null)
             {
-                _stuckCancelLoggedOrderNumber = order.NumberUser;
+                _stuckCancelLoggedOrderNumbers = new HashSet<int>();
+            }
+
+            if (!_stuckCancelLoggedOrderNumbers.Contains(order.NumberUser))
+            {
+                _stuckCancelLoggedOrderNumbers.Add(order.NumberUser);
                 SendNewLogMessage("Order is stuck in cancelling since " + StuckCancelTimeoutSeconds
                     + " seconds. Cancel is not re-sent. NumberUser: " + order.NumberUser
                     + ". Check order state on the exchange", LogMessageType.Error);
@@ -2438,11 +2449,12 @@ namespace OsEngine.OsTrader.Grids
                 if (stuckCloseActiveLines > 0)
                 {
                     // bug-0176 (#99): писать «No positions» при живых позициях с фантомными
-                    // closing-ордерами — врать. Говорим правду и уходим в Off
+                    // closing-ордерами — врать. Говорим правду и уходим в Off.
+                    // Тип Warning — по контракту п.4 и одобренному диффу a7502b85a (рецензия (в))
                     string stuckMessage = "CloseForced ended with stuck orders \n";
                     stuckMessage += "Levels with unclosable active orders: " + stuckCloseActiveLines + "\n";
                     stuckMessage += "New regime: Off";
-                    SendNewLogMessage(stuckMessage, LogMessageType.Error);
+                    SendNewLogMessage(stuckMessage, LogMessageType.Warning);
                 }
                 else
                 {
