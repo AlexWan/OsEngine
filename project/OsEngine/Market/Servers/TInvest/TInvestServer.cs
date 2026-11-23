@@ -703,9 +703,12 @@ namespace OsEngine.Market.Servers.TInvest
         // лимит стримов маркет-даты: обновляется из тарифа пользователя (GetUserTariff)
         private int _maxMarketDataStreams = 16;
 
-        // FIX-0472 (R1/R4): бюджет стримов по тарифу. Снимок пишется в начале ПОПЫТКИ GetUserLimits,
-        // -1 = тариф неизвестен. All-агрегаты — по всем записям StreamLimits (консервативно:
+        // FIX-0472 (R1/R4 + U-03): бюджет стримов по тарифу. Снимок пишется ОДНИМ блоком под
+        // _tariffSnapshotLock по успешному ответу; -1 = тариф неизвестен (только до первого
+        // успешного ответа — при сбоях перевода остаётся последний снимок, не unknown).
+        // All-агрегаты — по всем записям StreamLimits (консервативно:
         // LimitAll = минимальный Limit записи, OpenAll = сумма Open)
+        private static readonly object _tariffSnapshotLock = new object();
         private int _tariffMdStreamLimit = -1;
         private int _tariffMdStreamOpen = 0;
         private int _tariffStreamLimitAll = -1;
@@ -2536,12 +2539,9 @@ namespace OsEngine.Market.Servers.TInvest
         private void GetUserLimits()
         {
             // FIX-0472 (R1): время ПОПЫТКИ — неуспешный вызов не должен провоцировать
-            // перевызов на каждый запрос бюджета; тариф до ответа считается неизвестным
+            // перевызов на каждый запрос бюджета. Значения НЕ обнуляются на время вызова
+            // (U-03): конкурентный бюджет видит последний снимок, а не «unknown» посреди рефреша
             _tariffMdStreamTime = DateTime.UtcNow;
-            _tariffMdStreamLimit = -1;
-            _tariffMdStreamOpen = 0;
-            _tariffStreamLimitAll = -1;
-            _tariffStreamOpenAll = 0;
 
             GetUserTariffRequest request = new GetUserTariffRequest();
             GetUserTariffResponse response = null;
@@ -2565,6 +2565,9 @@ namespace OsEngine.Market.Servers.TInvest
             string limits = "";
             int limitAll = 0;
             int openAll = 0;
+            int mdLimit = -1;
+            int mdOpen = 0;
+            int maxStreams = 0;
             for (int i = 0; i < response.StreamLimits.Count; i++)
             {
                 StreamLimit sl = response.StreamLimits[i];
@@ -2580,17 +2583,25 @@ namespace OsEngine.Market.Servers.TInvest
                     if (sl.Streams[j].Contains("MarketDataStreamService"))
                     {
                         // запас в один стрим - на переподключение
-                        _maxMarketDataStreams = Math.Max(2, sl.Limit - 1);
+                        maxStreams = Math.Max(2, sl.Limit - 1);
 
                         // FIX-0472: снимок тарифа для GetFreeMdStreamSlots (учитываем Open, а не только Limit)
-                        _tariffMdStreamLimit = sl.Limit;
-                        _tariffMdStreamOpen = sl.Open;
+                        mdLimit = sl.Limit;
+                        mdOpen = sl.Open;
                     }
                 }
             }
 
-            _tariffStreamLimitAll = limitAll;
-            _tariffStreamOpenAll = openAll;
+            // U-03: весь снимок меняется атомарно — читатель бюджета не видит полурезультата
+            lock (_tariffSnapshotLock)
+            {
+                _tariffMdStreamLimit = mdLimit;
+                _tariffMdStreamOpen = mdOpen;
+                _tariffStreamLimitAll = limitAll;
+                _tariffStreamOpenAll = openAll;
+                if (maxStreams > 0)
+                    _maxMarketDataStreams = maxStreams;
+            }
 
             SendLogMessage($"User stream limits: {limits}", LogMessageType.User);
         }
@@ -2610,14 +2621,28 @@ namespace OsEngine.Market.Servers.TInvest
             }
 
             int localCount = _marketDataStreams == null ? 0 : _marketDataStreams.Count;
-            int localFree = Math.Max(0, _maxMarketDataStreams - localCount);
 
-            if (_tariffMdStreamLimit <= 0 || _tariffStreamLimitAll <= 0)
+            // U-03: снимок читается целиком под тем же локом — согласованная пара (тариф, кэп)
+            int limitMd;
+            int openMd;
+            int limitAll;
+            int openAll;
+            int localFree;
+            lock (_tariffSnapshotLock)
+            {
+                limitMd = _tariffMdStreamLimit;
+                openMd = _tariffMdStreamOpen;
+                limitAll = _tariffStreamLimitAll;
+                openAll = _tariffStreamOpenAll;
+                localFree = Math.Max(0, _maxMarketDataStreams - localCount);
+            }
+
+            if (limitMd <= 0 || limitAll <= 0)
                 return localFree;
 
             int serverFree = Math.Max(0,
-                Math.Min(_tariffMdStreamLimit, _tariffStreamLimitAll - 1)
-                - 1 - Math.Max(Math.Max(_tariffMdStreamOpen, _tariffStreamOpenAll), localCount + 3));
+                Math.Min(limitMd, limitAll - 1)
+                - 1 - Math.Max(Math.Max(openMd, openAll), localCount + 3));
 
             return Math.Min(serverFree, localFree);
         }
@@ -3841,6 +3866,10 @@ namespace OsEngine.Market.Servers.TInvest
 
                 SendLogMessage("Subscribe failed after retries. Security: " + security.Name
                     + ". " + ex.ToString(), LogMessageType.Error);
+
+                // FIX-0472 (S-10/S-11): ретраи создания исчерпаны — инструмент уходит в polling,
+                // иначе остаётся без данных: ни в стриме, ни в poll-списке
+                TryAddToPollSubscribed(security);
             }
 
         }
@@ -4046,11 +4075,21 @@ namespace OsEngine.Market.Servers.TInvest
                     _lastMarketDataTime = DateTime.UtcNow;
                     streamWrapper.LastMessageTime = _lastMarketDataTime;
 
-                    // FIX-0472 (чекпойнт ОдБ (b)): первое сообщение после блока обнуляет счётчик —
-                    // разрозненные транзиенты не накапливаются в эскалацию
-                    if (streamWrapper.StreamBlockCount != 0)
+                    // FIX-0472 (чекпойнт ОдБ (b) + S-04/U-05a/U-05c): обнуление счётчика только
+                    // реальными данными от ТЕКУЩЕГО клиента. Ping сервера и ack-подписок
+                    // подтверждают транспорт, а не бюджет: при RE-шторме сервер успевает прислать
+                    // control-кадр перед killer-статусом — reset по ним звёздил эскалацию (U-05a).
+                    // Зомби-читатель старого call не должен обнулять счётчик живого стрима (U-05c).
+                    // Окно блока счищается вместе со счётчиком (S-04): смерть пережившего блока
+                    // стрима от Unavailable не должна ловить «blocked by broker» до конца старого окна
+                    if (streamWrapper.StreamBlockCount != 0
+                        && ReferenceEquals(streamWrapper.StreamClient, myClient)
+                        && (marketData.Trade != null || marketData.Orderbook != null
+                            || marketData.Candle != null || marketData.LastPrice != null
+                            || marketData.OpenInterest != null))
                     {
                         streamWrapper.StreamBlockCount = 0;
+                        streamWrapper.StreamBlockedUntilUtc = DateTime.MinValue;
                     }
 
                     ProcessMarketDataResponse(marketData, streamWrapper);
