@@ -132,7 +132,7 @@ namespace OsEngine.Charts.CandleChart
 
                             if (ind == null)
                             {
-                                LogMessageEvent("Indicator class " + indicator[0] + "do not exist in IndicatorFactory.cs", LogMessageType.Error);
+                                LogMessageEvent?.Invoke("Indicator class " + indicator[0] + "do not exist in IndicatorFactory.cs", LogMessageType.Error);
                                 continue;
                             }
 

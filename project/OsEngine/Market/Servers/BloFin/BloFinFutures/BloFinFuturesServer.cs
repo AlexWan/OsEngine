@@ -2494,10 +2494,7 @@ namespace OsEngine.Market.Servers.BloFin
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, messageType);
-            }
+            LogMessageEvent?.Invoke(message, messageType);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

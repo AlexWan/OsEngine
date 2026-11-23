@@ -4632,10 +4632,7 @@ namespace OsEngine.Market.Servers
                 message = this.ServerNameUnique + " " + message;
             }
 
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
 
             if(message.Contains("ComparePositionsModule"))
             {

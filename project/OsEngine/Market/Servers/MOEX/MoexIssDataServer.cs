@@ -1373,9 +1373,10 @@ namespace OsEngine.Market.Servers.MOEX
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent(message, type);
+                handler(message, type);
             }
             else
             {

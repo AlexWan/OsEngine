@@ -1117,10 +1117,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent("AServerOrderHub: " + message, type);
-            }
+            LogMessageEvent?.Invoke("AServerOrderHub: " + message, type);
         }
 
         /// <summary>

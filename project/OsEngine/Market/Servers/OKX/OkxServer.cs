@@ -5158,10 +5158,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

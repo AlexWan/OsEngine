@@ -326,10 +326,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
             catch (Exception ex)
             {
-                if (LogMessageEvent != null)
-                {
-                    LogMessageEvent(ex.ToString(), LogMessageType.Error);
-                }
+                LogMessageEvent?.Invoke(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -3749,10 +3746,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -1835,10 +1835,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         /// <summary>

@@ -1178,9 +1178,10 @@ namespace OsEngine.Market.Servers.TelegramNews
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent(message, messageType);
+                handler(message, messageType);
             }
             else if (messageType == LogMessageType.Error)
             {

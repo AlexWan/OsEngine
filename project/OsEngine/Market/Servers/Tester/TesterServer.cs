@@ -6495,10 +6495,7 @@ namespace OsEngine.Market.Servers.Tester
 
         public void SendLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
+            LogMessageEvent?.Invoke(message, type);
         }
 
         private Log _logMaster;
@@ -7586,10 +7583,7 @@ namespace OsEngine.Market.Servers.Tester
 
         private void SendLogMessage(string message)
         {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message);
-            }
+            LogMessageEvent?.Invoke(message);
         }
 
         public event Action<string> LogMessageEvent;

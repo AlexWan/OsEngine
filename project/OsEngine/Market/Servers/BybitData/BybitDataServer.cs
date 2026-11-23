@@ -1105,10 +1105,7 @@ namespace OsEngine.Market.Servers.BybitData
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             // ctor purge logs before AServer wires the event (registration happens after ctor) — guard like AServer.SendLogMessage
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, messageType);
-            }
+            LogMessageEvent?.Invoke(message, messageType);
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;

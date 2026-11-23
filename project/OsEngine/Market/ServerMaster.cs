@@ -2173,9 +2173,10 @@ namespace OsEngine.Market
         /// </summary>
         public static void SendNewLogMessage(string message, LogMessageType type)
         {
-            if (LogMessageEvent != null)
+            Action<string, LogMessageType> handler = LogMessageEvent;
+            if (handler != null)
             {
-                LogMessageEvent(message, type);
+                handler(message, type);
             }
             else
             { // if nobody is subscribed to us - write to the static log
