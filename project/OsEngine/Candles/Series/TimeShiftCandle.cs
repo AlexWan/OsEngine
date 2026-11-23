@@ -305,6 +305,42 @@ namespace OsEngine.Candles.Series
             {
                 // если пришли данные из новой свечки
 
+                // Последняя свеча может быть не на сетке сдвига: история с биржи после переподключения приходит с ровным временем
+                // (19:15:00). При сдвиге > 0 первая сделка в [19:30:00, 19:30:00 + сдвиг) попадает в интервал сетки 19:15:00 + сдвиг -
+                // это тот же период, вторая свеча за него стала бы дублем (роботы получали шаг ряда в секунды). Такую сделку
+                // дописываем в последнюю свечу, пока старт по сетке не уйдёт дальше полубара от её начала.
+                DateTime gridStart = GetCandleStartTime(time);
+
+                if (gridStart < CandlesAll[CandlesAll.Count - 1].TimeStart.AddTicks(TimeFrameSpan.Ticks / 2))
+                {
+                    Candle last = CandlesAll[CandlesAll.Count - 1];
+
+                    if (last.State == CandleState.Finished)
+                    {
+                        last.State = CandleState.Started;
+                    }
+
+                    last.Volume += volume;
+                    last.Close = price;
+
+                    if (last.High < price)
+                    {
+                        last.High = price;
+                    }
+
+                    if (last.Low > price)
+                    {
+                        last.Low = price;
+                    }
+
+                    if (canPushUp)
+                    {
+                        UpdateChangeCandle();
+                    }
+
+                    return;
+                }
+
                 if (CandlesAll[CandlesAll.Count - 1].State != CandleState.Finished)
                 {
                     // если последнюю свечку ещё не закрыли и не отправили
