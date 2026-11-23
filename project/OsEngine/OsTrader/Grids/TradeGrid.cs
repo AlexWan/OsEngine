@@ -1343,7 +1343,11 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.CloseOrders[^1];
 
+                // wrong-close cycle bypassed the #2274 gate: with the п.1 frozen stamp (:1347 +5s)
+                // it re-sent into the AServer mute every cycle and starved TrySetClosingProfitOrders
+                // via the vacation return at :1316 (bug-0178, #105, REWORK path A)
                 if (CanCancel(order)
+                    && !ShouldSkipCancellingOrder(order)
                     && order.LastCancelTryLocalTime.AddSeconds(5) < DateTime.Now)
                 {
                     if (order.Price != line.Position.ProfitOrderPrice
@@ -1968,8 +1972,9 @@ namespace OsEngine.OsTrader.Grids
         // остаётся Active c IsSendToCancel. TryCancelClosing/OpeningOrders дёргали Tab.CloseOrder
         // каждый цикл Process — шторм отмен (живьём tr278: до 90 вызовов на ордер, с 5-го
         // молчаливый MUTED на стороне AServer), CloseForced не завершался.
-        // LastCancelTryLocalTime пингует AServer.CancelOrder при каждом вызове, включая
-        // подавленный счётчиком NumberOfCalls; больше его никто не обновляет
+        // LastCancelTryLocalTime выставляет AServer.CancelOrder только на реальной отправке
+        // (bug-0178 #105); подавленные счётчиком NumberOfCalls вызовы его не двигают. За окном
+        // 60 с — залипшая ветка: постоянный skip + один Error, периодических ре-отправок нет
         private const int StuckCancelTimeoutSeconds = 60;
 
         // NumberUser «залипших в отмене» ордеров, за которыми Error уже выдан (см. ShouldSkipCancellingOrder).
