@@ -436,7 +436,8 @@ namespace OsEngine.Market.Servers.MFD
         }
 
         /// <summary>
-        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль
+        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль.
+        /// E-форма отклоняется: контракт запроса её не порождает
         /// </summary>
         private static bool TryParseMfdDecimal(string value, out decimal result)
         {
@@ -444,17 +445,6 @@ namespace OsEngine.Market.Servers.MFD
 
             if (string.IsNullOrEmpty(value))
             {
-                return false;
-            }
-
-            if (value.Contains("E"))
-            {
-                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
-                {
-                    result = Convert.ToDecimal(doubleValue);
-                    return true;
-                }
-
                 return false;
             }
 
@@ -552,7 +542,8 @@ namespace OsEngine.Market.Servers.MFD
         }
 
         /// <summary>
-        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль
+        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль.
+        /// E-форма отклоняется: контракт запроса её не порождает
         /// </summary>
         private static bool TryParseMfdTickDecimal(string value, out decimal result)
         {
@@ -560,17 +551,6 @@ namespace OsEngine.Market.Servers.MFD
 
             if (string.IsNullOrEmpty(value))
             {
-                return false;
-            }
-
-            if (value.Contains("E"))
-            {
-                if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
-                {
-                    result = Convert.ToDecimal(doubleValue);
-                    return true;
-                }
-
                 return false;
             }
 
