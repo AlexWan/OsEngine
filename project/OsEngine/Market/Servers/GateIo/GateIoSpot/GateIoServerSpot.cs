@@ -389,7 +389,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (getCurrencyVolumeResponse == null || getCurrencyVolumeResponse.Count == 0)
                 {
-                    PortfolioEvent(new List<Portfolio> { _myPortfolio });
+                    PortfolioEvent?.Invoke(new List<Portfolio> { _myPortfolio });
                     return;
                 }
 

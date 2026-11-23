@@ -267,10 +267,7 @@ namespace OsEngine.Market.Servers.MFD
             portfolio.ValueCurrent = 1;
             portfolio.Number = "Mfd fake portfolio";
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(new List<Portfolio>() { portfolio });
-            }
+            PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;

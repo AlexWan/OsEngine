@@ -421,7 +421,7 @@ namespace OsEngine.Market.Servers.AE
             if (account.GuaranteeMargin != null)
                 portf.ValueBlocked = account.GuaranteeMargin ?? 0; 
 
-            PortfolioEvent!(_myPortfolios);
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         private void UpdateMyTrade(string message)
@@ -533,7 +533,7 @@ namespace OsEngine.Market.Servers.AE
             portf!.SetNewPosition(newPosition);
             portf.UnrealizedPnl = calculateUnrealizedPnL(portf);
 
-            PortfolioEvent!(_myPortfolios);
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         private void UpdateAccounts(string message)
@@ -590,7 +590,7 @@ namespace OsEngine.Market.Servers.AE
                 _myPortfolios.Add(newPortfolio);
             }
 
-            PortfolioEvent!(_myPortfolios);
+            PortfolioEvent?.Invoke(_myPortfolios);
 
             // send all orders
             //foreach (var order in orders)

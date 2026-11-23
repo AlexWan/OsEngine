@@ -485,10 +485,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         holdings.ValueBlocked = 0;
                         _myPortfolios.Add(holdings);
 
-                        if (PortfolioEvent != null)
-                        {
-                            PortfolioEvent(_myPortfolios);
-                        }
+                        PortfolioEvent?.Invoke(_myPortfolios);
 
                         firstPortfolio = true;
                     }
@@ -574,10 +571,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             }
                         }
 
-                        if (PortfolioEvent != null)
-                        {
-                            PortfolioEvent(_myPortfolios);
-                        }
+                        PortfolioEvent?.Invoke(_myPortfolios);
                     }
                     else
                     {
@@ -656,10 +650,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             portf.SetNewPosition(sectionPoses[i]);
                         }
 
-                        if (PortfolioEvent != null)
-                        {
-                            PortfolioEvent(_myPortfolios);
-                        }
+                        PortfolioEvent?.Invoke(_myPortfolios);
                     }
                     else
                     {
@@ -746,10 +737,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             portf.SetNewPosition(sectionPoses[i]);
                         }
 
-                        if (PortfolioEvent != null)
-                        {
-                            PortfolioEvent(_myPortfolios);
-                        }
+                        PortfolioEvent?.Invoke(_myPortfolios);
                     }
                     else
                     {

@@ -509,10 +509,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
             portfolio.ValueCurrent = 1;
             portfolio.Number = "SmartLabNews fake portfolio";
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(new List<Portfolio>() { portfolio });
-            }
+            PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
         }
 
         public void GetSecurities()

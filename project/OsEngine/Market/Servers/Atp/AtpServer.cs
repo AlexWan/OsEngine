@@ -678,7 +678,7 @@ namespace OsEngine.Market.Servers.Atp
                 _portfolios.Add(portfolio);
             }
 
-            PortfolioEvent(_portfolios);
+            PortfolioEvent?.Invoke(_portfolios);
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;

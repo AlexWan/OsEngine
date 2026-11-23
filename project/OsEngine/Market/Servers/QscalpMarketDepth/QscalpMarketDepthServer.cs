@@ -327,7 +327,7 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
 
             if (_myPortfolios.Count != 0)
             {
-                PortfolioEvent(_myPortfolios);
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
         }
 

@@ -411,7 +411,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 if (assets == null || assets.Count == 0)
                 {
-                    PortfolioEvent(new List<Portfolio> { portfolio });
+                    PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
                     return;
                 }
 
@@ -426,7 +426,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     portfolio.SetNewPosition(newPortf);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
 
             }
             catch (Exception error)

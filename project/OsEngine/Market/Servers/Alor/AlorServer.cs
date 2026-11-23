@@ -686,10 +686,7 @@ namespace OsEngine.Market.Servers.Alor
 
             if (_myPortfolios.Count != 0)
             {
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_myPortfolios);
-                }
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
 
             ActivatePortfolioSocket();
@@ -2173,10 +2170,7 @@ namespace OsEngine.Market.Servers.Alor
 
             portf.SetNewPosition(newPos);
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_myPortfolios);
-            }
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         private void UpDateMyOrder(string data, string portfolioName)
@@ -2502,10 +2496,7 @@ namespace OsEngine.Market.Servers.Alor
 
             portf.UnrealizedPnl = baseMessage.profit.ToDecimal();
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_myPortfolios);
-            }
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         public event Action<Order> MyOrderEvent;

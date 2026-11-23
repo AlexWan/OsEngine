@@ -400,10 +400,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -453,10 +450,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     myPortfolio.SetNewPosition(newPortf);
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -2111,10 +2105,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         onePortf.l.ToDecimal();
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {

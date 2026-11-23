@@ -451,7 +451,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             Portfolios.Add(portfolioInitial);
 
-            PortfolioEvent(Portfolios);
+            PortfolioEvent?.Invoke(Portfolios);
         }
 
         private RateGate _positionsRateGate = new RateGate(1, TimeSpan.FromMilliseconds(250));
@@ -539,7 +539,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                             }
                         }
 
-                        PortfolioEvent(Portfolios);
+                        PortfolioEvent?.Invoke(Portfolios);
                     }
                     else
                     {
@@ -632,7 +632,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                             portfolio.ValueCurrent = 1;
                         }
 
-                        PortfolioEvent(Portfolios);
+                        PortfolioEvent?.Invoke(Portfolios);
                     }
                     else
                     {
@@ -1938,7 +1938,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     portfolio.SetNewPosition(pos);
 
-                    PortfolioEvent(Portfolios);
+                    PortfolioEvent?.Invoke(Portfolios);
                 }
             }
             catch (Exception exception)
@@ -1976,7 +1976,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                         portfolio.SetNewPosition(position);
 
-                        PortfolioEvent(new List<Portfolio> { portfolio });
+                        PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
 
                         continue;
                     }
@@ -1998,7 +1998,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     position.UnrealizedPnl = accountUpdate.a.P[i].up.ToDecimal();
 
-                    PortfolioEvent(Portfolios);
+                    PortfolioEvent?.Invoke(Portfolios);
                 }
             }
             catch (Exception exception)

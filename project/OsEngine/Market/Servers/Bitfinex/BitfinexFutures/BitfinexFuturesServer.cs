@@ -529,7 +529,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     }
                     if (_portfolios != null && _portfolios.Count > 0)
                     {
-                        PortfolioEvent.Invoke(_portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                 }
                 else

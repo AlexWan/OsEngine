@@ -780,10 +780,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                 }
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {

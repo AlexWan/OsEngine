@@ -577,7 +577,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
             if (_myPortfolios.Count != 0)
             {
-                PortfolioEvent(_myPortfolios);
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
         }
 

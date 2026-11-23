@@ -203,10 +203,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnUpdatePortfolio(List<Portfolio> portfolios)
         {
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(portfolios);
-            }
+            PortfolioEvent?.Invoke(portfolios);
         }
 
         private void ClientOnDisconnected()

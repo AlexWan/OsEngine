@@ -342,7 +342,7 @@ namespace OsEngine.Market.Servers.OKXData
 
             if (_myPortfolios.Count != 0)
             {
-                PortfolioEvent(_myPortfolios);
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
         }
 

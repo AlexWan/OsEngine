@@ -693,7 +693,7 @@ namespace OsEngine.Market.Servers.TData
 
             if (_myPortfolios.Count != 0)
             {
-                PortfolioEvent(_myPortfolios);
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
         }
 

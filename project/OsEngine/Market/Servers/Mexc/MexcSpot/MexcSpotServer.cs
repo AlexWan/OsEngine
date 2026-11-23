@@ -391,10 +391,7 @@ namespace OsEngine.Market.Servers.Mexc
                 _myPortfolios.Add(portfolio);
             }
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_myPortfolios);
-            }
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;

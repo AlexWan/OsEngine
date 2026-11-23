@@ -720,10 +720,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 _lastTimeUpdatePortfolio = DateTime.Now;
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception error)
             {
@@ -1049,10 +1046,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             }
                             else continue;
 
-                            if (PortfolioEvent != null)
-                            {
-                                PortfolioEvent(_portfolios);
-                            }
+                            PortfolioEvent?.Invoke(_portfolios);
                         }
                     }
                     else if (_queueMoneyLimitEx.IsEmpty == false)
@@ -1123,10 +1117,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                                     portfolio.SetNewPosition(positionRub);
 
-                                    if (PortfolioEvent != null)
-                                    {
-                                        PortfolioEvent(_portfolios);
-                                    }
+                                    PortfolioEvent?.Invoke(_portfolios);
                                 }
                             }
                         }
@@ -1149,10 +1140,7 @@ namespace OsEngine.Market.Servers.QuikLua
                             needPortf.ValueBlocked = futuresLimits.CbpLUsedForOrders.ToDecimal() + futuresLimits.CbpLUsedForPositions.ToDecimal();
                             needPortf.UnrealizedPnl = futuresLimits.VarMargin.ToDecimal();
 
-                            if (PortfolioEvent != null)
-                            {
-                                PortfolioEvent(_portfolios);
-                            }
+                            PortfolioEvent?.Invoke(_portfolios);
                         }
                     }
                     else if (_queueFuturesClientHolding.IsEmpty == false)
@@ -1182,10 +1170,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                             portfolio.SetNewPosition(position);
 
-                            if (PortfolioEvent != null)
-                            {
-                                PortfolioEvent(_portfolios);
-                            }
+                            PortfolioEvent?.Invoke(_portfolios);
                         }
                     }
                     else if (_portfolioCounter <= 10 && _lastTimeUpdatePortfolio != DateTime.MinValue && _lastTimeUpdatePortfolio.AddMinutes(1) < DateTime.Now)
@@ -1221,10 +1206,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         if (_needRequestPositions == false)
                         {
-                            if (PortfolioEvent != null)
-                            {
-                                PortfolioEvent(_portfolios);
-                            }
+                            PortfolioEvent?.Invoke(_portfolios);
                         }
 
                         Thread.Sleep(1000);
