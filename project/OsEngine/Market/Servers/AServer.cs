@@ -4188,10 +4188,6 @@ namespace OsEngine.Market.Servers
 
                 lock (_cancelOrdersLocker)
                 {
-                    order.IsSendToCancel = true;
-                    order.CancellingTryCount++;
-                    order.LastCancelTryLocalTime = DateTime.Now;
-
                     for (int i = 0; i < _canceledOrders.Count; i++)
                     {
                         if (_canceledOrders[i].NumberMarket == order.NumberMarket)
@@ -4220,14 +4216,21 @@ namespace OsEngine.Market.Servers
                 {
                     saveOrder.NumberOfErrors++;
 
-                    /*if (saveOrder.NumberOfErrors <= 5)
+                    // one signal per suppression cycle: NumberOfErrors grows on every suppressed
+                    // call, so ==1 hits exactly once; reconnect clears _canceledOrders (bug-0178, #105)
+                    if (saveOrder.NumberOfErrors == 1)
                     {
                         SendLogMessage(
                         "AServer Error. You can't cancel order. There have already been five attempts to cancel order. "
                          + "NumberUser: " + order.NumberUser
                          + " NumberMarket: " + order.NumberMarket
                          , LogMessageType.Error);
-                    }*/
+
+                        if (CancelOrderFailEvent != null)
+                        {
+                            CancelOrderFailEvent(order);
+                        }
+                    }
 
                     return;
                 }
@@ -4235,6 +4238,12 @@ namespace OsEngine.Market.Servers
                 OrderAserverSender ord = new OrderAserverSender();
                 ord.Order = order;
                 ord.OrderSendType = OrderSendType.Cancel;
+
+                // cancel fields belong to the real send: suppressed calls (mute branch below)
+                // must not inflate CancellingTryCount nor extend the stuck-cancel window (bug-0178, #105)
+                order.IsSendToCancel = true;
+                order.CancellingTryCount++;
+                order.LastCancelTryLocalTime = DateTime.Now;
 
                 _ordersToExecute.Enqueue(ord);
 
@@ -4253,8 +4262,10 @@ namespace OsEngine.Market.Servers
         /// Reconnect: cancels sent before the disconnect may have been lost.
         /// Clearing _canceledOrders resets the NumberOfCalls suppression at this layer,
         /// so an already-cancelled order can be sent once more. Re-sending through the
-        /// grid stays bounded by the stuck-cancel gate (TradeGrid.ShouldSkipCancellingOrder)
-        /// until IsSendToCancel is re-armed (follow-up BUG-0630). Terminal orders are not
+        /// grid stays bounded by the stuck-cancel gate (TradeGrid.ShouldSkipCancellingOrder):
+        /// CancelOrder re-arms IsSendToCancel and LastCancelTryLocalTime on real sends only
+        /// (bug-0178, #105), so suppressed calls no longer extend the window. IsSendToCancel
+        /// itself stays set until re-armed (follow-up BUG-0630). Terminal orders are not
         /// cancelled anymore anyway, the grid does not see them
         /// (bug-0176, #99)
         /// </summary>

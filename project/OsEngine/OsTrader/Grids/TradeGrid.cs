@@ -1968,8 +1968,9 @@ namespace OsEngine.OsTrader.Grids
         // остаётся Active c IsSendToCancel. TryCancelClosing/OpeningOrders дёргали Tab.CloseOrder
         // каждый цикл Process — шторм отмен (живьём tr278: до 90 вызовов на ордер, с 5-го
         // молчаливый MUTED на стороне AServer), CloseForced не завершался.
-        // LastCancelTryLocalTime пингует AServer.CancelOrder при каждом вызове, включая
-        // подавленный счётчиком NumberOfCalls; больше его никто не обновляет
+        // LastCancelTryLocalTime выставляет AServer.CancelOrder только на реальной отправке
+        // (bug-0178 #105); подавленные счётчиком NumberOfCalls вызовы окно не продлевают;
+        // больше его никто не обновляет
         private const int StuckCancelTimeoutSeconds = 60;
 
         // NumberUser «залипших в отмене» ордеров, за которыми Error уже выдан (см. ShouldSkipCancellingOrder).
