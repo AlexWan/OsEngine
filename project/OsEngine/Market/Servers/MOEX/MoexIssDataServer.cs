@@ -303,7 +303,6 @@ namespace OsEngine.Market.Servers.MOEX
             // биржевая полночь между ними даёт перечень от разных суток (±1 строка до следующей
             // выгрузки). Единый снимок на выгрузку = вариант B (параметр DateTime из
             // CreateFuturesSection).
-            // Страж перед декабрём (Month < 11): дефект вынесен как moved to BUG-0601, здесь не правится.
             DateTime exchangeNow = ExchangeNow();
 
             // 1 BRF6
@@ -468,7 +467,7 @@ namespace OsEngine.Market.Servers.MOEX
             sec.Add(month11);
 
             if (exchangeNow.Year == 2000 + year &&
-                exchangeNow.Month < 11)
+                exchangeNow.Month < 12)
             {
                 return sec;
             }
