@@ -4251,9 +4251,11 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// Reconnect: cancels sent before the disconnect may have been lost.
-        /// Clearing _canceledOrders also resets per-order NumberOfCalls, so non-terminal
-        /// orders left Active after the reconnect can be cancelled again. Terminal orders
-        /// are not cancelled anymore anyway, the grid does not see them
+        /// Clearing _canceledOrders resets the NumberOfCalls suppression at this layer,
+        /// so an already-cancelled order can be sent once more. Re-sending through the
+        /// grid stays bounded by the stuck-cancel gate (TradeGrid.ShouldSkipCancellingOrder)
+        /// until IsSendToCancel is re-armed (follow-up BUG-0630). Terminal orders are not
+        /// cancelled anymore anyway, the grid does not see them
         /// (bug-0176, #99)
         /// </summary>
         private void ResetCancelSuppressionAfterReconnect()
