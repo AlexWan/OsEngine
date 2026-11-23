@@ -50,7 +50,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
@@ -60,7 +60,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -70,17 +70,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTf2HourCanLoad
@@ -90,7 +90,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfDayCanLoad
