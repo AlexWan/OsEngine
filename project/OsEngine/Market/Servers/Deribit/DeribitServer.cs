@@ -1046,7 +1046,7 @@ namespace OsEngine.Market.Servers.Deribit
                 newOrder.ServerType = ServerType.Deribit;
                 newOrder.PortfolioNumber = "DeribitPortfolio";
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
             }
         }
 
@@ -1182,7 +1182,7 @@ namespace OsEngine.Market.Servers.Deribit
             else
             {
                 order.State = OrderStateType.Fail;
-                MyOrderEvent(order);
+                MyOrderEvent?.Invoke(order);
                 SendLogMessage($"SendOrder. Http State Code: Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
             }
         }
@@ -1279,7 +1279,7 @@ namespace OsEngine.Market.Servers.Deribit
             else
             {
                 order.State = OrderStateType.Cancel;
-                MyOrderEvent(order);
+                MyOrderEvent?.Invoke(order);
                 return true;
             }
 
@@ -1306,10 +1306,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 orders[i].TimeCreate = orders[i].TimeCallBack;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -1406,7 +1403,7 @@ namespace OsEngine.Market.Servers.Deribit
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

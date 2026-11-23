@@ -2279,10 +2279,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             for (int i = 0; i < ordersOpenAll.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(ordersOpenAll[i]);
-                }
+                MyOrderEvent?.Invoke(ordersOpenAll[i]);
             }
         }
 

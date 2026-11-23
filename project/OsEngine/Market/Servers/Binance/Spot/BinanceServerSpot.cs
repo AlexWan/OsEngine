@@ -2193,10 +2193,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                     SetOrderOnBoard(newOrder);
                 }
                 else if (order.x == "CANCELED")
@@ -2224,10 +2221,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
                 else if (order.x == "REJECTED")
                 {
@@ -2253,10 +2247,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
 
                     SendLogMessage("Binance spot order fail. Order num: " + newOrder.NumberUser +
                         " \n Reasons in order request: " + order.r, LogMessageType.Error);
@@ -2293,10 +2284,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             newOrder.TypeOrder = OrderPriceType.Limit;
                         }
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(newOrder);
-                        }
+                        MyOrderEvent?.Invoke(newOrder);
                     }
 
                     MyTrade trade = new MyTrade();
@@ -2371,10 +2359,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
                 else if (order.x == "FILLED")
                 {
@@ -2400,10 +2385,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
             catch (Exception error)
@@ -2691,10 +2673,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         order.State = OrderStateType.Fail;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 catch (Exception ex)
@@ -2749,10 +2728,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         order.State = OrderStateType.Fail;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 catch (Exception ex)
@@ -2782,30 +2758,21 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             order.State = OrderStateType.Fail;
                             SendLogMessage("When revoking an order, we didn't find it on the exchange. We think it's already been revoked.",
                                 LogMessageType.Error);
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
                         else if (onBoard.State == OrderStateType.Cancel)
                         {
                             order.TimeCancel = onBoard.TimeCallBack;
                             order.State = OrderStateType.Cancel;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
                         else if (onBoard.State == OrderStateType.Fail)
                         {
                             order.State = OrderStateType.Fail;
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
 
@@ -2924,10 +2891,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     newOrder.State = OrderStateType.Cancel;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
 
                 return newOrder;
             }
@@ -2964,10 +2928,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             for (int i = 0; i < openOrders.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(openOrders[i]);
-                }
+                MyOrderEvent?.Invoke(openOrders[i]);
             }
         }
 
@@ -3025,10 +2986,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 return OrderStateType.None;
             }
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(myOrderActualOnBoard);
-            }
+            MyOrderEvent?.Invoke(myOrderActualOnBoard);
 
             if (myOrderActualOnBoard.State == OrderStateType.Done ||
                 myOrderActualOnBoard.State == OrderStateType.Partial)

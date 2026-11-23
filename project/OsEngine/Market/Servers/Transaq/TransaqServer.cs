@@ -2221,10 +2221,7 @@ namespace OsEngine.Market.Servers.Transaq
                     order.State = OrderStateType.Fail;
                     SendLogMessage("SendOrderFall" + result.Message, LogMessageType.Error);
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
                 else
                 {
@@ -2458,10 +2455,7 @@ namespace OsEngine.Market.Servers.Transaq
                     order.State = OrderStateType.Fail;
                     SendLogMessage("ChangeOrderFall" + result.Message, LogMessageType.Error);
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
                 else
                 {

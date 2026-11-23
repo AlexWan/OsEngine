@@ -3493,7 +3493,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             MyTradeEvent(trade);
                         }                                               
 
-                        MyOrderEvent(order);
+                        MyOrderEvent?.Invoke(order);
                     }
 
                     // 2. Обрабатываем Reject

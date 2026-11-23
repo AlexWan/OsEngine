@@ -2565,10 +2565,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел ордер, orders_log. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
                                         $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                                 catch (Exception error)
                                 {
@@ -2640,10 +2637,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел ордер, Msg179. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
                                         $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                                 else if (msgData.MsgId == 177)
                                 {
@@ -2715,10 +2709,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел ордер, Msg177. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
                                         $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                                 else if (msgData.MsgId == 176)
                                 {
@@ -2775,10 +2766,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел ордер, Msg176. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
                                         $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                                 if (msgData.MsgId == 99)
                                 {
@@ -2943,10 +2931,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел ордер, orders. Number: {order.NumberMarket}, User: {order.NumberUser}, Volume: {order.Volume}, Execute: {order.VolumeExecute}, Price: {order.Price}, " +
                                         $"State: {order.State}, Time: {order.TimeCallBack}", LogMessageType.System);
 
-                                    if (MyOrderEvent != null)
-                                    {
-                                        MyOrderEvent(order);
-                                    }
+                                    MyOrderEvent?.Invoke(order);
                                 }
                                 catch (Exception error)
                                 {

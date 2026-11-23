@@ -1625,7 +1625,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                         order.TimeCallBack = DateTime.UtcNow.AddHours(3);
                                         order.Comment = "This order was withdrawn by the exchange due to the expiration date";
 
-                                        MyOrderEvent(order);
+                                        MyOrderEvent?.Invoke(order);
                                     }
                                     _ordersForClearing.Clear();
                                 }
@@ -2809,7 +2809,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                         orderFail.TimeCallBack = DateTime.UtcNow.AddHours(3);
                         orderFail.SecurityNameCode = _newOrdersTwime[index].SecurityNameCode;
                         orderFail.Side = _newOrdersTwime[index].Side;
-                        MyOrderEvent(orderFail);
+                        MyOrderEvent?.Invoke(orderFail);
 
                         SendLogMessage($"Ордер {index} отклонен", LogMessageType.Error);
 
@@ -2879,7 +2879,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
                         _ordersForClearing[order.NumberUser] = order;
 
-                        MyOrderEvent(order);
+                        MyOrderEvent?.Invoke(order);
                     }
                     else
                     {
@@ -2927,7 +2927,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             _ordersForClearing.Remove(canceledOrder.NumberUser);
                         }
 
-                        MyOrderEvent(canceledOrder);
+                        MyOrderEvent?.Invoke(canceledOrder);
                     }
                     else
                     {
@@ -2968,7 +2968,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
                         WriteLogTradingServerEvent(PrintOrderReport(changedOrder));
 
-                        MyOrderEvent(changedOrder);
+                        MyOrderEvent?.Invoke(changedOrder);
                     }
                     else
                     {
@@ -3036,7 +3036,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             _ordersForClearing.Remove(executionOrder.NumberUser);
                         }
 
-                        MyOrderEvent(executionOrder);
+                        MyOrderEvent?.Invoke(executionOrder);
                     }
                     else
                     {
@@ -3191,7 +3191,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 orderFail.State = OrderStateType.Fail;
                                 orderFail.TimeCallBack = DateTime.UtcNow.AddHours(3);
 
-                                MyOrderEvent(orderFail);
+                                MyOrderEvent?.Invoke(orderFail);
 
                                 _newOrdersFix.Remove(RefSeqNum);
                             }
@@ -3479,7 +3479,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 }
             }
 
-            MyOrderEvent(order);
+            MyOrderEvent?.Invoke(order);
         }
 
         /// Восстановление данных по TCP

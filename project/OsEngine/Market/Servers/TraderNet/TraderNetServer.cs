@@ -1763,10 +1763,7 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private decimal GetLotSecurity(string securityNameCode)
@@ -1833,10 +1830,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
             for (int i = 0; i < orders.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -1895,7 +1889,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     if (newOrder != null
                     && MyOrderEvent != null)
                     {
-                        MyOrderEvent(newOrder);
+                        MyOrderEvent?.Invoke(newOrder);
                     }
 
                     if (newOrder.State == OrderStateType.Done ||

@@ -2250,7 +2250,7 @@ namespace OsEngine.Market.Servers.Woo
                 newOrder.ServerType = ServerType.Woo;
                 newOrder.PortfolioNumber = "WooPortfolio";
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
 
                 if (newOrder.State == OrderStateType.Done
                     || newOrder.State == OrderStateType.Partial)
@@ -2422,10 +2422,7 @@ namespace OsEngine.Market.Servers.Woo
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2552,10 +2549,7 @@ namespace OsEngine.Market.Servers.Woo
 
             for (int i = 0; i < ordersOnBoard.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(ordersOnBoard[i]);
-                }
+                MyOrderEvent?.Invoke(ordersOnBoard[i]);
             }
         }
 

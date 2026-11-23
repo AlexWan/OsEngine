@@ -1286,10 +1286,7 @@ contract =>
 
         private void _ibClient_NewOrderEvent(Order order)
         {
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void _ibClient_NewMyTradeEvent(MyTrade trade)

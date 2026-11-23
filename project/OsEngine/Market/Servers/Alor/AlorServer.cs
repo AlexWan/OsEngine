@@ -2214,10 +2214,7 @@ namespace OsEngine.Market.Servers.Alor
                 return;
             }
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
 
             lock (_spreadOrdersLocker)
             {
@@ -2633,10 +2630,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     order.State = OrderStateType.Fail;
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception exception)
@@ -2782,10 +2776,7 @@ namespace OsEngine.Market.Servers.Alor
                         + "  " + order.SecurityNameCode, LogMessageType.System);
 
                     order.Price = newPrice;
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
 
                     //return;
                 }
@@ -2974,10 +2965,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 orders[i].TimeCreate = orders[i].TimeCallBack;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -3021,7 +3009,7 @@ namespace OsEngine.Market.Servers.Alor
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

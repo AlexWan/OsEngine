@@ -3825,10 +3825,7 @@ namespace OsEngine.Market.Servers.OKX
                         continue;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
 
                     if (newOrder.State == OrderStateType.Partial
                         || newOrder.State == OrderStateType.Done)
@@ -4493,10 +4490,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public bool CancelOrder(Order order)
@@ -4592,10 +4586,7 @@ namespace OsEngine.Market.Servers.OKX
 
             for (int i = 0; i < orders.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 

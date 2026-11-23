@@ -2625,7 +2625,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
             WriteLogFXMFIXTrade("Получен отчет по ордеру: " + ordReport);
 
-            MyOrderEvent(order);
+            MyOrderEvent?.Invoke(order);
         }
 
         /// Восстановление данных по TCP

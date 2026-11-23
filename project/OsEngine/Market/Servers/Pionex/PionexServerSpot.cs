@@ -1434,7 +1434,7 @@ namespace OsEngine.Market.Servers.Pionex
                 newOrder.ServerType = ServerType.PionexSpot;
                 newOrder.PortfolioNumber = "PionexSpotPortfolio";
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
             }
             catch (Exception ex)
             {
@@ -1547,10 +1547,7 @@ namespace OsEngine.Market.Servers.Pionex
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -1677,10 +1674,7 @@ namespace OsEngine.Market.Servers.Pionex
 
             for (int i = 0; i < ordersOnBoard.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(ordersOnBoard[i]);
-                }
+                MyOrderEvent?.Invoke(ordersOnBoard[i]);
             }
         }
 

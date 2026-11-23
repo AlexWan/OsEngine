@@ -1627,10 +1627,7 @@ namespace OsEngine.Market.Servers.BloFin
                         continue;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
 
                     if (newOrder.State == OrderStateType.Partial ||
                         newOrder.State == OrderStateType.Done)
@@ -1972,7 +1969,7 @@ namespace OsEngine.Market.Servers.BloFin
                     {
                         order.State = OrderStateType.Active;
                         order.NumberMarket = orderResponse.data[0].orderId;
-                        MyOrderEvent.Invoke(order);
+                        MyOrderEvent?.Invoke(order);
                     }
                     else
                     {
@@ -2022,10 +2019,7 @@ namespace OsEngine.Market.Servers.BloFin
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public bool CancelOrder(Order order)
@@ -2141,10 +2135,7 @@ namespace OsEngine.Market.Servers.BloFin
 
             for (int i = 0; i < orders.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -2255,7 +2246,7 @@ namespace OsEngine.Market.Servers.BloFin
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

@@ -2521,10 +2521,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
             }
             else if (order.x == "CANCELED")
             {
@@ -2551,10 +2548,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
             }
             else if (order.x == "REJECTED")
             {
@@ -2580,10 +2574,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
             }
             else if (order.x == "TRADE")
             {
@@ -2627,10 +2618,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(newOrder);
-                    }
+                    MyOrderEvent?.Invoke(newOrder);
                 }
             }
             else if (order.x == "EXPIRED")
@@ -2658,10 +2646,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                MyOrderEvent?.Invoke(newOrder);
             }
             else
             {
@@ -2917,20 +2902,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         order.State = OrderStateType.Fail;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
                 else
                 {
                     order.State = OrderStateType.Fail;
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception ex)
@@ -2954,30 +2933,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             order.State = OrderStateType.Cancel;
                             SendLogMessage("When revoking an order, we didn't find it on the exchange. we think it's already been revoked.",
                                 LogMessageType.Error);
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
                         else if (onBoard.State == OrderStateType.Cancel)
                         {
                             order.TimeCancel = onBoard.TimeCallBack;
                             order.State = OrderStateType.Cancel;
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
                         else if (onBoard.State == OrderStateType.Fail)
                         {
                             order.State = OrderStateType.Fail;
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(order);
-                            }
+                            MyOrderEvent?.Invoke(order);
                             return true;
                         }
 
@@ -3066,10 +3036,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             for (int i = 0; i < ordersOnBoard.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(ordersOnBoard[i]);
-                }
+                MyOrderEvent?.Invoke(ordersOnBoard[i]);
             }
         }
 
@@ -3115,10 +3082,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 return OrderStateType.None;
             }
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(myOrder);
-            }
+            MyOrderEvent?.Invoke(myOrder);
 
             if (myOrder.State == OrderStateType.Done ||
                 myOrder.State == OrderStateType.Partial)

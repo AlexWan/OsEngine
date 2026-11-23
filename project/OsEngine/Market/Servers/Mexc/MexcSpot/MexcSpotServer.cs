@@ -1909,10 +1909,7 @@ namespace OsEngine.Market.Servers.Mexc
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2172,10 +2169,7 @@ namespace OsEngine.Market.Servers.Mexc
 
             for (int i = 0; i < ordersOnBoard.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(ordersOnBoard[i]);
-                }
+                MyOrderEvent?.Invoke(ordersOnBoard[i]);
             }
         }
 

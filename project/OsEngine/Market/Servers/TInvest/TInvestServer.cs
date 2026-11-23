@@ -6160,10 +6160,7 @@ namespace OsEngine.Market.Servers.TInvest
 
             LogOrderInFullLog(order);
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void SendOrder(Order order)
@@ -6334,10 +6331,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     LogOrderInFullLog(order);
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception exception)
@@ -6687,10 +6681,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 LogOrderInFullLog(order);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
 
                 // при быстрой серии перестановок брокер может не отменить предыдущую заявку -
                 // проверяем старый номер и добиваем его вручную
@@ -6922,10 +6913,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 LogOrderInFullLog(orders[i]);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
 
             // K1: чужие стопы не реплеятся в MyOrderEvent (фильтр в GetAllActiveStopOrders)
@@ -6937,10 +6925,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 LogOrderInFullLog(stopOrders[i]);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(stopOrders[i]);
-                }
+                MyOrderEvent?.Invoke(stopOrders[i]);
             }
         }
 
@@ -7061,11 +7046,12 @@ namespace OsEngine.Market.Servers.TInvest
                     newOrder.State = OrderStateType.Partial;
                 }
 
-                if (MyOrderEvent != null)
+                var h = MyOrderEvent;
+                if (h != null)
                 {
                     LogOrderInFullLog(newOrder, source);
 
-                    MyOrderEvent(newOrder);
+                    h(newOrder);
                 }
 
                 if (processTrades && (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Partial))
@@ -7716,10 +7702,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
             }
             catch (Exception exception)
             {
@@ -8190,10 +8173,7 @@ namespace OsEngine.Market.Servers.TInvest
             deadOrder.TimeCreate = order.TimeCreate;
             deadOrder.State = OrderStateType.Cancel;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(deadOrder);
-            }
+            MyOrderEvent?.Invoke(deadOrder);
         }
 
         private void NoteOrderFound(string numberMarket)

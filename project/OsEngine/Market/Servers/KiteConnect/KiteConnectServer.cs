@@ -1402,7 +1402,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? OrderPriceType.Limit
                         : OrderPriceType.Market;
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
 
                 if (stateType == OrderStateType.Done
                || stateType == OrderStateType.Partial)
@@ -1641,7 +1641,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                     SendLogMessage("Order failed. Status: "
                          + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                     order.State = OrderStateType.Fail;
-                    MyOrderEvent(order);
+                    MyOrderEvent?.Invoke(order);
 
                 }
             }
@@ -1755,10 +1755,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
             for (int i = 0; i < orders.Count; i++)
             {
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
