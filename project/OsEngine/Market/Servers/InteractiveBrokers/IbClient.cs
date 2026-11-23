@@ -88,10 +88,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     _listenThread.Start();
                 }
 
-                if (ConnectionSuccess != null)
-                {
-                    ConnectionSuccess();
-                }
+                    ConnectionSuccess?.Invoke();
             }
             catch (Exception error)
             {
@@ -123,10 +120,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 _tcpReader = null;
             }
 
-            if (ConnectionFail != null)
-            {
-                ConnectionFail();
-            }
+                ConnectionFail?.Invoke();
 
         }
 
@@ -861,7 +855,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             }
 
-            if (CandlesUpdateEvent != null)
+            Action<Candles> handler = CandlesUpdateEvent;
+            if (handler != null)
             {
                 if (series != null &&
                     series.CandlesArray != null &&
@@ -870,7 +865,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     series.CandlesArray[series.CandlesArray.Count - 1].State = CandleState.Started;
                 }
 
-                CandlesUpdateEvent(series);
+                handler(series);
             }
         }
 
@@ -1089,10 +1084,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             //int id, int position, int operation, int side, double price, int size
 
-            if (NewMarketDepth != null)
-            {
-                NewMarketDepth(requestId, position, operation, side, price, size);
-            }
+                NewMarketDepth?.Invoke(requestId, position, operation, side, price, size);
         }
 
         /// <summary>
@@ -1153,10 +1145,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 accountName = TcpReadString();
             }
 
-            if (NewPortfolioPosition != null)
-            {
-                NewPortfolioPosition(contract, accountName, position);
-            }
+                NewPortfolioPosition?.Invoke(contract, accountName, position);
         }
 
         /// <summary>
@@ -1187,10 +1176,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             if (msgVersion >= 3)
                 TcpReadDouble();
 
-            if (NewPortfolioPosition != null)
-            {
-                NewPortfolioPosition(contract, account, pos);
-            }
+                NewPortfolioPosition?.Invoke(contract, account, pos);
         }
 
         /// <summary>
@@ -1205,9 +1191,10 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             string val2 = TcpReadString();
             TcpReadString();
 
-            if (val1 == "NetLiquidation" && NewAccountValue != null)
+            Action<string, decimal> handler = NewAccountValue;
+            if (val1 == "NetLiquidation" && handler != null)
             {
-                NewAccountValue(portfolio, Decimal.Parse(val2, NumberFormatInfo.InvariantInfo));
+                handler(portfolio, Decimal.Parse(val2, NumberFormatInfo.InvariantInfo));
             }
         }
 
@@ -1277,10 +1264,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 trade.Side = Side.Sell;
             }
 
-            if (NewTradeEvent != null)
-            {
-                NewTradeEvent(trade, security);
-            }
+                NewTradeEvent?.Invoke(trade, security);
         }
 
         /// <summary>
@@ -1424,16 +1408,10 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 trade.Volume = volume;
                 trade.Side = osOrder.Side;
 
-                if (NewMyTradeEvent != null)
-                {
-                    NewMyTradeEvent(trade);
-                }
+                    NewMyTradeEvent?.Invoke(trade);
             }
 
-            if (NewOrderEvent != null)
-            {
-                NewOrderEvent(newOsOrder);
-            }
+                NewOrderEvent?.Invoke(newOsOrder);
         }
 
         /// <summary>
@@ -1524,10 +1502,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
             _serverSecurities.Add(contract);
 
-            if (NewContractEvent != null)
-            {
-                NewContractEvent(contract);
-            }
+                NewContractEvent?.Invoke(contract);
         }
 
         /// <summary>
