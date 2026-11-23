@@ -618,6 +618,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             if (countNeedToLoad > _limitCandles)
             {
+                SendLogMessage($"Candle history: requested {countNeedToLoad} candles exceeds K-line API limit, truncated to {_limitCandles}. Window start: {startTime:O}", LogMessageType.System);
                 countNeedToLoad = _limitCandles;
             }
 
@@ -638,6 +639,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             if (candlesInWindow.Count == 0)
             {
+                SendLogMessage($"Candle history: window is empty after trim to [{startTime:O} - {endTime:O}], period {interval}. Window is older than the K-line API reachable range.", LogMessageType.System);
                 return null;
             }
 
