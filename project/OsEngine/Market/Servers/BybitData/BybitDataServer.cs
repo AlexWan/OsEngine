@@ -445,7 +445,7 @@ namespace OsEngine.Market.Servers.BybitData
 
             if (_myPortfolios.Count != 0)
             {
-                PortfolioEvent(_myPortfolios);
+                PortfolioEvent?.Invoke(_myPortfolios);
             }
         }
 

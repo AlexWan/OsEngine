@@ -488,10 +488,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                 myPortfolio.ValueCurrent = value;
 
-                if (PortfolioEvent != null)
-                {
-                    PortfolioEvent(_portfolios);
-                }
+                PortfolioEvent?.Invoke(_portfolios);
 
                 StartListeningPortfolios();
             }
@@ -541,10 +538,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                 if(_portfolioIsStarted)
                 {
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
             }
             catch (Exception error)

@@ -569,7 +569,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             Portfolios.Add(portfolioInitial);
 
-            PortfolioEvent(Portfolios);
+            PortfolioEvent?.Invoke(Portfolios);
         }
 
         private void GetAccountInfo()
@@ -798,10 +798,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 portfolio.ValueCurrent = 1;
             }
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(Portfolios);
-            }
+            PortfolioEvent?.Invoke(Portfolios);
         }
 
         private decimal GetPriceSecurity(string security)

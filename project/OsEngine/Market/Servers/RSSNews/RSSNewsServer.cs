@@ -384,10 +384,7 @@ namespace OsEngine.Market.Servers.RSSNews
             portfolio.ValueCurrent = 1;
             portfolio.Number = "RSSNews fake portfolio";
 
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(new List<Portfolio>() { portfolio });
-            }
+            PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
         }
 
         public void GetSecurities()

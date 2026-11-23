@@ -408,7 +408,7 @@ namespace OsEngine.Market.Servers.Woo
                         portfolio.ValueCurrent = Math.Round(response.data.totalTradingValue.ToDecimal(), 5);
                         _portfolios.Add(portfolio);
 
-                        PortfolioEvent(_portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                     else
                     {
@@ -466,7 +466,7 @@ namespace OsEngine.Market.Servers.Woo
                             portfolio.SetNewPosition(pos);
                         }
 
-                        PortfolioEvent(_portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                     else
                     {
@@ -518,7 +518,7 @@ namespace OsEngine.Market.Servers.Woo
                             portfolio.SetNewPosition(pos);
                         }
 
-                        PortfolioEvent(_portfolios);
+                        PortfolioEvent?.Invoke(_portfolios);
                     }
                     else
                     {
@@ -2105,7 +2105,7 @@ namespace OsEngine.Market.Servers.Woo
                 portfolio.ValueCurrent = Math.Round(responseBalance.data.fc.ToDecimal(), 5);
                 portfolio.ValueBlocked = responseBalance.data.tc.ToDecimal() - responseBalance.data.fc.ToDecimal();
 
-                PortfolioEvent(_portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception ex)
             {
@@ -2135,7 +2135,7 @@ namespace OsEngine.Market.Servers.Woo
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(_portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception ex)
             {
@@ -2179,7 +2179,7 @@ namespace OsEngine.Market.Servers.Woo
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(_portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
             catch (Exception ex)
             {

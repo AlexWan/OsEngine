@@ -979,7 +979,7 @@ namespace OsEngine.Market.Servers.Deribit
             pos.ValueCurrent = response.@params.data.equity.ToDecimal();
 
             portfolio.SetNewPosition(pos);
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
         }
 
         private void UpdatePositionFromSubscribe(string message)
@@ -1003,7 +1003,7 @@ namespace OsEngine.Market.Servers.Deribit
                 pos.ValueCurrent = item[i].size.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
         }
 
@@ -1701,7 +1701,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             portfolio.SetNewPosition(pos);
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
         }
 
         private void CreateQueryPosition(bool IsUpdateValueBegin, string currency)
@@ -1757,7 +1757,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 portfolio.SetNewPosition(pos);
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
         }
 
         private HttpResponseMessage CreatePrivateQuery(string requestPath, string method, string requestBody)

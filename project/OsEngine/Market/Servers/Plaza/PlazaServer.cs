@@ -1561,10 +1561,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     portfolio.ValueCurrent = Convert.ToDecimal(replmsg["money_amount"].asDecimal());
                                     portfolio.ValueBlocked = Convert.ToDecimal(replmsg["money_blocked"].asDecimal());
 
-                                    if (PortfolioEvent != null)
-                                    {
-                                        PortfolioEvent(_portfolios);
-                                    }
+                                    PortfolioEvent?.Invoke(_portfolios);
                                 }
                                 catch (Exception error)
                                 {
@@ -1698,10 +1695,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                     myPortfolio.SetNewPosition(positionOnBoard);
 
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(_portfolios);
-                    }
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
                 catch (Exception error)
                 {

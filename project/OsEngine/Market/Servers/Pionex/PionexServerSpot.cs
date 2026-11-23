@@ -339,7 +339,7 @@ namespace OsEngine.Market.Servers.Pionex
                             portfolio.SetNewPosition(newPortf);
                         }
 
-                        PortfolioEvent(new List<Portfolio> { portfolio });
+                        PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
                     }
                     else
                     {
@@ -1328,7 +1328,7 @@ namespace OsEngine.Market.Servers.Pionex
                     portfolio.SetNewPosition(newPortf);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent?.Invoke(new List<Portfolio> { portfolio });
             }
             catch (Exception ex)
             {

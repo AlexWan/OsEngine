@@ -1674,10 +1674,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (_myPortfolios.Count != 0)
                 {
-                    if (PortfolioEvent != null)
-                    {
-                        PortfolioEvent(CreatePortfoliosSnapshot());
-                    }
+                    PortfolioEvent?.Invoke(CreatePortfoliosSnapshot());
                 }
                 else
                 {
@@ -5204,10 +5201,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 portf.SetNewPosition(newPos);
                             }
 
-                            if (PortfolioEvent != null)
-                            {
-                                PortfolioEvent(CreatePortfoliosSnapshot());
-                            }
+                            PortfolioEvent?.Invoke(CreatePortfoliosSnapshot());
                         }
                     }
                 }

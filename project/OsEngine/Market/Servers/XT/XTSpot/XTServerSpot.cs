@@ -369,7 +369,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                 _portfolios.Add(portfolioInitial);
 
-                PortfolioEvent(_portfolios);
+                PortfolioEvent?.Invoke(_portfolios);
             }
 
             private void UpdatePortfolios()
@@ -509,7 +509,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         alreadySendPositions.Add(pos);
                     }
 
-                    PortfolioEvent(_portfolios);
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
                 catch (Exception exception)
                 {
@@ -1782,7 +1782,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     portfolio.SetNewPosition(pos);
 
-                    PortfolioEvent(_portfolios);
+                    PortfolioEvent?.Invoke(_portfolios);
                 }
                 catch (Exception exception)
                 {

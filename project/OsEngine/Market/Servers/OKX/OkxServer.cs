@@ -3212,7 +3212,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     Portfolios.Add(portfolioInitial);
 
-                    PortfolioEvent(Portfolios);
+                    PortfolioEvent?.Invoke(Portfolios);
                 }
 
                 if (assets.data == null ||

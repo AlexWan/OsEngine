@@ -1834,7 +1834,7 @@ namespace OsEngine.Market.Servers.BloFin
 
                     Portfolios.Add(portfolioInitial);
 
-                    PortfolioEvent(Portfolios);
+                    PortfolioEvent?.Invoke(Portfolios);
                 }
 
                 Portfolio portfolio = Portfolios[0];
