@@ -116,7 +116,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
                 else
                 {
@@ -132,7 +132,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                         SendLogMessage("The connection cannot be opened. BingX. Error Request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -853,7 +853,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
                 }
             }
@@ -961,7 +961,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1043,7 +1043,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1570,7 +1570,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 _allDepths[depth.SecurityNameCode] = depth;
 
-                MarketDepthEvent(depth);
+                MarketDepthEvent?.Invoke(depth);
             }
             catch (Exception error)
             {

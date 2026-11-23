@@ -128,7 +128,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
                 else
                 {
@@ -143,7 +143,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("The connection cannot be opened. BingXFutures. Error Request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -179,7 +179,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1086,7 +1086,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
 
                         SetPositionMode();
                     }
@@ -2172,7 +2172,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 _lastTimeMd = depth.Time;
 
-                MarketDepthEvent(depth);
+                MarketDepthEvent?.Invoke(depth);
             }
             catch (Exception exception)
             {

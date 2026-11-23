@@ -167,7 +167,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1215,7 +1215,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             && _webSocket.ReadyState == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
         }
 

@@ -176,7 +176,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     {
                         SendLogMessage(e.Message, LogMessageType.Connect);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                         return;
                     }
                 }
@@ -265,7 +265,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1147,7 +1147,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1325,7 +1325,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

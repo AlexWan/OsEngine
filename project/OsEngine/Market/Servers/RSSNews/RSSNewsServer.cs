@@ -111,7 +111,7 @@ namespace OsEngine.Market.Servers.RSSNews
             if (_availableUrls.Count > 0)
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             else
             {
@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.RSSNews
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
 
@@ -134,7 +134,7 @@ namespace OsEngine.Market.Servers.RSSNews
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -266,7 +266,7 @@ namespace OsEngine.Market.Servers.RSSNews
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }

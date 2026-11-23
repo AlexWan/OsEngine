@@ -49,7 +49,7 @@ namespace OsEngine.Market.Servers.GateIoData
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
                 else
                 {
@@ -79,7 +79,7 @@ namespace OsEngine.Market.Servers.GateIoData
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

@@ -763,7 +763,7 @@ namespace OsEngine.Market.Servers.AE
                     {
                         SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
                 }
             }

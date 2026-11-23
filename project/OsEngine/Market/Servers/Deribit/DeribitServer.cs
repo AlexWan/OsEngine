@@ -113,14 +113,14 @@ namespace OsEngine.Market.Servers.Deribit
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. Deribit. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             else
             {
                 SendLogMessage("Connection can be open. Deribit. Error request", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -129,7 +129,7 @@ namespace OsEngine.Market.Servers.Deribit
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
 
             try
@@ -631,7 +631,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -644,7 +644,7 @@ namespace OsEngine.Market.Servers.Deribit
         {
             SendLogMessage("Connection Open", LogMessageType.System);
             ServerStatus = ServerConnectStatus.Connect;
-            ConnectEvent();
+            ConnectEvent?.Invoke();
             CreateAuthMessageWebSocket();
         }
 
@@ -937,7 +937,7 @@ namespace OsEngine.Market.Servers.Deribit
             marketDepth.Bids = bids;
             marketDepth.Time = DateTime.UtcNow;
 
-            MarketDepthEvent(marketDepth);
+            MarketDepthEvent?.Invoke(marketDepth);
         }
 
         private void UpdateMytrade(string message)

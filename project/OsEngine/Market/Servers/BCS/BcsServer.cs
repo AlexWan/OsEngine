@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.BCS
                             if (ServerStatus == ServerConnectStatus.Connect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
                         else
@@ -264,7 +264,7 @@ namespace OsEngine.Market.Servers.BCS
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1076,7 +1076,7 @@ namespace OsEngine.Market.Servers.BCS
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -2429,7 +2429,7 @@ namespace OsEngine.Market.Servers.BCS
 
                         SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
                 }
             }

@@ -331,7 +331,7 @@ namespace OsEngine.Market.Servers.Atp
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1005,7 +1005,7 @@ namespace OsEngine.Market.Servers.Atp
                     SendLogMessage("Last message to trade server: " + lastMessageToTradeServer, LogMessageType.Error);
                     CloseRouters();
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
 
                 if (_socketMarketData != null &&
@@ -1018,7 +1018,7 @@ namespace OsEngine.Market.Servers.Atp
 
                     CloseRouters();
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }

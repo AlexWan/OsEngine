@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.BybitData
             {
 
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             else
             {
@@ -129,7 +129,7 @@ namespace OsEngine.Market.Servers.BybitData
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

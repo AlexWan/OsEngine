@@ -196,7 +196,7 @@ namespace OsEngine.Market.Servers.Bybit
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -269,7 +269,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
 
                     SetPositionMode();
                 }
@@ -1966,7 +1966,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -2088,7 +2088,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -2286,7 +2286,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             SendLogMessage(message, LogMessageType.Error);
             ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent();
+            DisconnectEvent?.Invoke();
         }
 
         private bool IsSocketDeadByTimeout(WebSocket socket, DateTime timeNow, string socketName)

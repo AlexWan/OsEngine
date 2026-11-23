@@ -185,7 +185,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         {
                             SendLogMessage("MFIX Trade server connection lost. No response for too long", LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     } else
                     {  // 1. send Test Request (1)
@@ -239,7 +239,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     {
                         SendLogMessage("MOEX FIX/FAST Multicast server connection lost. No data over UDP for too long.", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -266,7 +266,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -560,7 +560,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 {
                     SendLogMessage("All streams activated. Connect State", LogMessageType.System);
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
                 catch (Exception ex)
                 {
@@ -593,7 +593,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
 
@@ -650,7 +650,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
 
                     return false;
@@ -668,7 +668,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 
@@ -1202,7 +1202,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -1463,7 +1463,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -1596,7 +1596,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -1709,7 +1709,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 
@@ -1838,7 +1838,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 
@@ -1948,7 +1948,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -2082,7 +2082,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -2098,7 +2098,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
                         }
@@ -2120,7 +2120,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
 
@@ -2188,7 +2188,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
 
@@ -2204,7 +2204,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                     if (ServerStatus != ServerConnectStatus.Disconnect)
                                     {
                                         ServerStatus = ServerConnectStatus.Disconnect;
-                                        DisconnectEvent();
+                                        DisconnectEvent?.Invoke();
                                     }
                                 }
                             }
@@ -2226,7 +2226,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                     if (ServerStatus != ServerConnectStatus.Disconnect)
                                     {
                                         ServerStatus = ServerConnectStatus.Disconnect;
-                                        DisconnectEvent();
+                                        DisconnectEvent?.Invoke();
                                     }
                                 }
 
@@ -3296,7 +3296,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
 
             // отправляем на сервер
-            MarketDepthEvent(md);
+            MarketDepthEvent?.Invoke(md);
         }
 
         private void MFIXTradeServerConnection()
@@ -3331,7 +3331,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 

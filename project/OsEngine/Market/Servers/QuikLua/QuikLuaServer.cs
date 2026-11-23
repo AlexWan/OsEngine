@@ -229,7 +229,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
 
                     _portfolioCounter = 0;
@@ -308,7 +308,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception error)
@@ -2068,7 +2068,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
             }
             catch (Exception error)
@@ -2102,7 +2102,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
             }
             catch (Exception error)

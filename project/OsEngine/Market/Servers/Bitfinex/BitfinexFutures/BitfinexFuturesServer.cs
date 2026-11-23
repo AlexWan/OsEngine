@@ -116,14 +116,14 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 {
                     SendLogMessage($"No connection to Bitfinex server. Code:{response.StatusCode}, Error:{response.Content}", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Connection cannot be open Bitfinex. exception:" + exception.ToString(), LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -156,7 +156,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1423,7 +1423,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1573,7 +1573,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
 
                     SendLogMessage("All sockets activated.", LogMessageType.System);
@@ -2007,7 +2007,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                         else
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                             SendLogMessage($"WebSocket authentication error: Invalid public or secret key: {authResponse.Msg}", LogMessageType.Error);
                         }
                     }

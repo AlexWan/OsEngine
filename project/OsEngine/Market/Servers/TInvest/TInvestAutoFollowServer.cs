@@ -236,7 +236,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -296,7 +296,7 @@ namespace OsEngine.Market.Servers.TInvest
                         {
                             SendLogMessage("Autofollow. Stream reconnect failed " + lostStream.Name, LogMessageType.Error);
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                             Thread.Sleep(2000);
                         }
                     }
@@ -453,7 +453,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SendLogMessage("Autofollow. Error loading instruments. Reconnect the connector ", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                         return;
                     }
 
@@ -1551,7 +1551,7 @@ namespace OsEngine.Market.Servers.TInvest
                 _securityStreamMap = new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             catch (Exception ex)
             {

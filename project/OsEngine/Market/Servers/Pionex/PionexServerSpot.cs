@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.Pionex
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -715,7 +715,7 @@ namespace OsEngine.Market.Servers.Pionex
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -890,7 +890,7 @@ namespace OsEngine.Market.Servers.Pionex
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1299,7 +1299,7 @@ namespace OsEngine.Market.Servers.Pionex
                     return;
                 }
 
-                MarketDepthEvent(marketDepth);
+                MarketDepthEvent?.Invoke(marketDepth);
             }
             catch (Exception ex)
             {
