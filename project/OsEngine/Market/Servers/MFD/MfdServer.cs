@@ -438,6 +438,7 @@ namespace OsEngine.Market.Servers.MFD
         /// <summary>
         /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль.
         /// E-форма отклоняется: контракт запроса её не порождает
+        /// Используется для цен/объёмов OHLC и тиков
         /// </summary>
         private static bool TryParseMfdDecimal(string value, out decimal result)
         {
@@ -509,8 +510,8 @@ namespace OsEngine.Market.Servers.MFD
                 // Валидация до присваивания; форма дат/времени задаётся запросом: DateFormat=yyyyMMdd, TimeFormat=HHmmss.
                 // Длины проверяются по отдельным полям: при mis-split конкатенация склеивает сдвиг в «валидную» 14-значную дату.
                 if (line.Length < 6 ||
-                    !TryParseMfdTickDecimal(line[4], out decimal price) ||
-                    !TryParseMfdTickDecimal(line[5], out decimal volume) ||
+                    !TryParseMfdDecimal(line[4], out decimal price) ||
+                    !TryParseMfdDecimal(line[5], out decimal volume) ||
                     line[2].Length != 8 ||
                     line[3].Length != 6 ||
                     !DateTime.TryParseExact(line[2] + line[3], "yyyyMMddHHmmss",
@@ -539,24 +540,6 @@ namespace OsEngine.Market.Servers.MFD
             }
 
             return trades;
-        }
-
-        /// <summary>
-        /// Копия семантики string.ToDecimal с явным сигналом провала: мусор возвращает false, а не молчаливый ноль.
-        /// E-форма отклоняется: контракт запроса её не порождает
-        /// </summary>
-        private static bool TryParseMfdTickDecimal(string value, out decimal result)
-        {
-            result = 0m;
-
-            if (string.IsNullOrEmpty(value))
-            {
-                return false;
-            }
-
-            return decimal.TryParse(
-                value.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator),
-                NumberStyles.Number, CultureInfo.InvariantCulture, out result);
         }
 
         #endregion
