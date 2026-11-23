@@ -306,7 +306,7 @@ namespace OsEngine.Market.Servers.AE
                 order.VolumeExecute = order.Volume - sharesRemaining;
             }
 
-            MyOrderEvent!(order);
+            MyOrderEvent?.Invoke(order);
         }
 
         DateTime _lastMDTime = DateTime.MinValue;
@@ -1034,7 +1034,7 @@ namespace OsEngine.Market.Servers.AE
                 {
                     order.State = OrderStateType.Fail; // wtf?
                     
-                    MyOrderEvent!(order);
+                    MyOrderEvent?.Invoke(order);
                     SendLogMessage($"Order sending error: volume must be positive number. Volume: {order.Volume}", LogMessageType.Error);
                     return;
                 }

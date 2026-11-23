@@ -1093,7 +1093,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                         SendLogMessage($"Пришел ордер: {order.NumberMarket}, state: {order.State}, Type: {myTransaction.Trans.Type}, Sec:{order.SecurityNameCode}, Real", LogMessageType.System);
 
-                        MyOrderEvent.Invoke(order);
+                        MyOrderEvent?.Invoke(order);
                         return;
                     }
 
@@ -1147,7 +1147,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                         SendLogMessage($"Пришел ордер: {order.NumberMarket}, state: {order.State}, Type: {myTransaction.Trans.Type}, Sec: {order.SecurityNameCode}, History", LogMessageType.System);
 
-                        MyOrderEvent.Invoke(order);
+                        MyOrderEvent?.Invoke(order);
                         return;
                     }
 
@@ -1483,7 +1483,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                     SendLogMessage($"SendOrder fail. Error code - {orderCheckResult.Retcode}. Comment - {orderCheckResult.Comment} | Error - {(ErrorCode)error}", LogMessageType.System);
 
-                    MyOrderEvent.Invoke(order);
+                    MyOrderEvent?.Invoke(order);
 
                     return;
                 }
@@ -1508,14 +1508,14 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                     SendLogMessage($"SendOrder fail. Error code - {orderResult.Retcode}. Comment - {orderResult.Comment}", LogMessageType.System);
 
-                    MyOrderEvent.Invoke(order);
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"Error SendOrder: {ex.ToString()}", LogMessageType.Error);
                 order.State = OrderStateType.Fail;
-                MyOrderEvent.Invoke(order);
+                MyOrderEvent?.Invoke(order);
             }
         }
 
@@ -1542,7 +1542,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     order.TimeCancel = order.TimeCallBack;
                 }
 
-                MyOrderEvent.Invoke(order);
+                MyOrderEvent?.Invoke(order);
                 return true;
             }
             catch (Exception ex)
@@ -1723,7 +1723,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                         order.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    MyOrderEvent.Invoke(order);
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception ex)
@@ -1913,7 +1913,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                             order.TypeOrder = OrderPriceType.Limit;
                         }
 
-                        MyOrderEvent.Invoke(order);
+                        MyOrderEvent?.Invoke(order);
                         return order.State;
                     }
                 }
@@ -1971,7 +1971,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                         order.TypeOrder = OrderPriceType.Limit;
                     }
 
-                    MyOrderEvent.Invoke(order);
+                    MyOrderEvent?.Invoke(order);
                     return order.State;
                 }
 
