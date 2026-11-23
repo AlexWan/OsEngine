@@ -1396,7 +1396,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 newOrder.TypeOrder = responseOrder.data.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXSpot;
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
 
                 if (orderState == OrderStateType.Done
                     || orderState == OrderStateType.Partial)
@@ -1700,7 +1700,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
 
-                MyOrderEvent.Invoke(order);
+                MyOrderEvent?.Invoke(order);
             }
             catch (Exception exception)
             {
@@ -1842,10 +1842,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -1871,10 +1868,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     continue;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -2004,7 +1998,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             return orderOnMarket.State;
@@ -2078,7 +2072,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                 if (newOrder != null
                                    && MyOrderEvent != null)
                                 {
-                                    MyOrderEvent(newOrder);
+                                    MyOrderEvent?.Invoke(newOrder);
                                 }
 
                                 if (newOrder.State == OrderStateType.Done ||

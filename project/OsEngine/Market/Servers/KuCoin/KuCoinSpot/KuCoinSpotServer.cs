@@ -1860,10 +1860,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         public void GetAllActivOrders()
@@ -1884,10 +1881,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     continue;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -2052,7 +2046,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

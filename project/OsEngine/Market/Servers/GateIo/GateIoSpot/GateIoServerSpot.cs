@@ -2109,7 +2109,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     SendLogMessage($"SendOrder. Error: {responseMessage.Content}", LogMessageType.Error);
                     order.State = OrderStateType.Fail;
-                    MyOrderEvent.Invoke(order);
+                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception exception)
@@ -2204,10 +2204,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     continue;
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -2353,7 +2350,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

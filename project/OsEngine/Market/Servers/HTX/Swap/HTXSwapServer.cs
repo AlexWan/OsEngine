@@ -3021,10 +3021,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 orders[i].TimeCreate = orders[i].TimeCallBack;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
+                MyOrderEvent?.Invoke(orders[i]);
             }
         }
 
@@ -3215,7 +3212,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             if (orderOnMarket != null &&
                 MyOrderEvent != null)
             {
-                MyOrderEvent(orderOnMarket);
+                MyOrderEvent?.Invoke(orderOnMarket);
             }
 
             if (orderOnMarket.State == OrderStateType.Done

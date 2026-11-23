@@ -2314,10 +2314,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         continue;
                     }
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(orders[i]);
-                    }
+                    MyOrderEvent?.Invoke(orders[i]);
                 }
             }
 

@@ -1988,10 +1988,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         $"Volume: {order.Volume}, VolumeExecute: {order.VolumeExecute}, Time: {order.TimeCallBack}, Side: {order.Side}", LogMessageType.System);
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
             }
             catch (Exception error)
             {
@@ -2153,10 +2150,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         $"Volume: {order.Volume}, VolumeExecute: {order.VolumeExecute}, Time: {order.TimeCallBack}, Side: {order.Side}", LogMessageType.System);
                 }
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
 
                 SendLogMessage("Transaction  " + order.NumberUser + "  error: " + transReply.ResultMsg, LogMessageType.Error);
             }
@@ -2281,10 +2275,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     if (res < 0)
                     {
                         order.State = OrderStateType.Fail;
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(order);
-                        }
+                        MyOrderEvent?.Invoke(order);
                     }
                 }
             }
@@ -2293,10 +2284,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage(error.ToString(), LogMessageType.Error);
                 order.State = sendStarted ? OrderStateType.Pending : OrderStateType.Fail;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                MyOrderEvent?.Invoke(order);
             }
         }
 
@@ -2436,10 +2424,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     order.NumberMarket = foundOrder.OrderNum.ToString() + "+" + order.NumberUser.ToString();
 
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent?.Invoke(order);
 
                     if (needTrade)
                     {

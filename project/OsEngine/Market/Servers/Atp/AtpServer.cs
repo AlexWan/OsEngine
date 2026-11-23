@@ -1524,10 +1524,7 @@ namespace OsEngine.Market.Servers.Atp
                 return;
             }
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void LoadMyFailOrder(string strMyOrder)
@@ -1551,10 +1548,7 @@ namespace OsEngine.Market.Servers.Atp
 
             order.State = OrderStateType.Cancel;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
 
             SendLogMessage(strMyOrder, LogMessageType.Error);
         }

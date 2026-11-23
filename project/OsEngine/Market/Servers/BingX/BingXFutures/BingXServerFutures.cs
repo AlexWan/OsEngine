@@ -2060,7 +2060,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 newOrder.TypeOrder = responseOrder.o.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXFutures;
 
-                MyOrderEvent(newOrder);
+                MyOrderEvent?.Invoke(newOrder);
 
                 if (orderState == OrderStateType.Done
                     || orderState == OrderStateType.Partial)
@@ -2278,7 +2278,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
 
-                MyOrderEvent.Invoke(order);
+                MyOrderEvent?.Invoke(order);
             }
             catch (Exception exception)
             {
@@ -2423,10 +2423,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             order.State = OrderStateType.Fail;
 
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private RateGate _getOpenOrdersRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
@@ -2508,10 +2505,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                             openOrder.TypeOrder = response.data.orders[i].type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                             openOrder.ServerType = ServerType.BingXFutures;
 
-                            if (MyOrderEvent != null)
-                            {
-                                MyOrderEvent(openOrder);
-                            }
+                            MyOrderEvent?.Invoke(openOrder);
                         }
                     }
                     else
@@ -2691,10 +2685,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         openOrder.TypeOrder = response.data.order.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                         openOrder.ServerType = ServerType.BingXFutures;
 
-                        if (MyOrderEvent != null)
-                        {
-                            MyOrderEvent(openOrder);
-                        }
+                        MyOrderEvent?.Invoke(openOrder);
 
                         return openOrder.State;
                     }

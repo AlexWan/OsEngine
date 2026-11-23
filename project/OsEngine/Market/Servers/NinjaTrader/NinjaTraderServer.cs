@@ -174,10 +174,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnMyOrderEvent(Order order)
         {
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
+            MyOrderEvent?.Invoke(order);
         }
 
         private void ClientOnMyTradeEvent(MyTrade myTrade)
