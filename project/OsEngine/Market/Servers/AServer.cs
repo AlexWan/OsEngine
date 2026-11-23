@@ -994,10 +994,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StartServer()
         {
-            if (UserWantsConnect != null)
-            {
-                UserWantsConnect();
-            }
+                UserWantsConnect?.Invoke();
 
             if (_serverStatusNeed == ServerConnectStatus.Connect)
             {
@@ -1014,10 +1011,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StopServer()
         {
-            if (UserWantsDisconnect != null)
-            {
-                UserWantsDisconnect();
-            }
+                UserWantsDisconnect?.Invoke();
             _serverStatusNeed = ServerConnectStatus.Disconnect;
         }
 
@@ -1048,10 +1042,7 @@ namespace OsEngine.Market.Servers
                     _serverConnectStatus = value;
                     SendLogMessage(_serverConnectStatus + " " + OsLocalization.Market.Message7, LogMessageType.Connect);
 
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
+                        ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                 }
             }
         }
@@ -1242,10 +1233,7 @@ namespace OsEngine.Market.Servers
 
             ServerStatus = ServerConnectStatus.Disconnect;
 
-            if (NeedToReconnectEvent != null)
-            {
-                NeedToReconnectEvent();
-            }
+                NeedToReconnectEvent?.Invoke();
         }
 
         /// <summary>
@@ -1348,10 +1336,7 @@ namespace OsEngine.Market.Servers
 
                         if (_isNonTradingPeriodNow)
                         {
-                            if (ConnectStatusChangeEvent != null)
-                            {
-                                ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                            }
+                                ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
 
                             LastStartServerTime = DateTime.Now;
                             SendLogMessage(OsLocalization.Market.Message104, LogMessageType.System);
@@ -1517,10 +1502,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (NeedToReconnectEvent != null)
-                {
-                    NeedToReconnectEvent();
-                }
+                    NeedToReconnectEvent?.Invoke();
             }
             catch (Exception ex)
             {
@@ -1587,10 +1569,7 @@ namespace OsEngine.Market.Servers
                             if (TestValue_CanSendOrdersUp
                                 && TestValue_CanSendMyTradesUp)
                             {
-                                if (NewMyTradeEvent != null)
-                                {
-                                    NewMyTradeEvent(myTrade);
-                                }
+                                    NewMyTradeEvent?.Invoke(myTrade);
 
                                 _ordersHub.SetMyTradeFromApi(myTrade);
 
@@ -1627,10 +1606,7 @@ namespace OsEngine.Market.Servers
 
                         while (_portfolioToSend.TryDequeue(out portfolio))
                         {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
+                                PortfoliosChangeEvent?.Invoke(portfolio);
                         }
                     }
 
@@ -1677,10 +1653,7 @@ namespace OsEngine.Market.Servers
                                 continue;
                             }
 
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
+                                NewTradeEvent?.Invoke(trades);
 
                             if (_needToCheckDataFeedOnDisconnect != null
                                 && _needToCheckDataFeedOnDisconnect.Value)
@@ -1718,10 +1691,7 @@ namespace OsEngine.Market.Servers
                             {
                                 if (!_isNonTradingPeriodNow)
                                 {
-                                    if (NewMarketDepthEvent != null)
-                                    {
-                                        NewMarketDepthEvent(depth);
-                                    }
+                                        NewMarketDepthEvent?.Invoke(depth);
 
                                     if (_needToCheckDataFeedOnDisconnect != null
                                         && _needToCheckDataFeedOnDisconnect.Value)
@@ -1776,10 +1746,7 @@ namespace OsEngine.Market.Servers
                                         _securitiesFeedFlow.Enqueue(tradeTime);
                                     }
 
-                                    if (NewMarketDepthEvent != null)
-                                    {
-                                        NewMarketDepthEvent(list[i]);
-                                    }
+                                        NewMarketDepthEvent?.Invoke(list[i]);
                                 }
 
                                 SystemUsageAnalyzeMaster.MarketDepthClearingCount += 1;
@@ -1796,9 +1763,10 @@ namespace OsEngine.Market.Servers
                         {
                             if (_bidAskToSend.Count < 1000)
                             {
-                                if (!_isNonTradingPeriodNow && NewBidAskIncomeEvent != null)
+                                Action<decimal, decimal, Security> handler = NewBidAskIncomeEvent;
+                                if (!_isNonTradingPeriodNow && handler != null)
                                 {
-                                    NewBidAskIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                    handler(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
                                 }
                             }
                             else
@@ -1834,10 +1802,7 @@ namespace OsEngine.Market.Servers
                                 {
                                     if (_isNonTradingPeriodNow) break;
 
-                                    if (NewBidAskIncomeEvent != null)
-                                    {
-                                        NewBidAskIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
-                                    }
+                                        NewBidAskIncomeEvent?.Invoke(list[i].Bid, list[i].Ask, list[i].Security);
                                 }
 
                                 SystemUsageAnalyzeMaster.BidAskClearingCount += 1;
@@ -1882,10 +1847,7 @@ namespace OsEngine.Market.Servers
 
                         while (_securitiesToSend.TryDequeue(out security))
                         {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
+                                SecuritiesChangeEvent?.Invoke(security);
                         }
                     }
                     if (!_newServerTime.IsEmpty)
@@ -1901,10 +1863,7 @@ namespace OsEngine.Market.Servers
 
                         if (time != DateTime.MinValue)
                         {
-                            if (TimeServerChangeEvent != null)
-                            {
-                                TimeServerChangeEvent(_serverTime);
-                            }
+                                TimeServerChangeEvent?.Invoke(_serverTime);
                         }
                     }
 
@@ -1916,10 +1875,7 @@ namespace OsEngine.Market.Servers
                         while (_candleSeriesToSend.TryDequeue(out series))
                         {
 
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
+                                NewCandleIncomeEvent?.Invoke(series);
                         }
                     }
 
@@ -1930,10 +1886,7 @@ namespace OsEngine.Market.Servers
 
                         while (_newsToSend.TryDequeue(out news))
                         {
-                            if (NewsEvent != null)
-                            {
-                                NewsEvent(news);
-                            }
+                                NewsEvent?.Invoke(news);
                         }
                     }
 
@@ -1981,10 +1934,7 @@ namespace OsEngine.Market.Servers
                             Funding data;
                             while (_fundingToSend.TryDequeue(out data))
                             {
-                                if (NewFundingEvent != null)
-                                {
-                                    NewFundingEvent(data);
-                                }
+                                    NewFundingEvent?.Invoke(data);
                             }
                         }
                         else
@@ -2005,10 +1955,7 @@ namespace OsEngine.Market.Servers
                             }
                             foreach (var val in lastData.Values)
                             {
-                                if (NewFundingEvent != null)
-                                {
-                                    NewFundingEvent(val);
-                                }
+                                    NewFundingEvent?.Invoke(val);
                             }
                         }
                     }
@@ -2021,10 +1968,7 @@ namespace OsEngine.Market.Servers
                             SecurityVolumes data;
                             while (_securityVolumesToSend.TryDequeue(out data))
                             {
-                                if (NewVolume24hUpdateEvent != null)
-                                {
-                                    NewVolume24hUpdateEvent(data);
-                                }
+                                    NewVolume24hUpdateEvent?.Invoke(data);
                             }
                         }
                         else
@@ -2045,10 +1989,7 @@ namespace OsEngine.Market.Servers
                             }
                             foreach (var val in lastData.Values)
                             {
-                                if (NewVolume24hUpdateEvent != null)
-                                {
-                                    NewVolume24hUpdateEvent(val);
-                                }
+                                    NewVolume24hUpdateEvent?.Invoke(val);
                             }
                         }
                     }
@@ -3896,10 +3837,7 @@ namespace OsEngine.Market.Servers
                     //{
                     if (ServerRealization.CancelOrder(order.Order) == false)
                     {
-                        if (CancelOrderFailEvent != null)
-                        {
-                            CancelOrderFailEvent(order.Order);
-                        }
+                            CancelOrderFailEvent?.Invoke(order.Order);
                     }
                     /*else
                     {
@@ -4020,10 +3958,7 @@ namespace OsEngine.Market.Servers
                     order.ServerName = this.ServerNameAndPrefix;
                 }
 
-                if (UserSetOrderOnExecute != null)
-                {
-                    UserSetOrderOnExecute(order);
-                }
+                    UserSetOrderOnExecute?.Invoke(order);
                 if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
                 {
                     order.State = OrderStateType.Fail;
@@ -4165,10 +4100,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (UserSetOrderOnCancel != null)
-                {
-                    UserSetOrderOnCancel(order);
-                }
+                    UserSetOrderOnCancel?.Invoke(order);
 
                 if (string.IsNullOrEmpty(order.NumberMarket))
                 {
@@ -4750,10 +4682,7 @@ namespace OsEngine.Market.Servers
                     _dictAdditionalMarketData[data.SecurityName].TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(data.TimeCreate));
                 }
 
-                if (NewAdditionalMarketDataEvent != null)
-                {
-                    NewAdditionalMarketDataEvent(_dictAdditionalMarketData[data.SecurityName]);
-                }
+                    NewAdditionalMarketDataEvent?.Invoke(_dictAdditionalMarketData[data.SecurityName]);
             }
             catch (Exception ex)
             {
@@ -4976,10 +4905,7 @@ namespace OsEngine.Market.Servers
                     {
                         _isNonTradingPeriodNow = true;
 
-                        if (ConnectStatusChangeEvent != null)
-                        {
-                            ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                        }
+                            ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                     }
                 }
                 else
@@ -4988,10 +4914,7 @@ namespace OsEngine.Market.Servers
                     {
                         _isNonTradingPeriodNow = false;
 
-                        if (ConnectStatusChangeEvent != null)
-                        {
-                            ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                        }
+                            ConnectStatusChangeEvent?.Invoke(_serverConnectStatus.ToString());
                     }
                 }
             }

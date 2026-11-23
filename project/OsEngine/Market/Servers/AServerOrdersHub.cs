@@ -213,9 +213,10 @@ namespace OsEngine.Market.Servers
             {
                 _checkOrdersAfterLastConnect = true;
 
-                if (GetAllActiveOrdersOnReconnectEvent != null)
+                Action handler = GetAllActiveOrdersOnReconnectEvent;
+                if (handler != null)
                 {
-                    GetAllActiveOrdersOnReconnectEvent();
+                    handler();
 
                     if (_fullLogIsOn)
                     {
@@ -235,7 +236,7 @@ namespace OsEngine.Market.Servers
                         if (_ordersActive[i].IsFinallyLost == false
                             && _ordersActive[i].CountTriesToGetOrderStatus < 5)
                         {
-                            ActiveStateOrderCheckStatusEvent(_ordersActive[i].Order);
+                            ActiveStateOrderCheckStatusEvent?.Invoke(_ordersActive[i].Order);
                         }
                     }
 
@@ -761,10 +762,7 @@ namespace OsEngine.Market.Servers
                 order.IsFinallyLost = true;
                 order.Order.State = OrderStateType.LostAfterActive; // BUG-0123: робот не должен оставаться с залипшей Active
 
-                if(LostOrderEvent != null)
-                {
-                    LostOrderEvent(order.Order);
-                }
+                    LostOrderEvent?.Invoke(order.Order);
             }
 
             if (order.LastTryGetStatusTime == DateTime.MinValue)
@@ -801,7 +799,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActiveStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -823,7 +821,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActiveStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
                 return;
             }
@@ -846,7 +844,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActiveStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -868,7 +866,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActiveStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -885,7 +883,7 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
-                ActiveStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
                 return;
             }
@@ -999,10 +997,7 @@ namespace OsEngine.Market.Servers
                 {
                     order.IsFinallyLost = true;
 
-                    if (LostMyTradesEvent != null)
-                    {
-                        LostMyTradesEvent(order.Order);
-                    }
+                        LostMyTradesEvent?.Invoke(order.Order);
                 }
 
                 if (order.LastTryGetStatusTime == DateTime.MinValue)
@@ -1029,7 +1024,7 @@ namespace OsEngine.Market.Servers
                     }
 
                     order.CountTriesToGetOrderStatus++;
-                    ActiveStateOrderCheckStatusEvent(order.Order);
+                    ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                     order.LastTryGetStatusTime = DateTime.Now;
 
                 }
@@ -1049,7 +1044,7 @@ namespace OsEngine.Market.Servers
                     }
 
                     order.CountTriesToGetOrderStatus++;
-                    ActiveStateOrderCheckStatusEvent(order.Order);
+                    ActiveStateOrderCheckStatusEvent?.Invoke(order.Order);
                     order.LastTryGetStatusTime = DateTime.Now;
                 }
                 else if((order.Order.State == OrderStateType.Cancel
