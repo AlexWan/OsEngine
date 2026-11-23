@@ -456,10 +456,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 SendLogMessage(OsLocalization.Market.Message52 + _securities.Count, LogMessageType.System);
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
+                SecurityEvent?.Invoke(_securities);
             }
             catch (Exception error)
             {

@@ -217,10 +217,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnUpdateSecuritiesEvent(List<Security> securities)
         {
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
         }
 
         private void ClientOnConnected()

@@ -282,10 +282,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                         securities.Add(newSecurity);
                     }
 
-                    if (SecurityEvent != null)
-                    {
-                        SecurityEvent(securities);
-                    }
+                    SecurityEvent?.Invoke(securities);
                 }
                 else
                 {

@@ -225,7 +225,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (_securities != null)
                 {
-                    SecurityEvent(_securities);
+                    SecurityEvent?.Invoke(_securities);
                 }
             }
             catch (Exception ex)

@@ -898,7 +898,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 _allSecuritiesLoaded = true;
 
                 SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
-                SecurityEvent(_securities);
+                SecurityEvent?.Invoke(_securities);
                 return;
             }
 
@@ -918,7 +918,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             
             SaveSecuritiesToFile();
 
-            SecurityEvent(_securities);
+            SecurityEvent?.Invoke(_securities);
             
             SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
         }

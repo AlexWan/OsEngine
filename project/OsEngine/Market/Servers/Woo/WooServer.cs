@@ -349,7 +349,7 @@ namespace OsEngine.Market.Servers.Woo
                             _securities.Add(newSecurity);
                         }
 
-                        SecurityEvent(_securities);
+                        SecurityEvent?.Invoke(_securities);
                     }
                     else
                     {

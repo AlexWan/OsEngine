@@ -312,7 +312,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 if (SecurityEvent != null)
                 {
-                    SecurityEvent.Invoke(_securities);
+                    SecurityEvent?.Invoke(_securities);
                 }
             }
         }

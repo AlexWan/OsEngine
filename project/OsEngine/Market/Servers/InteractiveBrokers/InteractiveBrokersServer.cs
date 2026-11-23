@@ -437,10 +437,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                     _securities.Add(security);
 
-                    if (SecurityEvent != null)
-                    {
-                        SecurityEvent(_securities);
-                    }
+                    SecurityEvent?.Invoke(_securities);
                 }
             }
             catch (Exception error)

@@ -225,7 +225,7 @@ namespace OsEngine.Market.Servers.AE
                 }
             }
 
-            SecurityEvent!(_securities);
+            SecurityEvent?.Invoke(_securities);
 
             SendLogMessage($"Total instruments: {_securities.Count}", LogMessageType.System);
         }

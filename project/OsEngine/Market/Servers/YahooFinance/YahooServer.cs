@@ -187,10 +187,7 @@ namespace OsEngine.Market.Servers.YahooFinance
 
                 securities.Add(AddSnP500());
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(securities);
-                }
+                SecurityEvent?.Invoke(securities);
 
             }
             catch (Exception e)

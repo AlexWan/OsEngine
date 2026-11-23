@@ -1758,10 +1758,7 @@ namespace OsEngine.Market.Servers.Plaza
                                         _securities.Add(security);
                                     }
 
-                                    if (SecurityEvent != null)
-                                    {
-                                        SecurityEvent(_securities);
-                                    }
+                                    SecurityEvent?.Invoke(_securities);
 
                                 }
                                 catch (Exception error)

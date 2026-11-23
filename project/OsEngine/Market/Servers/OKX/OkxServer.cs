@@ -757,10 +757,7 @@ namespace OsEngine.Market.Servers.OKX
                 _securitiesDict[sec.Name] = sec;
             }
 
-            if (SecurityEvent != null)
-            {
-                SecurityEvent(securities);
-            }
+            SecurityEvent?.Invoke(securities);
         }
 
         // trading parameter mapping shared by UpdatePairs and the instruments channel push handler.

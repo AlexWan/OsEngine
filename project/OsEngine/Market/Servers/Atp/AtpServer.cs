@@ -554,7 +554,7 @@ namespace OsEngine.Market.Servers.Atp
 
         public void GetSecurities()
         {
-            SecurityEvent(_securities);
+            SecurityEvent?.Invoke(_securities);
         }
 
         public List<Security> _securities = new List<Security>();
@@ -612,7 +612,7 @@ namespace OsEngine.Market.Servers.Atp
 
                     reader.Close();
                 }
-                SecurityEvent(_securities);
+                SecurityEvent?.Invoke(_securities);
             }
             catch (Exception)
             {

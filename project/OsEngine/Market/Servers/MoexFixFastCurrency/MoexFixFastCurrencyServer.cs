@@ -541,7 +541,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             {
                 if (_allSecuritiesLoaded)
                 {
-                    SecurityEvent(_securities);
+                    SecurityEvent?.Invoke(_securities);
                     return;
                 }
                 SendLogMessage("Securities not dowloaded. Wait, please", LogMessageType.System);

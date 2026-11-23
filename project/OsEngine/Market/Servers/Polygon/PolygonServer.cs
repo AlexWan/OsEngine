@@ -257,10 +257,7 @@ namespace OsEngine.Market.Servers.Polygon
                     }
                 }
 
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(securities);
-                }
+                SecurityEvent?.Invoke(securities);
             }
             catch (Exception e)
             {
