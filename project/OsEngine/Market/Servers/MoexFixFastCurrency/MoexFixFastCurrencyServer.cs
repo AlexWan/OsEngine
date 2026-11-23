@@ -2601,7 +2601,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                 trade.Time = TransactionTime;
                 trade.Side = order.Side;
 
-                MyTradeEvent(trade);
+                MyTradeEvent?.Invoke(trade);
             }
 
             string ordReport = $"\n----------------------------\nExecType: {ExecType}\n" +

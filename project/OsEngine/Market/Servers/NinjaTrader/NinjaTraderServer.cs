@@ -179,10 +179,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnMyTradeEvent(MyTrade myTrade)
         {
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(myTrade);
-            }
+            MyTradeEvent?.Invoke(myTrade);
         }
 
         private void ClientOnNewTradesEvent(Trade trade)

@@ -2314,10 +2314,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         }
                     }
 
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(trade);
-                    }
+                    MyTradeEvent?.Invoke(trade);
                 }
                 else if (order.x == "EXPIRED")
                 {
@@ -2982,10 +2979,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     for (int i = 0; i < tradesSpot.Count; i++)
                     {
-                        if (MyTradeEvent != null)
-                        {
-                            MyTradeEvent(tradesSpot[i]);
-                        }
+                        MyTradeEvent?.Invoke(tradesSpot[i]);
                     }
                 }
             }

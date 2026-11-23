@@ -1029,7 +1029,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
 
                             SendLogMessage($"Пришел трейд: {trade.NumberTrade}, orderId: {trade.NumberOrderParent}, Type: {myTransaction.Trans.Type}, Sec: {trade.SecurityNameCode}", LogMessageType.System);
 
-                            MyTradeEvent.Invoke(trade);
+                            MyTradeEvent?.Invoke(trade);
                         }
                     }
                 }
@@ -1871,7 +1871,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                                         trade.SecurityNameCode = _mtApiClient.HistoryDealGetString(dealTicket, ENUM_DEAL_PROPERTY_STRING.DEAL_SYMBOL);
                                         trade.Side = (ENUM_DEAL_TYPE)_mtApiClient.HistoryDealGetInteger(dealTicket, ENUM_DEAL_PROPERTY_INTEGER.DEAL_TYPE) == ENUM_DEAL_TYPE.DEAL_TYPE_BUY ? Side.Buy : Side.Sell;
 
-                                        MyTradeEvent.Invoke(trade);
+                                        MyTradeEvent?.Invoke(trade);
                                     }
                                 }
                             }

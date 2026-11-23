@@ -1874,10 +1874,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         $"Volume: {trade.Volume}, Time: {trade.Time}, Side: {trade.Side}", LogMessageType.System);
                 }
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
@@ -2438,10 +2435,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                                 trade.MicroSeconds = quikTrade.QuikDateTime.mcs;
 
-                                if (MyTradeEvent != null)
-                                {
-                                    MyTradeEvent(trade);
-                                }
+                                MyTradeEvent?.Invoke(trade);
                             }
                         }
                     }

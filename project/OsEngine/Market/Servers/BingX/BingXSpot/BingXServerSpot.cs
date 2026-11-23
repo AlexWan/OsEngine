@@ -1474,7 +1474,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     newTrade.Volume = responseOrder.data.l.ToDecimal();
                 }
 
-                MyTradeEvent(newTrade);
+                MyTradeEvent?.Invoke(newTrade);
             }
             catch (Exception exception)
             {
@@ -2169,7 +2169,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                 newTrade.Volume = itemTrades.qty.ToDecimal();
                             }
 
-                            MyTradeEvent(newTrade);
+                            MyTradeEvent?.Invoke(newTrade);
                         }
                     }
                     else

@@ -1891,7 +1891,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             myTrade.Side = responceMyTrade.data[i].transaction_type == "BUY" ? Side.Buy : Side.Sell;
                             myTrade.Volume = responceMyTrade.data[i].quantity.ToDecimal();
 
-                            MyTradeEvent(myTrade);
+                            MyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else

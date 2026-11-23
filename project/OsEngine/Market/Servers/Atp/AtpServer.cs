@@ -1600,10 +1600,7 @@ namespace OsEngine.Market.Servers.Atp
 
             trade.NumberTrade = mtArr[9];
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
 
             /*
             /////////////////////////////////////////////////////////////////////////

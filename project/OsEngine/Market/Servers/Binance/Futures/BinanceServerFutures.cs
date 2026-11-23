@@ -2579,10 +2579,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 trade.SecurityNameCode = order.s;
                 trade.Side = order.S == "BUY" ? Side.Buy : Side.Sell;
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
 
                 if (order.X == "FILLED"
                     || order.X == "PARTIALLY_FILLED")
@@ -3082,10 +3079,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 for (int i = 0; myTrades != null && i < myTrades.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(myTrades[i]);
-                    }
+                    MyTradeEvent?.Invoke(myTrades[i]);
                 }
             }
             return myOrder.State;

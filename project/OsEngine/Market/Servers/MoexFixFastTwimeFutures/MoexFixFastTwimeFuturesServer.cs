@@ -3029,7 +3029,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
                         WriteLogTradingServerEvent($"Ордер содержит трейд: {trdRep}");
 
-                        MyTradeEvent(trade);
+                        MyTradeEvent?.Invoke(trade);
 
                         if (_ordersForClearing.ContainsKey(executionOrder.NumberUser))
                         {
@@ -3462,7 +3462,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 trade.Time = TransactionTime;
                 trade.Side = order.Side;
 
-                MyTradeEvent(trade);
+                MyTradeEvent?.Invoke(trade);
             }
 
             WriteLogTradingServerEvent(PrintOrderReport(order));

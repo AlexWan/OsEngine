@@ -1287,10 +1287,7 @@ contract =>
                 return;
             }
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
         }
 
         public event Action<Order> MyOrderEvent;

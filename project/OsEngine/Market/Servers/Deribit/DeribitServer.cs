@@ -958,7 +958,7 @@ namespace OsEngine.Market.Servers.Deribit
                 myTrade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
                 myTrade.Volume = item[i].amount.ToDecimal();
 
-                MyTradeEvent(myTrade);
+                MyTradeEvent?.Invoke(myTrade);
             }
         }
 
@@ -1429,10 +1429,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 for (int i = 0; i < tradesByMyOrder.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
+                    MyTradeEvent?.Invoke(tradesByMyOrder[i]);
                 }
             }
 
