@@ -4674,7 +4674,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     for (int i2 = 0; tradesInOrder != null && i2 < tradesInOrder.Count; i2++)
                     {
-                        MyTradeEvent(tradesInOrder[i2]);
+                        MyTradeEvent?.Invoke(tradesInOrder[i2]);
                     }
                 }
 

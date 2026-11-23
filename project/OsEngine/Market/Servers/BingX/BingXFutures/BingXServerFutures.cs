@@ -2092,7 +2092,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 newTrade.Volume = responseOrder.o.z.ToDecimal() - previousVolume;
 
-                MyTradeEvent(newTrade);
+                MyTradeEvent?.Invoke(newTrade);
 
                 _myTrades.Add(newTrade);
 
@@ -2591,10 +2591,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                             newTrade.Side = response.data.fill_orders[i].side.Contains("BUY") ? Side.Buy : Side.Sell;
                             newTrade.Volume = response.data.fill_orders[i].volume.ToDecimal();
 
-                            if (MyTradeEvent != null)
-                            {
-                                MyTradeEvent(newTrade);
-                            }
+                            MyTradeEvent?.Invoke(newTrade);
                         }
                     }
                 }

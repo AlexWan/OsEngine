@@ -2423,10 +2423,7 @@ namespace OsEngine.Market.Servers.Plaza
                                     SendLogMessage($"Пришел трейд. NumberTrade: {trade.NumberTrade}, Sec: {trade.SecurityNameCode}, Price: {trade.Price}, Time: {trade.Time}, Volume: {trade.Volume}, " +
                                         $"Order: {trade.NumberOrderParent}", LogMessageType.System);
 
-                                    if (MyTradeEvent != null)
-                                    {
-                                        MyTradeEvent(trade);
-                                    }
+                                    MyTradeEvent?.Invoke(trade);
                                 }
                                 catch (Exception error)
                                 {

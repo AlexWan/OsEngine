@@ -2184,10 +2184,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 for (int i = 0; i < tradesByMyOrder.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
+                    MyTradeEvent?.Invoke(tradesByMyOrder[i]);
                 }
             }
 

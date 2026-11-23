@@ -2519,10 +2519,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 for (int i = 0; i < tradesByMyOrder.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
+                    MyTradeEvent?.Invoke(tradesByMyOrder[i]);
                 }
             }
 

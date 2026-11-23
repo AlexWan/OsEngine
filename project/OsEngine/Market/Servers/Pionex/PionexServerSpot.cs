@@ -1373,7 +1373,7 @@ namespace OsEngine.Market.Servers.Pionex
                     newTrade.Volume = item.size.ToDecimal();
                 }
 
-                MyTradeEvent(newTrade);
+                MyTradeEvent?.Invoke(newTrade);
             }
             catch (Exception ex)
             {
@@ -1910,7 +1910,7 @@ namespace OsEngine.Market.Servers.Pionex
                                 newTrade.Volume = item.size.ToDecimal();
                             }
 
-                            MyTradeEvent(newTrade);
+                            MyTradeEvent?.Invoke(newTrade);
                         }
                     }
                     else

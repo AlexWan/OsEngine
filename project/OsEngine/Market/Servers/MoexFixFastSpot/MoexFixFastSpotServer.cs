@@ -3490,7 +3490,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             trade.Time = TransactionTime;
                             trade.Side = order.Side;
 
-                            MyTradeEvent(trade);
+                            MyTradeEvent?.Invoke(trade);
                         }                                               
 
                         MyOrderEvent?.Invoke(order);

@@ -439,7 +439,7 @@ namespace OsEngine.Market.Servers.AE
             if (trade.TradeType != TradeType.Regular)
                 return;
 
-            MyTradeEvent!(newTrade);
+            MyTradeEvent?.Invoke(newTrade);
         }
 
 

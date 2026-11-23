@@ -2185,7 +2185,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                                 myTrade.Volume = responseT.size.ToDecimal();
                             }
 
-                            MyTradeEvent(myTrade);
+                            MyTradeEvent?.Invoke(myTrade);
                         }
                     }
                     else

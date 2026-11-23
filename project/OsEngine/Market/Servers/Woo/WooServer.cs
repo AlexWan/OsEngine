@@ -2283,7 +2283,7 @@ namespace OsEngine.Market.Servers.Woo
                         myTrade.Volume = item.esx.ToDecimal();
                     }
 
-                    MyTradeEvent(myTrade);
+                    MyTradeEvent?.Invoke(myTrade);
                 }
             }
             catch (Exception ex)
@@ -2796,7 +2796,7 @@ namespace OsEngine.Market.Servers.Woo
                                 newTrade.Volume = item.executedQuantity.ToDecimal();
                             }
 
-                            MyTradeEvent(newTrade);
+                            MyTradeEvent?.Invoke(newTrade);
                         }
                     }
                     else

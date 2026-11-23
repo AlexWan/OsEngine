@@ -2119,10 +2119,7 @@ namespace OsEngine.Market.Servers.Alor
                 trade.Side = Side.Sell;
             }
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
 
             lock (_spreadOrdersLocker)
             {
@@ -2328,10 +2325,7 @@ namespace OsEngine.Market.Servers.Alor
                 trade.Time = order.TimeCallBack;
                 trade.Side = order.Side;
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
 
                 for (int i = 0; i < _spreadMyTrades.Count; i++)
                 {
@@ -3035,10 +3029,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 for (int i = 0; i < tradesByMyOrder.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
+                    MyTradeEvent?.Invoke(tradesByMyOrder[i]);
                 }
             }
 

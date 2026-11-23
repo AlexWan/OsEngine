@@ -2426,7 +2426,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
                 myTrade.Volume = response.trade[i].trade_volume.ToDecimal() * GetVolume(myTrade.SecurityNameCode);
 
-                MyTradeEvent(myTrade);
+                MyTradeEvent?.Invoke(myTrade);
             }
         }
 
@@ -3238,10 +3238,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 for (int i = 0; i < tradesByMyOrder.Count; i++)
                 {
-                    if (MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
+                    MyTradeEvent?.Invoke(tradesByMyOrder[i]);
                 }
             }
 
