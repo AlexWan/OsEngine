@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace OsEngine.Market.Servers.Bitfinex
@@ -457,31 +458,60 @@ namespace OsEngine.Market.Servers.Bitfinex
                 {
                     List<PositionOnBoard> positions = new List<PositionOnBoard>();
 
-                    List<List<string>> wallets = JsonConvert.DeserializeObject<List<List<string>>>(response.Content);
+                    // BUG-0547: docs/reference/rest-auth-wallets Wallet layout is a 7-element array:
+                    // [5]=LAST_CHANGE (String|Null) + [6]=LAST_CHANGE_METADATA — optional JSON object
+                    // present on rows with a ledger change (live tr320: rows 0 and 2 carry the object,
+                    // TRX row has [5]=Null). Typed List<List<string>> threw JsonReaderException
+                    // (Newtonsoft reports Path '[0][5]' — buffer off-by-one, the object is at [6])
+                    // and the WHOLE REST snapshot was lost on every call. Parse rows as JToken,
+                    // read [0..4] as strings, ignore [5]/[6] regardless of their type.
+                    List<List<JToken>> wallets = JsonConvert.DeserializeObject<List<List<JToken>>>(response.Content);
 
                     for (int i = 0; i < wallets.Count; i++)
                     {
-                        List<string> wallet = wallets[i];
+                        List<JToken> wallet = wallets[i];
 
-                        if (wallet[0].ToString() == "exchange")
+                        // BUG-0547 S-3/G1: Null and Boolean in [0]..[2] corrupt the money path
+                        // (null currency -> ArgumentNullException in the latch, Null balance ->
+                        // phantom position latched at 0 for the session, negative ValueBlocked),
+                        // so such rows are malformed too. [3] is unused; [4]=Null is the
+                        // documented BUG-0534 edge — there only structured tail cells stay skipped.
+                        if (wallet == null
+                            || wallet.Count < 5
+                            || IsMalformedWalletCell(wallet[0])
+                            || IsMalformedWalletCell(wallet[1])
+                            || IsMalformedWalletCell(wallet[2])
+                            || IsStructuredWalletCell(wallet[3])
+                            || IsStructuredWalletCell(wallet[4]))
+                        {
+                            SendLogMessage("CreateQueryPortfolio> malformed wallet row. Index:" + i, LogMessageType.Error);
+                            continue;
+                        }
+
+                        string walletType = WalletCellToString(wallet[0]);
+                        string currency = WalletCellToString(wallet[1]);
+                        string balance = WalletCellToString(wallet[2]);
+                        string available = WalletCellToString(wallet[4]);
+
+                        if (walletType == "exchange")
                         {
                             PositionOnBoard position = new PositionOnBoard();
 
                             position.PortfolioName = "BitfinexSpotPortfolio";
-                            position.SecurityNameCode = wallet[1].ToString();
-                            position.ValueBegin = GetOrLatchPortfolioValueBegin(wallet[1].ToString(), wallet[2].ToString().ToDecimal());
+                            position.SecurityNameCode = currency;
+                            position.ValueBegin = GetOrLatchPortfolioValueBegin(currency, balance.ToDecimal());
 
-                            if (wallet[4] != null)
+                            if (available != null)
                             {
-                                position.ValueCurrent = wallet[4].ToString().ToDecimal();
-                                position.ValueBlocked = wallet[2].ToString().ToDecimal() - wallet[4].ToString().ToDecimal();
+                                position.ValueCurrent = available.ToDecimal();
+                                position.ValueBlocked = balance.ToDecimal() - available.ToDecimal();
                             }
                             else
                             {
                                 // BUG-0534: [4]=BALANCE_AVAILABLE — Float/Null по docs/reference/ws-auth-wallets
                                 // (shared Wallet layout, «available balance is null if the value has not yet
                                 // been calculated»): фолбэк на [2]=BALANCE, та же семантика, что WS 'wu' (fix/bug-0514)
-                                position.ValueCurrent = wallet[2].ToString().ToDecimal();
+                                position.ValueCurrent = balance.ToDecimal();
                                 position.ValueBlocked = 0;
                                 SendLogMessage("CreateQueryPortfolio> Available balance not calculated. Wallet: "
                                     + position.SecurityNameCode + ". Fallback to BALANCE", LogMessageType.System);
@@ -502,6 +532,38 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        private static bool IsStructuredWalletCell(JToken cell)
+        {
+            return cell != null && (cell.Type == JTokenType.Object || cell.Type == JTokenType.Array);
+        }
+
+        private static bool IsMalformedWalletCell(JToken cell)
+        {
+            return cell == null
+                || cell.Type == JTokenType.Null
+                || cell.Type == JTokenType.Boolean
+                || cell.Type == JTokenType.Object
+                || cell.Type == JTokenType.Array;
+        }
+
+        private static string WalletCellToString(JToken cell)
+        {
+            if (cell == null || cell.Type == JTokenType.Null)
+            {
+                return null;
+            }
+
+            // JValue formats Float by current culture; the old raw-text reader was
+            // invariant — keep cells (money values) culture-independent
+            if (cell is JValue value
+                && (value.Type == JTokenType.Integer || value.Type == JTokenType.Float))
+            {
+                return ((IFormattable)value.Value).ToString(null, System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return cell.ToString();
         }
 
         /// <summary>
