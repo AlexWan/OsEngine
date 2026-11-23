@@ -1949,10 +1949,7 @@ namespace OsEngine.Market.Servers.Alor
             }
 
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+                NewTradesEvent?.Invoke(trade);
         }
 
         private void UpDateMarketDepth(string data, string secName)

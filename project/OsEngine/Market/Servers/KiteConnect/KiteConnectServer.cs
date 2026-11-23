@@ -1482,10 +1482,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
             trade.Time = LastTradeTime;
 
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+                NewTradesEvent?.Invoke(trade);
 
             MarketDepth depth = new MarketDepth();
 

@@ -1681,7 +1681,7 @@ namespace OsEngine.Market.Servers.Woo
                     trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                 }
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception ex)
             {

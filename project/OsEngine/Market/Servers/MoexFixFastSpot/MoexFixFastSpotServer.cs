@@ -2600,7 +2600,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 // отправляем все трейды из снэпшота
                                 for (int i = 0; i < tradeSnapshots[name].Trades.Count; i++)
                                 {
-                                    NewTradesEvent(tradeSnapshots[name].Trades[i]);                                    
+                                    NewTradesEvent?.Invoke(tradeSnapshots[name].Trades[i]);                                    
                                 }
                                 lastRptSeqProcessed[name] = tradeSnapshots[name].RptSeq;
                             }
@@ -2703,7 +2703,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                 trade.Side = tradeDef.GetString("OrderSide") == "B" ? Side.Buy : Side.Sell;
                                 trade.Volume = tradeDef.GetString("MDEntrySize").ToDecimal();
 
-                                NewTradesEvent(trade);
+                                NewTradesEvent?.Invoke(trade);
                             }
 
                             lastRptSeqProcessed[name] = RptSeq;
@@ -2725,7 +2725,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             // отправляем все трейды из снэпшота
                             for (int k = 0; k < tradeSnapshots[name].Trades.Count; k++)
                             {
-                                NewTradesEvent(tradeSnapshots[name].Trades[k]);                                
+                                NewTradesEvent?.Invoke(tradeSnapshots[name].Trades[k]);                                
                             }
                             lastRptSeqProcessed[name] = tradeSnapshots[name].RptSeq;
                         }

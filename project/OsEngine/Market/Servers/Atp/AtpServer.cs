@@ -1649,7 +1649,8 @@ namespace OsEngine.Market.Servers.Atp
             newTrade.Price = str[4].ToDecimal();
             newTrade.Volume = str[5].ToDecimal();
 
-            if (NewTradesEvent != null)
+            Action<Trade> handler = NewTradesEvent;
+            if (handler != null)
             {
                 bool isSameTimeInArray = false;
                 bool isInArray = false;
@@ -1677,7 +1678,7 @@ namespace OsEngine.Market.Servers.Atp
 
                 if (isSameTimeInArray == false)
                 {
-                    NewTradesEvent(newTrade);
+                    handler(newTrade);
                 }
             }
 

@@ -1461,10 +1461,7 @@ namespace OsEngine.Market.Servers.Plaza
 
                                     trade.SecurityNameCode = security.Name;
 
-                                    if (NewTradesEvent != null)
-                                    {
-                                        NewTradesEvent(trade);
-                                    }
+                                        NewTradesEvent?.Invoke(trade);
                                 }
                                 catch (Exception error)
                                 {

@@ -1247,7 +1247,7 @@ namespace OsEngine.Market.Servers.Pionex
                 trade.Volume = responseTrade.data[0].size.ToDecimal();
                 trade.Side = responseTrade.data[0].side.Equals("BUY") ? Side.Buy : Side.Sell;
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception ex)
             {

@@ -1166,10 +1166,7 @@ contract =>
                     SendMdFromTrade(trade);
                 }
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                    NewTradesEvent?.Invoke(trade);
             }
             catch (Exception error)
             {
