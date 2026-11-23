@@ -752,6 +752,11 @@ namespace OsEngine.Market.Servers.GateIoData
                     $"For fast loading, set the end time to {currMonthStart.ToShortDateString()}.", LogMessageType.Error);
 
                 allTrades = GetTradesCurrMonth(security, startTime, endTime);
+
+                if (allTrades == null)
+                {
+                    return null;
+                }
             }
             else if (startTime < currMonthStart && endTime > currMonthStart) // FTP + REST
             {
@@ -765,7 +770,12 @@ namespace OsEngine.Market.Servers.GateIoData
                     allTrades.AddRange(trades);
                 }
 
-                allTrades.AddRange(GetTradesCurrMonth(security, currMonthStart, endTime));
+                List<Trade> currMonthTrades = GetTradesCurrMonth(security, currMonthStart, endTime);
+
+                if (currMonthTrades != null) // пустой/ошибочный REST не роняет архивную часть, стиль guard'а выше (BUG-0541)
+                {
+                    allTrades.AddRange(currMonthTrades);
+                }
             }
             else if (startTime < currMonthStart && endTime < currMonthStart) // закачиваем месячный архив
             {
@@ -1013,6 +1023,14 @@ namespace OsEngine.Market.Servers.GateIoData
                 return null;
             }
 
+            if (trades.Count == 0)
+            {
+                // HTTP 200 с пустым списком — штатный ответ на валидный запрос без данных: тот же контракт «нет данных = null», что у ошибки REST (BUG-0541)
+                SendLogMessage($"Trades no-data: server returned an empty trades list for {security.Name}. Returning null", LogMessageType.Error);
+
+                return null;
+            }
+
             List<Trade> allTrades = new List<Trade>(100000);
 
             allTrades.AddRange(trades);
@@ -1026,6 +1044,12 @@ namespace OsEngine.Market.Servers.GateIoData
                 int ts = TimeManager.GetTimeStampSecondsToDateTime(firstRange.Time);
 
                 trades = GetTickDataFrom(security, ts);
+
+                // Ошибка mid-loop запроса роняет весь ответ в null, иначе ниже читается Count на null и молчаливый частичный набор (BUG-0541)
+                if (trades == null)
+                {
+                    return null;
+                }
 
                 if (trades.Count == 0)
                 {
