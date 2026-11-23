@@ -4239,8 +4239,9 @@ namespace OsEngine.Market.Servers
                 ord.Order = order;
                 ord.OrderSendType = OrderSendType.Cancel;
 
-                // cancel fields belong to the real send: suppressed calls (mute branch below)
-                // must not inflate CancellingTryCount nor extend the stuck-cancel window (bug-0178, #105)
+                // fields move only on a real send: suppressed calls (mute branch above) must not
+                // inflate CancellingTryCount. No periodic re-send behind the grid gate: past the
+                // 60s window ShouldSkipCancellingOrder skips permanently (BUG-0630)
                 order.IsSendToCancel = true;
                 order.CancellingTryCount++;
                 order.LastCancelTryLocalTime = DateTime.Now;
@@ -4263,10 +4264,10 @@ namespace OsEngine.Market.Servers
         /// Clearing _canceledOrders resets the NumberOfCalls suppression at this layer,
         /// so an already-cancelled order can be sent once more. Re-sending through the
         /// grid stays bounded by the stuck-cancel gate (TradeGrid.ShouldSkipCancellingOrder):
-        /// CancelOrder re-arms IsSendToCancel and LastCancelTryLocalTime on real sends only
-        /// (bug-0178, #105), so suppressed calls no longer extend the window. IsSendToCancel
-        /// itself stays set until re-armed (follow-up BUG-0630). Terminal orders are not
-        /// cancelled anymore anyway, the grid does not see them
+        /// CancelOrder sets LastCancelTryLocalTime on real sends only (bug-0178, #105) and
+        /// past the 60s window the grid does not re-send periodically — the stuck branch skips
+        /// permanently until IsSendToCancel is cleared (follow-up BUG-0630). Terminal orders are
+        /// not cancelled anymore anyway, the grid does not see them
         /// (bug-0176, #99)
         /// </summary>
         private void ResetCancelSuppressionAfterReconnect()

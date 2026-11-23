@@ -1969,8 +1969,8 @@ namespace OsEngine.OsTrader.Grids
         // каждый цикл Process — шторм отмен (живьём tr278: до 90 вызовов на ордер, с 5-го
         // молчаливый MUTED на стороне AServer), CloseForced не завершался.
         // LastCancelTryLocalTime выставляет AServer.CancelOrder только на реальной отправке
-        // (bug-0178 #105); подавленные счётчиком NumberOfCalls вызовы окно не продлевают;
-        // больше его никто не обновляет
+        // (bug-0178 #105); подавленные счётчиком NumberOfCalls вызовы его не двигают. За окном
+        // 60 с — залипшая ветка: постоянный skip + один Error, периодических ре-отправок нет
         private const int StuckCancelTimeoutSeconds = 60;
 
         // NumberUser «залипших в отмене» ордеров, за которыми Error уже выдан (см. ShouldSkipCancellingOrder).
