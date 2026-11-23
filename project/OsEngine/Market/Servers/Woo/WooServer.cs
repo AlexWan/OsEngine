@@ -1048,7 +1048,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("BitMartSpot WebSocket Public connection open", LogMessageType.System);
+                    SendLogMessage("Woo WebSocket Public connection open", LogMessageType.System);
                     CheckSocketsActivate();
                 }
             }
@@ -1154,7 +1154,7 @@ namespace OsEngine.Market.Servers.Woo
                 }
 
                 CheckSocketsActivate();
-                SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
+                SendLogMessage("Woo WebSocket Private connection open", LogMessageType.System);
 
                 webSocketPrivate.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
             }
