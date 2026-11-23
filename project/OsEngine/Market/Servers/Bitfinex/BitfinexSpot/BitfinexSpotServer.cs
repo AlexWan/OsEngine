@@ -2581,21 +2581,18 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 decimal volume = Convert.ToDecimal(tradeData[2]);
 
-                if (volume < 0)
-                {
-                    volume = Math.Abs(volume);
-                }
-
-                newTrade.Volume = volume;
-                newTrade.Side = volume > 0 ? Side.Buy : Side.Sell;
+                // BUG-0500: сторона по знаку сырого AMOUNT (Bitfinex WS v2: AMOUNT<0 = продан).
+                // Ранее Math.Abs стирал знак до ветки Side, и все тейды становились Buy.
+                newTrade.Side = volume < 0 ? Side.Sell : Side.Buy;
+                newTrade.Volume = Math.Abs(volume);
                 newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(tradeData[1]));
 
                 // BUG-0498: пыльные трейды (<1e-4) раньше терялись в нуль; строка подтверждает
                 // работу парсинга на живом потоке
-                if (volume > 0 && volume < 0.0001m)
+                if (newTrade.Volume > 0 && newTrade.Volume < 0.0001m)
                 {
                     SendLogMessage("UpdateTrade> Dust Trade Parsed. Sec: " + newTrade.SecurityNameCode
-                        + " Volume: " + volume, LogMessageType.System);
+                        + " Volume: " + newTrade.Volume, LogMessageType.System);
                 }
 
                 NewTradesEvent?.Invoke(newTrade);
