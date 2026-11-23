@@ -1343,7 +1343,11 @@ namespace OsEngine.OsTrader.Grids
 
                 Order order = lines[i].Position.CloseOrders[^1];
 
+                // wrong-close cycle bypassed the #2274 gate: with the п.1 frozen stamp (:1347 +5s)
+                // it re-sent into the AServer mute every cycle and starved TrySetClosingProfitOrders
+                // via the vacation return at :1316 (bug-0178, #105, REWORK path A)
                 if (CanCancel(order)
+                    && !ShouldSkipCancellingOrder(order)
                     && order.LastCancelTryLocalTime.AddSeconds(5) < DateTime.Now)
                 {
                     if (order.Price != line.Position.ProfitOrderPrice
