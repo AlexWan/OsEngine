@@ -78,6 +78,9 @@ namespace OsEngine.Market.Servers.MFD
 
         private string _connectResult;
 
+        // shared tmpData.txt is one file for all MfdWeb configurations in the process: AServer._loadDataLocker is per-instance, so the locker is static
+        private static readonly object _tmpDataLocker = new object();
+
         public ServerConnectStatus ServerStatus { get; set; }
 
         public List<IServerParameter> ServerParameters { get; set; }
@@ -600,68 +603,72 @@ namespace OsEngine.Market.Servers.MFD
         }
 
         private string GetFileRequest(string url)
-        {
-            string fileName = @"Data\Temp\MfdTempFiles\tmpData" + ".txt";
-
-            try
+        {            // Общий tmpData.txt: сериализация всех конфигураций MFD в процессе. AServer._loadDataLocker — на экземпляр и межэкземплярно не действует.
+            // shortcut: скоуп — один процесс; межпроцессный доступ к Temp не поддерживался и ранее. Лок держится через HTTP-вызов: подвешенный сервер тормозит все Mfd-конфигурации процесса — осознанный размен «тихая порча данных → ожидание».
+            lock (_tmpDataLocker)
             {
-                if (!Directory.Exists(@"Data\Temp\MfdTempFiles\"))
+                string fileName = @"Data\Temp\MfdTempFiles\tmpData" + ".txt";
+
+                try
                 {
-                    Directory.CreateDirectory(@"Data\Temp\MfdTempFiles\");
-                }
-
-                if (File.Exists(fileName))
-                {
-                    File.Delete(fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                // tmp-путь залочен/недоступен (AV, backup, чужой handle) — не выпускать IOException в AServer; старый tmpData не читать как свежий
-                SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
-                return null;
-            }
-
-            RestRequest request = new RestRequest(Method.GET);
-            RestClient client = new RestClient(url);
-
-            try
-            {
-                IRestResponse response = client.Execute(request);
-
-                if (response.StatusCode == HttpStatusCode.OK && response.RawBytes != null && response.RawBytes.Length > 0)
-                {
-                    using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                    if (!Directory.Exists(@"Data\Temp\MfdTempFiles\"))
                     {
-                        fileStream.Write(response.RawBytes, 0, response.RawBytes.Length);
+                        Directory.CreateDirectory(@"Data\Temp\MfdTempFiles\");
+                    }
+
+                    if (File.Exists(fileName))
+                    {
+                        File.Delete(fileName);
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    SendLogMessage($"File downloading error: {response.ErrorMessage}, Status: {response.StatusCode}", LogMessageType.Error);
+                    // tmp-путь залочен/недоступен (AV, backup, чужой handle) — не выпускать IOException в AServer; старый tmpData не читать как свежий
+                    SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
+                    return null;
                 }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
-            }
 
-            if (!File.Exists(fileName))
-            { // file is not uploaded / файл не загружен
-                return null;
-            }
+                RestRequest request = new RestRequest(Method.GET);
+                RestClient client = new RestClient(url);
 
-            StringBuilder builder = new StringBuilder();
-
-            using (StreamReader reader = new StreamReader(fileName))
-            {
-                while (!reader.EndOfStream)
+                try
                 {
-                    builder.Append(reader.ReadLine() + "\n");
-                }
-            }
+                    IRestResponse response = client.Execute(request);
 
-            return builder.ToString();
+                    if (response.StatusCode == HttpStatusCode.OK && response.RawBytes != null && response.RawBytes.Length > 0)
+                    {
+                        using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None))
+                        {
+                            fileStream.Write(response.RawBytes, 0, response.RawBytes.Length);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"File downloading error: {response.ErrorMessage}, Status: {response.StatusCode}", LogMessageType.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"File downloading error.\n{ex.Message}", LogMessageType.Error);
+                }
+
+                if (!File.Exists(fileName))
+                { // file is not uploaded / файл не загружен
+                    return null;
+                }
+
+                StringBuilder builder = new StringBuilder();
+
+                using (StreamReader reader = new StreamReader(fileName))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        builder.Append(reader.ReadLine() + "\n");
+                    }
+                }
+
+                return builder.ToString();
+            }
         }
 
         #endregion
