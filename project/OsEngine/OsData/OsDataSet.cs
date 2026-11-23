@@ -2024,6 +2024,15 @@ namespace OsEngine.OsData
                 return;
             }
 
+            // The first candle of the response is checked; a connector returning candles from before
+            // the window start is out of contract and this signal does not cover it.
+            if (candles[0].TimeStart > pie.Start.Add(timeFrameBuilder.TimeFrameTimeSpan))
+            {
+                SendNewLogMessage("Candles partial. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
+                    " , start: " + pie.Start.ToString() + " , first candle: " + candles[0].TimeStart.ToString() +
+                    " , end: " + pie.End.ToString(), LogMessageType.System);
+            }
+
             SendNewLogMessage("Candles Load Successfully. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
             pie.Status = DataPieStatus.Load;
