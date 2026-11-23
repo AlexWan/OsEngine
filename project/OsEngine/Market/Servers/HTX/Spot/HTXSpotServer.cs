@@ -610,17 +610,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return null;
             }
 
-            int countNeedToLoad = GetCountCandlesToLoad();
+            string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
-            List<Candle> allCandles = new List<Candle>();
+            // Эндпоинт /market/history/kline не принимает start/end и отдаёт только последние N свечей от now,
+            // поэтому count считается от DateTime.UtcNow до startTime (покрытие окна), а не от его длины.
+            int countNeedToLoad = (int)Math.Ceiling((DateTime.UtcNow - startTime).TotalMinutes / tfTotalMinutes);
 
             if (countNeedToLoad > _limitCandles)
             {
                 countNeedToLoad = _limitCandles;
-                SendLogMessage("Maximum interval is 2000 candles from today!", LogMessageType.Error);
             }
 
-            string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+            if (countNeedToLoad < 1)
+            {
+                countNeedToLoad = 1;
+            }
 
             List<Candle> candles = RequestCandleHistory(security.Name, interval, countNeedToLoad);
 
@@ -629,60 +633,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return null;
             }
 
-            if (allCandles.Count > 0
-                && allCandles[allCandles.Count - 1].TimeStart == candles[0].TimeStart)
-            {
-                candles.RemoveAt(0);
-            }
+            // Ответ может выходить за запрошенное окно (данные только "последние N от now"), срезаем по окну.
+            List<Candle> candlesInWindow = candles.Where(c => c.TimeStart >= startTime && c.TimeStart <= endTime).ToList();
 
-            if (candles.Count == 0)
+            if (candlesInWindow.Count == 0)
             {
                 return null;
             }
 
-            Candle last = candles[candles.Count - 1];
-
-            if (last.TimeStart >= endTime)
-
-            {
-                for (int i = 0; i < candles.Count; i++)
-                {
-                    if (candles[i].TimeStart <= endTime)
-                    {
-                        allCandles.Add(candles[i]);
-                    }
-                }
-            }
-
-            allCandles.AddRange(candles);
-
-            if (allCandles != null && allCandles.Count > 0)
-            {
-                for (int i = 1; i < allCandles.Count; i++)
-                {
-                    if (allCandles[i - 1].TimeStart == allCandles[i].TimeStart)
-                    {
-                        allCandles.RemoveAt(i);
-                        i--;
-                    }
-                }
-            }
-
-            return allCandles;
-        }
-
-        private int GetCountCandlesToLoad()
-        {
-            for (int i = 0; i < ServerParameters.Count; i++)
-            {
-                if (ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
-                {
-                    ServerParameterInt Param = (ServerParameterInt)ServerParameters[i];
-                    return Param.Value;
-                }
-            }
-
-            return 300;
+            return candlesInWindow;
         }
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
