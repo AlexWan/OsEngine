@@ -918,9 +918,11 @@ namespace OsEngine.Market.Servers.Woo
         {
             lock (_socketActivateLocker)
             {
+                // bug-0628: поле читаем один раз — teardown может обнулить его между двумя чтениями
+                WebSocket webSocketPrivate = _webSocketPrivate;
 
-                if (_webSocketPrivate == null
-                    || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                if (webSocketPrivate == null
+                    || webSocketPrivate.ReadyState != WebSocketState.Open)
                 {
                     Disconnect();
                     return;
@@ -1140,10 +1142,21 @@ namespace OsEngine.Market.Servers.Woo
         {
             try
             {
+                WebSocket webSocketPrivate = arg1 as WebSocket;
+
+                // OnOpen диспетчится на потоке-продолжении connect; за рукопожатие сервер могли
+                // остановить (DeleteWebSocketConnection) или переподключить. Работаем только с текущим сокетом.
+                if (webSocketPrivate == null
+                    || !ReferenceEquals(webSocketPrivate, _webSocketPrivate)
+                    || webSocketPrivate.ReadyState != WebSocketState.Open)
+                {
+                    return;
+                }
+
                 CheckSocketsActivate();
                 SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
 
-                _webSocketPrivate.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
+                webSocketPrivate.SendAsync($"{{\"id\": 1, \"cmd\": \"SUBSCRIBE\", \"params\": [\"account\",\"balance\", \"position\", \"executionreport\"]}}");
             }
             catch (Exception error)
             {
