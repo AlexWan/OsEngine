@@ -238,19 +238,13 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     _isConnected = true;
 
-                    if (ConnectedEvent != null)
-                    {
-                        ConnectedEvent();
-                    }
+                        ConnectedEvent?.Invoke();
                     _procNum = result;
                 }
                 else
                 {
                     _isConnected = false;
-                    if (DisconnectedEvent != null)
-                    {
-                        DisconnectedEvent(stringBuilder.ToString());
-                    }
+                        DisconnectedEvent?.Invoke(stringBuilder.ToString());
                     SendErrorFromAsts(result);
                 }
             }
@@ -275,10 +269,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 _isConnected = false;
                 _procNum = -1;
 
-                if (DisconnectedEvent != null)
-                {
-                    DisconnectedEvent("Пользователь запросил отключение от Asts");
-                }
+                    DisconnectedEvent?.Invoke("Пользователь запросил отключение от Asts");
 
                 if (result < 0)
                 {
@@ -1236,10 +1227,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                        // string resEx = GetString(ptr, out ptr, 0, out integer);
                         SendLogMessage(builder.ToString(),LogMessageType.Error);
                         SendErrorFromAsts(result);
-                        if (OrderFailedEvent != null)
-                        {
-                            OrderFailedEvent("ошибка на выставлении заявки", myOrder.NumberUser);
-                        }
+                            OrderFailedEvent?.Invoke("ошибка на выставлении заявки", myOrder.NumberUser);
                     }
                 }
             }
@@ -1275,10 +1263,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                     if (result != 0)
                     {
-                        if (OrderFailedEvent != null)
-                        {
-                            OrderFailedEvent("ошибка на отзыве заявки", myOrder.NumberUser);
-                        }
+                            OrderFailedEvent?.Invoke("ошибка на отзыве заявки", myOrder.NumberUser);
 
                         SendErrorFromAsts(result);
                     }
@@ -1609,10 +1594,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tableTrade_TradeUpdateEvent(List<Trade> trades)
         {
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trades);
-            }
+                NewTradesEvent?.Invoke(trades);
         }
 
         /// <summary>
@@ -1621,10 +1603,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tablePortfolios_PortfolioUpdateEvent(Portfolio portfolio)
         {
-            if (PortfolioUpdateEvent != null)
-            {
-                PortfolioUpdateEvent(portfolio);
-            }
+                PortfolioUpdateEvent?.Invoke(portfolio);
         }
 
         /// <summary>
@@ -1633,10 +1612,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tableSecurity_SecurityMoexUpdateEvent(SecurityLevelOneAsts securityMoex)
         {
-            if (SecurityMoexUpdateEvent != null)
-            {
-                SecurityMoexUpdateEvent(securityMoex);
-            }
+                SecurityMoexUpdateEvent?.Invoke(securityMoex);
         }
 
         /// <summary>
@@ -1645,10 +1621,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tableSecurity_SecurityUpdateEvent(Security security)
         {
-            if (NewSecurityEvent != null)
-            {
-                NewSecurityEvent(security);
-            }
+                NewSecurityEvent?.Invoke(security);
         }
 
         /// <summary>
@@ -1657,10 +1630,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tableOrder_OrderUpdateEvent(Order order)
         {
-            if (OrderUpdateEvent != null)
-            {
-                OrderUpdateEvent(order);
-            }
+                OrderUpdateEvent?.Invoke(order);
         }
 
         /// <summary>
@@ -1669,10 +1639,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _tableMyTrade_MyTradeUpdateEvent(MyTrade myTrade)
         {
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(myTrade);
-            }
+                NewMyTradeEvent?.Invoke(myTrade);
         }
 
         /// <summary>
@@ -1681,10 +1648,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         void _marketDepthTable_MarketDepthEvent(MarketDepth marketDepth)
         {
-            if (MarketDepthUpdateEvent != null)
-            {
-                MarketDepthUpdateEvent(marketDepth);
-            }
+                MarketDepthUpdateEvent?.Invoke(marketDepth);
         }
 
         /// <summary>
@@ -2609,10 +2573,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     order.State = OrderStateType.Fail;
                 }
 
-                if (OrderUpdateEvent != null)
-                {
-                    OrderUpdateEvent(order);
-                }
+                    OrderUpdateEvent?.Invoke(order);
 
             }
         }
@@ -2700,10 +2661,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     trade.Side = Side.Buy;
                 }
 
-                if (MyTradeUpdateEvent != null)
-                {
-                    MyTradeUpdateEvent(trade);
-                }
+                    MyTradeUpdateEvent?.Invoke(trade);
 
             }
         }
@@ -2787,10 +2745,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 newTrades.Add(trade);
             }
 
-            if (TradeUpdateEvent != null)
-            {
-                TradeUpdateEvent(newTrades);
-            }
+                TradeUpdateEvent?.Invoke(newTrades);
         }
 
         /// <summary>
@@ -2910,10 +2865,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 {
                     continue;
                 }
-                if (PortfolioUpdateEvent != null)
-                {
-                    PortfolioUpdateEvent(myPortfolio);
-                }
+                    PortfolioUpdateEvent?.Invoke(myPortfolio);
 
                 if (_codePortfolio == null)
                 {
@@ -3011,10 +2963,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     {
                         myPortfolio[i2].ValueCurrent = currentValue;
                     }
-                    if (PortfolioUpdateEvent != null)
-                    {
-                        PortfolioUpdateEvent(myPortfolio[i2]);
-                    }
+                        PortfolioUpdateEvent?.Invoke(myPortfolio[i2]);
                 }
 
 
@@ -3086,10 +3035,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                 position.ValueCurrent = (valCred + valDebt)/mySecurity.Lot;
                 portfolio.SetNewPosition(position);
-                if (PortfolioUpdateEvent != null)
-                {
-                    PortfolioUpdateEvent(portfolio);
-                }
+                    PortfolioUpdateEvent?.Invoke(portfolio);
             }
         }
 
@@ -3211,10 +3157,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         mySecurity.PriceStepCost = step;
                     }
 
-                    if (SecurityUpdateEvent != null)
-                    {
-                        SecurityUpdateEvent(mySecurity);
-                    }
+                        SecurityUpdateEvent?.Invoke(mySecurity);
 
                     string board = table.Rows[i].GetAsString("SECBOARD");
                     string code = table.Rows[i].GetAsString("SECCODE");
@@ -3333,10 +3276,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     mySecurityMoex.Numtrades = numtrades;
                 }
 
-                if (SecurityMoexUpdateEvent != null)
-                {
-                    SecurityMoexUpdateEvent(mySecurityMoex);
-                }
+                    SecurityMoexUpdateEvent?.Invoke(mySecurityMoex);
             }
         }
 
@@ -3599,10 +3539,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             for (int i = 0; i < MarketDepths.Count; i++)
             {
-                if (MarketDepthEvent != null)
-                {
-                    MarketDepthEvent(MarketDepths[i]);
-                }
+                    MarketDepthEvent?.Invoke(MarketDepths[i]);
             }
         }
 

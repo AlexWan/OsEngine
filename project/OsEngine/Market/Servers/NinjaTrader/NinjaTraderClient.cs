@@ -249,19 +249,13 @@ namespace OsEngine.Market.Servers.NinjaTrader
             if (tag == "Connect")
             {
                 IsConnected = true;
-                if (Connected != null)
-                {
-                    Connected();
-                }
+                    Connected?.Invoke();
             }
             else if (tag == "Disconnect")
             {
                 IsConnected = false;
 
-                if (Disconnected != null)
-                {
-                    Disconnected();
-                }
+                    Disconnected?.Invoke();
             }
             else if (tag == "securities")
             {
@@ -331,10 +325,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 errorOrder.State = OrderStateType.Fail;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(errorOrder);
-                }
+                    MyOrderEvent?.Invoke(errorOrder);
             }
             else
             {
@@ -357,10 +348,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 errorOrder.State = OrderStateType.Fail;
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(errorOrder);
-                }
+                    MyOrderEvent?.Invoke(errorOrder);
 
                 SendLogMessage("Order # " + errorOrder.NumberUser + " dont execute. Error: " + message, LogMessageType.Error);
             }
@@ -372,10 +360,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 order.State = OrderStateType.Active;
                 order.TimeCallBack = Convert.ToDateTime(str[4], CultureInfo.InvariantCulture);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                    MyOrderEvent?.Invoke(order);
 
             }
 
@@ -517,10 +502,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     return;
                 }
 
-                if (UpdateMarketDepth != null)
-                {
-                    UpdateMarketDepth(myDepth.GetCopy());
-                }
+                    UpdateMarketDepth?.Invoke(myDepth.GetCopy());
             }
         }
 
@@ -612,10 +594,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                     myPortfolio.ValueCurrent = newPos.ValueCurrent;
                 }
 
-                if (UpdatePortfolio != null)
-                {
-                    UpdatePortfolio(_portfolios);
-                }
+                    UpdatePortfolio?.Invoke(_portfolios);
             }
         }
         
@@ -657,10 +636,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
                 myPortfolio.SetNewPosition(newPos);
 
-                if (UpdatePortfolio != null)
-                {
-                    UpdatePortfolio(_portfolios);
-                }
+                    UpdatePortfolio?.Invoke(_portfolios);
             }
         }
         
@@ -703,10 +679,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 Enum.TryParse(trdStr[5], out newMyTrade.Side);
                 newMyTrade.Time= Convert.ToDateTime(trdStr[6], CultureInfo.InvariantCulture);
 
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(newMyTrade);
-                }
+                    MyTradeEvent?.Invoke(newMyTrade);
             }
         }
 
@@ -790,10 +763,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 newOrder.State = state;
                 newOrder.TimeCallBack = Convert.ToDateTime(ordStr[9], CultureInfo.InvariantCulture);
 
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(newOrder);
-                }
+                    MyOrderEvent?.Invoke(newOrder);
             }
         }
 
@@ -866,10 +836,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 securities.Add(newSecurity);
             }
 
-            if (UpdateSecuritiesEvent != null)
-            {
-                UpdateSecuritiesEvent(securities);
-            }
+                UpdateSecuritiesEvent?.Invoke(securities);
         }
 
         /// <summary>
@@ -908,10 +875,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 }
             }
 
-            if (UpdatePortfolio != null)
-            {
-                UpdatePortfolio(_portfolios);
-            }
+                UpdatePortfolio?.Invoke(_portfolios);
         }
 
         /// <summary>
@@ -949,10 +913,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                         tradeInArray[2].ToDecimal();
                 newTrade.Time = Convert.ToDateTime(tradeInArray[3], CultureInfo.InvariantCulture);
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(newTrade);
-                }
+                    NewTradesEvent?.Invoke(newTrade);
             }
         }
 
