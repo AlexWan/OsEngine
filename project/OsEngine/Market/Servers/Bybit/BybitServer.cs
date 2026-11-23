@@ -2576,10 +2576,7 @@ namespace OsEngine.Market.Servers.Bybit
                     // auth и подписки order/execution уйдут из Opened-хука нового сокета автоматически
                     SendLogMessage("Bybit private WebSocket reconnected seamlessly", LogMessageType.System);
 
-                    if (ForceCheckOrdersAfterReconnectEvent != null)
-                    {
-                        ForceCheckOrdersAfterReconnectEvent();
-                    }
+                    ForceCheckOrdersAfterReconnectEvent?.Invoke();
 
                     return true;
                 }

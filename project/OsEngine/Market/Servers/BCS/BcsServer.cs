@@ -568,10 +568,7 @@ namespace OsEngine.Market.Servers.BCS
                     }
                 }
 
-                if (ForceCheckOrdersAfterReconnectEvent != null)
-                {
-                    ForceCheckOrdersAfterReconnectEvent();
-                }
+                ForceCheckOrdersAfterReconnectEvent?.Invoke();
 
                 SendLogMessage($"BCS orders aligned after reconnect: {activeOrders.Count} active, recent final checked.", LogMessageType.System);
             }
