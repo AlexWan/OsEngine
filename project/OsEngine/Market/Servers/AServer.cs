@@ -1387,6 +1387,11 @@ namespace OsEngine.Market.Servers
                             ServerRealization.Connect(null);
                         }
 
+                        // bug-0176 (#99): отмены, отправленные до обрыва, более не действительны.
+                        // Без сброса подавления NumberOfCalls молчаливый MUTED навсегда запрещает
+                        // переотправлять отмену по ордерам, оставшимся Active после реконнекта
+                        ResetCancelSuppressionAfterReconnect();
+
                         LastStartServerTime = DateTime.Now;
 
                         if (NeedToReconnectEvent != null)
@@ -4243,6 +4248,30 @@ namespace OsEngine.Market.Servers
         }
 
         List<OrderCounter> _canceledOrders = new List<OrderCounter>();
+
+        /// <summary>
+        /// Reconnect: cancels sent before the disconnect may have been lost.
+        /// Clearing _canceledOrders resets the NumberOfCalls suppression at this layer,
+        /// so an already-cancelled order can be sent once more. Re-sending through the
+        /// grid stays bounded by the stuck-cancel gate (TradeGrid.ShouldSkipCancellingOrder)
+        /// until IsSendToCancel is re-armed (follow-up BUG-0630). Terminal orders are not
+        /// cancelled anymore anyway, the grid does not see them
+        /// (bug-0176, #99)
+        /// </summary>
+        private void ResetCancelSuppressionAfterReconnect()
+        {
+            try
+            {
+                lock (_cancelOrdersLocker)
+                {
+                    _canceledOrders.Clear();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
 
         private string _cancelOrdersLocker = "_cancelOrdersLocker";
 
