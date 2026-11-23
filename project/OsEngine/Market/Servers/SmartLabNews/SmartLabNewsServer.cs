@@ -256,7 +256,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
 
                     for (int i = _newsList.Count - 1; _additionsSum > 0; i--)
                     {
-                        NewsEvent(_newsList[i]);
+                        NewsEvent?.Invoke(_newsList[i]);
                         _additionsSum--;
                     }
 

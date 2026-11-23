@@ -214,10 +214,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _connector_NewsEvent(News news)
         {
-            if (NewsEvent != null)
-            {
-                NewsEvent(news);
-            }
+            NewsEvent?.Invoke(news);
         }
 
         /// <summary>

@@ -618,10 +618,7 @@ namespace OsEngine.Market.Connectors
                 }
             }
 
-            if(NewsEvent != null)
-            {
-                NewsEvent(news);
-            }
+            NewsEvent?.Invoke(news);
         }
 
         public List<News> NewsArray = new List<News>();
