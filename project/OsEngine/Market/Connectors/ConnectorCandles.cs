@@ -1621,9 +1621,10 @@ namespace OsEngine.Market.Connectors
 
                 _lastTimeFromServer = time;
 
-                if (TimeChangeEvent != null && EventsIsOn == true)
+                Action<DateTime> handler = TimeChangeEvent;
+                if (handler != null && EventsIsOn == true)
                 {
-                    TimeChangeEvent(time);
+                    handler(time);
                 }
                 if (EmulatorIsOn == true)
                 {
