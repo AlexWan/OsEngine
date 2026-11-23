@@ -176,7 +176,7 @@ namespace OsEngine.Market.Servers.TwelveData
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1317,7 +1317,7 @@ namespace OsEngine.Market.Servers.TwelveData
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

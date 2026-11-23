@@ -1353,7 +1353,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1452,7 +1452,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

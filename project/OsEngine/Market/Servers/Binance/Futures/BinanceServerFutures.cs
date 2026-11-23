@@ -140,7 +140,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                         return;
                     }
                 }
@@ -1727,7 +1727,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

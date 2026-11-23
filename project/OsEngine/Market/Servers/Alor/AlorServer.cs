@@ -138,7 +138,7 @@ namespace OsEngine.Market.Servers.Alor
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
                 }
@@ -195,7 +195,7 @@ namespace OsEngine.Market.Servers.Alor
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1354,7 +1354,7 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         SendLogMessage("All sockets activated. Connect State", LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        ConnectEvent?.Invoke();
                     }
                 }
             }
@@ -1507,7 +1507,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -1603,7 +1603,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

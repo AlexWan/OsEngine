@@ -88,7 +88,7 @@ namespace OsEngine.Market.Servers.Polygon
                 SendLogMessage($"Connect: Error connect - {exception.Message}", LogMessageType.Error);
 
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
 
                 return;
             }                        
@@ -153,7 +153,7 @@ namespace OsEngine.Market.Servers.Polygon
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

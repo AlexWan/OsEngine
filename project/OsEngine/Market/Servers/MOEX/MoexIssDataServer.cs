@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.MOEX
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

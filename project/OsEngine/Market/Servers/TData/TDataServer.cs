@@ -142,7 +142,7 @@ namespace OsEngine.Market.Servers.TData
                 if (TryGetTradesArchivesDates())
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
                 else
                 {
@@ -202,7 +202,7 @@ namespace OsEngine.Market.Servers.TData
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

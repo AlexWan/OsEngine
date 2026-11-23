@@ -63,7 +63,7 @@ namespace OsEngine.Market.Servers.Finam
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             else
             {
@@ -88,7 +88,7 @@ namespace OsEngine.Market.Servers.Finam
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

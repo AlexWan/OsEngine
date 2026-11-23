@@ -181,7 +181,7 @@ namespace OsEngine.Market.Servers.MetaTrader5
                     SendLogMessage("Disconnected.", LogMessageType.System);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)

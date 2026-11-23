@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.YahooFinance
                 SendLogMessage($"Error connect: {exception.Message}", LogMessageType.Error);
 
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
 
                 return;
             }                        
@@ -80,7 +80,7 @@ namespace OsEngine.Market.Servers.YahooFinance
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

@@ -52,7 +52,7 @@ namespace OsEngine.Market.Servers.OKXData
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             else
             {
@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.OKXData
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

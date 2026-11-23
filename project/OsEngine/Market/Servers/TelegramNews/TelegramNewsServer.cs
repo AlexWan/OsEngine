@@ -444,7 +444,7 @@ namespace OsEngine.Market.Servers.TelegramNews
             _client.OnOther += Client_OnOther;
 
             ServerStatus = ServerConnectStatus.Connect;
-            ConnectEvent();
+            ConnectEvent?.Invoke();
 
             // чаты и менеджер поднимаем в фоне: движок уже работает, а новости пойдут с именами каналов
             Thread initThread = new Thread(ChatsAndUpdatesInitWorker);
@@ -553,7 +553,7 @@ namespace OsEngine.Market.Servers.TelegramNews
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
 
             }
@@ -593,7 +593,7 @@ namespace OsEngine.Market.Servers.TelegramNews
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

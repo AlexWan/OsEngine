@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
                 if (_availableDates.Count > 0)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

@@ -47,7 +47,7 @@ namespace OsEngine.Market.Servers.MFD
             if (!string.IsNullOrEmpty(_connectResult))
             {
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             else
             {
@@ -60,7 +60,7 @@ namespace OsEngine.Market.Servers.MFD
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 

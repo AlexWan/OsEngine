@@ -171,7 +171,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                             return;
                         }
                     }
@@ -187,14 +187,14 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                                 return;
                             }
                         }
                     }
 
                     ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
                 else
                 {
@@ -202,7 +202,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -214,7 +214,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -231,7 +231,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -549,7 +549,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
 
@@ -583,7 +583,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 {
                                     SendLogMessage("FIX Trade server connection lost. No response for too long", LogMessageType.Error);
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
                             else
@@ -724,7 +724,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -1036,7 +1036,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
 
                 }
@@ -1048,7 +1048,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -1085,7 +1085,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             else
@@ -1094,7 +1094,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -1117,7 +1117,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             _msgSeqNum++;
@@ -1288,7 +1288,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -1493,7 +1493,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
 
                 }
@@ -1537,7 +1537,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 
@@ -1573,7 +1573,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -1794,7 +1794,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
 
@@ -1828,7 +1828,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -2173,7 +2173,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                     }
 
                                     // отправили первый стакан
-                                    MarketDepthEvent(marketDepth);
+                                    MarketDepthEvent?.Invoke(marketDepth);
 
                                     WriteLogOrders($"Первый стакан по инструменту {_secNameById[nameID]} отправлен.");
 
@@ -2195,7 +2195,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             else
                             {
                                 // отправили первый стакан
-                                MarketDepthEvent(marketDepth);
+                                MarketDepthEvent?.Invoke(marketDepth);
 
                                 WriteLogOrders($"Первый стакан по инструменту {_secNameById[nameID]} отправлен.");
 
@@ -2429,7 +2429,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 RemoveInactiveLevels(_controlDepths[NameID], marketDepth, NameID);
             }
 
-            MarketDepthEvent(marketDepth);
+            MarketDepthEvent?.Invoke(marketDepth);
         }
 
         private void RemoveInactiveLevels(ControlFastDepth controlDepth, MarketDepth sourceDepth, string NameID)
@@ -2764,7 +2764,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
 
                     break;
@@ -3661,7 +3661,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                             if (ServerStatus != ServerConnectStatus.Disconnect)
                             {
                                 ServerStatus = ServerConnectStatus.Disconnect;
-                                DisconnectEvent();
+                                DisconnectEvent?.Invoke();
                             }
                         }
 
@@ -3677,7 +3677,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
                         }
@@ -3699,7 +3699,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
 
@@ -3765,7 +3765,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 if (ServerStatus != ServerConnectStatus.Disconnect)
                                 {
                                     ServerStatus = ServerConnectStatus.Disconnect;
-                                    DisconnectEvent();
+                                    DisconnectEvent?.Invoke();
                                 }
                             }
 
@@ -3781,7 +3781,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                     if (ServerStatus != ServerConnectStatus.Disconnect)
                                     {
                                         ServerStatus = ServerConnectStatus.Disconnect;
-                                        DisconnectEvent();
+                                        DisconnectEvent?.Invoke();
                                     }
                                 }
                             }
@@ -3804,7 +3804,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                     if (ServerStatus != ServerConnectStatus.Disconnect)
                                     {
                                         ServerStatus = ServerConnectStatus.Disconnect;
-                                        DisconnectEvent();
+                                        DisconnectEvent?.Invoke();
                                     }
                                 }
 

@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                         SendLogMessage(OsLocalization.Market.Label321, LogMessageType.System);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                         Thread.Sleep(2000);
                         continue;
                     }
@@ -371,7 +371,7 @@ namespace OsEngine.Market.Servers.TInvest
                             SendLogMessage(OsLocalization.Market.Label286 + lostStreamName, LogMessageType.System);
                             SendMessageOnReconnectInErrorLog();
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                             Thread.Sleep(2000);
                         }
                     }
@@ -587,7 +587,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
             catch (Exception ex)
@@ -826,7 +826,7 @@ namespace OsEngine.Market.Servers.TInvest
                             SendLogMessage(OsLocalization.Market.Label305, LogMessageType.Error);
 
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
                 }
@@ -838,7 +838,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage(OsLocalization.Market.Label323 + ex.ToString(), LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -1611,7 +1611,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         SendLogMessage(OsLocalization.Market.Label300, LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -1628,7 +1628,7 @@ namespace OsEngine.Market.Servers.TInvest
                         SendLogMessage(OsLocalization.Market.Label290 + " \n" + ex.ToString(), LogMessageType.Error);
 
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
@@ -2254,7 +2254,7 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     SendLogMessage(OsLocalization.Market.Label322 + "\n Security: " + security.Name, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
 
@@ -2631,7 +2631,7 @@ namespace OsEngine.Market.Servers.TInvest
                     ConnectGRPCStreams();
 
                     // ConnectEvent - только когда всё реально живо
-                    ConnectEvent();
+                    ConnectEvent?.Invoke();
                 }
                 catch (Exception ex)
                 {
@@ -4851,7 +4851,7 @@ namespace OsEngine.Market.Servers.TInvest
                         SendLogMessage(OsLocalization.Market.Label294 + "\nPortfolio\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(5000);
                 }
@@ -5073,7 +5073,7 @@ namespace OsEngine.Market.Servers.TInvest
                         SendLogMessage(OsLocalization.Market.Label294 + "\nPositions\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(5000);
                 }
@@ -5366,7 +5366,7 @@ namespace OsEngine.Market.Servers.TInvest
                         SendLogMessage(OsLocalization.Market.Label294 + "\nOrders\n" + message, LogMessageType.System);
                         SendMessageOnReconnectInErrorLog();
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(5000);
                 }
@@ -6180,7 +6180,7 @@ namespace OsEngine.Market.Servers.TInvest
                         + "Пожалуйста посчитайте обеспечение и баланс. И в соответствии с этим настройте роботов. ", LogMessageType.Error);
 
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }

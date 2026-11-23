@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
                         if (ServerStatus != ServerConnectStatus.Disconnect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
 
                         return;
@@ -127,7 +127,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
                 }
 
                 ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
+                ConnectEvent?.Invoke();
             }
             catch (Exception ex)
             {
@@ -137,7 +137,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    DisconnectEvent?.Invoke();
                 }
             }
         }
@@ -151,7 +151,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DisconnectEvent?.Invoke();
             }
         }
 
@@ -271,7 +271,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                 }
             }
