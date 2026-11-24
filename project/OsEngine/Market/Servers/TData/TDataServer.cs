@@ -77,7 +77,7 @@ namespace OsEngine.Market.Servers.TData
             var socketsHandler = new SocketsHttpHandler()
             {
                 AutomaticDecompression = enableDecompression
-                    ? DecompressionMethods.GZip | DecompressionMethods.Deflate
+                    ? DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
                     : DecompressionMethods.None,
                 SslOptions = new SslClientAuthenticationOptions
                 {
@@ -313,7 +313,7 @@ namespace OsEngine.Market.Servers.TData
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Securities downloading error. Error: {ex.Message}", LogMessageType.Error);
+                SendLogMessage($"Securities downloading error. Error: {ex}", LogMessageType.Error);
             }
 
             if (_securities.Count > 0)
@@ -357,6 +357,10 @@ namespace OsEngine.Market.Servers.TData
                 {
                     TSecurityResponse secWithArch = candlesResponse[i];
 
+                    // пустой ключ превратил быlookup в тихий промах навсегда (BUG-0657). Нераспознанные записи видны в «Candles index ...»
+                    if (string.IsNullOrWhiteSpace(secWithArch.Ticker) || string.IsNullOrWhiteSpace(secWithArch.ClassCode))
+                        continue;
+
                     string newKey = secWithArch.Ticker + "_" + secWithArch.ClassCode;
 
                     sourceDict.TryAdd(newKey, secWithArch);
@@ -373,6 +377,38 @@ namespace OsEngine.Market.Servers.TData
             }
         }
 
+        // Свечной индекс не молчит: результат каждого /candles-instruments-index/* виден в логе (BUG-0657).
+        // «recognised» считается после фильтра пустых Ticker/ClassCode и по классу — как в гейте combine.
+        private void LogCandlesIndexResult(string type, string expectedClasses, int total, int recognised, string response)
+        {
+            if (recognised > 0)
+            {
+                SendLogMessage($"Candles index {type}: recognised {recognised} of {total} records", LogMessageType.System);
+            }
+            else
+            {
+                // тело single-line + кап (прецедент non-200 ветки GetStringRequest)
+                string body = (response ?? "").Replace("\r", " ").Replace("\n", " ");
+                if (body.Length > 300) body = body.Substring(0, 300) + "…";
+
+                SendLogMessage($"Candles index {type}: recognised 0 of {total} records. Expected class(es): {expectedClasses}. Body: {body}", LogMessageType.Warning);
+            }
+        }
+
+        private void LogCandlesIndexNoResponse(string type)
+        {
+            // транспортный Error уже залогирован в GetStringRequest; здесь — строка результата на месте молчащей ветки
+            SendLogMessage($"Candles index {type}: no response from server", LogMessageType.Warning);
+        }
+
+        private static List<TSecurityResponse> CandlesIndexRecords(RootResponse candlesRoot)
+        {
+            if (candlesRoot?.Instruments == null)
+                return new List<TSecurityResponse>();
+
+            return new List<TSecurityResponse>(candlesRoot.Instruments.Values);
+        }
+
         private void GetSpotSecurities()
         {
             string response = GetStringRequest("/trades-instruments-index/instrument-type/share");
@@ -381,13 +417,17 @@ namespace OsEngine.Market.Servers.TData
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
 
-                Dictionary<string, TSecurityResponse>.Enumerator enumerator = root.Instruments.GetEnumerator();
+                // snapshot-удаление: Remove при активном перечислении — undefined behavior (BUG-0657)
+                List<string> keysToRemove = new List<string>();
 
-                while (enumerator.MoveNext())
+                foreach (KeyValuePair<string, TSecurityResponse> pair in root.Instruments)
                 {
-                    if (enumerator.Current.Value.ClassCode != "TQBR")
-                        root.Instruments.Remove(enumerator.Current.Key);
+                    if (pair.Value.ClassCode != "TQBR")
+                        keysToRemove.Add(pair.Key);
                 }
+
+                for (int i = 0; i < keysToRemove.Count; i++)
+                    root.Instruments.Remove(keysToRemove[i]);
 
                 List<TSecurityResponse> tqbrInstruments = new List<TSecurityResponse>(root.Instruments.Values);
 
@@ -417,8 +457,12 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> tqbrSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values)
-                        .FindAll(instrument => instrument.ClassCode == "TQBR");
+                    List<TSecurityResponse> candlesIndexRecords = CandlesIndexRecords(candlesRoot);
+
+                    List<TSecurityResponse> tqbrSecCandles = candlesIndexRecords
+                        .FindAll(instrument => instrument.ClassCode == "TQBR" && !string.IsNullOrWhiteSpace(instrument.Ticker));
+
+                    LogCandlesIndexResult("share", "TQBR", candlesIndexRecords.Count, tqbrSecCandles.Count, candlesInfoResponse);
 
                     if (tqbrSecCandles.Count > 0)
                     {
@@ -426,6 +470,10 @@ namespace OsEngine.Market.Servers.TData
 
                         CombineDataBySecurities(_candlesArchivesInfoSpot, tqbrSecCandles);
                     }
+                }
+                else
+                {
+                    LogCandlesIndexNoResponse("share");
                 }
             }
             else
@@ -470,7 +518,12 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> futSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values);
+                    List<TSecurityResponse> candlesIndexRecords = CandlesIndexRecords(candlesRoot);
+
+                    List<TSecurityResponse> futSecCandles = candlesIndexRecords
+                        .FindAll(instrument => !string.IsNullOrWhiteSpace(instrument.Ticker) && !string.IsNullOrWhiteSpace(instrument.ClassCode));
+
+                    LogCandlesIndexResult("futures", "any", candlesIndexRecords.Count, futSecCandles.Count, candlesInfoResponse);
 
                     if (futSecCandles.Count > 0)
                     {
@@ -478,6 +531,10 @@ namespace OsEngine.Market.Servers.TData
 
                         CombineDataBySecurities(_candlesArchivesInfoFut, futSecCandles);
                     }
+                }
+                else
+                {
+                    LogCandlesIndexNoResponse("futures");
                 }
             }
             else
@@ -494,13 +551,17 @@ namespace OsEngine.Market.Servers.TData
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
 
-                Dictionary<string, TSecurityResponse>.Enumerator enumerator = root.Instruments.GetEnumerator();
+                // snapshot-удаление: Remove при активном перечислении — undefined behavior (BUG-0657)
+                List<string> keysToRemove = new List<string>();
 
-                while (enumerator.MoveNext())
+                foreach (KeyValuePair<string, TSecurityResponse> pair in root.Instruments)
                 {
-                    if (enumerator.Current.Value.ClassCode != "TQTF" && enumerator.Current.Value.ClassCode != "TQIF")
-                        root.Instruments.Remove(enumerator.Current.Key);
+                    if (pair.Value.ClassCode != "TQTF" && pair.Value.ClassCode != "TQIF")
+                        keysToRemove.Add(pair.Key);
                 }
+
+                for (int i = 0; i < keysToRemove.Count; i++)
+                    root.Instruments.Remove(keysToRemove[i]);
 
                 List<TSecurityResponse> etfInstruments = new List<TSecurityResponse>(root.Instruments.Values);
 
@@ -530,8 +591,12 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> etfSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values)
-                        .FindAll(instrument => instrument.ClassCode == "TQTF" || instrument.ClassCode == "TQIF");
+                    List<TSecurityResponse> candlesIndexRecords = CandlesIndexRecords(candlesRoot);
+
+                    List<TSecurityResponse> etfSecCandles = candlesIndexRecords
+                        .FindAll(instrument => (instrument.ClassCode == "TQTF" || instrument.ClassCode == "TQIF") && !string.IsNullOrWhiteSpace(instrument.Ticker));
+
+                    LogCandlesIndexResult("etf", "TQTF,TQIF", candlesIndexRecords.Count, etfSecCandles.Count, candlesInfoResponse);
 
                     if (etfSecCandles.Count > 0)
                     {
@@ -539,6 +604,10 @@ namespace OsEngine.Market.Servers.TData
 
                         CombineDataBySecurities(_candlesArchivesInfoEtf, etfSecCandles);
                     }
+                }
+                else
+                {
+                    LogCandlesIndexNoResponse("etf");
                 }
             }
             else
@@ -555,13 +624,17 @@ namespace OsEngine.Market.Servers.TData
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
 
-                Dictionary<string, TSecurityResponse>.Enumerator enumerator = root.Instruments.GetEnumerator();
+                // snapshot-удаление: Remove при активном перечислении — undefined behavior (BUG-0657)
+                List<string> keysToRemove = new List<string>();
 
-                while (enumerator.MoveNext())
+                foreach (KeyValuePair<string, TSecurityResponse> pair in root.Instruments)
                 {
-                    if (enumerator.Current.Value.ClassCode != "CETS")
-                        root.Instruments.Remove(enumerator.Current.Key);
+                    if (pair.Value.ClassCode != "CETS")
+                        keysToRemove.Add(pair.Key);
                 }
+
+                for (int i = 0; i < keysToRemove.Count; i++)
+                    root.Instruments.Remove(keysToRemove[i]);
 
                 List<TSecurityResponse> tqbrInstruments = new List<TSecurityResponse>(root.Instruments.Values);
 
@@ -591,8 +664,12 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> cetsSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values)
-                        .FindAll(instrument => instrument.ClassCode == "CETS");
+                    List<TSecurityResponse> candlesIndexRecords = CandlesIndexRecords(candlesRoot);
+
+                    List<TSecurityResponse> cetsSecCandles = candlesIndexRecords
+                        .FindAll(instrument => instrument.ClassCode == "CETS" && !string.IsNullOrWhiteSpace(instrument.Ticker));
+
+                    LogCandlesIndexResult("currency", "CETS", candlesIndexRecords.Count, cetsSecCandles.Count, candlesInfoResponse);
 
                     if (cetsSecCandles.Count > 0)
                     {
@@ -600,6 +677,10 @@ namespace OsEngine.Market.Servers.TData
 
                         CombineDataBySecurities(_candlesArchivesInfoCur, cetsSecCandles);
                     }
+                }
+                else
+                {
+                    LogCandlesIndexNoResponse("currency");
                 }
             }
             else
@@ -616,13 +697,17 @@ namespace OsEngine.Market.Servers.TData
             {
                 RootResponse root = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(response);
 
-                Dictionary<string, TSecurityResponse>.Enumerator enumerator = root.Instruments.GetEnumerator();
+                // snapshot-удаление: Remove при активном перечислении — undefined behavior (BUG-0657)
+                List<string> keysToRemove = new List<string>();
 
-                while (enumerator.MoveNext())
+                foreach (KeyValuePair<string, TSecurityResponse> pair in root.Instruments)
                 {
-                    if (enumerator.Current.Value.ClassCode != "TQCB" && enumerator.Current.Value.ClassCode != "TQOB")
-                        root.Instruments.Remove(enumerator.Current.Key);
+                    if (pair.Value.ClassCode != "TQCB" && pair.Value.ClassCode != "TQOB")
+                        keysToRemove.Add(pair.Key);
                 }
+
+                for (int i = 0; i < keysToRemove.Count; i++)
+                    root.Instruments.Remove(keysToRemove[i]);
 
                 List<TSecurityResponse> tqbrInstruments = new List<TSecurityResponse>(root.Instruments.Values);
 
@@ -659,8 +744,12 @@ namespace OsEngine.Market.Servers.TData
                 {
                     RootResponse candlesRoot = System.Text.Json.JsonSerializer.Deserialize<RootResponse>(candlesInfoResponse);
 
-                    List<TSecurityResponse> tqcbSecCandles = new List<TSecurityResponse>(candlesRoot.Instruments.Values)
-                        .FindAll(instrument => instrument.ClassCode == "TQCB" || instrument.ClassCode == "TQOB");
+                    List<TSecurityResponse> candlesIndexRecords = CandlesIndexRecords(candlesRoot);
+
+                    List<TSecurityResponse> tqcbSecCandles = candlesIndexRecords
+                        .FindAll(instrument => (instrument.ClassCode == "TQCB" || instrument.ClassCode == "TQOB") && !string.IsNullOrWhiteSpace(instrument.Ticker));
+
+                    LogCandlesIndexResult("bond", "TQCB,TQOB", candlesIndexRecords.Count, tqcbSecCandles.Count, candlesInfoResponse);
 
                     if (tqcbSecCandles.Count > 0)
                     {
@@ -668,6 +757,10 @@ namespace OsEngine.Market.Servers.TData
 
                         CombineDataBySecurities(_candlesArchivesInfoBond, tqcbSecCandles);
                     }
+                }
+                else
+                {
+                    LogCandlesIndexNoResponse("bond");
                 }
             }
             else
