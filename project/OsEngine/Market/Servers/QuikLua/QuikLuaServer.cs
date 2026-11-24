@@ -1727,10 +1727,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.OpenInterest = Convert.ToInt32(allTrade.OpenInterest);
                 }
 
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                    NewTradesEvent?.Invoke(trade);
 
                 // write last tick time in server time / перегружаем последним временем тика время сервера
                 ServerTime = trade.Time;

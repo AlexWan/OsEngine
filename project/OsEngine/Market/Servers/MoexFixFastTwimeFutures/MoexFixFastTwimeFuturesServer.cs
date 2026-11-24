@@ -1746,7 +1746,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                                 trade.Side = groupVal.GetString("OrderSide") == "1" ? Side.Buy : Side.Sell;
                                 trade.Volume = groupVal.GetString("MDEntrySize").ToDecimal();
 
-                                NewTradesEvent(trade);
+                                NewTradesEvent?.Invoke(trade);
 
                                 WriteLogTrades($"Получен трейд в СИСТЕМУ: RptSeq: {RptSeqFromTrades}, Инструмент: {trade.SecurityNameCode}, {trade.Side}, Цена: {trade.Price}, Время: {trade.Time}, Объем: {trade.Volume}");
                             }

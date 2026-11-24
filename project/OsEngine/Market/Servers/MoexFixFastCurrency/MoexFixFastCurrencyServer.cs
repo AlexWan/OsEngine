@@ -1405,13 +1405,13 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                         }
                                         else
                                         {
-                                            NewTradesEvent(trade);
+                                            NewTradesEvent?.Invoke(trade);
                                             WriteLogTrades($"Получен трейд в СИСТЕМУ: RptSeq: {RptSeqFromTrades}, Инструмент: {trade.SecurityNameCode}, {trade.Side}, Цена: {trade.Price}, Время: {trade.Time}, Объем: {trade.Volume}");
                                         }
                                     }
                                     else
                                     {
-                                        NewTradesEvent(trade);
+                                        NewTradesEvent?.Invoke(trade);
                                         WriteLogTrades($"Получен трейд в СИСТЕМУ: RptSeq: {RptSeqFromTrades}, Инструмент: {trade.SecurityNameCode}, {trade.Side}, Цена: {trade.Price}, Время: {trade.Time}, Объем: {trade.Volume}");
                                     }
                                 }
@@ -1533,7 +1533,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                                     for (int k = 0; k < _trades.Count; k++)
                                     {
-                                        NewTradesEvent(_trades[k]);
+                                        NewTradesEvent?.Invoke(_trades[k]);
                                     }
                                 }
 
@@ -1545,7 +1545,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                                     if (_waitingTrades[uniqueName][j].RptSeq <= _RptSeqFromSnapshot)
                                         continue;
 
-                                    NewTradesEvent(_waitingTrades[uniqueName][j].Trade);
+                                    NewTradesEvent?.Invoke(_waitingTrades[uniqueName][j].Trade);
                                 }
 
                                 _tradesSnapshotsByName[uniqueName].SnapshotWasApplied = true;

@@ -387,7 +387,7 @@ namespace OsEngine.Market.Servers.AE
                 newTrade.Bid = q.Bid ?? 0;
                 newTrade.BidsVolume = q.BidVolume ?? 0;
 
-                NewTradesEvent!(newTrade);
+                NewTradesEvent?.Invoke(newTrade);
             }
         }
 

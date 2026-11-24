@@ -1513,7 +1513,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     trade.Side = Side.Sell;
                 else trade.Side = Side.Buy;
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
             catch (Exception exception)
             {

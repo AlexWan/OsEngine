@@ -882,7 +882,7 @@ namespace OsEngine.Market.Servers.Deribit
                 trade.Volume = item[i].amount.ToDecimal();
                 trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
 
-                NewTradesEvent(trade);
+                NewTradesEvent?.Invoke(trade);
             }
         }
 

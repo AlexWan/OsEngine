@@ -1892,7 +1892,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
                     }
 
-                    NewTradesEvent(trade);
+                    NewTradesEvent?.Invoke(trade);
                 }
             }
             catch (Exception exception)

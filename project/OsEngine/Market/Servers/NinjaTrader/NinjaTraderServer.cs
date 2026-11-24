@@ -184,10 +184,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private void ClientOnNewTradesEvent(Trade trade)
         {
-            if (NewTradesEvent != null)
-            {
-                NewTradesEvent(trade);
-            }
+                NewTradesEvent?.Invoke(trade);
         }
 
         private void ClientOnUpdateMarketDepth(MarketDepth marketDepth)
