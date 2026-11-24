@@ -711,6 +711,8 @@ namespace OsEngine.Market.Servers
             string filePath = @"Engine\" + ServerNameUnique + @"Params.txt";
             string tempFilePath = filePath + @".tmp";
             bool committed = false;
+            // фолбэк Delete+Move: если и возврат копией не удался, .tmp — единственная копия данных, не чистить
+            bool tempIsOnlyCopy = false;
 
             try
             {
@@ -760,7 +762,42 @@ namespace OsEngine.Market.Servers
 
                 if (File.Exists(filePath))
                 {
-                    File.Replace(tempFilePath, filePath, null);
+                    try
+                    {
+                        File.Replace(tempFilePath, filePath, null);
+                    }
+                    catch (Exception replaceError) when
+                    (
+                        replaceError is PlatformNotSupportedException
+                        || (replaceError is IOException
+                            && (System.Runtime.InteropServices.Marshal.GetHRForException(replaceError) & 0xFFFF) == 1)
+                    )
+                    {
+                        // Фолбэк томов без File.Replace (он документирован только для NTFS, ERROR_INVALID_FUNCTION):
+                        // база писала StreamWriter по любому тому, ломать там сейв — регрессия.
+                        // Delete+Move не атомарен — окно потери сознательный компромисс (BUG-0167, gap S-08).
+                        SendLogMessage("File.Replace unavailable, falling back to delete+move. Server: " + ServerNameUnique + ". " + replaceError.ToString(), LogMessageType.Error);
+                        File.Delete(filePath);
+                        try
+                        {
+                            File.Move(tempFilePath, filePath);
+                        }
+                        catch (Exception moveError)
+                        {
+                            // цель уже удалена: в .tmp полные данные, вернём файл копией чтобы не остаться без него
+                            try
+                            {
+                                File.Copy(tempFilePath, filePath);
+                                SendLogMessage("File.Move after delete failed, file restored by copy. Server: " + ServerNameUnique + ". " + moveError.ToString(), LogMessageType.Error);
+                            }
+                            catch (Exception copyError)
+                            {
+                                tempIsOnlyCopy = true;
+                                SendLogMessage("File.Move after delete failed, copy-back failed. Server: " + ServerNameUnique + ". " + copyError.ToString(), LogMessageType.Error);
+                            }
+                            throw;
+                        }
+                    }
                 }
                 else
                 {
@@ -772,11 +809,19 @@ namespace OsEngine.Market.Servers
             catch (Exception error)
             {
                 // send to the log / отправить в лог
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                try
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch (Exception logError)
+                {
+                    // контракт «SaveParam не кидает»: бросок подписчика самого лога наружу не уходит
+                    System.Diagnostics.Debug.WriteLine(logError.ToString());
+                }
             }
             finally
             {
-                if (committed == false)
+                if (committed == false && tempIsOnlyCopy == false)
                 {
                     try
                     {
@@ -787,7 +832,14 @@ namespace OsEngine.Market.Servers
                     }
                     catch (Exception cleanupError)
                     {
-                        SendLogMessage(@"Cannot remove " + tempFilePath + @". " + cleanupError.ToString(), LogMessageType.Error);
+                        try
+                        {
+                            SendLogMessage(@"Cannot remove " + tempFilePath + @". " + cleanupError.ToString(), LogMessageType.Error);
+                        }
+                        catch (Exception logError)
+                        {
+                            System.Diagnostics.Debug.WriteLine(logError.ToString());
+                        }
                     }
                 }
             }
