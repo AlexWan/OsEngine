@@ -816,7 +816,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        private string _socketActivateLocker = "socketActivateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {

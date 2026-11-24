@@ -1336,7 +1336,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        private string _socketActivateLocker = "socketActivateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {
