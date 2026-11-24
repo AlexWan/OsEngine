@@ -106,7 +106,7 @@ internal static class Program
         }
 
         bool green = true;
-        if (filter == "" || filter == "g2")
+        if (filter == "" || filter == "g2" || filter == "g4")
         {
             green &= RunGoldenCases(target, "G2");
         }
@@ -190,7 +190,7 @@ internal static class Program
             List<(bool Ok, string Value, bool Threw)> baseline = InvokeSet(target);
             if (baseline.Any(x => x.Threw))
             {
-                Console.WriteLine(label + " FATAL: parser threw exceptions in invariant baseline, EX-rows forbidden in G3 (FU-2b)");
+                Console.WriteLine(label + " FATAL: parser threw exceptions in invariant baseline, first=" + baseline.First(x => x.Threw).Value + ", EX-rows forbidden in G3 (FU-2b)");
                 return 2;
             }
             int matched = 0;
@@ -233,7 +233,7 @@ internal static class Program
                 List<(bool Ok, string Value, bool Threw)> actualSet = InvokeSet(target);
                 if (actualSet.Any(x => x.Threw))
                 {
-                    Console.WriteLine(label + " FATAL: parser threw exceptions under " + cultureName + ", EX-rows forbidden in G3 (FU-2b)");
+                    Console.WriteLine(label + " FATAL: parser threw exceptions under " + cultureName + ", first=" + actualSet.First(x => x.Threw).Value + ", EX-rows forbidden in G3 (FU-2b)");
                     return 2;
                 }
                 var diffs = new List<string>();
