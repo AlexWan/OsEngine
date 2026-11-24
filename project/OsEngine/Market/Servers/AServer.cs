@@ -704,10 +704,18 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void SaveParam()
         {
+            // Атомарная замена файла (BUG-0167, по образцу OptimizerMaster.WriteFileAtomic / BUG-0404):
+            // строки пишутся в .tmp рядом, Flush(true), затем File.Replace (File.Move, если цели нет).
+            // Отказ записи (залоченный шифратор, disk full, блокировка цели) оставляет предыдущий
+            // Params.txt целым; ошибка — в лог, рваный .tmp удаляется.
+            string filePath = @"Engine\" + ServerNameUnique + @"Params.txt";
+            string tempFilePath = filePath + @".tmp";
+            bool committed = false;
+
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerNameUnique + @"Params.txt", false)
-                    )
+                using (FileStream stream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
+                using (StreamWriter writer = new StreamWriter(stream))
                 {
                     for (int i = 0; i < ServerParameters.Count; i++)
                     {
@@ -729,6 +737,14 @@ namespace OsEngine.Market.Servers
                             }
 
                             string encryptedValue = ServerEncryptionMaster.Encrypt(((ServerParameterPassword)param).Value);
+
+                            if (encryptedValue == null)
+                            {
+                                // ключ мог упасть между проверкой IsUnlocked и Encrypt: пустая шифрограмма молча теряла пароль
+                                SendLogMessage("Encryption failed, parameters are not saved. Server: " + ServerNameUnique, LogMessageType.Error);
+                                return;
+                            }
+
                             writer.WriteLine(param.Type + "^" + param.Name + "^" + encryptedValue);
                             continue;
                         }
@@ -736,12 +752,44 @@ namespace OsEngine.Market.Servers
                         writer.WriteLine(param.GetStringToSave());
                     }
 
-                    writer.Close();
+                    writer.Flush();
+
+                    // сброс буферов ОС: на .tmp уже лежат полные данные до замены (BUG-0404)
+                    stream.Flush(true);
                 }
+
+                if (File.Exists(filePath))
+                {
+                    File.Replace(tempFilePath, filePath, null);
+                }
+                else
+                {
+                    File.Move(tempFilePath, filePath);
+                }
+
+                committed = true;
             }
-            catch (Exception)
+            catch (Exception error)
             {
                 // send to the log / отправить в лог
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            finally
+            {
+                if (committed == false)
+                {
+                    try
+                    {
+                        if (File.Exists(tempFilePath))
+                        {
+                            File.Delete(tempFilePath);
+                        }
+                    }
+                    catch (Exception cleanupError)
+                    {
+                        SendLogMessage(@"Cannot remove " + tempFilePath + @". " + cleanupError.ToString(), LogMessageType.Error);
+                    }
+                }
             }
         }
 
