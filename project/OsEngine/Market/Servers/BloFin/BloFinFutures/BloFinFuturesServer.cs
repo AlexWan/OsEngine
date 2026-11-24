@@ -820,7 +820,7 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {

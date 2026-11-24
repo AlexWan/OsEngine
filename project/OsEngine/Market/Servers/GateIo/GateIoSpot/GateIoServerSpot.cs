@@ -968,7 +968,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {

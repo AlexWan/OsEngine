@@ -659,7 +659,7 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {

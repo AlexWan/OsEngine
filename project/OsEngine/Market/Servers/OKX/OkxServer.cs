@@ -1477,7 +1477,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private string _socketActivateLocker = "socketActivateLocker";
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {
