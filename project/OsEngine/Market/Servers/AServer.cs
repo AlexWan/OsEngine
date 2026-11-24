@@ -699,15 +699,32 @@ namespace OsEngine.Market.Servers
             return newParam;
         }
 
+#if DEBUG
+        /// <summary>
+        /// test seam, DEBUG-only: вызывается в SaveParam непосредственно перед Encrypt параметра Password (BUG-0167 T7)
+        /// </summary>
+        public static Action TestHookBeforePasswordEncrypt;
+#endif
+
         /// <summary>
         /// save parameters
         /// </summary>
         private void SaveParam()
         {
+            // Атомарная замена файла (BUG-0167, по образцу OptimizerMaster.WriteFileAtomic / BUG-0404):
+            // строки пишутся в .tmp рядом, Flush(true), затем File.Replace (File.Move, если цели нет).
+            // Отказ записи (залоченный шифратор, disk full, блокировка цели) оставляет предыдущий
+            // Params.txt целым; ошибка — в лог, рваный .tmp удаляется.
+            string filePath = @"Engine\" + ServerNameUnique + @"Params.txt";
+            string tempFilePath = filePath + @".tmp";
+            bool committed = false;
+            // фолбэк Delete+Move: если и возврат копией не удался, .tmp — единственная копия данных, не чистить
+            bool tempIsOnlyCopy = false;
+
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerNameUnique + @"Params.txt", false)
-                    )
+                using (FileStream stream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
+                using (StreamWriter writer = new StreamWriter(stream))
                 {
                     for (int i = 0; i < ServerParameters.Count; i++)
                     {
@@ -728,7 +745,20 @@ namespace OsEngine.Market.Servers
                                 return;
                             }
 
+#if DEBUG
+                            // test seam, DEBUG-only: имитация падения ключа между проверкой IsUnlocked и Encrypt (BUG-0167 T7)
+                            TestHookBeforePasswordEncrypt?.Invoke();
+#endif
+
                             string encryptedValue = ServerEncryptionMaster.Encrypt(((ServerParameterPassword)param).Value);
+
+                            if (encryptedValue == null)
+                            {
+                                // ключ мог упасть между проверкой IsUnlocked и Encrypt: пустая шифрограмма молча теряла пароль
+                                SendLogMessage("Encryption failed, parameters are not saved. Server: " + ServerNameUnique, LogMessageType.Error);
+                                return;
+                            }
+
                             writer.WriteLine(param.Type + "^" + param.Name + "^" + encryptedValue);
                             continue;
                         }
@@ -736,12 +766,94 @@ namespace OsEngine.Market.Servers
                         writer.WriteLine(param.GetStringToSave());
                     }
 
-                    writer.Close();
+                    writer.Flush();
+
+                    // сброс буферов ОС: на .tmp уже лежат полные данные до замены (BUG-0404)
+                    stream.Flush(true);
                 }
+
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        File.Replace(tempFilePath, filePath, null);
+                    }
+                    catch (Exception replaceError) when
+                    (
+                        replaceError is PlatformNotSupportedException
+                        || (replaceError is IOException
+                            && (System.Runtime.InteropServices.Marshal.GetHRForException(replaceError) & 0xFFFF) == 1)
+                    )
+                    {
+                        // Фолбэк томов без File.Replace (он документирован только для NTFS, ERROR_INVALID_FUNCTION):
+                        // база писала StreamWriter по любому тому, ломать там сейв — регрессия.
+                        // Delete+Move не атомарен — окно потери сознательный компромисс (BUG-0167, gap S-08).
+                        SendLogMessage("File.Replace unavailable, falling back to delete+move. Server: " + ServerNameUnique + ". " + replaceError.ToString(), LogMessageType.Error);
+                        File.Delete(filePath);
+                        try
+                        {
+                            File.Move(tempFilePath, filePath);
+                        }
+                        catch (Exception moveError)
+                        {
+                            // цель уже удалена: в .tmp полные данные, вернём файл копией чтобы не остаться без него
+                            try
+                            {
+                                File.Copy(tempFilePath, filePath);
+                                SendLogMessage("File.Move after delete failed, file restored by copy. Server: " + ServerNameUnique + ". " + moveError.ToString(), LogMessageType.Error);
+                            }
+                            catch (Exception copyError)
+                            {
+                                tempIsOnlyCopy = true;
+                                SendLogMessage("File.Move after delete failed, copy-back failed. Server: " + ServerNameUnique + ". " + copyError.ToString(), LogMessageType.Error);
+                            }
+                            throw;
+                        }
+                    }
+                }
+                else
+                {
+                    File.Move(tempFilePath, filePath);
+                }
+
+                committed = true;
             }
-            catch (Exception)
+            catch (Exception error)
             {
                 // send to the log / отправить в лог
+                try
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                catch (Exception logError)
+                {
+                    // контракт «SaveParam не кидает»: бросок подписчика самого лога наружу не уходит
+                    System.Diagnostics.Debug.WriteLine(logError.ToString());
+                }
+            }
+            finally
+            {
+                if (committed == false && tempIsOnlyCopy == false)
+                {
+                    try
+                    {
+                        if (File.Exists(tempFilePath))
+                        {
+                            File.Delete(tempFilePath);
+                        }
+                    }
+                    catch (Exception cleanupError)
+                    {
+                        try
+                        {
+                            SendLogMessage(@"Cannot remove " + tempFilePath + @". " + cleanupError.ToString(), LogMessageType.Error);
+                        }
+                        catch (Exception logError)
+                        {
+                            System.Diagnostics.Debug.WriteLine(logError.ToString());
+                        }
+                    }
+                }
             }
         }
 
