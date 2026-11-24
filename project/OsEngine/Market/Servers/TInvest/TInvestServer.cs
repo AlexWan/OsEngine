@@ -298,10 +298,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 _lastMyOrderStateDataTime = DateTime.UtcNow;
                                 SendLogMessage(OsLocalization.Market.Label295 + "\nOrders data. ConnectionCheckThread()", LogMessageType.System);
 
-                                if (ForceCheckOrdersAfterReconnectEvent != null)
-                                {
-                                    ForceCheckOrdersAfterReconnectEvent();
-                                }
+                                ForceCheckOrdersAfterReconnectEvent?.Invoke();
                                 Thread.Sleep(2000);
                                 _isReconnectByOrdersData = false;
                                 continue;
@@ -5515,10 +5512,7 @@ namespace OsEngine.Market.Servers.TInvest
                             _ordersReconnectFails = 0;
                             SendLogMessage(OsLocalization.Market.Label295 + "\nOrders", LogMessageType.System);
 
-                            if (ForceCheckOrdersAfterReconnectEvent != null)
-                            {
-                                ForceCheckOrdersAfterReconnectEvent();
-                            }
+                            ForceCheckOrdersAfterReconnectEvent?.Invoke();
 
                             Thread.Sleep(1000);
                             continue;

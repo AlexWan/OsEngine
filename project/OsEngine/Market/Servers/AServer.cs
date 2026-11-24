@@ -4158,10 +4158,7 @@ namespace OsEngine.Market.Servers
                          + " NumberMarket: " + order.NumberMarket
                          , LogMessageType.Error);
 
-                        if (CancelOrderFailEvent != null)
-                        {
-                            CancelOrderFailEvent(order);
-                        }
+                        CancelOrderFailEvent?.Invoke(order);
                     }
 
                     return;

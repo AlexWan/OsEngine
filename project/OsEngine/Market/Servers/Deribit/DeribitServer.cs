@@ -1116,7 +1116,7 @@ namespace OsEngine.Market.Servers.Deribit
                 data.UnderlyingAsset = response.@params.data.underlying_index;
                 data.MarkPrice = response.@params.data.mark_price;
 
-                AdditionalMarketDataEvent(data);
+                AdditionalMarketDataEvent?.Invoke(data);
             }
             catch (Exception exception)
             {

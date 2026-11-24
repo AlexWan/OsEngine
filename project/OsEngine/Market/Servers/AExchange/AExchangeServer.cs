@@ -326,7 +326,7 @@ namespace OsEngine.Market.Servers.AE
                 data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
                 data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
 
-                AdditionalMarketDataEvent!(data);
+                AdditionalMarketDataEvent?.Invoke(data);
             }
 
             if (q.Ask != null) // orderbook DTO construction

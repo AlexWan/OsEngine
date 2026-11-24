@@ -3479,9 +3479,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             };
             tab.MyTradeEvent += (MyTrade trade) =>
             {
-                if (MyTradeEvent != null && EventsIsOn)
+                Action<MyTrade, BotTabSimple> handler = MyTradeEvent;
+                if (handler != null && EventsIsOn)
                 {
-                    MyTradeEvent(trade, tab);
+                    handler(trade, tab);
                 }
 
                 if (MyTradeWithScreenerEvent != null && EventsIsOn)
@@ -3491,9 +3492,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             };
             tab.MyTradeEvent += (MyTrade trade) =>
             {
-                if (MyTradeEvent != null && EventsIsOn)
+                Action<MyTrade, BotTabSimple> handler = MyTradeEvent;
+                if (handler != null && EventsIsOn)
                 {
-                    MyTradeEvent(trade, tab);
+                    handler(trade, tab);
                 }
             };
             tab.OrderUpdateEvent += (Order order) =>

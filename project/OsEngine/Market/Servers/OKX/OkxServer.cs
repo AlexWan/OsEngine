@@ -1921,10 +1921,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     // after a private reconnect the hub re-requests the active orders:
                     // order and trade events were not streamed while the socket was down
-                    if (ForceCheckOrdersAfterReconnectEvent != null)
-                    {
-                        ForceCheckOrdersAfterReconnectEvent();
-                    }
+                    ForceCheckOrdersAfterReconnectEvent?.Invoke();
                 }
 
                 if (_fIFOListWebSocketPrivateMessage == null)
@@ -4033,7 +4030,7 @@ namespace OsEngine.Market.Servers.OKX
                     //absend
                     //data.Rho = greeks.rho;
 
-                    AdditionalMarketDataEvent(data);
+                    AdditionalMarketDataEvent?.Invoke(data);
                 }
             }
             catch (Exception exception)
