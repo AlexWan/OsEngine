@@ -904,7 +904,7 @@ namespace OsEngine.Market.Servers.Pionex
             try
             {
                 CheckSocketsActivate();
-                SendLogMessage("BitMartSpot WebSocket Private connection open", LogMessageType.System);
+                SendLogMessage("PionexSpot WebSocket Private connection open", LogMessageType.System);
 
                 _webSocketPrivate.SendAsync("{\"op\": \"SUBSCRIBE\", \"topic\": \"BALANCE\"}");
             }
