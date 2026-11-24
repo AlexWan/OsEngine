@@ -73,6 +73,8 @@ namespace OsEngine.Market.Servers.Woo
 
         public void Connect(WebProxy proxy)
         {
+            _disposed = false;
+
             _apiKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
@@ -130,6 +132,8 @@ namespace OsEngine.Market.Servers.Woo
 
         public void Dispose()
         {
+            _disposed = true;
+
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -213,8 +217,18 @@ namespace OsEngine.Market.Servers.Woo
 
         private bool _extendedMarketData;
 
+        // bug-0637: heartbeat-тред запущен в конструкторе и переиспользуется после Dispose+Connect
+        // (AServer.PrimeThreadArea); тред гасится флагом до следующего Connect, а не убивается
+        private volatile bool _disposed;
+
         public void SetPositionMode()
         {
+            // bug-0634: после Dispose не должно остаться PUT positionMode, ждущий лок/REST-стек
+            if (_disposed)
+            {
+                return;
+            }
+
             _rateGateSendOrder.WaitToProceed();
 
             try
@@ -864,55 +878,61 @@ namespace OsEngine.Market.Servers.Woo
 
         private void DeleteWebSocketConnection()
         {
-            if (_webSocketPublic != null)
+            // bug-0634: teardown сериализуется с активацией (CheckSocketsActivate держит тот же лок
+            // от проверок до ConnectEvent), иначе ConnectEvent может отстрелить по уже порванному сокету
+            lock (_socketActivateLocker)
             {
-                try
+                if (_webSocketPublic != null)
                 {
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    try
                     {
-                        WebSocket webSocketPublic = _webSocketPublic[i];
-
-                        webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
-                        webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
-                        webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
-                        webSocketPublic.OnError -= WebSocketPublicNew_OnError;
-
-                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            webSocketPublic.CloseAsync();
+                            WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                            webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                            webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                            webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                            if (webSocketPublic.ReadyState == WebSocketState.Open)
+                            {
+                                webSocketPublic.CloseAsync();
+                            }
+
+                            webSocketPublic = null;
                         }
-
-                        webSocketPublic = null;
                     }
-                }
-                catch
-                {
-                    // ignore
+                    catch
+                    {
+                        // ignore
+                    }
+
+                    _webSocketPublic.Clear();
                 }
 
-                _webSocketPublic.Clear();
-            }
-
-            if (_webSocketPrivate != null)
-            {
-                try
+                if (_webSocketPrivate != null)
                 {
-                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
-                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
-                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
-                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
-                    _webSocketPrivate.CloseAsync();
-                }
-                catch
-                {
-                    // ignore
-                }
+                    try
+                    {
+                        _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                        _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                        _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                        _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                        _webSocketPrivate.CloseAsync();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
 
-                _webSocketPrivate = null;
+                    _webSocketPrivate = null;
+                }
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        // bug-0638: был интернированный литерал "socketAcvateLocker" — один монитор на 7 коннекторов сборки
+        private readonly object _socketActivateLocker = new object();
 
         private void CheckSocketsActivate()
         {
@@ -1174,6 +1194,12 @@ namespace OsEngine.Market.Servers.Woo
             {
                 Thread.Sleep(15000);
 
+                // bug-0637: continue, не return — тред конструкторский, Connect сбросит флаг и PING оживёт
+                if (_disposed)
+                {
+                    continue;
+                }
+
                 try
                 {
                     if (ServerStatus != ServerConnectStatus.Connect)
@@ -1198,12 +1224,15 @@ namespace OsEngine.Market.Servers.Woo
                         }
                     }
 
-                    if (_webSocketPrivate != null &&
-                        (_webSocketPrivate.ReadyState == WebSocketState.Open ||
-                        _webSocketPrivate.ReadyState == WebSocketState.Connecting))
+                    // bug-0635: поле читаем один раз — teardown может обнулить его между чтениями (NRE-окно)
+                    WebSocket webSocketPrivate = _webSocketPrivate;
+
+                    if (webSocketPrivate != null &&
+                        (webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
                         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                        _webSocketPrivate.SendAsync($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
+                        webSocketPrivate.SendAsync($"{{ \"cmd\": \"PING\", \"ts\": {timestamp} }}");
                     }
                     else
                     {
