@@ -699,6 +699,13 @@ namespace OsEngine.Market.Servers
             return newParam;
         }
 
+#if DEBUG
+        /// <summary>
+        /// test seam, DEBUG-only: вызывается в SaveParam непосредственно перед Encrypt параметра Password (BUG-0167 T7)
+        /// </summary>
+        public static Action TestHookBeforePasswordEncrypt;
+#endif
+
         /// <summary>
         /// save parameters
         /// </summary>
@@ -737,6 +744,11 @@ namespace OsEngine.Market.Servers
                                 SendLogMessage("Encryption is enabled, but master password is not entered. Parameters are not saved. Server: " + ServerNameUnique, LogMessageType.Error);
                                 return;
                             }
+
+#if DEBUG
+                            // test seam, DEBUG-only: имитация падения ключа между проверкой IsUnlocked и Encrypt (BUG-0167 T7)
+                            TestHookBeforePasswordEncrypt?.Invoke();
+#endif
 
                             string encryptedValue = ServerEncryptionMaster.Encrypt(((ServerParameterPassword)param).Value);
 
