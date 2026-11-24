@@ -8501,10 +8501,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if (MyTradeEvent != null)
-            {
-                MyTradeEvent(trade);
-            }
+            MyTradeEvent?.Invoke(trade);
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
@@ -8579,10 +8576,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.ServerTime = time;
             }
 
-            if (ServerTimeChangeEvent != null)
-            {
-                ServerTimeChangeEvent(time);
-            }
+            ServerTimeChangeEvent?.Invoke(time);
         }
 
         /// <summary>
@@ -8705,10 +8699,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if (CancelOrderFailEvent != null)
-            {
-                CancelOrderFailEvent(orderInJournal);
-            }
+            CancelOrderFailEvent?.Invoke(orderInJournal);
         }
 
         /// <summary>
