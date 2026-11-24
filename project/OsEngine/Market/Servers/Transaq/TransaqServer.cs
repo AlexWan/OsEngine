@@ -2871,7 +2871,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             if (news != null)
                             {
-                                NewsEvent(news);
+                                NewsEvent?.Invoke(news);
                             }
                         }
                     }

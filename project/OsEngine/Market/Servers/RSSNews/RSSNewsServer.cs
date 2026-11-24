@@ -249,7 +249,7 @@ namespace OsEngine.Market.Servers.RSSNews
 
                         for (int k = _newsList.Count - 1; _additionsSum > 0; k--)
                         {
-                            NewsEvent(_newsList[k]);
+                            NewsEvent?.Invoke(_newsList[k]);
 
                             _additionsSum--;
                         }

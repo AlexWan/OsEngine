@@ -1431,10 +1431,7 @@ namespace OsEngine.Market.Connectors
                     }
                 }
 
-                if (CancelOrderFailEvent != null)
-                {
-                    CancelOrderFailEvent(order);
-                }
+                CancelOrderFailEvent?.Invoke(order);
             }
             catch (Exception error)
             {
@@ -1465,10 +1462,7 @@ namespace OsEngine.Market.Connectors
 
             try
             {
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                MyTradeEvent?.Invoke(trade);
             }
             catch (Exception error)
             {

@@ -706,10 +706,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 LoadSetSecuritiesTimeFrameSettings();
 
-                if (SecuritiesChangeEvent != null)
-                {
-                    SecuritiesChangeEvent(Securities);
-                }
+                SecuritiesChangeEvent?.Invoke(Securities);
 
                 if (TimeChangeEvent != null)
                 {
