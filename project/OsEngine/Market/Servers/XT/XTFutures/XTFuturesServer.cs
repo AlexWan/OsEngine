@@ -77,6 +77,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
             public void Connect(WebProxy proxy)
             {
                 _myProxy = proxy;
+
+                // состояние стыковки стакана — на живое соединение, старое с прошлого Connect не переносим
+                _depthStates.Clear();
+
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -144,6 +148,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     UnsubscribeFromAllWebSockets();
                     _subscribedSecurities.Clear();
+                    _depthStates.Clear();
                     DeleteWebSocketConnection();
                     _allDepths.Clear();
                 }
@@ -803,6 +808,10 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
+            // Все отправки публичного сокета идут под этим локом (SendPublic): конкурентные отправки
+            // в ClientWebSocket бросают InvalidOperationException, порядок UNSUB->SUB нужен recovery-паре
+            private readonly object _publicSendLock = new object();
+
             private WebSocket _webSocketPrivate;
 
             private readonly string _webSocketPrivateUrl = "wss://fstream.xt.com/ws/user";
@@ -1207,13 +1216,17 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                             if (webSocketPublic != null
                                 && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                webSocketPublic.SendAsync("ping");
+                                // Q2 (решение ОдБ r7): ping некритичен, TrySendPublic пропускает цикл при
+                                // занятом convoy и сам залогирует — карусель не ждёт висючий send >30 с
+                                TrySendPublic(webSocketPublic, "ping");
                             }
                             else
                             {
                                 Disconnect();
                             }
                         }
+
+                        CheckDepthStates();
 
                         if (_webSocketPrivate != null &&
                             (_webSocketPrivate.ReadyState == WebSocketState.Open ||
@@ -1262,6 +1275,9 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     _subscribedSecurities.Add(security.Name);
 
+                    // состояние стакана на символ живёт ровно столько, сколько подписка (чистка в Dispose/Connect)
+                    GetDepthState(security.Name);
+
                     if (_webSocketPublic.Count == 0)
                     {
                         return;
@@ -1297,8 +1313,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     if (webSocketPublic != null)
                     {
-                        webSocketPublic.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},20,100ms\"],\"id\":\"1126\"}}");
-                        webSocketPublic.SendAsync($"{{\"method\":\"SUBSCRIBE\",\"params\":[\"trade@{security.Name}\"],\"id\":\"1127\"}}");
+                        SendPublic(webSocketPublic, $"{{\"method\":\"SUBSCRIBE\",\"params\":[\"depth_update@{security.Name}\", \"depth@{security.Name},20,100ms\"],\"id\":\"1126\"}}");
+                        SendPublic(webSocketPublic, $"{{\"method\":\"SUBSCRIBE\",\"params\":[\"trade@{security.Name}\"],\"id\":\"1127\"}}");
                     }
                 }
                 catch (Exception exception)
@@ -1328,8 +1344,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                                         {
                                             string securityName = _subscribedSecurities[j];
 
-                                            webSocketPublic.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"1252\"}}");
-                                            webSocketPublic.SendAsync($"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"trades@{securityName}\"], \"id\": \"1253\"}}");
+                                            SendPublic(webSocketPublic, $"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"depth_update@{securityName}\",\"depth@{securityName},{20}\"], \"id\": \"1252\"}}");
+                                            SendPublic(webSocketPublic, $"{{\"method\": \"UNSUBSCRIBE\", \"params\": [\"trades@{securityName}\"], \"id\": \"1253\"}}");
                                         }
                                     }
                                 }
@@ -1507,9 +1523,33 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             private List<MarketDepth> _allDepths = new List<MarketDepth>();
 
-            private bool _snapshotInitialized = false;
+            // BUG-0626: состояние стыковки стакана было на два флага (:1510/:1512) на всё соединение —
+            // снапшот любого символа ре-анкорил чужой, лента диффов умирала (live CROSS-детекты 82.5%).
+            // Стыковочные поля (LastU/SnapshotInitialized/DesyncAt/LastMalformedLog) мутирует только
+            // PublicMessageReader. ConnectionCheck (CheckDepthStates) трогает лишь ResyncFailures/
+            // LastDesyncLog и при эскалации выводит символ из учёта через TryRemove.
+            // 64-битные поля читаются из Check-треда без локов: атомность x64 явно не
+            // проверялась, наихудший риск — один лишний цикл эскалации.
+            private ConcurrentDictionary<string, DepthSymbolState> _depthStates =
+                new ConcurrentDictionary<string, DepthSymbolState>(StringComparer.OrdinalIgnoreCase);
 
-            private long _lastSeqNum = -1;
+            private class DepthSymbolState
+            {
+                public bool SnapshotInitialized;
+                public long LastU;                 // 0 = не засечён; пол принятых снапов/диффов, ниже не опускается
+                public DateTime DesyncAt;          // default = desync не было; принятый снап сбрасывает (R-a)
+                public DateTime LastDesyncLog;
+                public int ResyncFailures;
+                public DateTime LastMalformedLog;  // троттл Error по некорректным seq-полям (U17)
+            }
+
+            private static readonly TimeSpan DesyncErrorThrottle = TimeSpan.FromSeconds(5);   // Error + перезаказ на символ
+            private static readonly TimeSpan EscalationAfter = TimeSpan.FromSeconds(60);
+            private const int EscalationCycles = 3;
+            private static readonly TimeSpan NoSnapshotLogOncePer = TimeSpan.FromHours(1);
+            // Q2 (решение ОдБ r7): самоограничение convoya публичных отправок для некритичных мест
+            // (ping карусели, recovery-пара): висючий send не должен задерживать карусель >30 с
+            private const int SendLockTimeoutMs = 2000;
 
             private DateTime _lastTimeMd = DateTime.MinValue;
 
@@ -1522,13 +1562,47 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     XTFuturesSnapshotDepth depth = responseDepth?.data;
 
-                    if (depth == null)
+                    if (depth == null
+                        || string.IsNullOrEmpty(depth.s))
                     {
+                        // U17: null-s шёл бы в GetOrAdd(null)->ArgumentNullException и жрался хендлером — Error-шторм
                         return;
                     }
 
-                    _lastSeqNum = Convert.ToInt64(depth.id);
-                    _snapshotInitialized = true;
+                    DepthSymbolState state = GetDepthState(depth.s);
+
+                    if (!long.TryParse(depth.id, out long snapshotId)
+                        || snapshotId == 0)
+                    {
+                        // U17: id снапа — якорь пола; неформат = discard кадра без изменения состояния, Error с троттлом
+                        if (DateTime.Now - state.LastMalformedLog > DesyncErrorThrottle)
+                        {
+                            state.LastMalformedLog = DateTime.Now;
+                            SendLogMessage($"Depth snapshot malformed id {depth.s} id={depth.id}", LogMessageType.Error);
+                        }
+
+                        return;
+                    }
+
+                    if (snapshotId < state.LastU)
+                    {
+                        // Устаревший снап (например, WS-кадр, вышедший до re-SUB и пришедший после него,
+                        // или запоздалый дубль снапа): применение подменило бы свежий книг молчаливо устаревшим,
+                        // а пропущенные диффы не долечатся — стакан был бы испорчен без детекта
+                        return;
+                    }
+
+                    state.LastU = snapshotId;
+                    state.SnapshotInitialized = true;
+
+                    if (state.DesyncAt != default(DateTime))
+                    {
+                        // U26 (Q1): принятый снап = завершённый resync, стакан свежий на id снапа.
+                        // На тихом символе дифф может не прийти и за час — успех не должен зависеть от него,
+                        // а лестница — рвать живое соединение в ожидании
+                        state.DesyncAt = default(DateTime);
+                        state.ResyncFailures = 0;
+                    }
 
                     MarketDepth newDepth = new MarketDepth();
 
@@ -1596,6 +1670,12 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                     XTFuturesUpdateDepth marketDepth = resp?.data;
 
+                    if (marketDepth == null
+                        || string.IsNullOrEmpty(marketDepth.s))
+                    {
+                        return;
+                    }
+
                     MarketDepth depth = _allDepths.Find(d => d.SecurityNameCode == marketDepth.s);
 
                     if (depth == null)
@@ -1607,19 +1687,65 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    if (!_snapshotInitialized)
+                    DepthSymbolState state = GetDepthState(marketDepth.s);
+
+                    if (!state.SnapshotInitialized)
                     {
+                        // диффы до первого снапа — отброс без детекта: иначе первый же дифф здорового символа
+                        // встанет раньше снапшота и уйдёт в эскалацию против класса «снапа никогда не было»
                         return;
                     }
 
-                    if (_lastSeqNum != -1 && Convert.ToInt64(marketDepth.fu) != _lastSeqNum + 1)
+                    if (!long.TryParse(marketDepth.fu, out long fu)
+                        || !long.TryParse(marketDepth.u, out long u)
+                        || fu == 0
+                        || u == 0)
                     {
-                        _snapshotInitialized = false;
-                        _lastSeqNum = -1;
+                        // U17: отсутствующее/мусорное seq-поле — discard кадра без изменения состояния.
+                        // fu == 0 (Convert.ToInt64(null)) проходил бы гейт fu>LastU+1 как непрерывный —
+                        // приём через дыру, база на таком кадре детектировала. Error троттлится, не на кадр
+                        if (DateTime.Now - state.LastMalformedLog > DesyncErrorThrottle)
+                        {
+                            state.LastMalformedLog = DateTime.Now;
+                            SendLogMessage($"Depth malformed seq frame {marketDepth.s} fu={marketDepth.fu} u={marketDepth.u}", LogMessageType.Error);
+                        }
+
                         return;
                     }
 
-                    _lastSeqNum = Convert.ToInt64(marketDepth.fu);
+                    if (u <= state.LastU)
+                    {
+                        // дубликат или отставший кадр (включая приземлённый на снап u == id): discard, это не desync.
+                        // id снапа ведёт head диффов на лаг биржи (live-замер ~2 с, tr367): на активном символе
+                        // discard по u <= LastU — штатный режим, а не поломка: события кадра уже в принятом
+                        // полном снапе, книгу актуализирует поток depth@ ~10 Гц. Детект остаётся в двух
+                        // случаях: овертейк диффа над полом или смерть снап-ленты (тогда молчаливый
+                        // разрыв поднимает лестница эскалации)
+                        return;
+                    }
+
+                    if (fu > state.LastU + 1)
+                    {
+                        // реальный разрыв: читатель только выставляет флаг, ResyncFailures растёт в ConnectionCheck,
+                        // чтобы «тихая смерть» (молчание depth_update@ после детекта) тоже эскалировалась
+                        state.DesyncAt = DateTime.Now;
+
+                        if (DateTime.Now - state.LastDesyncLog > DesyncErrorThrottle)
+                        {
+                            state.LastDesyncLog = DateTime.Now;
+                            state.SnapshotInitialized = false;
+                            SendLogMessage($"Depth desync {marketDepth.s} fu={fu} expected={state.LastU + 1}", LogMessageType.Error);
+                            ResubscribeDepth(marketDepth.s);
+                        }
+
+                        return;
+                    }
+
+                    // приймается overlap-батч (fu <= LastU < u: уровни в payload абсолютные, применение идемпотентно)
+                    // и строгий fu == LastU + 1. Пол двигается только при приёме.
+                    // U26: success-сброс лестницы живёт в SnapshotDepth (принятый снап = resync завершён),
+                    // дифф после снапа принимается обычным гейтом и лестницу больше не ждёт
+                    state.LastU = u;
 
                     // guard обязан видеть итоговое время биржи, иначе emit-время не защищено (WServerTester Error 13)
                     depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(marketDepth.t));
@@ -1725,6 +1851,161 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     levels.Sort((a, b) => a.Price.CompareTo(b.Price));
                 }
+            }
+
+            private DepthSymbolState GetDepthState(string symbol)
+            {
+                return _depthStates.GetOrAdd(symbol, key => new DepthSymbolState());
+            }
+
+            private void ResubscribeDepth(string symbol)
+            {
+                if (_webSocketPublic.Count == 0)
+                {
+                    return;
+                }
+
+                // то же правило выбора сокета, что у Subscribe(): читатель не знает, с какого сокета пришёл кадр
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic == null
+                    || webSocketPublic.ReadyState != WebSocketState.Open)
+                {
+                    return;
+                }
+
+                // Q2 (решение ОдБ r7): висючий send не вешает читателя — не взяли лок за 2 с, пропускаем,
+                // детект перезаказывается по троттлу. Пара под одним удержанием: «UNSUB ушёл, SUB пропущен»
+                // недопустим — на мёртвой ленте новых детектов нет, UNSUB без SUB оставил бы символ без стакана
+                if (!Monitor.TryEnter(_publicSendLock, SendLockTimeoutMs))
+                {
+                    SendLogMessage($"Depth re-subscribe skipped for {symbol}, send lock busy", LogMessageType.Error);
+                    return;
+                }
+
+                try
+                {
+                    // diag: re-SUB даёт свежий снап за ~0.3 с (probe 30/30). Параметры дословно как Subscribe(),
+                    // не как UnsubscribeFromAllWebSockets с рассогласованием «depth@...,20»/trades@.
+                    // _subscribedSecurities не снимаем: подписка живая, идемпотентный SUB переохлаждает стрим
+                    SendPublic(webSocketPublic, $"{{\"method\":\"UNSUBSCRIBE\",\"params\":[\"depth_update@{symbol}\",\"depth@{symbol},20,100ms\"],\"id\":\"1301\"}}");
+                    SendPublic(webSocketPublic, $"{{\"method\":\"SUBSCRIBE\",\"params\":[\"depth_update@{symbol}\", \"depth@{symbol},20,100ms\"],\"id\":\"1302\"}}");
+                }
+                finally
+                {
+                    Monitor.Exit(_publicSendLock);
+                }
+            }
+
+            private void SendPublic(WebSocket webSocket, string message)
+            {
+                try
+                {
+                    if (webSocket == null)
+                    {
+                        return;
+                    }
+
+                    // общий лок + ожидаемый SendSync: конкурентные отправки в ClientWebSocket запрещены,
+                    // а fire-and-forget не гарантирует порядок даже двух подряд (отсюда UNSUB->SUB пары)
+                    lock (_publicSendLock)
+                    {
+                        webSocket.SendSync(message).GetAwaiter().GetResult();
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage("XT public socket send error: " + exception, LogMessageType.Error);
+                }
+            }
+
+            private bool TrySendPublic(WebSocket webSocket, string message)
+            {
+                // Q2 (решение ОдБ r7): только для некритичных мест (ping карусели): висючий send блокирует
+                // convoy, ждать его дольше 2 с вреднее пропуска цикла. Subscribe/Unsubscribe остаются
+                // блокирующими — потерять подписку хуже, чем подождать
+                if (!Monitor.TryEnter(_publicSendLock, SendLockTimeoutMs))
+                {
+                    SendLogMessage("XT public send skipped, send lock busy: " + message, LogMessageType.Error);
+                    return false;
+                }
+
+                try
+                {
+                    SendPublic(webSocket, message); // монитор реентрелен; null-проверка и catch — в SendPublic
+                }
+                finally
+                {
+                    Monitor.Exit(_publicSendLock);
+                }
+
+                return true;
+            }
+
+            private void CheckDepthStates()
+            {
+                DateTime now = DateTime.Now;
+
+                foreach (KeyValuePair<string, DepthSymbolState> pair in _depthStates.ToArray())
+                {
+                    DepthSymbolState state = pair.Value;
+
+                    if (state.DesyncAt != default(DateTime))
+                    {
+                        if (now - state.DesyncAt > EscalationAfter)
+                        {
+                            // R-a (решение ОдБ r7): успех эпизода = принятый после desync снап — он сбрасывает
+                            // DesyncAt в SnapshotDepth, поэтому сюда доходит только «десинк, а снапа нет».
+                            // Читатель ре-фрешит DesyncAt на каждом новом детекте, поэтому при живом потоке
+                            // событий со стыковкой не по правилу 60-с окно откладывается. Это bounded, не шторм:
+                            // перезаказ — не чаще троттла 5 с/символ; на реально мёртвом стриме новых детектов
+                            // нет, окно истекает и эскалация идёт
+                            state.ResyncFailures++;
+
+                            if (state.ResyncFailures >= EscalationCycles)
+                            {
+                                // U19 (класс 0334): символ снимается первым, Error — под catch, Disconnect —
+                                // после. Бросок подписчика логов не должен срезать единственную защиту
+                                _depthStates.TryRemove(pair.Key, out _);
+
+                                try
+                                {
+                                    SendLogMessage($"Depth resync failed x{state.ResyncFailures} for {pair.Key}, disconnecting", LogMessageType.Error);
+                                }
+                                catch (Exception exception)
+                                {
+                                    // канал логов сломан — Disconnect обязан состояться всё равно
+                                    System.Diagnostics.Debug.WriteLine(exception);
+                                }
+
+                                Disconnect();
+                            }
+                        }
+                    }
+                    else if (!state.SnapshotInitialized
+                             && IsDepthSymbolSubscribed(pair.Key))
+                    {
+                        // символ без снапшота никогда (неходякий/тонкий стакан) под эскалацию не попадает — только редкий Error
+                        if (now - state.LastDesyncLog > NoSnapshotLogOncePer)
+                        {
+                            state.LastDesyncLog = now;
+                            SendLogMessage($"no depth snapshot for {pair.Key}", LogMessageType.Error);
+                        }
+                    }
+                }
+            }
+
+            private bool IsDepthSymbolSubscribed(string symbol)
+            {
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].Equals(symbol, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private void UpdateTrade(string message)
