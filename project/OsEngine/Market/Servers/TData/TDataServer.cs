@@ -940,6 +940,12 @@ namespace OsEngine.Market.Servers.TData
                 // Обрезка по запрошенному окну: дневной coarse-фильтр файлов (:803/:829) пропускает хвост пограничного дня, после AddHours(3) в GetCandlesFromCsv он протекает за endTime
                 allCandles.RemoveAll(c => c.TimeStart < startTime || c.TimeStart >= endTime);
 
+                if (allCandles.Count == 0)
+                {
+                    // BUG-0657: архивы нашлись и скачались, а свечей в окне нет — молчаливый пустой ответ неотличим от отказа (GZZ6 W2 в tr382)
+                    SendLogMessage($"No candles for {secKey} in window {startTime:dd.MM.yyyy}-{endTime:dd.MM.yyyy} after parsing {urls.Count} archive(s)", LogMessageType.Warning);
+                }
+
                 return ConvertCandlesToRequestedTimeFrame(allCandles, timeFrameBuilder);
             }
             catch (Exception ex)
