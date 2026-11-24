@@ -24,7 +24,10 @@ In-process юниты к `MfdServerRealization` (`Market/Servers/MFD/MfdServer.c
 * G3 при `instance`-хелпере не исполняется (exit 2), «17/17 совпадает» вакуумно не печатается.
 * Отчёт — stdout, ASCII-маркеры решений (`RESULT GREEN exit=0`, `G1 PASS/FAIL`, `G2 ...`,
   `G3 ... IDENTICAL`, `FATAL:`), первой строкой `sha256 OsEngine.dll=` фактически загруженной
-  сборки; control-символы входов экранированы (`\t`, `\r`, `\n`) — предусловие CR-пина и grep-приёмки.
+  сборки; control-символы входов и текстов исключений экранированы (`\t`, `\r`, `\n`, прочие
+  `\uXXXX`) — каждая строка отчёта ровно одна физическая, предусловие CR-пина и grep-приёмки.
+* Юниты собраны под **x64** (`PlatformTarget=x64`, как `OsEngine.csproj`): при x86-сборе или на
+  x86-хосте загрузка движки даёт decorous `FATAL exit 2` (BadImageFormat перехвачен), не крах хоста.
 
 ## Сборка и прогон
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
 using OsEngine.Market.Servers.MFD;
 
 // bug-0633 (публ. bug-0640) gap C: durable юниты G1-G4 парсера MfdServerRealization (дедуп PR 2275).
@@ -318,13 +319,38 @@ internal static class Program
         return value == null ? "null" : "\"" + Esc(value) + "\"";
     }
 
-    // ASCII-маркеры stdout — предусловие приёмки grep'ом и CR-пина: control-символы экранируются.
+    // ASCII-маркеры stdout — предусловие приёмки grep'ом и CR-пина: control-символы экранируются
+    // (FU-7): каждая строка отчёта — ровно одна физическая строка, сырой CR/\n из golden не затирает маркер.
     private static string Esc(string value)
     {
-        return value
-            .Replace("\t", "\\t")
-            .Replace("\r", "\\r")
-            .Replace("\n", "\\n")
-            .Replace("\"", "'");
+        var sb = new StringBuilder(value.Length);
+        foreach (char c in value)
+        {
+            if (c == '\t')
+            {
+                sb.Append("\\t");
+            }
+            else if (c == '\r')
+            {
+                sb.Append("\\r");
+            }
+            else if (c == '\n')
+            {
+                sb.Append("\\n");
+            }
+            else if (c == '"')
+            {
+                sb.Append("'");
+            }
+            else if (char.IsControl(c))
+            {
+                sb.Append("\\u").Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+        return sb.ToString();
     }
 }

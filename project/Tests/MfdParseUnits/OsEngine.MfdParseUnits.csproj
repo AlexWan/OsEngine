@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
     <AssemblyName>OsEngine.MfdParseUnits</AssemblyName>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EngineBin>$(MSBuildThisFileDirectory)..\..\OsEngine\bin\Debug</EngineBin>
