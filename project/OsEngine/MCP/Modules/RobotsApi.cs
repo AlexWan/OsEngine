@@ -1604,12 +1604,23 @@ namespace OsEngine.MCP.Modules
                             ? CheckState.Checked
                             : CheckState.Unchecked;
                     }
-                    else if (valueElement.ValueKind == JsonValueKind.String && Enum.TryParse<CheckState>(valueElement.GetString(), true, out CheckState checkState))
+                    else if (valueElement.ValueKind == JsonValueKind.String && TryParseSingleEnumName<CheckState>(valueElement.GetString(), true, out CheckState checkState))
                     {
                         ((StrategyParameterCheckBox)parameter).CheckState = checkState;
                     }
                     else
                     {
+                        // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                        if (valueElement.ValueKind == JsonValueKind.String)
+                        {
+                            string checkStateStr = (valueElement.GetString() ?? string.Empty).Trim();
+
+                            if (checkStateStr.Length > 0 && (!char.IsLetter(checkStateStr[0]) || checkStateStr.Contains(',')))
+                            {
+                                throw new ArgumentException($"Parameter '{parameter.Name}' must be a single CheckState value, got '{valueElement.GetString()}'");
+                            }
+                        }
+
                         throw new ArgumentException($"Parameter '{parameter.Name}' requires a boolean or CheckState value");
                     }
                     break;
@@ -1888,7 +1899,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("commission_type", out JsonElement commissionTypeElement)
                 && commissionTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
+                && TryParseSingleEnumName<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
             {
                 // через вкладку: она пишет и в журнал (позиции и файл DealController.txt), и в коннектор;
                 // запись только в коннектор не применялась к позициям и терялась после перезапуска
@@ -1910,7 +1921,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("candle_market_data_type", out JsonElement candleMarketDataTypeElement)
                 && candleMarketDataTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
+                && TryParseSingleEnumName<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
             {
                 connector.CandleMarketDataType = candleMarketDataType;
             }
@@ -1923,7 +1934,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("time_frame", out JsonElement timeFrameElement)
                 && timeFrameElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
+                && TryParseSingleEnumName<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
             {
                 connector.TimeFrame = timeFrame;
             }
@@ -2119,7 +2130,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("candle_market_data_type", out JsonElement candleMarketDataTypeElement)
                 && candleMarketDataTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
+                && TryParseSingleEnumName<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
             {
                 screener.CandleMarketDataType = candleMarketDataType;
                 needReload = true;
@@ -2134,7 +2145,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("commission_type", out JsonElement commissionTypeElement)
                 && commissionTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
+                && TryParseSingleEnumName<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
             {
                 screener.CommissionType = commissionType;
                 needReload = true;
@@ -2171,7 +2182,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("time_frame", out JsonElement timeFrameElement)
                 && timeFrameElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
+                && TryParseSingleEnumName<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
             {
                 screener.TimeFrame = timeFrame;
 
@@ -2572,7 +2583,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("type_double_exit_order", out JsonElement typeDoubleExitOrderElement)
                 && typeDoubleExitOrderElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<OrderPriceType>(typeDoubleExitOrderElement.GetString(), true, out OrderPriceType typeDoubleExitOrder))
+                && TryParseSingleEnumName<OrderPriceType>(typeDoubleExitOrderElement.GetString(), true, out OrderPriceType typeDoubleExitOrder))
             {
                 support.TypeDoubleExitOrder = typeDoubleExitOrder;
             }
@@ -2586,14 +2597,14 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("values_type", out JsonElement valuesTypeElement)
                 && valuesTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<ManualControlValuesType>(valuesTypeElement.GetString(), true, out ManualControlValuesType valuesType))
+                && TryParseSingleEnumName<ManualControlValuesType>(valuesTypeElement.GetString(), true, out ManualControlValuesType valuesType))
             {
                 support.ValuesType = valuesType;
             }
 
             if (parameters.TryGetProperty("order_type_time", out JsonElement orderTypeTimeElement)
                 && orderTypeTimeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<OrderTypeTime>(orderTypeTimeElement.GetString(), true, out OrderTypeTime orderTypeTime))
+                && TryParseSingleEnumName<OrderTypeTime>(orderTypeTimeElement.GetString(), true, out OrderTypeTime orderTypeTime))
             {
                 support.OrderTypeTime = orderTypeTime;
             }
@@ -2689,8 +2700,16 @@ namespace OsEngine.MCP.Modules
             // т.к. штатная валидация CreateNewGridSafe завязана на модальные окна
             string gridTypeStr = GetRequiredString(parameters, "grid_type");
 
-            if (!Enum.TryParse<TradeGridPrimeType>(gridTypeStr, true, out TradeGridPrimeType gridType))
+            if (!TryParseSingleEnumName<TradeGridPrimeType>(gridTypeStr, true, out TradeGridPrimeType gridType))
             {
+                // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                string trimmedGridType = (gridTypeStr ?? string.Empty).Trim();
+
+                if (trimmedGridType.Length > 0 && (!char.IsLetter(trimmedGridType[0]) || trimmedGridType.Contains(',')))
+                {
+                    throw new ArgumentException($"Parameter 'grid_type' must be a single TradeGridPrimeType value, got '{gridTypeStr}'");
+                }
+
                 throw new ArgumentException($"Unknown grid_type '{gridTypeStr}'. Expected: MarketMaking, OpenPosition");
             }
 
@@ -2822,8 +2841,16 @@ namespace OsEngine.MCP.Modules
 
             string regimeStr = GetRequiredString(parameters, "regime");
 
-            if (!Enum.TryParse<TradeGridRegime>(regimeStr, true, out TradeGridRegime regime))
+            if (!TryParseSingleEnumName<TradeGridRegime>(regimeStr, true, out TradeGridRegime regime))
             {
+                // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                string trimmedRegime = (regimeStr ?? string.Empty).Trim();
+
+                if (trimmedRegime.Length > 0 && (!char.IsLetter(trimmedRegime[0]) || trimmedRegime.Contains(',')))
+                {
+                    throw new ArgumentException($"Parameter 'regime' must be a single TradeGridRegime value, got '{regimeStr}'");
+                }
+
                 throw new ArgumentException(
                     $"Unknown regime '{regimeStr}'. Expected: On, Off, OffAndCancelOrders, CloseOnly, CloseForced");
             }
@@ -3180,11 +3207,36 @@ namespace OsEngine.MCP.Modules
             }
         }
 
-        private void ApplyEnumField<TEnum>(JsonElement parameters, string name, Action<TEnum> apply) where TEnum : struct
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
+        private void ApplyEnumField<TEnum>(JsonElement parameters, string name, Action<TEnum> apply) where TEnum : struct, Enum
         {
             if (parameters.TryGetProperty(name, out JsonElement element)
                 && element.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TEnum>(element.GetString(), true, out TEnum value))
+                && TryParseSingleEnumName<TEnum>(element.GetString(), true, out TEnum value))
             {
                 apply(value);
             }
@@ -3274,7 +3326,9 @@ namespace OsEngine.MCP.Modules
 
             string sideStr = GetRequiredString(parameters, "side");
 
-            if (!Enum.TryParse<Side>(sideStr, true, out Side side)
+            // bug-0679 R3: whitelist Buy/Sell остаётся поверх предиката; предикат отсекает числовые «0»/«1»,
+            // которые раньше проходили whitelist как свёрнутое Buy/Sell. Текст ошибки прежний (R4).
+            if (!TryParseSingleEnumName<Side>(sideStr, true, out Side side)
                 || (side != Side.Buy && side != Side.Sell))
             {
                 throw new ArgumentException($"Unknown side '{sideStr}'. Expected: Buy, Sell");
@@ -3854,7 +3908,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("candle_market_data_type", out JsonElement candleMarketDataTypeElement)
                 && candleMarketDataTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
+                && TryParseSingleEnumName<CandleMarketDataType>(candleMarketDataTypeElement.GetString(), true, out CandleMarketDataType candleMarketDataType))
             {
                 creator.CandleMarketDataType = candleMarketDataType;
                 needReload = true;
@@ -3869,7 +3923,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("commission_type", out JsonElement commissionTypeElement)
                 && commissionTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
+                && TryParseSingleEnumName<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
             {
                 creator.CommissionType = commissionType;
                 needReload = true;
@@ -3899,7 +3953,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("time_frame", out JsonElement timeFrameElement)
                 && timeFrameElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
+                && TryParseSingleEnumName<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
             {
                 creator.TimeFrame = timeFrame;
                 needReload = true;
@@ -4075,14 +4129,14 @@ namespace OsEngine.MCP.Modules
 
             if (config.TryGetProperty("regime", out JsonElement regimeElement)
                 && regimeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<IndexAutoFormulaBuilderRegime>(regimeElement.GetString(), true, out IndexAutoFormulaBuilderRegime regime))
+                && TryParseSingleEnumName<IndexAutoFormulaBuilderRegime>(regimeElement.GetString(), true, out IndexAutoFormulaBuilderRegime regime))
             {
                 builder.Regime = regime;
             }
 
             if (config.TryGetProperty("day_of_week", out JsonElement dayOfWeekElement)
                 && dayOfWeekElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<DayOfWeek>(dayOfWeekElement.GetString(), true, out DayOfWeek dayOfWeek))
+                && TryParseSingleEnumName<DayOfWeek>(dayOfWeekElement.GetString(), true, out DayOfWeek dayOfWeek))
             {
                 builder.DayOfWeekToRebuildIndex = dayOfWeek;
             }
@@ -4110,14 +4164,14 @@ namespace OsEngine.MCP.Modules
 
             if (config.TryGetProperty("sort_type", out JsonElement sortTypeElement)
                 && sortTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<SecuritySortType>(sortTypeElement.GetString(), true, out SecuritySortType sortType))
+                && TryParseSingleEnumName<SecuritySortType>(sortTypeElement.GetString(), true, out SecuritySortType sortType))
             {
                 builder.IndexSortType = sortType;
             }
 
             if (config.TryGetProperty("mult_type", out JsonElement multTypeElement)
                 && multTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<IndexMultType>(multTypeElement.GetString(), true, out IndexMultType multType))
+                && TryParseSingleEnumName<IndexMultType>(multTypeElement.GetString(), true, out IndexMultType multType))
             {
                 builder.IndexMultType = multType;
             }
