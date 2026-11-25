@@ -169,9 +169,27 @@ namespace OsEngine.Market.Servers.BybitData
 
         List<Security> _securities = new List<Security>();
 
+        // reload не должен дописывать в список дубли — это бесконечная память; ключ тройной
+        // (NameId|Name|NameClass), как матчит слияние бумаг в AServer
+        private readonly HashSet<string> _knownSecurityKeys = new HashSet<string>();
+
+        private static string SecurityKey(Security security)
+        {
+            return security.NameId + "|" + security.Name + "|" + security.NameClass;
+        }
+
         public void GetSecurities()
         {
             SendLogMessage("Downloading the list of securities...", LogMessageType.System);
+
+            // набор ключей перестраивается от текущего списка на каждом входе, чтобы
+            // повторная загрузка не добавляла дубли
+            _knownSecurityKeys.Clear();
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                _knownSecurityKeys.Add(SecurityKey(_securities[i]));
+            }
 
             string[] secCategories = { "spot", "linear", "inverse" };
 
@@ -377,6 +395,11 @@ namespace OsEngine.Market.Servers.BybitData
                         security.State = SecurityStateType.Activ;
                         security.Exchange = ServerType.Bybit.ToString();
                         security.Lot = 1;
+
+                        if (!_knownSecurityKeys.Add(SecurityKey(security)))
+                        {
+                            continue; // дубль из предыдущего цикла загрузки
+                        }
 
                         _securities.Add(security);
                         fixedAdded++;
