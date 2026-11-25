@@ -2960,8 +2960,8 @@ namespace OsEngine.Language
            "Ru:Восстанавливать закрытия при возврате средств_");
 
         public string Label785 => OsLocalization.ConvertToLocString(
-           "Eng:In percent_" +
-           "Ru:В процентах_");
+           "Eng:In %_" +
+           "Ru:В %_");
 
         public string Label786 => OsLocalization.ConvertToLocString(
            "Eng:Step in percent of current extreme grid price_" +
