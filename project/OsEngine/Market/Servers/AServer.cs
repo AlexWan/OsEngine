@@ -295,8 +295,6 @@ namespace OsEngine.Market.Servers
 
                 _serverStatusNeed = ServerConnectStatus.Disconnect;
 
-                _loadDataLocker = "lockerData_" + ServerType.ToString();
-
                 Task task1 = new Task(PrimeThreadArea);
                 task1.Start();
 
@@ -2669,7 +2667,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// multithreaded access locker in StartThisSecurity
         /// </summary>
-        private string _lockerStarter = "lockerStarterAserver";
+        private readonly object _lockerStarter = new object();
 
         /// <summary>
         /// start uploading data on instrument
@@ -2829,7 +2827,7 @@ namespace OsEngine.Market.Servers
             _newsToSend.Enqueue(news);
         }
 
-        private string _lockerStartNews = "lockerStartNews";
+        private readonly object _lockerStartNews = new object();
 
         /// <summary>
         /// subscribe to news
@@ -3102,7 +3100,8 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// blocker of data request methods from multithreaded access
         /// </summary>
-        private string _loadDataLocker;
+        // bug-0654: init in declaration. Was null until ServerRealization setter ran -> lock(null) crash.
+        private readonly object _loadDataLocker = new object();
 
         /// <summary>
         /// interface for getting the last candlesticks for a security. 
@@ -3450,7 +3449,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// array blocker with market depths against multithreaded access
         /// </summary>
-        private string _depthsArrayLocker = "depthsLocker";
+        private readonly object _depthsArrayLocker = new object();
 
         private Dictionary<string, BidAskSender> _lastBidAskValuesDictionary = new Dictionary<string, BidAskSender>();
 
@@ -3609,7 +3608,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// array blocker with trades against multithreaded access
         /// </summary>
-        private string _newTradesLocker = "tradesLocker";
+        private readonly object _newTradesLocker = new object();
 
         /// <summary>
         /// get trade history by security
@@ -4001,7 +4000,7 @@ namespace OsEngine.Market.Servers
 
         private List<string> _cancelledOrdersNumbers = new List<string>();
 
-        private string _cancelledOrdersNumbersLocker = "_cancelledOrdersNumbersLocker";
+        private readonly object _cancelledOrdersNumbersLocker = new object();
 
         /// <summary>
         /// array for storing orders to be sent to the exchange
@@ -4326,7 +4325,7 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private string _cancelOrdersLocker = "_cancelOrdersLocker";
+        private readonly object _cancelOrdersLocker = new object();
 
         /// <summary>
         /// cancel all orders from trading system
