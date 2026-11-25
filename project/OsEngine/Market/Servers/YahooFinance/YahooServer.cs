@@ -425,7 +425,7 @@ namespace OsEngine.Market.Servers.YahooFinance
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"RequestCandleHistory: {security} {responseMessage.StatusCode}. Error: {err}. Url: {_httpClient.BaseUrl}", LogMessageType.Error);
+                    SendLogMessage($"RequestCandleHistory: {security} {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {_httpClient.BaseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)

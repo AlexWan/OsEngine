@@ -178,7 +178,8 @@ namespace OsEngine.Market.Servers.Alor
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Token request error. Status: {response.StatusCode}. Error: {err}. Url: {_oauthApiHost}{endPoint}", LogMessageType.Error);
+                    // секрет: endPoint содержит refresh-токен (ServerParameterPassword), в лог — только хост+путь без query
+                    SendLogMessage($"Token request error. Status: {response.StatusCode}. Error: {err}. Url: {_oauthApiHost}/refresh?token=***", LogMessageType.Error);
                     return false;
                 }
             }

@@ -159,7 +159,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Authentication request failed. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
+                    SendLogMessage($"Authentication request failed. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
 
                 return true;
@@ -409,7 +409,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Error requesting securities. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}/instruments/{exchange}", LogMessageType.Error);
+                    SendLogMessage($"Error requesting securities. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}/instruments/{exchange}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -519,7 +519,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Portfolio request error. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}/user/margins", LogMessageType.Error);
+                    SendLogMessage($"Portfolio request error. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}/user/margins", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -607,7 +607,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Portfolio update request error. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}/user/margins", LogMessageType.Error);
+                    SendLogMessage($"Portfolio update request error. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}/user/margins", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -690,7 +690,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Portfolio Holdings request error. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}/portfolio/holdings", LogMessageType.Error);
+                    SendLogMessage($"Portfolio Holdings request error. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}/portfolio/holdings", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -781,7 +781,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Error requesting positions. Status: {response.StatusCode}. Error: {err}. Url: {_baseUrl}/portfolio/positions", LogMessageType.Error);
+                    SendLogMessage($"Error requesting positions. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}/portfolio/positions", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1052,7 +1052,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Candle request error. Status: {response.StatusCode}. Error: {err}. Url: {path}", LogMessageType.Error);
+                    SendLogMessage($"Candle request error. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {path}", LogMessageType.Error);
                 }
                 return null;
             }
@@ -1899,7 +1899,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Error querying active orders. Status: {response.StatusCode}. Error: {err}. Url: {path}", LogMessageType.Error);
+                    SendLogMessage($"Error querying active orders. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {path}", LogMessageType.Error);
                 }
                 return null;
             }
@@ -1960,7 +1960,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Error getting myTrade. Status: {response.StatusCode}. Error: {err}. Url: {path}", LogMessageType.Error);
+                    SendLogMessage($"Error getting myTrade. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {path}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2050,7 +2050,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Request for order status failed. Status: {response.StatusCode}. Error: {err}. Url: {path}", LogMessageType.Error);
+                    SendLogMessage($"Request for order status failed. Status: {response.StatusCode}-{response.Content}. Error: {err}. Url: {path}", LogMessageType.Error);
                 }
                 return null;
             }

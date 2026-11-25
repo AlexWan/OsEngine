@@ -251,7 +251,7 @@ namespace OsEngine.Market.Servers.Pionex
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Securities request error. Code: {response.StatusCode}. Error: {err}. Url: {_baseUrl}{_prefix}common/symbols?symbol=BTC_USDT", LogMessageType.Error);
+                    SendLogMessage($"Securities request error. Code: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}{_prefix}common/symbols?symbol=BTC_USDT", LogMessageType.Error);
                 }
             }
             catch (Exception exception)

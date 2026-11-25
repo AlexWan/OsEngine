@@ -996,7 +996,7 @@ namespace OsEngine.Market.Servers.BCS
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"Token request error: code: {response.StatusCode}. Error: {err}. Url: {_baseUrl}{endPoint}", LogMessageType.Error);
+                    SendLogMessage($"Token request error: code: {response.StatusCode}-{response.Content}. Error: {err}. Url: {_baseUrl}{endPoint}", LogMessageType.Error);
                     return false;
                 }
             }

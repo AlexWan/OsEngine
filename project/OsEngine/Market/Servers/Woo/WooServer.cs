@@ -381,7 +381,7 @@ namespace OsEngine.Market.Servers.Woo
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"Securities request error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
+                    SendLogMessage($"Securities request error. Code: {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -763,7 +763,7 @@ namespace OsEngine.Market.Servers.Woo
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"Candles request error: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
+                    SendLogMessage($"Candles request error: {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1384,7 +1384,7 @@ namespace OsEngine.Market.Servers.Woo
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1455,7 +1455,7 @@ namespace OsEngine.Market.Servers.Woo
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1893,7 +1893,7 @@ namespace OsEngine.Market.Servers.Woo
                         ? responseMessage.ErrorMessage
                         : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
 
-                    SendLogMessage($"MarketDepth snapshot request error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
+                    SendLogMessage($"MarketDepth snapshot request error. Code: {responseMessage.StatusCode}-{responseMessage.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
