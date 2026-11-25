@@ -420,7 +420,12 @@ namespace OsEngine.Market.Servers.YahooFinance
                 }
                 else
                 {
-                    SendLogMessage($"RequestCandleHistory: {security} {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"RequestCandleHistory: {security} {responseMessage.StatusCode}. Error: {err}. Url: {_httpClient.BaseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)

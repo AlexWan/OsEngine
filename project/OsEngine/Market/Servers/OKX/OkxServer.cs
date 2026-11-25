@@ -189,7 +189,12 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"/api/v5/public/time - Server is not available or there is no internet. \n" +
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"/api/v5/public/time - Server is not available or there is no internet. Error: {err}. Url: {_baseUrl}/api/v5/public/time. \n" +
                          " \n You may have forgotten to turn on the VPN", LogMessageType.Error);
                     return;
                 }
@@ -403,7 +408,11 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetSwapSecurities error. Status: {response.StatusCode}. {response.ErrorMessage} {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetSwapSecurities error. Status: {response.StatusCode}. {err} {response.Content}", LogMessageType.Error);
                     return null;
                 }
 
@@ -440,7 +449,11 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetFuturesContractsSecurities error. Status: {response.StatusCode}. {response.ErrorMessage} {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetFuturesContractsSecurities error. Status: {response.StatusCode}. {err} {response.Content}", LogMessageType.Error);
                     return null;
                 }
 
@@ -477,7 +490,11 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetOptionBaseSecurities error. Status: {response.StatusCode}. {response.ErrorMessage} {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetOptionBaseSecurities error. Status: {response.StatusCode}. {err} {response.Content}", LogMessageType.Error);
                     return null;
                 }
 
@@ -530,7 +547,11 @@ namespace OsEngine.Market.Servers.OKX
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"GetOptionSecurities error. {baseSecurity} Status: {response.StatusCode}. {response.ErrorMessage} {response.Content}", LogMessageType.Error);
+                        string err = response.ErrorException == null
+                            ? response.ErrorMessage
+                            : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                        SendLogMessage($"GetOptionSecurities error. {baseSecurity} Status: {response.StatusCode}. {err} {response.Content}", LogMessageType.Error);
                         continue;
                     }
 
@@ -583,7 +604,11 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetSpotSecurities error. Status: {response.StatusCode}. {response.ErrorMessage} {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetSpotSecurities error. Status: {response.StatusCode}. {err} {response.Content}", LogMessageType.Error);
                     return null;
                 }
 
@@ -1069,7 +1094,11 @@ namespace OsEngine.Market.Servers.OKX
                     }
                     else
                     {
-                        SendLogMessage($"GetResponseDataCandles - {Response.StatusCode} || {Response.Content}", LogMessageType.Error);
+                        string err = Response.ErrorException == null
+                            ? Response.ErrorMessage
+                            : Response.ErrorException.GetType().Name + ": " + Response.ErrorException.Message;
+
+                        SendLogMessage($"GetResponseDataCandles - {Response.StatusCode} || {Response.Content}. Error: {err}", LogMessageType.Error);
                     }
 
                     // move the window back by limit bars, even if the page came back empty or short
@@ -1264,7 +1293,11 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 else
                 {
-                    SendLogMessage($"Trades request error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Trades request error: {response.StatusCode} - {response.Content}. Error: {err}", LogMessageType.Error);
                 }
             }
             catch (Exception error)
@@ -2599,7 +2632,11 @@ namespace OsEngine.Market.Servers.OKX
                 }
                 else
                 {
-                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}. Error: {err}", LogMessageType.Error);
                 }
             }
             catch (Exception error)

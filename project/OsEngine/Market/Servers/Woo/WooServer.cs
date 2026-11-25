@@ -119,7 +119,12 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage("Connection can be open. WooX. Error request", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Connection can be open. WooX. Error request. Error: {err}. Url: {_baseUrl}/v3/public/systemInfo", LogMessageType.Error);
                     Disconnect();
                 }
             }
@@ -372,7 +377,11 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage($"Securities request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"Securities request error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -750,7 +759,11 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage($"Candles request error: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"Candles request error: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1367,7 +1380,11 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1434,7 +1451,11 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"FundingHistory error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1868,7 +1889,11 @@ namespace OsEngine.Market.Servers.Woo
                 }
                 else
                 {
-                    SendLogMessage($"MarketDepth snapshot request error. Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                    string err = responseMessage.ErrorException == null
+                        ? responseMessage.ErrorMessage
+                        : responseMessage.ErrorException.GetType().Name + ": " + responseMessage.ErrorException.Message;
+
+                    SendLogMessage($"MarketDepth snapshot request error. Code: {responseMessage.StatusCode}. Error: {err}. Url: {url}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2868,6 +2893,15 @@ namespace OsEngine.Market.Servers.Woo
                 request.AddParameter("application/json", requestBody, ParameterType.RequestBody);
 
                 IRestResponse responseMessage = client.Execute(request);
+
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; коллеры читают responseMessage.Content вслепую
+                if (responseMessage.ResponseStatus != ResponseStatus.Completed || responseMessage.ErrorException != null)
+                {
+                    SendLogMessage("CreatePrivateQuery error. Url: " + _baseUrl + requestPath + ". ResponseStatus: "
+                        + responseMessage.ResponseStatus + ". StatusCode: " + responseMessage.StatusCode + ". Error: "
+                        + (responseMessage.ErrorException != null ? responseMessage.ErrorException.ToString() : responseMessage.ErrorMessage),
+                        LogMessageType.Error);
+                }
 
                 return responseMessage;
             }

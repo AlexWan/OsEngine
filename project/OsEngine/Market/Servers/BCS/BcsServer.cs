@@ -991,7 +991,12 @@ namespace OsEngine.Market.Servers.BCS
                 }
                 else
                 {
-                    SendLogMessage($"Token request error: code: {response.StatusCode} > msg: {response.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Token request error: code: {response.StatusCode}. Error: {err}. Url: {_baseUrl}{endPoint}", LogMessageType.Error);
                     return false;
                 }
             }

@@ -177,7 +177,12 @@ namespace OsEngine.Market.Servers.OKXData
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetFuturesSecurities - {response.Content}", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetFuturesSecurities - {response.Content}. Error: {err}. Url: {_baseUrl}/api/v5/public/instruments?instType=FUTURES", LogMessageType.Error);
                 }
 
                 SecurityRespOkxData securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityRespOkxData());
@@ -207,7 +212,11 @@ namespace OsEngine.Market.Servers.OKXData
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetSpotSecurities - {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"GetSpotSecurities - {response.Content}. Error: {err}. Url: {_baseUrl}/api/v5/public/instruments?instType=SPOT", LogMessageType.Error);
                 }
 
                 SecurityRespOkxData securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityRespOkxData());
@@ -477,7 +486,12 @@ namespace OsEngine.Market.Servers.OKXData
                     }
                     else
                     {
-                        SendLogMessage($"GetResponseDataCandles - {Response.Content}", LogMessageType.Error);
+                        // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                        string err = Response.ErrorException == null
+                            ? Response.ErrorMessage
+                            : Response.ErrorException.GetType().Name + ": " + Response.ErrorException.Message;
+
+                        SendLogMessage($"GetResponseDataCandles - {Response.Content}. Error: {err}. Url: {url}", LogMessageType.Error);
                     }
 
                     NumberCandlesToLoad -= limit;

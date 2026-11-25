@@ -86,7 +86,12 @@ namespace OsEngine.Market.Servers.Pionex
                 }
                 else
                 {
-                    SendLogMessage("Connection cannot be open. Pionex Spot. Error request", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Connection cannot be open. Pionex Spot. Error request. Error: {err}. Url: {_baseUrl}{_prefix}common/symbols?symbol=BTC_USDT", LogMessageType.Error);
                     Disconnect();
                 }
             }
@@ -242,7 +247,11 @@ namespace OsEngine.Market.Servers.Pionex
                 }
                 else
                 {
-                    SendLogMessage($"Securities request error. Code: {response.StatusCode} || {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Securities request error. Code: {response.StatusCode}. Error: {err}. Url: {_baseUrl}{_prefix}common/symbols?symbol=BTC_USDT", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -286,6 +295,12 @@ namespace OsEngine.Market.Servers.Pionex
                 }
                 else
                 {
+                    // bug-0663: RestSharp не бросает сетевые сбои — иначе отказ уходит молчаливым return false
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"CandlesOnSecurities error. Code: {response.StatusCode}. Error: {err}. Url: {_baseUrl}{endPoint}", LogMessageType.Error);
                     return false;
                 }
             }
@@ -470,7 +485,11 @@ namespace OsEngine.Market.Servers.Pionex
                 }
                 else
                 {
-                    SendLogMessage($"Candles request error: {response.StatusCode} || {response.StatusCode}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Candles request error: {response.StatusCode} || {response.StatusCode}. Error: {err}. Url: {_baseUrl}{endPoint}", LogMessageType.Error);
                     return null;
                 }
             }
@@ -2082,7 +2101,18 @@ namespace OsEngine.Market.Servers.Pionex
                     request.AddParameter("application/json", body, ParameterType.RequestBody);
                 }
 
-                return client.Execute(request);
+                IRestResponse response = client.Execute(request);
+
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; коллеры читают json.Content вслепую
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("CreatePrivateRequest error. Url: " + _baseUrl + _prefix + pathUrl + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
