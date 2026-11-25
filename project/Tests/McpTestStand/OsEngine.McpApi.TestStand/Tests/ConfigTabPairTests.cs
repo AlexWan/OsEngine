@@ -91,7 +91,17 @@ namespace OsEngine.McpApi.TestStand.Tests
                     "Off", "Off", "No", "True", "True", "True"
                 });
 
+                // после рестарта Robot master поднимается асинхронно: ждём, пока bot_* перестанет
+                // отвечать «Robot master is not available» (тот же паттерн, что WaitForTesterServer)
                 string created = Call("bot_create", new { strategy_name = "PairCorrelationTrader", name = Bot });
+                DateTime masterDeadline = DateTime.Now.AddSeconds(30);
+
+                while (IsError(created) && created.Contains("Robot master is not available") && DateTime.Now < masterDeadline)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                    created = Call("bot_create", new { strategy_name = "PairCorrelationTrader", name = Bot });
+                }
+
                 bool createdOk = !IsError(created);
 
                 string state = GetInner(Get("bot_get_config_tab_pair", new { bot_id = Bot, tab_name = Tab }));
