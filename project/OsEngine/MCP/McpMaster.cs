@@ -2035,6 +2035,8 @@ namespace OsEngine.MCP
                     case "bot_set_config_tab_simple":
                     case "bot_get_config_tab_screener":
                     case "bot_set_config_tab_screener":
+                    case "bot_get_config_tab_pair":
+                    case "bot_set_config_tab_pair":
                         response = _robotsApi.Handle(request);
                         break;
 
