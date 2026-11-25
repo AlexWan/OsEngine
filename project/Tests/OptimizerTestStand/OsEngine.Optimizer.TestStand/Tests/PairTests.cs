@@ -217,13 +217,17 @@ namespace OsEngine.Optimizer.TestStand.Tests
 
             if (!SelectDataSetByName("Tester10Liq"))
             {
-                RecordFail("SeriesNotSilent", "сет Tester10Liq не выбран");
+                RecordFail("SeriesNotSilent", "сет Tester10Liq не выбран (среда без данных)");
+                RejectedOnOptimizer();
+                NotPersistedByOptimizer();
                 return;
             }
 
             if (!WaitForStorageLoad(300))
             {
-                RecordFail("SeriesNotSilent", "хранилище оптимизатора не загрузилось");
+                RecordFail("SeriesNotSilent", "хранилище оптимизатора не загрузилось (среда без данных)");
+                RejectedOnOptimizer();
+                NotPersistedByOptimizer();
                 return;
             }
 
@@ -383,9 +387,10 @@ namespace OsEngine.Optimizer.TestStand.Tests
             Dictionary<string, string[]> snapshot = new Dictionary<string, string[]>(StringComparer.Ordinal);
             string engine = EngineDirectory();
 
+            // StandartPairsSettings.txt не входим: движок сохраняет стандарт лениво
+            // (смена флагов/standard-set), live create_pair+legs его не создаёт.
             List<string> files = new List<string>
             {
-                _tabName + "StandartPairsSettings.txt",
                 _tabName + "PairsNamesToLoad.txt"
             };
 
