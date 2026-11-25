@@ -491,7 +491,7 @@ namespace OsEngine.Market.Servers.MFD
 
             int badTicks = 0;
 
-            for (int i = 1; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(lines[i]))
                 {
