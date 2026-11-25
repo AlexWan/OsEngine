@@ -1655,6 +1655,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         public void SetNewServiceInfo(string serviceInfo)
         {
             _serviceInfo.Add(serviceInfo);
+            // bug-0671: дубль в лог сразу; бросок подписчика не должен ронять тест
+            try { SendLogMessage("Service info: " + serviceInfo, LogMessageType.Error); }
+            catch { /* ignore: сбой файл-лога под нагрузкой — молчание лучше ложного FAIL */ }
         }
 
         /// <summary>
