@@ -21,7 +21,7 @@ namespace OsEngine.OsData
 
         private static List<OsDataSetPainter> _painters = new List<OsDataSetPainter>();
 
-        private static string _locker = "painterAreaLocker";
+        private static readonly object _locker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         private static Thread _worker;
 

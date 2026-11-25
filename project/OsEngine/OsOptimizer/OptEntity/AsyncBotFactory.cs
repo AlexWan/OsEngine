@@ -26,7 +26,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             }
         }
 
-        private string _botLocker = "botLocker";
+        private readonly object _botLocker = new object();
 
         public BotPanel GetBot(string botType, string botName)
         {

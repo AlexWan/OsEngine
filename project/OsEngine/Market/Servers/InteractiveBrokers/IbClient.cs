@@ -28,7 +28,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         private bool _isConnected;
 
-        private string _sendMessageLocker = "sendMessageLocker";
+        private readonly object _sendMessageLocker = new object();
 
         private int _serverVersion;
 

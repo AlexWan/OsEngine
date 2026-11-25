@@ -32,7 +32,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         private CancellationTokenSource _cts;
 
-        private string _ctsLocker = "_ctsLocker";
+        private readonly object _ctsLocker = new object();
 
         private Task _receiveTask;
 

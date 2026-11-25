@@ -41,7 +41,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private static List<BotTabNews> _newsSources = new List<BotTabNews>();
 
-        private static string _newsListLocker = "scrLocker";
+        private static readonly object _newsListLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// Add a new tracking tab

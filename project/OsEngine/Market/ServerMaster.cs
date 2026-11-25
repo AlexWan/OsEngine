@@ -606,7 +606,7 @@ namespace OsEngine.Market
             }
         }
 
-        private static string _serversArrayLocker = "_serversArrayLocker";
+        private static readonly object _serversArrayLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// disable all servers
@@ -1225,7 +1225,7 @@ namespace OsEngine.Market
         /// </summary>
         public static bool NeedToConnectAuto;
 
-        private static string _startServerLocker = "startServerLocker";
+        private static readonly object _startServerLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// select a specific server type for auto connection
@@ -1444,7 +1444,7 @@ namespace OsEngine.Market
         /// <summary>
         /// object blocking multithreaded access to the functions of creating permission objects.
         /// </summary>
-        private static string _serverPermissionGeterLocker = "serverPermissionLocker";
+        private static readonly object _serverPermissionGeterLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// request server permissions of the type

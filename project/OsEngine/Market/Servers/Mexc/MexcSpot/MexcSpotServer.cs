@@ -655,7 +655,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         private WebSocket _webSocketPrivate;
 
-        private string _socketLocker = "webSocketLockerMexc";
+        private readonly object _socketLocker = new object();
 
         private string _listenKey = "";
 
@@ -822,7 +822,7 @@ namespace OsEngine.Market.Servers.Mexc
             }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsMexcSpot";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {

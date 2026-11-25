@@ -791,7 +791,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsHtxSwap";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {

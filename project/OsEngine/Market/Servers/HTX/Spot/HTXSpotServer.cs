@@ -927,7 +927,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSockets";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {

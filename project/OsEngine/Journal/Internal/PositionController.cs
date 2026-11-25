@@ -445,7 +445,7 @@ namespace OsEngine.Journal.Internal
 
         private List<Position> _deals;
 
-        private string _dealsLocker = "_dealsLocker";
+        private readonly object _dealsLocker = new object();
 
         public void SetNewPosition(Position newPosition)
         {

@@ -31,7 +31,7 @@ namespace OsEngine.Layout
 
         private static List<MoveWindow> _windows = new List<MoveWindow>();
 
-        private static string _windowsArrayLoker = "lockerWinArray";
+        private static readonly object _windowsArrayLoker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         private static void SubscribeEvents(System.Windows.Window ui)
         {

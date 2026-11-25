@@ -348,13 +348,13 @@ namespace OsEngine.Market.Connectors
 
         private static int _aliveTasks = 0;
 
-        private static string _aliveTasksArrayLocker = "aliveTasksArrayLocker";
+        private static readonly object _aliveTasksArrayLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         private bool _alreadyCheckedInAliveTasksArray = false;
 
         private static int _tasksCountOnSubscribe = 0;
 
-        private static string _tasksCountLocker = "_tasksCountOnLocker";
+        private static readonly object _tasksCountLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         private async void Subscribe()
         {

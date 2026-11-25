@@ -2254,7 +2254,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private List<Order> _sendOrders = new List<Order>();
 
-        private string _sendOrdersLocker = "sendOrdersLocker";
+        private readonly object _sendOrdersLocker = new object();
 
         // bug-0058: сервер назначает transactionid, наружу отдаём локальный NumberUser (контракт Entity/Order.cs).
         // Пары tid<->NumberUser живут здесь; в статусах локальный номер берём из эхо brokerref,
@@ -3776,7 +3776,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 11 Queries
 
-        private string _commandLocker = "commandSendLocker";
+        private readonly object _commandLocker = new object();
 
         /// <summary>
         /// sent the command

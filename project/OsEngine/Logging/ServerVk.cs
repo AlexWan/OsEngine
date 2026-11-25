@@ -43,7 +43,7 @@ namespace OsEngine.Logging
 
         private Random _random = new Random();
 
-        private string _userIdsLocker = "UserIdsLocker";
+        private readonly object _userIdsLocker = new object();
 
         /// <summary>
         /// Long Poll server URL (переиспользуется при реконнекте)

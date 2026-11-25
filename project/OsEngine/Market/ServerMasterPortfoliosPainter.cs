@@ -518,7 +518,7 @@ namespace OsEngine.Market
         /// <summary>
         /// multi-thread locker to portfolios
         /// </summary>
-        private string _lockerPortfolio = "portfolio_locker";
+        private readonly object _lockerPortfolio = new object();
 
         /// <summary>
         /// portfolios changed in the server

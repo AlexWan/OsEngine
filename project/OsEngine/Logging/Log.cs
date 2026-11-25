@@ -117,7 +117,7 @@ namespace OsEngine.Logging
         // object of log
         // объект лога
 
-        private string _starterLocker = "logStarterLocker";
+        private readonly object _starterLocker = new object();
 
         /// <summary>
         /// constructor

@@ -17,7 +17,7 @@ namespace OsEngine.Logging
 
         private HttpClient _httpClient;
 
-        private string _httpClientLocker = "HttpClientLocker";
+        private readonly object _httpClientLocker = new object();
 
         /// <summary>
         /// Proxy type. None/Auto/Manual

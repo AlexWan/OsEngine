@@ -241,7 +241,7 @@ namespace OsEngine.Market.Connectors
 
         private List<Order> ordersOnBoard;
 
-        private string _executorLocker = "lockerOrderExecutor";
+        private readonly object _executorLocker = new object();
 
         private bool CheckExecution(bool isFirstTime, Order order)
         {

@@ -894,7 +894,7 @@ contract =>
             return ((ServerParameterBool)ServerParameters[3]).Value ? _sharedRateGate : _rateGate;
         }
 
-        private string _subLocker = "subLocker";
+        private readonly object _subLocker = new object();
 
         public void Subscribe(Security security)
         {

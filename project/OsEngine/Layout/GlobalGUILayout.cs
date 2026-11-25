@@ -68,7 +68,7 @@ namespace OsEngine.Layout
       
         }
 
-        private static string _lockerArrayWithWindows = "openUiLocker";
+        private static readonly object _lockerArrayWithWindows = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         private static void UiLocationChangeEvent(System.Windows.Window ui, string name)
         {

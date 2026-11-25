@@ -184,7 +184,7 @@ namespace OsEngine.Market.Servers.BCS
         private DateTime _lastReconnectTime = DateTime.MinValue;
 
         // перевыпуск токена из 401-обработчика и фонового потока одновременно не допускаем
-        private string _tokenRefreshLocker = "tokenRefreshLockerBcs";
+        private readonly object _tokenRefreshLocker = new object();
 
         private void CheckLifetimeToken()
         {
@@ -1127,7 +1127,7 @@ namespace OsEngine.Market.Servers.BCS
 
         // all accesses to the public sockets pool go through this locker:
         // the watchdog thread iterates it, Subscribe adds sockets, Dispose clears it
-        private string _webSocketPublicLocker = "_webSocketPublicLockerBcs";
+        private readonly object _webSocketPublicLocker = new object();
 
         // security name -> wrapper holding its subscription: ReSubscribeTrades
         // must send to the socket the security actually lives on, not to the last one
@@ -1144,7 +1144,7 @@ namespace OsEngine.Market.Servers.BCS
         private WebSocket _webSocketOrders;
         private bool _socketPortfolioIsActive;
         private bool _socketOrdersIsActive;
-        private string _activationLocker = "activationLocker";
+        private readonly object _activationLocker = new object();
 
         // seamless reconnect of private sockets (portfolio + orders):
         // a dead socket is recreated by the CheckAlivePrivateSockets thread,
@@ -2154,7 +2154,7 @@ namespace OsEngine.Market.Servers.BCS
         private readonly string _wsHostPortfolio = "wss://ws.broker.ru/trade-api-bff-portfolio/api/v1/portfolio/ws";
         private readonly string _wsHostOrders = "wss://ws.broker.ru/trade-api-bff-operations/api/v1/orders/events/ws";
 
-        private string _socketLocker = "webSocketLockerBcs";
+        private readonly object _socketLocker = new object();
 
         private void CreatePublicWebSocketConnect()
         {
@@ -3401,13 +3401,13 @@ namespace OsEngine.Market.Servers.BCS
         private ConcurrentQueue<string> WebSocketDataMessage = new ConcurrentQueue<string>();
         private ConcurrentQueue<string> WebSocketPortfolioMessage = new ConcurrentQueue<string>();
         private ConcurrentQueue<string> WebSocketMyOrdersAndTradesMessage = new ConcurrentQueue<string>();
-        private string _subscribeLimitLocker = "limitLocker";
+        private readonly object _subscribeLimitLocker = new object();
         private bool _hasLimitReached = false;
 
         private ConcurrentQueue<MyTradeFetchRequest> MyTradesToFetchQueue = new ConcurrentQueue<MyTradeFetchRequest>();
         private RateGate _rateGateMyTrades = new RateGate(1, TimeSpan.FromMilliseconds(100));
         private List<string> _sentMyTradesNumbers = new List<string>();
-        private string _sentMyTradesLocker = "sentMyTradesLocker";
+        private readonly object _sentMyTradesLocker = new object();
         private readonly string _tradesSearchPath = "/trade-api-bff-trade-details/api/v1/trades/search";
 
         private void DataMessageReader()
@@ -3998,7 +3998,7 @@ namespace OsEngine.Market.Servers.BCS
 
         private readonly HashSet<string> _pendingMyTradeFetchOrderNumbers = new HashSet<string>();
 
-        private readonly string _pendingMyTradeFetchLocker = "bcsPendingMyTradeFetchLocker";
+        private readonly object _pendingMyTradeFetchLocker = new object();
 
         private void EnqueueMyTradeFetch(BcsOrdersResponse orderEvent, Order order, bool force = false)
         {
@@ -4257,7 +4257,7 @@ namespace OsEngine.Market.Servers.BCS
         // выравнивание по REST после бесшовного реконнекта не должно повторять
         // события, уже доставленные сокетом до обрыва
         private List<string> _sentMyOrderEvents = new List<string>();
-        private string _sentMyOrderEventsLocker = "sentMyOrderEventsLockerBcs";
+        private readonly object _sentMyOrderEventsLocker = new object();
 
         private bool IsMyOrderEventDuplicate(Order order)
         {
@@ -4353,7 +4353,7 @@ namespace OsEngine.Market.Servers.BCS
         private int _ordersSentToday;
         private DateTime _ordersDayMarker = DateTime.MinValue;
         private bool _ordersLimitWarned;
-        private string _orderNumbersLocker = "orderNumbersLocker";
+        private readonly object _orderNumbersLocker = new object();
         private Dictionary<int, Guid> _guidByNumberOrders = new Dictionary<int, Guid>();
         private Dictionary<Guid, int> _numberByGuidOrders = new Dictionary<Guid, int>();
         private Queue<int> _orderQueue = new Queue<int>();
@@ -5312,7 +5312,7 @@ namespace OsEngine.Market.Servers.BCS
             }
         }
 
-        private string _securitiesLocker = "securitiesLocker";
+        private readonly object _securitiesLocker = new object();
 
         private Security GetSecurityForOrder(string name, string className)
         {

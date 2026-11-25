@@ -568,7 +568,7 @@ namespace OsEngine.OsOptimizer
 
         private DateTime _lastTestEndEventTime = DateTime.MinValue;
 
-        private string _testEndEventLocker = "testEndEventLocker";
+        private readonly object _testEndEventLocker = new object();
 
         private void _master_TestReadyEvent(List<OptimizerFazeReport> reports)
         {

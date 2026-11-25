@@ -56,7 +56,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private static List<BotTabScreener> _screeners = new List<BotTabScreener>();
 
-        private static string _screenersListLocker = "scrLocker";
+        private static readonly object _screenersListLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// Add a new tracking tab
