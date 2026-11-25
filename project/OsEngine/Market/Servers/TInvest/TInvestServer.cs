@@ -244,6 +244,43 @@ namespace OsEngine.Market.Servers.TInvest
 
                     if (_marketDataStreams != null)
                     {
+                        // BUG-0130: проверка ack подписок раз за итерацию. Решения state-машины
+                        // исполняет только этот поток: Error-лог, ретрай штатным TryReconnectDataStream
+                        // (под его локом), форс-дисконнект участком ниже (R2/R3).
+                        foreach (var stream in _marketDataStreams)
+                        {
+                            switch (stream.CheckAckDeadlines(utcTime))
+                            {
+                                case MarketDataAckAction.LogError:
+                                    SendLogMessage($"Market data subscriptions were not confirmed in time on {stream.Name}. Reconnect scheduled.", LogMessageType.Error);
+                                    break;
+                                case MarketDataAckAction.Resubscribe:
+                                    if (TryReconnectDataStream(stream) == false)
+                                    {
+                                        lostStreamName = stream.Name;
+                                        streamsIsLost = true;
+                                    }
+                                    break;
+                                case MarketDataAckAction.Escalate:
+                                    // BUG-0130 R3: при вооружённом бэк-оффе эскалация ждёт его истечения (CONTRACT :110-111);
+                                    // fatally-ack дедлайн не вооружает — дисконнект сразу. Чтение гейта под локом (R6).
+                                    if (stream.IsBackoffOpen(utcTime))
+                                    {
+                                        lostStreamName = stream.Name;
+                                        streamsIsLost = true;
+                                    }
+                                    break;
+                            }
+
+                            if (streamsIsLost)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (_marketDataStreams != null)
+                    {
                         foreach (MarketDataStreamWrapper stream in _marketDataStreams)
                         {
                             if (stream.LastMessageTime.AddSeconds(30) < DateTime.UtcNow
@@ -3140,6 +3177,11 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
+                            // BUG-0130 R1: pending каждой записи батча — от времени СВОЕГО write
+                            foreach (var inst in tradesToResubscribe.Instruments)
+                            {
+                                streamWrapper.RegisterAckPending(inst.InstrumentId, MarketDataSubType.Trades, DateTime.UtcNow);
+                            }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
                         if (orderBooksToResubscribe.Instruments.Any())
@@ -3151,6 +3193,10 @@ namespace OsEngine.Market.Servers.TInvest
                                 ObserveTaskFault(writeOrderBookTask);
                                 streamWrapper.IsConnected = false;
                                 return false;
+                            }
+                            foreach (var inst in orderBooksToResubscribe.Instruments)
+                            {
+                                streamWrapper.RegisterAckPending(inst.InstrumentId, MarketDataSubType.OrderBook, DateTime.UtcNow);
                             }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
@@ -3164,6 +3210,10 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
+                            foreach (var inst in lastPricesToResubscribe.Instruments)
+                            {
+                                streamWrapper.RegisterAckPending(inst.InstrumentId, MarketDataSubType.LastPrice, DateTime.UtcNow);
+                            }
                             _rateGateSubscribeCommon.WaitToProceed();
                         }
                         if (candlesToResubscribe.Instruments.Any())
@@ -3176,16 +3226,25 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapper.IsConnected = false;
                                 return false;
                             }
+                            foreach (var inst in candlesToResubscribe.Instruments)
+                            {
+                                streamWrapper.RegisterAckPending(inst.InstrumentId, MarketDataSubType.Candles, DateTime.UtcNow);
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
+                // BUG-0130 R5: сбой create/write (в т.ч. 80001) не проглатываем: одна Error-строка
+                // + бэк-офф >=2 мин, чтобы не долбить в непротухший серверный счётчик активных стримов
+                SendLogMessage($"Error (re)connecting market data stream {streamWrapper.Name}: {ex.Message}", LogMessageType.Error);
                 SendLogMessage("Reconnect data stream failed: " + streamWrapper.Name + ". " + ex.ToString(), LogMessageType.System);
+                streamWrapper.ArmResubDeadline(DateTime.UtcNow);
                 return false;
             }
 
+            streamWrapper.ResetAckState(); // REWORK P0-1: успех ретрая открывает новый ack-цикл (сброс флага/счётчиков)
             return true;
         }
 
@@ -3741,6 +3800,8 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapperCommon.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
+                            // BUG-0130 R1: pending от времени своей WriteAsync, ждём ack
+                            streamWrapperCommon.RegisterAckPending(security.NameId, MarketDataSubType.LastPrice, DateTime.UtcNow);
                         }
                         else
                         { // Обычный инструмент
@@ -3772,6 +3833,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapperCommon.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
+                            streamWrapperCommon.RegisterAckPending(security.NameId, MarketDataSubType.Trades, DateTime.UtcNow);
 
                             // 2 Подписка на стакан
 
@@ -3797,6 +3859,7 @@ namespace OsEngine.Market.Servers.TInvest
                                 streamWrapperMarketDepth.IsConnected = false;
                                 throw new TimeoutException("Market data stream write timeout");
                             }
+                            streamWrapperMarketDepth.RegisterAckPending(security.NameId, MarketDataSubType.OrderBook, DateTime.UtcNow);
                         }
                         // Add через ICollection: дубль ключа -> ArgumentException, как у Dictionary
                         ((ICollection<KeyValuePair<string, MarketDataStreamWrapper>>)_securityStreamMap)
@@ -3811,6 +3874,49 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
+                // REWORK P1-5(a): гонка двойного Subscribe — другой поток уже добавил инструмент в карту
+                // (ArgumentException на Add из-за дубля ключа). Откатываем СВОЙ заход молча: без Error
+                // и без флага на обёртках, подписка победителя живая.
+                bool duplicateRace;
+                lock (_pollLocker)
+                {
+                    duplicateRace = _securityStreamMap.ContainsKey(security.NameId);
+                }
+
+                if (!duplicateRace)
+                {
+                    // BUG-0130 (сайт A): провал первичной подписки должен быть виден и эскалироваться
+                    // как no-ack: Error по инструменту, снятие pending, флаг ватчдогу. Ретрай — штатным
+                    // полным реконнектом (AServer сам перепишет подписки).
+                    SendLogMessage($"Failed to subscribe {security.Name}: {ex.Message}", LogMessageType.Error);
+
+                    // REWORK P1-5(b): обходим КОПИЮ списка, снятую под _marketDataStreamLocker —
+                    // Add обёрток идёт вне лока, живой список из catch мог дать Collection modified
+                    // и прокинуть rollback мимо
+                    List<MarketDataStreamWrapper> ackWrappers;
+                    lock (_marketDataStreamLocker)
+                    {
+                        ackWrappers = _marketDataStreams == null
+                            ? new List<MarketDataStreamWrapper>()
+                            : new List<MarketDataStreamWrapper>(_marketDataStreams);
+                    }
+
+                    Exception root = ex is AggregateException agg ? agg.GetBaseException() : ex;
+                    bool exhausted = root is RpcException rpc && rpc.StatusCode == StatusCode.ResourceExhausted;
+
+                    foreach (var ackWrapper in ackWrappers)
+                    {
+                        ackWrapper.RemoveAckPendingForInstrument(security.NameId);
+                        ackWrapper.NeedEscalation = true;
+
+                        if (exhausted)
+                        {
+                            // 80001: счётчик активных стримов сервера протухает за 2 мин
+                            ackWrapper.ArmResubDeadline(DateTime.UtcNow);
+                        }
+                    }
+                }
+
                 // откатываем всё, что добавили в обёртки на этом вызове,
                 // иначе повторная подписка задвоит ленту/стакан
                 lock (_marketDataStreamLocker)
@@ -3833,10 +3939,17 @@ namespace OsEngine.Market.Servers.TInvest
                         depthStream.Subscriptions.Remove(orderBookRequest);
                     }
 
-                    if (_securityStreamMap.ContainsKey(security.NameId))
+                    // при дубль-гонке карту не трогаем: запись принадлежит победителю гонки
+                    if (!duplicateRace
+                        && _securityStreamMap.ContainsKey(security.NameId))
                     {
                         _securityStreamMap.TryRemove(security.NameId, out _);
                     }
+                }
+
+                if (duplicateRace)
+                {
+                    return;
                 }
 
                 if (ServerStatus != ServerConnectStatus.Connect)
@@ -4343,6 +4456,9 @@ namespace OsEngine.Market.Servers.TInvest
                          marketData.SubscribeLastPriceResponse != null ||
                          marketData.SubscribeCandlesResponse != null)
                 {
+                    // BUG-0130 R3/R5: читатель только снимает ack-записи и выставляет атомарный флаг
+                    // на обёртке; дисконнект исполняет ватчдог. Дедлайн fatally-статусов — серверные
+                    // лимиты/валидность (identical ретрай не лечит), остальные FAIL — как no-ack.
                     if (marketData.SubscribeTradesResponse != null)
                     {
                         foreach (TradeSubscription sub in marketData.SubscribeTradesResponse.TradeSubscriptions)
@@ -4354,11 +4470,19 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "trades"));
+                                // REWORK P2-6: отказ консюмит pending-запись (R4); Unspecified (proto3
+                                // default) — не финальный отказ, запись живёт до штатного таймаута
+                                if (sub.SubscriptionStatus != SubscriptionStatus.Unspecified)
+                                {
+                                    streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.Trades);
+                                    streamWrapper.OnSubscriptionAckFailed(IsFatalSubscriptionStatus(sub.SubscriptionStatus), DateTime.UtcNow);
+                                }
                             }
                             else
                             {
                                 // успех сбрасывает счётчик ретраев: лимит «3» - это 3 подряд, а не 3 за сессию
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                                streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.Trades);
                             }
                         }
                     }
@@ -4379,12 +4503,19 @@ namespace OsEngine.Market.Servers.TInvest
                                 {
                                     _obResubPending[sub.InstrumentUid] = true;
                                 }
+                                // REWORK P2-6: отказ консюмит pending-запись (R4); Unspecified — не отказ
+                                if (sub.SubscriptionStatus != SubscriptionStatus.Unspecified)
+                                {
+                                    streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.OrderBook);
+                                    streamWrapper.OnSubscriptionAckFailed(IsFatalSubscriptionStatus(sub.SubscriptionStatus), DateTime.UtcNow);
+                                }
                             }
                             else
                             {
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
                                 // bug-0115: Success is a fact to age from - seed the staleness clock, else first-book silence never trips
                                 _lastOrderBookTimeUtc[sub.InstrumentUid] = DateTime.UtcNow;
+                                streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.OrderBook);
                             }
                         }
                     }
@@ -4399,10 +4530,17 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "last price"));
+                                // REWORK P2-6: отказ консюмит pending-запись (R4); Unspecified — не отказ
+                                if (sub.SubscriptionStatus != SubscriptionStatus.Unspecified)
+                                {
+                                    streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.LastPrice);
+                                    streamWrapper.OnSubscriptionAckFailed(IsFatalSubscriptionStatus(sub.SubscriptionStatus), DateTime.UtcNow);
+                                }
                             }
                             else
                             {
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                                streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.LastPrice);
                             }
                         }
                     }
@@ -4417,10 +4555,17 @@ namespace OsEngine.Market.Servers.TInvest
 
                                 string uid = sub.InstrumentUid;
                                 Task.Run(() => RetryFailedSubscription(uid, "candles"));
+                                // REWORK P2-6: отказ консюмит pending-запись (R4); Unspecified — не отказ
+                                if (sub.SubscriptionStatus != SubscriptionStatus.Unspecified)
+                                {
+                                    streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.Candles);
+                                    streamWrapper.OnSubscriptionAckFailed(IsFatalSubscriptionStatus(sub.SubscriptionStatus), DateTime.UtcNow);
+                                }
                             }
                             else
                             {
                                 _subscribeRetryCounts.TryRemove(sub.InstrumentUid, out int _);
+                                streamWrapper.RemoveAckPending(sub.InstrumentUid, MarketDataSubType.Candles);
                             }
                         }
                     }
@@ -4438,6 +4583,25 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage($"Error processing market data response: {ex}", LogMessageType.Error);
             }
+        }
+
+        // BUG-0130 R5: серверные лимиты/валидность (investAPI marketdata.proto, SubscriptionStatus) —
+        // идентичный ретрай их не лечит. UNSPECIFIED/INTERNAL_ERROR/SUBSCRIPTION_NOT_FOUND не фатальны —
+        // исполняются как no-ack (один ретрай, затем эскалация).
+        private static readonly HashSet<SubscriptionStatus> _fatalSubscriptionStatuses = new HashSet<SubscriptionStatus>
+        {
+            SubscriptionStatus.TooManyRequests,
+            SubscriptionStatus.InstrumentNotFound,
+            SubscriptionStatus.SubscriptionActionIsInvalid,
+            SubscriptionStatus.DepthIsInvalid,
+            SubscriptionStatus.IntervalIsInvalid,
+            SubscriptionStatus.LimitIsExceeded,
+            SubscriptionStatus.SourceIsInvalid
+        };
+
+        private static bool IsFatalSubscriptionStatus(SubscriptionStatus status)
+        {
+            return _fatalSubscriptionStatuses.Contains(status);
         }
 
         // Чудо-поток для опроса последних цен инструментов и эмуляции стакана L1.
