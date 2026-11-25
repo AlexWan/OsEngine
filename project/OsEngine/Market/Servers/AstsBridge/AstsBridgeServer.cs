@@ -685,10 +685,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                         Order order;
                         if (_ordersToSend.TryDequeue(out order))
                         {
-                            if (NewOrderIncomeEvent != null)
-                            {
-                                NewOrderIncomeEvent(order);
-                            }
+                            NewOrderIncomeEvent?.Invoke(order);
                         }
                     }
                     else if (!_myTradesToSend.IsEmpty &&
