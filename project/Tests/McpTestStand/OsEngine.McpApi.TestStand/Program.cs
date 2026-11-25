@@ -552,6 +552,15 @@ namespace OsEngine.McpApi.TestStand
                 // Останавливает OsEngine после себя: да.
                 RunModule(context, 23, "CapitalAllocationCycle", string.Empty, () => new CapitalAllocationCycleTests(context).RunAll());
 
+                // Модуль: ConfigTabPair
+                // MCP API: bot_get_config_tab_pair, bot_set_config_tab_pair (FEATURE-0141).
+                // Схема set (pair_num/create_pair, без pair_name), round-trip полей, негативы,
+                // отказ events_is_on=false на Tester, симметрия текстов ошибок V1/V2,
+                // регресс-пин реестра инструментов.
+                // Запускает OsEngine перед собой: да, в режиме "-testerlight".
+                // Останавливает OsEngine после себя: да.
+                RunModule(context, 24, "ConfigTabPair", "-testerlight", () => new ConfigTabPairTests(context).RunAll());
+
                 if (_moduleFilter.Length > 0 && _matchedModules == 0)
                 {
                     Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");
