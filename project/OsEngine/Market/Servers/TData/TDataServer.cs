@@ -328,22 +328,36 @@ namespace OsEngine.Market.Servers.TData
 
         private void GetLotsBySecurities()
         {
+            int lineNo = 0;
+            string currentLine = null;
+
             try
             {
                 string[] lotsLines = File.ReadAllLines("TDataSecuritiesLots.txt");
 
+                Dictionary<string, decimal> lots = new Dictionary<string, decimal>(lotsLines.Length);
+
                 for (int i = 0; i < lotsLines.Length; i++)
                 {
-                    string[] nameAndLot = lotsLines[i].Split('#', StringSplitOptions.RemoveEmptyEntries);
+                    lineNo = i + 1;
+                    currentLine = lotsLines[i];
+
+                    string[] nameAndLot = currentLine.Split('#', StringSplitOptions.RemoveEmptyEntries);
 
                     decimal lot = nameAndLot[1].ToDecimal();
 
-                    _securitiesLots.Add(nameAndLot[0], lot);
+                    if (!lots.TryAdd(nameAndLot[0], lot))
+                    {
+                        SendLogMessage($"Securities lots parse error: duplicate lots line {lineNo}: {currentLine} (prev {lots[nameAndLot[0]]}, new {lot})", LogMessageType.Warning);
+                    }
                 }
+
+                // swap ссылки только после успешного прохода: reload идемпотентен, при отказе чтения поле цело (BUG-0656)
+                _securitiesLots = lots;
             }
             catch (Exception ex)
             {
-                SendLogMessage($"Securities lots parse error: {ex.Message}", LogMessageType.Error);
+                SendLogMessage($"Securities lots parse error: {ex}" + (lineNo > 0 ? $" (line {lineNo}: {currentLine})" : string.Empty), LogMessageType.Error);
             }
         }
 
