@@ -1158,6 +1158,16 @@ namespace OsEngine.Market.Servers.TData
 
                 allTrades.Sort(CompareTradesByTime);
 
+                // Таймстемпы в архивах UTC, при парсинге сдвиг +3ч (CsvFastParser); отбор файлов дневной
+                // inclusive — без обрезки голова/хвост пограничного дня уходят за границы окна.
+                allTrades.RemoveAll(t => t.Time < startTime || t.Time >= endTime);
+
+                if (allTrades.Count == 0)
+                {
+                    // Intraday-окно в безтиковом разрыве: по-дневный «No trades» не пишется, пустота молчаливая.
+                    SendLogMessage($"No ticks for {security.NameFull} in window {startTime:yyyy-MM-dd HH:mm:ss} - {endTime:yyyy-MM-dd HH:mm:ss}", LogMessageType.Warning);
+                }
+
                 return allTrades;
             }
             catch (Exception ex)
