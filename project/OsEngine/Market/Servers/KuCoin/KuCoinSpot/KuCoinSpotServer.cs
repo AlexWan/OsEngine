@@ -694,7 +694,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {

@@ -5138,7 +5138,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         private RateGate _rateGateOrders = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
-        private string _httpClientLocker = "httpClientLocker";
+        // bug-0654: static turnstile for account-wide rate gate (was interned literal; process-wide semantics kept).
+        private static readonly object _httpClientLocker = new object();
 
         public bool CheckApiKeyInformation(string ApiKey)
         {

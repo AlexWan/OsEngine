@@ -1010,7 +1010,8 @@ namespace OsEngine.Market.Servers.BybitData
 
         private string _restUrl = "https://api.bybit.com";
 
-        private string _httpClientLocker = "httpClientLocker";
+        // bug-0654: static turnstile for rate gate (was interned literal shared with Bybit; split in PR1, process-wide per class kept).
+        private static readonly object _httpClientLocker = new object();
 
         private HttpResponseMessage CreatePublicQuery(Dictionary<string, object> parameters, HttpMethod httpMethod, string uri)
         {

@@ -973,7 +973,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             _webSocketPrivate.ConnectAsync();
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {
