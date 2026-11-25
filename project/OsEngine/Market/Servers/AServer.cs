@@ -1653,10 +1653,7 @@ namespace OsEngine.Market.Servers
                         {
                             if (TestValue_CanSendOrdersUp)
                             {
-                                if (NewOrderIncomeEvent != null)
-                                {
-                                    NewOrderIncomeEvent(order);
-                                }
+                                NewOrderIncomeEvent?.Invoke(order);
 
                                 _ordersHub.SetOrderFromApi(order);
 
