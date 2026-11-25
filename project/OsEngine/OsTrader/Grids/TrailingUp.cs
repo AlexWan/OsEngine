@@ -264,6 +264,15 @@ namespace OsEngine.OsTrader.Grids
 
             if (TrailingUpLimitIsPercent)
             {
+                // P6: отрицательная крайняя цена (спред-сетки GridPair). При anchor<=0 анкор переснимался
+                // каждую свечу: спам Label787 и частые сохранения вместо молчаливого покоя.
+                // Абсолютная ветка и базовый гард == 0 не затронуты
+
+                if (maxPriceGrid <= 0)
+                {
+                    return false;
+                }
+
                 // ленивый пересъём при включении: снятие чекбокса видно только на прошлой проверке
 
                 if (_upLimitPctWasOn == false)
@@ -359,6 +368,14 @@ namespace OsEngine.OsTrader.Grids
 
             if (TrailingDownLimitIsPercent)
             {
+                // P6: отрицательная крайняя цена (спред-сетки GridPair). Зеркало Up: без гарда анкор
+                // переснимается каждую свечу — спам Label787 и частые сохранения
+
+                if (minPriceGrid <= 0)
+                {
+                    return false;
+                }
+
                 // ленивый пересъём при включении: снятие чекбокса видно только на прошлой проверке
 
                 if (_downLimitPctWasOn == false)
