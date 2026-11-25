@@ -195,16 +195,20 @@
                 <Grid Margin="3,0,-3,0" >
                     <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Left" Margin="11,7,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingUpStep" Content="Step" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingUpStep" Margin="164,35,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingUpStep" Margin="164,35,90,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxTrailingUpStepIsPercent" Content="in %" HorizontalAlignment="Left" Margin="255,36,0,0" VerticalAlignment="Top" Width="66"/>
                     <Label Name="LabelTrailingUpLimit" Content="Limit" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingUpLimit" Margin="164,63,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingUpLimit" Margin="164,63,90,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxTrailingUpLimitIsPercent" Content="in %" HorizontalAlignment="Left" Margin="255,64,0,0" VerticalAlignment="Top" Width="66"/>
                     <CheckBox Name="CheckBoxTrailingUpCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Left" Margin="11,91,0,0" VerticalAlignment="Top" Width="316"/>
 
                     <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Left" Margin="11,145,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingDownStep" Content="Step" HorizontalAlignment="Left" Margin="11,173,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingDownStep" Margin="164,173,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingDownStep" Margin="164,173,90,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxTrailingDownStepIsPercent" Content="in %" HorizontalAlignment="Left" Margin="255,174,0,0" VerticalAlignment="Top" Width="66"/>
                     <Label Name="LabelTrailingDownLimit" Content="Limit" HorizontalAlignment="Left" Margin="11,201,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingDownLimit" Margin="164,201,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingDownLimit" Margin="164,201,90,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxTrailingDownLimitIsPercent" Content="in %" HorizontalAlignment="Left" Margin="255,202,0,0" VerticalAlignment="Top" Width="66"/>
                     <CheckBox Name="CheckBoxTrailingDownCanMoveExitOrder" Content="Can move exit orders" HorizontalAlignment="Left" Margin="11,229,0,0" VerticalAlignment="Top" Width="316"/>
                     <Button Name="ButtonTrailUpInstruction"  Margin="293,0,10,10" VerticalAlignment="Bottom" Height="36" Click="ButtonTrailUpInstruction_Click">
                         <Grid>

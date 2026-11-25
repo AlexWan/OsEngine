@@ -2958,5 +2958,25 @@ namespace OsEngine.Language
         public string Label784 => OsLocalization.ConvertToLocString(
            "Eng:Restore close orders count on funds recovery_" +
            "Ru:Восстанавливать закрытия при возврате средств_");
+
+        public string Label785 => OsLocalization.ConvertToLocString(
+           "Eng:In %_" +
+           "Ru:В %_");
+
+        public string Label786 => OsLocalization.ConvertToLocString(
+           "Eng:Step in percent of current extreme grid price_" +
+           "Ru:Шаг в процентах от текущей крайней цены сетки_");
+
+        public string Label787 => OsLocalization.ConvertToLocString(
+           "Eng:Trailing limit anchor refreshed; grid moved beyond the limit_" +
+           "Ru:База процентного лимита обновлена; сетка вышла за лимит_");
+
+        public string Label788 => OsLocalization.ConvertToLocString(
+           "Eng:Limit in percent. Grid moves no more than this from its position when trailing was enabled_" +
+           "Ru:Лимит в процентах. Сетка смещается не более чем на это от положения на момент включения трейлинга_");
+
+        public string Label789 => OsLocalization.ConvertToLocString(
+           "Eng:Trailing percent value must be greater than 0 and not greater than 100_" +
+           "Ru:Процент трейлинга должен быть больше 0 и не больше 100_");
     }
 }
