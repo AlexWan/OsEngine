@@ -62,9 +62,14 @@ namespace OsEngine.OsOptimizer
                 ComboBoxThreadsCount.Items.Add(i);
             }
 
-            ComboBoxThreadsCount.SelectedItem = _master.ThreadsCount;
+            // FEATURE-0139 (AC1/AC5): значение показывается через Text — редактируемый
+            // ComboBox отображает любое 1..256, включая вне списка 1..50 (ловушка SelectedItem)
+            _appliedThreadsCount = _master.ThreadsCount;
+            ComboBoxThreadsCount.Text = _master.ThreadsCount.ToString(CultureInfo.InvariantCulture);
             CreateThreadsProgressBars();
             ComboBoxThreadsCount.SelectionChanged += ComboBoxThreadsCount_SelectionChanged;
+            ComboBoxThreadsCount.PreviewKeyDown += ComboBoxThreadsCount_PreviewKeyDown;
+            ComboBoxThreadsCount.LostFocus += ComboBoxThreadsCount_LostFocus;
 
             ComboBoxHangingTestTimeout.Items.Add(30);
             ComboBoxHangingTestTimeout.Items.Add(60);
@@ -244,6 +249,8 @@ namespace OsEngine.OsOptimizer
                 _master.StrategyChangedEvent -= _master_StrategyChangedEvent;
 
                 ComboBoxThreadsCount.SelectionChanged -= ComboBoxThreadsCount_SelectionChanged;
+                ComboBoxThreadsCount.PreviewKeyDown -= ComboBoxThreadsCount_PreviewKeyDown;
+                ComboBoxThreadsCount.LostFocus -= ComboBoxThreadsCount_LostFocus;
 
                 ComboBoxHangingTestTimeout.SelectionChanged -= ComboBoxHangingTestTimeout_SelectionChanged;
 
@@ -732,15 +739,165 @@ namespace OsEngine.OsOptimizer
 
         #region Progress bars
 
+        /// <summary>FEATURE-0139 (AC3): полезный бюджет высоты области баров, пикселей (410 минус 10 отступов)</summary>
+        private const int ProgressAreaBudget = 400;
+
+        /// <summary>FEATURE-0139 (AC3): единая высота прогресс-бара от числа потоков и бюджета;
+        /// при N &lt;= 50 сохраняется привычные 8px</summary>
+        public static int BarHeight(int threadsCount, int budget)
+        {
+            return threadsCount <= 50 ? 8 : Math.Max(1, budget / threadsCount);
+        }
+
+        /// <summary>FEATURE-0139 (AC3): высота области GridThreadsProgress; одинакова с MinHeight</summary>
+        public static int ProgressAreaHeight(int threadsCount)
+        {
+            return threadsCount * BarHeight(threadsCount, ProgressAreaBudget) + 10;
+        }
+
+        /// <summary>FEATURE-0139: последнее применённое значение — основа откатов поля (AC2)</summary>
+        private int _appliedThreadsCount = 1;
+
+        /// <summary>FEATURE-0139 (AC9): флаг подавления — блокирует применение через
+        /// SelectionChanged при внутреннем выставлении поля и рекурсию событие→поле→сеттер→событие</summary>
+        private bool _threadsApplying;
+
         private void ComboBoxThreadsCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
-                CreateThreadsProgressBars();
+                if (_threadsApplying)
+                {
+                    return;
+                }
+
+                object item = ComboBoxThreadsCount.SelectedItem;
+                if (item is int)
+                {
+                    ApplyThreadsCount((int)item, false);
+                }
             }
             catch (Exception ex)
             {
                 _master?.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxThreadsCount_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // FEATURE-0139 (AC1): Enter применяет ручной ввод и гасит дальнейшую обработку combos
+            if (e.Key == System.Windows.Input.Key.Return)
+            {
+                e.Handled = true;
+                CommitThreadsTextInput();
+            }
+        }
+
+        private void ComboBoxThreadsCount_LostFocus(object sender, RoutedEventArgs e)
+        {
+            CommitThreadsTextInput();
+        }
+
+        /// <summary>FEATURE-0139 (AC1/AC2): коммит ручного ввода по Enter и потере фокуса;
+        /// невалидное — отказ с логом и откатом поля к последнему валидному</summary>
+        private void CommitThreadsTextInput()
+        {
+            try
+            {
+                if (_threadsApplying)
+                {
+                    return;
+                }
+
+                int value;
+                if (OptimizerMaster.TryParseThreadsCount(ComboBoxThreadsCount.Text, out value))
+                {
+                    ApplyThreadsCount(value, false);
+                }
+                else
+                {
+                    RejectThreadsInput();
+                }
+            }
+            catch (Exception error)
+            {
+                _master?.SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// FEATURE-0139 (AC2/AC4/AC9): единый путь применения числа потоков.
+        /// Идемпотентен (повтор того же значения — no-op без Save, двойные Enter/LostFocus
+        /// и событие после своего сеттера безопасны); fromMaster — обновление поля и баров
+        /// без повторного вызова сеттера, иначе Save и событие пошли бы по кругу.
+        /// </summary>
+        private void ApplyThreadsCount(int value, bool fromMaster)
+        {
+            if (_threadsApplying)
+            {
+                return;
+            }
+
+            if (!OptimizerMaster.IsValidThreadsCount(value))
+            {
+                RejectThreadsInput();
+                return;
+            }
+
+            if (value == _appliedThreadsCount)
+            {
+                SetThreadsFieldText(value);
+                return;
+            }
+
+            _threadsApplying = true;
+            try
+            {
+                _appliedThreadsCount = value;
+                SetThreadsFieldText(value);
+                CreateThreadsProgressBars();
+
+                if (!fromMaster)
+                {
+                    // сеттер сохраняет в Engine\OptimizerSettings.txt и вызывает TradeSettingsChangedEvent
+                    _master.ThreadsCount = value;
+                }
+            }
+            finally
+            {
+                _threadsApplying = false;
+            }
+        }
+
+        /// <summary>FEATURE-0139 (AC2): невалидный ввод — ошибка в журнал, поле откатывается
+        /// к последнему валидному значению; ThreadsCount и файл не меняются</summary>
+        private void RejectThreadsInput()
+        {
+            _master?.SendLogMessage(OsLocalization.ConvertToLocString(
+                @"Eng:Invalid threads count in the Threads field. Valid range is 1.." + OptimizerMaster.MaxThreadsCount +
+                @"_Ru:Недопустимое число потоков (threads) в поле ввода. Допустимый диапазон 1.." + OptimizerMaster.MaxThreadsCount + @"_"),
+                LogMessageType.Error);
+
+            SetThreadsFieldText(_appliedThreadsCount);
+        }
+
+        /// <summary>FEATURE-0139 (AC9): внутренняя подача значения в поле под флагом подавления,
+        /// чтобы SelectionChanged не вернул его обратно в ApplyThreadsCount</summary>
+        private void SetThreadsFieldText(int value)
+        {
+            string text = value.ToString(CultureInfo.InvariantCulture);
+            bool wasSuppressed = _threadsApplying;
+            _threadsApplying = true;
+            try
+            {
+                if (ComboBoxThreadsCount.Text != text)
+                {
+                    ComboBoxThreadsCount.Text = text;
+                }
+            }
+            finally
+            {
+                _threadsApplying = wasSuppressed;
             }
         }
 
@@ -766,22 +923,25 @@ namespace OsEngine.OsOptimizer
             }
             _progressBars = new List<ProgressBar>();
 
-            int countThreads = ComboBoxThreadsCount.SelectedIndex + 1;
+            // FEATURE-0139 (AC3): бары от фактического применённого значения, а не SelectedIndex+1;
+            // высота баров и области — единая формула (ловушка 0 при значении вне списка убрана)
+            int countThreads = _appliedThreadsCount;
+            int barHeight = BarHeight(countThreads, ProgressAreaBudget);
+            int height = ProgressAreaHeight(countThreads);
 
             GridThreadsProgress.Children.Clear();
-            GridThreadsProgress.Height = 8 * countThreads + 10;
-            GridThreadsProgress.MinHeight = 8 * countThreads + 10;
+            GridThreadsProgress.Height = height;
+            GridThreadsProgress.MinHeight = height;
 
             for (int i = 0; i < countThreads; i++)
             {
                 ProgressBar bar = new ProgressBar();
-                bar.Margin = new Thickness(0, GridThreadsProgress.Height - 8 - i * 8, 0, i * 8);
+                bar.Margin = new Thickness(0, height - barHeight - i * barHeight, 0, i * barHeight);
                 bar.VerticalAlignment = VerticalAlignment.Top;
-                bar.Height = 8;
+                bar.Height = barHeight;
                 GridThreadsProgress.Children.Add(bar);
                 _progressBars.Add(bar);
             }
-            _master.ThreadsCount = countThreads;
         }
 
         private void PainterProgressArea()
@@ -1240,7 +1400,11 @@ namespace OsEngine.OsOptimizer
                 TextBoxStartPortfolio.Text = _master.StartDeposit.ToString();
                 CommissionTypeComboBox.SelectedItem = _master.CommissionType.ToString();
                 CommissionValueTextBox.Text = _master.CommissionValue.ToString();
-                ComboBoxThreadsCount.SelectedItem = _master.ThreadsCount.ToString();
+
+                // FEATURE-0139 (AC9): единый путь с подавлением вместо SelectedItem = .ToString()
+                // против int-items — раньше это сбрасывало выделение и через SelectionChanged
+                // записывало ThreadsCount = 0
+                ApplyThreadsCount(_master.ThreadsCount, true);
             }
             catch (Exception error)
             {
