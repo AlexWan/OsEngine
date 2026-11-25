@@ -785,8 +785,9 @@ namespace OsEngine.OsOptimizer
 
         private void ComboBoxThreadsCount_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            // FEATURE-0139 (AC1): Enter применяет ручной ввод и гасит дальнейшую обработку combos
-            if (e.Key == System.Windows.Input.Key.Return)
+            // FEATURE-0139 (AC1): Enter применяет ручной ввод и гасит дальнейшую обработку combos.
+            // Открытый dropdown: Enter работает штатно (подтверждает пункт и закрывает список).
+            if (e.Key == System.Windows.Input.Key.Return && !ComboBoxThreadsCount.IsDropDownOpen)
             {
                 e.Handled = true;
                 CommitThreadsTextInput();

@@ -456,7 +456,7 @@ namespace OsEngine.OsOptimizer
         public static bool TryParseThreadsCount(string text, out int value)
         {
             value = 0;
-            return int.TryParse((text ?? string.Empty).Trim(), NumberStyles.Integer,
+            return int.TryParse((text ?? string.Empty).Trim(), NumberStyles.None,
                 CultureInfo.InvariantCulture, out value)
                 && IsValidThreadsCount(value);
         }
