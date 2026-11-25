@@ -844,6 +844,9 @@ namespace OsEngine.Market.Servers.TData
                     }
                 }
 
+                // Обрезка по запрошенному окну: дневной coarse-фильтр файлов (:803/:829) пропускает хвост пограничного дня, после AddHours(3) в GetCandlesFromCsv он протекает за endTime
+                allCandles.RemoveAll(c => c.TimeStart < startTime || c.TimeStart >= endTime);
+
                 return ConvertCandlesToRequestedTimeFrame(allCandles, timeFrameBuilder);
             }
             catch (Exception ex)
