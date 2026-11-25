@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers.Woo
 
         private void WooServer_ValueChange()
         {
-            ((WooServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+            ((WooServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
         }
     }
 
