@@ -117,7 +117,7 @@ namespace OsEngine.Logging
         // object of log
         // объект лога
 
-        private readonly object _starterLocker = new object();
+        private static readonly object _starterLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// constructor
