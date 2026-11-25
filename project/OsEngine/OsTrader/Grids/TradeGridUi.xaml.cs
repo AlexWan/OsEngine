@@ -414,9 +414,11 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxTrailingUpStep.Text = tradeGrid.TrailingUp.TrailingUpStep.ToString();
             TextBoxTrailingUpStep.TextChanged += TextBoxTrailingUpStep_TextChanged;
+            TextBoxTrailingUpStep.LostFocus += TextBoxTrailingUpStep_LostFocus;
 
             TextBoxTrailingUpLimit.Text = tradeGrid.TrailingUp.TrailingUpLimit.ToString();
             TextBoxTrailingUpLimit.TextChanged += TextBoxTrailingUpLimit_TextChanged;
+            TextBoxTrailingUpLimit.LostFocus += TextBoxTrailingUpLimit_LostFocus;
 
             CheckBoxTrailingUpStepIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingUpStepIsPercent;
             CheckBoxTrailingUpStepIsPercent.Checked += CheckBoxTrailingUpStepIsPercent_Checked;
@@ -445,9 +447,11 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxTrailingDownStep.Text = tradeGrid.TrailingUp.TrailingDownStep.ToString();
             TextBoxTrailingDownStep.TextChanged += TextBoxTrailingDownStep_TextChanged;
+            TextBoxTrailingDownStep.LostFocus += TextBoxTrailingDownStep_LostFocus;
 
             TextBoxTrailingDownLimit.Text = tradeGrid.TrailingUp.TrailingDownLimit.ToString();
             TextBoxTrailingDownLimit.TextChanged += TextBoxTrailingDownLimit_TextChanged;
+            TextBoxTrailingDownLimit.LostFocus += TextBoxTrailingDownLimit_LostFocus;
 
             CheckBoxTrailingDownStepIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingDownStepIsPercent;
             CheckBoxTrailingDownStepIsPercent.Checked += CheckBoxTrailingDownStepIsPercent_Checked;
@@ -935,6 +939,8 @@ namespace OsEngine.OsTrader.Grids
                 CheckBoxTrailingUpIsOn.Unchecked -= CheckBoxTrailingUpIsOn_Checked;
                 TextBoxTrailingUpStep.TextChanged -= TextBoxTrailingUpStep_TextChanged;
                 TextBoxTrailingUpLimit.TextChanged -= TextBoxTrailingUpLimit_TextChanged;
+                TextBoxTrailingUpStep.LostFocus -= TextBoxTrailingUpStep_LostFocus;
+                TextBoxTrailingUpLimit.LostFocus -= TextBoxTrailingUpLimit_LostFocus;
                 CheckBoxTrailingUpStepIsPercent.Checked -= CheckBoxTrailingUpStepIsPercent_Checked;
                 CheckBoxTrailingUpStepIsPercent.Unchecked -= CheckBoxTrailingUpStepIsPercent_Checked;
                 CheckBoxTrailingUpLimitIsPercent.Checked -= CheckBoxTrailingUpLimitIsPercent_Checked;
@@ -943,6 +949,8 @@ namespace OsEngine.OsTrader.Grids
                 CheckBoxTrailingDownIsOn.Unchecked -= CheckBoxTrailingDownIsOn_Checked;
                 TextBoxTrailingDownStep.TextChanged -= TextBoxTrailingDownStep_TextChanged;
                 TextBoxTrailingDownLimit.TextChanged -= TextBoxTrailingDownLimit_TextChanged;
+                TextBoxTrailingDownStep.LostFocus -= TextBoxTrailingDownStep_LostFocus;
+                TextBoxTrailingDownLimit.LostFocus -= TextBoxTrailingDownLimit_LostFocus;
                 CheckBoxTrailingDownStepIsPercent.Checked -= CheckBoxTrailingDownStepIsPercent_Checked;
                 CheckBoxTrailingDownStepIsPercent.Unchecked -= CheckBoxTrailingDownStepIsPercent_Checked;
                 CheckBoxTrailingDownLimitIsPercent.Checked -= CheckBoxTrailingDownLimitIsPercent_Checked;
@@ -1236,6 +1244,13 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                if (TradeGrid.TrailingUp.TrailingUpStepIsPercent)
+                {
+                    // Процентный режим: при наборе не валидировать и не коммитить (иначе ввод «0.5»
+                    // откатывался бы на промежуточном «0»). Валидация и коммит — на LostFocus
+                    return;
+                }
+
                 decimal valid;
 
                 if (TryValidateTrailingPercent(TextBoxTrailingUpStep, ref _trailingUpStepPctLast, out valid) == false)
@@ -1263,6 +1278,12 @@ namespace OsEngine.OsTrader.Grids
 
                 if (string.IsNullOrEmpty(TextBoxTrailingUpLimit.Text))
                 {
+                    return;
+                }
+
+                if (TradeGrid.TrailingUp.TrailingUpLimitIsPercent)
+                {
+                    // Процентный режим: валидация и коммит — на LostFocus, см. UpStep
                     return;
                 }
 
@@ -1322,6 +1343,24 @@ namespace OsEngine.OsTrader.Grids
         private bool _trailingPctReentry;
 
         /// <summary>
+        /// Программная правка контролов под re-entry guard. try/finally обязателен: исключение на
+        /// box.Text не должно оставлять guard включённым навсегда — ввод перестал бы реагировать
+        /// </summary>
+        private void TrailingPctProtected(Action action)
+        {
+            _trailingPctReentry = true;
+
+            try
+            {
+                action();
+            }
+            finally
+            {
+                _trailingPctReentry = false;
+            }
+        }
+
+        /// <summary>
         /// Validation of value typed while the "in percent" checkbox is on. Returns false when the value
         /// is outside (0;100] or is not a number: the box rolls back to the last valid value, nothing is
         /// written to the grid, localized message is sent. Never call from fill: _trailingPctReentry guard
@@ -1379,11 +1418,10 @@ namespace OsEngine.OsTrader.Grids
             }
             catch
             {
-                _trailingPctReentry = true;
+                // ref-параметр в анонимный делегат не попадает — копия в локальную переменную
+                decimal revertTo = lastValid;
 
-                box.Text = lastValid.ToString();
-
-                _trailingPctReentry = false;
+                TrailingPctProtected(delegate { box.Text = revertTo.ToString(); });
 
                 TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
 
@@ -1416,11 +1454,10 @@ namespace OsEngine.OsTrader.Grids
                 return false;
             }
 
-            _trailingPctReentry = true;
+            // ref-параметр в анонимный делегат не попадает — копия в локальную переменную
+            decimal refusalRevertTo = lastValid;
 
-            box.Text = lastValid.ToString();
-
-            _trailingPctReentry = false;
+            TrailingPctProtected(delegate { box.Text = refusalRevertTo.ToString(); });
 
             refusals++;
 
@@ -1450,9 +1487,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TrailingPercentCheckboxRefusal(TextBoxTrailingUpStep, ref _trailingUpStepPctLast, ref _trailingUpStepPctRefusals))
                     {
-                        _trailingPctReentry = true;
-                        CheckBoxTrailingUpStepIsPercent.IsChecked = false;
-                        _trailingPctReentry = false;
+                        TrailingPctProtected(delegate { CheckBoxTrailingUpStepIsPercent.IsChecked = false; });
 
                         TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
 
@@ -1484,9 +1519,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TrailingPercentCheckboxRefusal(TextBoxTrailingUpLimit, ref _trailingUpLimitPctLast, ref _trailingUpLimitPctRefusals))
                     {
-                        _trailingPctReentry = true;
-                        CheckBoxTrailingUpLimitIsPercent.IsChecked = false;
-                        _trailingPctReentry = false;
+                        TrailingPctProtected(delegate { CheckBoxTrailingUpLimitIsPercent.IsChecked = false; });
 
                         TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
 
@@ -1518,9 +1551,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TrailingPercentCheckboxRefusal(TextBoxTrailingDownStep, ref _trailingDownStepPctLast, ref _trailingDownStepPctRefusals))
                     {
-                        _trailingPctReentry = true;
-                        CheckBoxTrailingDownStepIsPercent.IsChecked = false;
-                        _trailingPctReentry = false;
+                        TrailingPctProtected(delegate { CheckBoxTrailingDownStepIsPercent.IsChecked = false; });
 
                         TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
 
@@ -1552,9 +1583,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (TrailingPercentCheckboxRefusal(TextBoxTrailingDownLimit, ref _trailingDownLimitPctLast, ref _trailingDownLimitPctRefusals))
                     {
-                        _trailingPctReentry = true;
-                        CheckBoxTrailingDownLimitIsPercent.IsChecked = false;
-                        _trailingPctReentry = false;
+                        TrailingPctProtected(delegate { CheckBoxTrailingDownLimitIsPercent.IsChecked = false; });
 
                         TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
 
@@ -1633,6 +1662,12 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                if (TradeGrid.TrailingUp.TrailingDownStepIsPercent)
+                {
+                    // Процентный режим: валидация и коммит — на LostFocus, см. UpStep
+                    return;
+                }
+
                 decimal valid;
 
                 if (TryValidateTrailingPercent(TextBoxTrailingDownStep, ref _trailingDownStepPctLast, out valid) == false)
@@ -1663,6 +1698,12 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                if (TradeGrid.TrailingUp.TrailingDownLimitIsPercent)
+                {
+                    // Процентный режим: валидация и коммит — на LostFocus, см. UpStep
+                    return;
+                }
+
                 decimal valid;
 
                 if (TryValidateTrailingPercent(TextBoxTrailingDownLimit, ref _trailingDownLimitPctLast, out valid) == false)
@@ -1672,6 +1713,141 @@ namespace OsEngine.OsTrader.Grids
 
                 TradeGrid.TrailingUp.TrailingDownLimit = valid;
                 TradeGrid.Save();
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        // Подтверждение процентного значения при потере фокуса: промежуточные состояния набора
+        // (например «0» при вводе «0.5») живут до LostFocus; невалидное — откат к последнему валидному
+
+        private void TextBoxTrailingUpStep_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                if (TradeGrid.TrailingUp.TrailingUpStepIsPercent == false)
+                {
+                    return;
+                }
+
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingUpStep, ref _trailingUpStepPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                if (valid != TradeGrid.TrailingUp.TrailingUpStep)
+                {
+                    TradeGrid.TrailingUp.TrailingUpStep = valid;
+                    TradeGrid.Save();
+                }
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxTrailingUpLimit_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                if (TradeGrid.TrailingUp.TrailingUpLimitIsPercent == false)
+                {
+                    return;
+                }
+
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingUpLimit, ref _trailingUpLimitPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                if (valid != TradeGrid.TrailingUp.TrailingUpLimit)
+                {
+                    TradeGrid.TrailingUp.TrailingUpLimit = valid;
+                    TradeGrid.Save();
+                }
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxTrailingDownStep_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                if (TradeGrid.TrailingUp.TrailingDownStepIsPercent == false)
+                {
+                    return;
+                }
+
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingDownStep, ref _trailingDownStepPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                if (valid != TradeGrid.TrailingUp.TrailingDownStep)
+                {
+                    TradeGrid.TrailingUp.TrailingDownStep = valid;
+                    TradeGrid.Save();
+                }
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxTrailingDownLimit_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                if (TradeGrid.TrailingUp.TrailingDownLimitIsPercent == false)
+                {
+                    return;
+                }
+
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingDownLimit, ref _trailingDownLimitPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                if (valid != TradeGrid.TrailingUp.TrailingDownLimit)
+                {
+                    TradeGrid.TrailingUp.TrailingDownLimit = valid;
+                    TradeGrid.Save();
+                }
             }
             catch(Exception ex)
             {

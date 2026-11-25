@@ -95,9 +95,10 @@ namespace OsEngine.OsTrader.Grids
             result += TrailingDownStepIsPercent + "@";
             result += TrailingDownLimitIsPercent + "@";
             // анкоры — машинные значения цены, пишены строго InvariantCulture.
-            // Старые decimal-поля выше не трогаем: они пользовательский ввод, default culture
+            // Старые decimal-поля выше не трогаем: они пользовательский ввод, default culture.
+            // Хвостовой @ после 13-го слота не пишем: Split('@') обязан давать ровно 14 полей
             result += _trailingUpLimitAnchor.ToString(CultureInfo.InvariantCulture) + "@";
-            result += _trailingDownLimitAnchor.ToString(CultureInfo.InvariantCulture) + "@"; // шесть резервных полей: bool-признаки режимов 8-11, анкоры 12-13
+            result += _trailingDownLimitAnchor.ToString(CultureInfo.InvariantCulture); // шесть резервных полей: bool-признаки режимов 8-11, анкоры 12-13
 
             return result;
         }
@@ -142,15 +143,15 @@ namespace OsEngine.OsTrader.Grids
                 {
                     TrailingDownLimitIsPercent = Convert.ToBoolean(values[11]);
                 }
-                // анкоры читаются в любой культуре с точкой — пара к InvariantCulture в GetSaveString
-
+                // анкоры читаются в любой культуре с точкой — пара к InvariantCulture в GetSaveString.
+                // NumberStyles.Float без AllowThousands: «1,100» не должен тихо становиться 1100
                 if (values.Length > 12 && string.IsNullOrEmpty(values[12]) == false)
                 {
-                    _trailingUpLimitAnchor = decimal.Parse(values[12], CultureInfo.InvariantCulture);
+                    _trailingUpLimitAnchor = decimal.Parse(values[12], NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
                 if (values.Length > 13 && string.IsNullOrEmpty(values[13]) == false)
                 {
-                    _trailingDownLimitAnchor = decimal.Parse(values[13], CultureInfo.InvariantCulture);
+                    _trailingDownLimitAnchor = decimal.Parse(values[13], NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
 
                 _upLimitPctWasOn = TrailingUpLimitIsPercent;
@@ -272,9 +273,16 @@ namespace OsEngine.OsTrader.Grids
                     AnchorRefreshedNeeded = true;
                 }
 
-                if (_trailingUpLimitAnchor == 0)
+                if (_trailingUpLimitAnchor <= 0)
                 {
-                    return false;
+                    // Нулевой анкор: Save с flag=true до первой проверки записал анкор 0; после загрузки
+                    // wasOn=true и переход false→true невозможен — лениво снимаем анкор с текущей крайней,
+                    // иначе %-лимит после перезапуска мёртв молча навсегда. Крайняя здесь уже >0
+                    _trailingUpLimitAnchor = maxPriceGrid;
+                    _upLimitPctWasOn = true;
+                    AnchorRefreshedNeeded = true;
+
+                    SendNewLogMessage(OsLocalization.Trader.Label787, LogMessageType.System);
                 }
 
                 // stale-anchor rule before the guard comparisons: the extreme is already at or beyond
@@ -360,9 +368,14 @@ namespace OsEngine.OsTrader.Grids
                     AnchorRefreshedNeeded = true;
                 }
 
-                if (_trailingDownLimitAnchor == 0)
+                if (_trailingDownLimitAnchor <= 0)
                 {
-                    return false;
+                    // Зеркало Up: ленивый съём нуля с текущей крайней, иначе %-пол мёртв после перезапуска
+                    _trailingDownLimitAnchor = minPriceGrid;
+                    _downLimitPctWasOn = true;
+                    AnchorRefreshedNeeded = true;
+
+                    SendNewLogMessage(OsLocalization.Trader.Label787, LogMessageType.System);
                 }
 
                 // stale-anchor rule before the guard comparisons: the extreme is already at or below
