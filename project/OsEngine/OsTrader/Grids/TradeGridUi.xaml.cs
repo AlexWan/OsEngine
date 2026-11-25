@@ -418,6 +418,23 @@ namespace OsEngine.OsTrader.Grids
             TextBoxTrailingUpLimit.Text = tradeGrid.TrailingUp.TrailingUpLimit.ToString();
             TextBoxTrailingUpLimit.TextChanged += TextBoxTrailingUpLimit_TextChanged;
 
+            CheckBoxTrailingUpStepIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingUpStepIsPercent;
+            CheckBoxTrailingUpStepIsPercent.Checked += CheckBoxTrailingUpStepIsPercent_Checked;
+            CheckBoxTrailingUpStepIsPercent.Unchecked += CheckBoxTrailingUpStepIsPercent_Checked;
+
+            CheckBoxTrailingUpLimitIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingUpLimitIsPercent;
+            CheckBoxTrailingUpLimitIsPercent.Checked += CheckBoxTrailingUpLimitIsPercent_Checked;
+            CheckBoxTrailingUpLimitIsPercent.Unchecked += CheckBoxTrailingUpLimitIsPercent_Checked;
+
+            if (tradeGrid.TrailingUp.TrailingUpStepIsPercent && tradeGrid.TrailingUp.TrailingUpStep > 0m && tradeGrid.TrailingUp.TrailingUpStep <= 100m)
+            {
+                _trailingUpStepPctLast = tradeGrid.TrailingUp.TrailingUpStep;
+            }
+            if (tradeGrid.TrailingUp.TrailingUpLimitIsPercent && tradeGrid.TrailingUp.TrailingUpLimit > 0m && tradeGrid.TrailingUp.TrailingUpLimit <= 100m)
+            {
+                _trailingUpLimitPctLast = tradeGrid.TrailingUp.TrailingUpLimit;
+            }
+
             CheckBoxTrailingUpCanMoveExitOrder.IsChecked = tradeGrid.TrailingUp.TrailingUpCanMoveExitOrder;
             CheckBoxTrailingUpCanMoveExitOrder.Checked += CheckBoxTrailingUpCanMoveExitOrder_Checked;
             CheckBoxTrailingUpCanMoveExitOrder.Unchecked += CheckBoxTrailingUpCanMoveExitOrder_Checked;
@@ -431,6 +448,23 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxTrailingDownLimit.Text = tradeGrid.TrailingUp.TrailingDownLimit.ToString();
             TextBoxTrailingDownLimit.TextChanged += TextBoxTrailingDownLimit_TextChanged;
+
+            CheckBoxTrailingDownStepIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingDownStepIsPercent;
+            CheckBoxTrailingDownStepIsPercent.Checked += CheckBoxTrailingDownStepIsPercent_Checked;
+            CheckBoxTrailingDownStepIsPercent.Unchecked += CheckBoxTrailingDownStepIsPercent_Checked;
+
+            CheckBoxTrailingDownLimitIsPercent.IsChecked = tradeGrid.TrailingUp.TrailingDownLimitIsPercent;
+            CheckBoxTrailingDownLimitIsPercent.Checked += CheckBoxTrailingDownLimitIsPercent_Checked;
+            CheckBoxTrailingDownLimitIsPercent.Unchecked += CheckBoxTrailingDownLimitIsPercent_Checked;
+
+            if (tradeGrid.TrailingUp.TrailingDownStepIsPercent && tradeGrid.TrailingUp.TrailingDownStep > 0m && tradeGrid.TrailingUp.TrailingDownStep <= 100m)
+            {
+                _trailingDownStepPctLast = tradeGrid.TrailingUp.TrailingDownStep;
+            }
+            if (tradeGrid.TrailingUp.TrailingDownLimitIsPercent && tradeGrid.TrailingUp.TrailingDownLimit > 0m && tradeGrid.TrailingUp.TrailingDownLimit <= 100m)
+            {
+                _trailingDownLimitPctLast = tradeGrid.TrailingUp.TrailingDownLimit;
+            }
 
             CheckBoxTrailingDownCanMoveExitOrder.IsChecked = tradeGrid.TrailingUp.TrailingDownCanMoveExitOrder;
             CheckBoxTrailingDownCanMoveExitOrder.Checked += CheckBoxTrailingDownCanMoveExitOrder_Checked;
@@ -701,6 +735,15 @@ namespace OsEngine.OsTrader.Grids
             LabelTrailingDownStep.Content = OsLocalization.Trader.Label549;
             LabelTrailingDownLimit.Content = OsLocalization.Trader.Label547;
             CheckBoxTrailingDownCanMoveExitOrder.Content = OsLocalization.Trader.Label571;
+
+            CheckBoxTrailingUpStepIsPercent.Content = OsLocalization.Trader.Label785;
+            CheckBoxTrailingUpLimitIsPercent.Content = OsLocalization.Trader.Label785;
+            CheckBoxTrailingDownStepIsPercent.Content = OsLocalization.Trader.Label785;
+            CheckBoxTrailingDownLimitIsPercent.Content = OsLocalization.Trader.Label785;
+            CheckBoxTrailingUpStepIsPercent.ToolTip = OsLocalization.Trader.Label786;
+            CheckBoxTrailingUpLimitIsPercent.ToolTip = OsLocalization.Trader.Label788;
+            CheckBoxTrailingDownStepIsPercent.ToolTip = OsLocalization.Trader.Label786;
+            CheckBoxTrailingDownLimitIsPercent.ToolTip = OsLocalization.Trader.Label788;
         }
 
         private void CheckEnabledItems()
@@ -892,10 +935,18 @@ namespace OsEngine.OsTrader.Grids
                 CheckBoxTrailingUpIsOn.Unchecked -= CheckBoxTrailingUpIsOn_Checked;
                 TextBoxTrailingUpStep.TextChanged -= TextBoxTrailingUpStep_TextChanged;
                 TextBoxTrailingUpLimit.TextChanged -= TextBoxTrailingUpLimit_TextChanged;
+                CheckBoxTrailingUpStepIsPercent.Checked -= CheckBoxTrailingUpStepIsPercent_Checked;
+                CheckBoxTrailingUpStepIsPercent.Unchecked -= CheckBoxTrailingUpStepIsPercent_Checked;
+                CheckBoxTrailingUpLimitIsPercent.Checked -= CheckBoxTrailingUpLimitIsPercent_Checked;
+                CheckBoxTrailingUpLimitIsPercent.Unchecked -= CheckBoxTrailingUpLimitIsPercent_Checked;
                 CheckBoxTrailingDownIsOn.Checked -= CheckBoxTrailingDownIsOn_Checked;
                 CheckBoxTrailingDownIsOn.Unchecked -= CheckBoxTrailingDownIsOn_Checked;
                 TextBoxTrailingDownStep.TextChanged -= TextBoxTrailingDownStep_TextChanged;
                 TextBoxTrailingDownLimit.TextChanged -= TextBoxTrailingDownLimit_TextChanged;
+                CheckBoxTrailingDownStepIsPercent.Checked -= CheckBoxTrailingDownStepIsPercent_Checked;
+                CheckBoxTrailingDownStepIsPercent.Unchecked -= CheckBoxTrailingDownStepIsPercent_Checked;
+                CheckBoxTrailingDownLimitIsPercent.Checked -= CheckBoxTrailingDownLimitIsPercent_Checked;
+                CheckBoxTrailingDownLimitIsPercent.Unchecked -= CheckBoxTrailingDownLimitIsPercent_Checked;
 
                 ButtonPosts.Click -= ButtonPosts_Click;
             }
@@ -1175,17 +1226,29 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(TextBoxTrailingUpStep.Text))
                 {
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingUpStep = TextBoxTrailingUpStep.Text.ToDecimal();
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingUpStep, ref _trailingUpStepPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingUpStep = valid;
                 TradeGrid.Save();
             }
-            catch
+            catch(Exception ex)
             {
-                // ignore
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
 
@@ -1193,17 +1256,29 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(TextBoxTrailingUpLimit.Text))
                 {
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingUpLimit = TextBoxTrailingUpLimit.Text.ToDecimal();
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingUpLimit, ref _trailingUpLimitPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingUpLimit = valid;
                 TradeGrid.Save();
             }
-            catch
+            catch(Exception ex)
             {
-                // ignore
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
 
@@ -1225,6 +1300,276 @@ namespace OsEngine.OsTrader.Grids
         private int _trailingDownErrorsCountLimit;
 
         private int _trailingDownErrorsCountStep;
+
+        // Last valid percent values, revert targets for AC8 (validation) and AC9 (checkbox refusal)
+
+        private decimal _trailingUpStepPctLast = 1m;
+
+        private decimal _trailingUpLimitPctLast = 1m;
+
+        private decimal _trailingDownStepPctLast = 1m;
+
+        private decimal _trailingDownLimitPctLast = 1m;
+
+        private int _trailingUpStepPctRefusals;
+
+        private int _trailingUpLimitPctRefusals;
+
+        private int _trailingDownStepPctRefusals;
+
+        private int _trailingDownLimitPctRefusals;
+
+        private bool _trailingPctReentry;
+
+        /// <summary>
+        /// Validation of value typed while the "in percent" checkbox is on. Returns false when the value
+        /// is outside (0;100] or is not a number: the box rolls back to the last valid value, nothing is
+        /// written to the grid, localized message is sent. Never call from fill: _trailingPctReentry guard
+        /// </summary>
+        private bool TryValidateTrailingPercent(System.Windows.Controls.TextBox box, ref decimal lastValid, out decimal valid)
+        {
+            valid = lastValid;
+
+            bool isPercent;
+
+            if (box == TextBoxTrailingUpStep)
+            {
+                isPercent = TradeGrid.TrailingUp.TrailingUpStepIsPercent;
+            }
+            else if (box == TextBoxTrailingUpLimit)
+            {
+                isPercent = TradeGrid.TrailingUp.TrailingUpLimitIsPercent;
+            }
+            else if (box == TextBoxTrailingDownStep)
+            {
+                isPercent = TradeGrid.TrailingUp.TrailingDownStepIsPercent;
+            }
+            else
+            {
+                isPercent = TradeGrid.TrailingUp.TrailingDownLimitIsPercent;
+            }
+
+            if (isPercent == false)
+            {
+                try
+                {
+                    valid = box.Text.ToDecimal();
+                }
+                catch
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            try
+            {
+                decimal parsed = box.Text.ToDecimal();
+
+                if (parsed <= 0m || parsed > 100m)
+                {
+                    throw new FormatException();
+                }
+
+                valid = parsed;
+                lastValid = parsed;
+
+                return true;
+            }
+            catch
+            {
+                _trailingPctReentry = true;
+
+                box.Text = lastValid.ToString();
+
+                _trailingPctReentry = false;
+
+                TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// AC9: switching the checkbox on is refused when the value in its box is outside (0;100],
+        /// the box rolls back to the last valid percent. Switching off is always allowed
+        /// </summary>
+        private bool TrailingPercentCheckboxRefusal(System.Windows.Controls.TextBox box, ref decimal lastValid, ref int refusals)
+        {
+            decimal value;
+
+            try
+            {
+                value = box.Text.ToDecimal();
+            }
+            catch
+            {
+                value = -1m;
+            }
+
+            if (value > 0m && value <= 100m)
+            {
+                refusals = 0;
+                lastValid = value;
+
+                return false;
+            }
+
+            _trailingPctReentry = true;
+
+            box.Text = lastValid.ToString();
+
+            _trailingPctReentry = false;
+
+            refusals++;
+
+            if (refusals > 2)
+            {
+                refusals = 0;
+
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label789);
+                ui.ShowDialog();
+            }
+
+            return true;
+        }
+
+        private void CheckBoxTrailingUpStepIsPercent_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                bool value = CheckBoxTrailingUpStepIsPercent.IsChecked.Value;
+
+                if (value == true)
+                {
+                    if (TrailingPercentCheckboxRefusal(TextBoxTrailingUpStep, ref _trailingUpStepPctLast, ref _trailingUpStepPctRefusals))
+                    {
+                        _trailingPctReentry = true;
+                        CheckBoxTrailingUpStepIsPercent.IsChecked = false;
+                        _trailingPctReentry = false;
+
+                        TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingUpStepIsPercent = value;
+                TradeGrid.Save();
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxTrailingUpLimitIsPercent_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                bool value = CheckBoxTrailingUpLimitIsPercent.IsChecked.Value;
+
+                if (value == true)
+                {
+                    if (TrailingPercentCheckboxRefusal(TextBoxTrailingUpLimit, ref _trailingUpLimitPctLast, ref _trailingUpLimitPctRefusals))
+                    {
+                        _trailingPctReentry = true;
+                        CheckBoxTrailingUpLimitIsPercent.IsChecked = false;
+                        _trailingPctReentry = false;
+
+                        TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingUpLimitIsPercent = value;
+                TradeGrid.Save();
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxTrailingDownStepIsPercent_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                bool value = CheckBoxTrailingDownStepIsPercent.IsChecked.Value;
+
+                if (value == true)
+                {
+                    if (TrailingPercentCheckboxRefusal(TextBoxTrailingDownStep, ref _trailingDownStepPctLast, ref _trailingDownStepPctRefusals))
+                    {
+                        _trailingPctReentry = true;
+                        CheckBoxTrailingDownStepIsPercent.IsChecked = false;
+                        _trailingPctReentry = false;
+
+                        TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingDownStepIsPercent = value;
+                TradeGrid.Save();
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxTrailingDownLimitIsPercent_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
+                bool value = CheckBoxTrailingDownLimitIsPercent.IsChecked.Value;
+
+                if (value == true)
+                {
+                    if (TrailingPercentCheckboxRefusal(TextBoxTrailingDownLimit, ref _trailingDownLimitPctLast, ref _trailingDownLimitPctRefusals))
+                    {
+                        _trailingPctReentry = true;
+                        CheckBoxTrailingDownLimitIsPercent.IsChecked = false;
+                        _trailingPctReentry = false;
+
+                        TradeGrid.SendNewLogMessage(OsLocalization.Trader.Label789, OsEngine.Logging.LogMessageType.System);
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingDownLimitIsPercent = value;
+                TradeGrid.Save();
+            }
+            catch(Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
 
         private void CheckBoxTrailingDownIsOn_Checked(object sender, RoutedEventArgs e)
         {
@@ -1278,17 +1623,29 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(TextBoxTrailingDownStep.Text))
                 {
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingDownStep = TextBoxTrailingDownStep.Text.ToDecimal();
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingDownStep, ref _trailingDownStepPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingDownStep = valid;
                 TradeGrid.Save();
             }
-            catch
+            catch(Exception ex)
             {
-                // ignore
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
 
@@ -1296,17 +1653,29 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
+                if (_trailingPctReentry)
+                {
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(TextBoxTrailingDownLimit.Text))
                 {
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingDownLimit = TextBoxTrailingDownLimit.Text.ToDecimal();
+                decimal valid;
+
+                if (TryValidateTrailingPercent(TextBoxTrailingDownLimit, ref _trailingDownLimitPctLast, out valid) == false)
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingDownLimit = valid;
                 TradeGrid.Save();
             }
-            catch
+            catch(Exception ex)
             {
-                // ignore
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
             }
         }
 

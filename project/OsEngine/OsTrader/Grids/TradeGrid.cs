@@ -1094,6 +1094,15 @@ namespace OsEngine.OsTrader.Grids
                     RePaintGrid();
                     FullRePaintGrid();
                 }
+
+                // sole consumer of AnchorRefreshedNeeded: the transient refresh signal is transferred
+                // into _needToSave here and reset, no Save from the checks thread
+
+                if (TrailingUp.AnchorRefreshedNeeded)
+                {
+                    TrailingUp.AnchorRefreshedNeeded = false;
+                    _needToSave = true;
+                }
             }
 
             // 8 вход в различную логику различных сеток
