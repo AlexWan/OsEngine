@@ -1357,8 +1357,18 @@ namespace OsEngine.Market.Servers.MOEX
                 RestRequest requestRest = new RestRequest(Method.GET);
                 RestClient client = new RestClient(url);
 
-                string responseMessage = client.Execute(requestRest).Content;
-                return responseMessage;
+                IRestResponse response = client.Execute(requestRest);
+
+                // bug-0662: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; без этой ветки отказ молча проглатывается
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("GetRequest error. Url: " + url + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                }
+
+                return response.Content;
             }
             catch (Exception error)
             {
