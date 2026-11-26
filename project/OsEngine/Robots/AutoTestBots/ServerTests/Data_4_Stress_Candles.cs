@@ -42,6 +42,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 for (int i = 0; i < securitiesActivated.Count; i++)
                 {
+                    SetNewServiceInfo("progress: " + securitiesActivated[i].Name + " / start");
                     StartTestSecurity(securitiesActivated[i]);
                 }
             }
@@ -167,6 +168,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         private void CheckCandleData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime)
         {
+            SetNewServiceInfo("progress: " + security.Name + " / " + timeFrame.ToString() + " " + startTime.ToShortDateString() + ".." + endTime.ToShortDateString());
+
             SetNewServiceInfo("Tf checked: " + timeFrame.ToString());
 
             string secName = security.Name;
