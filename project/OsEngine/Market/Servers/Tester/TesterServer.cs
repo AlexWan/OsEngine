@@ -4180,12 +4180,34 @@ namespace OsEngine.Market.Servers.Tester
 
         public Security GetSecurityForName(string name, string secClass)
         {
-            if (_securities == null)
+            return FindRegisteredSecurity(name);
+        }
+
+        /// <summary>
+        /// Registered securities search: exact match, then — for legacy tab configs, which may store the name with .txt — the same name without that extension (bug-0687)
+        /// Поиск зарегистрированной бумаги: точное совпадение, затем — для легаси-конфигов табов с именем .txt — то же имя без этого расширения (bug-0687)
+        /// </summary>
+        private Security FindRegisteredSecurity(string requested)
+        {
+            if (_securities == null || string.IsNullOrEmpty(requested))
             {
                 return null;
             }
 
-            return _securities.Find(security => security.Name == name);
+            Security security = _securities.Find(s => s.Name == requested);
+            if (security != null)
+            {
+                return security;
+            }
+
+            // cut strictly the .txt literal so that names with dots are not mangled (BTC.USDT)
+            // срезаем строго литерал .txt, чтобы не калечить имена с точками (BTC.USDT)
+            if (requested.EndsWith(".txt", StringComparison.Ordinal) && requested.Length > 4)
+            {
+                return _securities.Find(s => s.Name == requested.Substring(0, requested.Length - 4));
+            }
+
+            return null;
         }
 
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
@@ -4771,6 +4793,16 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < files.Length; i++)
             {
+                string name = Path.GetFileNameWithoutExtension(files[i]);
+
+                // collision after removing the extension (bug-0687): register the first file, warn about the rest
+                // после снятия расширения возможна коллизия Foo / Foo.txt (bug-0687): регистрируем первый файл, о втором — предупреждение
+                if (security.Find(s => s.Security.Name == name) != null)
+                {
+                    SendLogMessage("Tester. Duplicate security name skipped: " + files[i], LogMessageType.Error);
+                    continue;
+                }
+
                 security.Add(new SecurityTester());
                 security[security.Count - 1].FileAddress = files[i];
                 security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
@@ -4778,8 +4810,6 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
                 security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
                 security[security.Count - 1].Security = new Security();
                 security[security.Count - 1].Security.Name = name;
@@ -5105,6 +5135,16 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < files.Length; i++)
             {
+                string name = Path.GetFileNameWithoutExtension(files[i]);
+
+                // collision after removing the extension (bug-0687): register the first file, warn about the rest
+                // после снятия расширения возможна коллизия Foo / Foo.txt (bug-0687): регистрируем первый файл, о втором — предупреждение
+                if (security.Find(s => s.Security.Name == name) != null)
+                {
+                    SendLogMessage("Tester. Duplicate security name skipped: " + files[i], LogMessageType.Error);
+                    continue;
+                }
+
                 security.Add(new SecurityTester());
                 security[security.Count - 1].FileAddress = files[i];
                 security[security.Count - 1].NewCandleEvent += TesterServer_NewCandleEvent;
@@ -5112,8 +5152,6 @@ namespace OsEngine.Market.Servers.Tester
                 security[security.Count - 1].NewMarketDepthEvent += TesterServer_NewMarketDepthEvent;
                 security[security.Count - 1].LogMessageEvent += TesterServer_LogMessageEvent;
                 security[security.Count - 1].NeedToCheckOrders += TesterServer_NeedToCheckOrders;
-
-                string name = files[i].Split('\\')[files[i].Split('\\').Length - 1];
 
                 security[security.Count - 1].Security = new Security();
                 security[security.Count - 1].Security.Name = name;
@@ -5920,21 +5958,16 @@ namespace OsEngine.Market.Servers.Tester
                     return null;
                 }
 
-                Security security = null;
-
-                for (int i = 0; i < _securities.Count; i++)
-                {
-                    if (_securities[i].Name == securityName)
-                    {
-                        security = _securities[i];
-                        break;
-                    }
-                }
+                Security security = FindRegisteredSecurity(securityName);
 
                 if (security == null)
                 {
                     return null;
                 }
+
+                // legacy tab configs may carry the old registered name with .txt (bug-0687): from here on work with the registered name
+                // легаси-конфиг таба может нести старое имя регистрации с .txt (bug-0687): дальше работаем с именем регистрации
+                securityName = security.Name;
 
                 // find security / находим бумагу
 
