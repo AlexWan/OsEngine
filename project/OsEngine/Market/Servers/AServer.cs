@@ -1528,7 +1528,7 @@ namespace OsEngine.Market.Servers
 
                     if (_securities == null || Securities.Count == 0)
                     {
-                        ServerRealization.GetSecurities();
+                        GetSecuritiesSerialized(true);
                     }
                 }
                 catch (Exception error)
@@ -2354,12 +2354,46 @@ namespace OsEngine.Market.Servers
         }
         private List<Security> _securities = new List<Security>();
 
+        // Два замка со строгим порядком владения: загрузка-вход (_securitiesLoadLock) -> внутренние
+        // замки коннектора -> мерж (_securitiesMergeLock). Один замок (у 77d51805e) давал ABBA:
+        // коннекторы рейзят SecurityEvent транзитивно из-под СВОЕГО лока (TInvestServer
+        // _getSecuritiesLocker :769/:775 -> SendCurrentSecurities :963) — ReloadSecurities держит
+        // движковый замок и ждёт коннекторный, а тред Connect self-call (:2817, без входа через
+        // AServer) держит коннекторный и ждёт движковый; RateGate.WaitToProceed() = Timeout.Infinite
+        // парит Prime-тред навсегда. Теперь мерж берёт только _securitiesMergeLock и никогда не
+        // вызывает коннектор — мерж всегда во внутреннем замке, обратного ребра нет, цикл невозможен.
+        // Замок по ключу словаря не спасал бы: рвётся список _securities (Insert/Add под сдвигом).
+        private readonly object _securitiesLoadLock = new object();
+
+        /// <summary>
+        /// Замок тела мержа SecurityEvent и состояния _securities/_securitiesDictionary.
+        /// Порядок владения — см. комментарий над _securitiesLoadLock.
+        /// </summary>
+        private readonly object _securitiesMergeLock = new object();
+
         /// <summary>
         /// Request securities from server again.
         /// </summary>
         public void ReloadSecurities()
         {
-            ServerRealization.GetSecurities();
+            GetSecuritiesSerialized(false);
+        }
+
+        /// <summary>
+        /// Выгружает инструменты у коннектора под _securitiesLoadLock.
+        /// skipIfAlreadyLoaded — для цикла соединения: пока ждали замок, параллельная точка входа
+        /// (ReloadSecurities) могла уже завершить выгрузку.
+        /// </summary>
+        private void GetSecuritiesSerialized(bool skipIfAlreadyLoaded)
+        {
+            lock (_securitiesLoadLock)
+            {
+                if (skipIfAlreadyLoaded && _securities?.Count > 0)
+                {
+                    return;
+                }
+                ServerRealization.GetSecurities();
+            }
         }
 
         private Dictionary<string, Security> _securitiesDictionary = new Dictionary<string, Security>();
@@ -2434,97 +2468,100 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                if (securities == null
-                    || securities.Count == 0)
+                lock (_securitiesMergeLock)
                 {
-                    return;
-                }
-
-                TryUpdateSecuritiesUserSettings(securities);
-
-                if (_securities == null
-                    && securities.Count > 5000)
-                {
-                    _securities = securities;
-                    _securitiesToSend.Enqueue(_securities);
-
-                    return;
-                }
-
-                if (_securities == null)
-                {
-                    _securities = new List<Security>();
-                }
-
-                for (int i = 0; i < securities.Count; i++)
-                {
-                    if (securities[i] == null)
+                    if (securities == null
+                        || securities.Count == 0)
                     {
-                        continue;
-                    }
-                    if (string.IsNullOrEmpty(securities[i].NameId))
-                    {
-                        SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
-                        continue;
-                    }
-                    if (string.IsNullOrEmpty(securities[i].Name))
-                    {
-                        SendLogMessage(OsLocalization.Market.Message98, LogMessageType.Error);
-                        continue;
+                        return;
                     }
 
-                    Security sec = _securities.Find(s =>
-                            s != null &&
-                            s.NameId == securities[i].NameId &&
-                            s.Name == securities[i].Name &&
-                            s.NameClass == securities[i].NameClass);
+                    TryUpdateSecuritiesUserSettings(securities);
 
-                    if (sec == null)
+                    if (_securities == null
+                        && securities.Count > 5000)
                     {
-                        bool isInArray = false;
+                        _securities = securities;
+                        _securitiesToSend.Enqueue(_securities);
 
-                        for (int i2 = 0; i2 < _securities.Count; i2++)
+                        return;
+                    }
+
+                    if (_securities == null)
+                    {
+                        _securities = new List<Security>();
+                    }
+
+                    for (int i = 0; i < securities.Count; i++)
+                    {
+                        if (securities[i] == null)
                         {
-                            if (_securities[i2].Name[0] > securities[i].Name[0])
+                            continue;
+                        }
+                        if (string.IsNullOrEmpty(securities[i].NameId))
+                        {
+                            SendLogMessage(OsLocalization.Market.Message13, LogMessageType.Error);
+                            continue;
+                        }
+                        if (string.IsNullOrEmpty(securities[i].Name))
+                        {
+                            SendLogMessage(OsLocalization.Market.Message98, LogMessageType.Error);
+                            continue;
+                        }
+
+                        Security sec = _securities.Find(s =>
+                                s != null &&
+                                s.NameId == securities[i].NameId &&
+                                s.Name == securities[i].Name &&
+                                s.NameClass == securities[i].NameClass);
+
+                        if (sec == null)
+                        {
+                            bool isInArray = false;
+
+                            for (int i2 = 0; i2 < _securities.Count; i2++)
                             {
-                                _securities.Insert(i2, securities[i]);
-                                isInArray = true;
-                                break;
+                                if (_securities[i2].Name[0] > securities[i].Name[0])
+                                {
+                                    _securities.Insert(i2, securities[i]);
+                                    isInArray = true;
+                                    break;
+                                }
+                            }
+
+                            if (isInArray == false)
+                            {
+                                _securities.Add(securities[i]);
+                            }
+
+                            Security mySecurity;
+
+                            if (_securitiesDictionary.TryGetValue(securities[i].Name, out mySecurity) == false)
+                            {
+                                _securitiesDictionary.Add(securities[i].Name, securities[i]);
                             }
                         }
-
-                        if (isInArray == false)
+                        else
                         {
-                            _securities.Add(securities[i]);
-                        }
-
-                        Security mySecurity;
-
-                        if (_securitiesDictionary.TryGetValue(securities[i].Name, out mySecurity) == false)
-                        {
-                            _securitiesDictionary.Add(securities[i].Name, securities[i]);
+                            sec.Lot = securities[i].Lot;
+                            sec.PriceStepCost = securities[i].PriceStepCost;
+                            sec.PriceStep = securities[i].PriceStep;
+                            sec.VolumeStep = securities[i].VolumeStep;
+                            sec.DecimalsVolume = securities[i].DecimalsVolume;
+                            sec.Decimals = securities[i].Decimals;
+                            sec.Strike = securities[i].Strike;
+                            sec.State = securities[i].State;
+                            sec.Expiration = securities[i].Expiration;
+                            sec.MarginBuy = securities[i].MarginBuy;
+                            sec.MarginSell = securities[i].MarginSell;
+                            sec.MinTradeAmount = securities[i].MinTradeAmount;
+                            sec.PriceLimitHigh = securities[i].PriceLimitHigh;
+                            sec.PriceLimitLow = securities[i].PriceLimitLow;
                         }
                     }
-                    else
-                    {
-                        sec.Lot = securities[i].Lot;
-                        sec.PriceStepCost = securities[i].PriceStepCost;
-                        sec.PriceStep = securities[i].PriceStep;
-                        sec.VolumeStep = securities[i].VolumeStep;
-                        sec.DecimalsVolume = securities[i].DecimalsVolume;
-                        sec.Decimals = securities[i].Decimals;
-                        sec.Strike = securities[i].Strike;
-                        sec.State = securities[i].State;
-                        sec.Expiration = securities[i].Expiration;
-                        sec.MarginBuy = securities[i].MarginBuy;
-                        sec.MarginSell = securities[i].MarginSell;
-                        sec.MinTradeAmount = securities[i].MinTradeAmount;
-                        sec.PriceLimitHigh = securities[i].PriceLimitHigh;
-                        sec.PriceLimitLow = securities[i].PriceLimitLow;
-                    }
+
+                    _securitiesToSend.Enqueue(_securities);
                 }
-
-                _securitiesToSend.Enqueue(_securities);
             }
             catch (Exception ex)
             {
