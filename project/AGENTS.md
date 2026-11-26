@@ -45,7 +45,9 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **256/256 passed** (`--transport v2`) и **247/247 passed** (`--transport v1`).
+Цель стенда: **258/258 passed** (`--transport v2`) и **247/247 passed** (`--transport v1`).
+Известный текущий дефицит (26.11.2026): `ConfigTabPair/pair_live_pair_run` FAIL — в headless
+`-testerlight` свечная серия плечей пары не стартует (движковый разрыв, `CONTEXT_MCP_TESTSTAND.md`, модуль 24).
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 

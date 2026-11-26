@@ -61,7 +61,7 @@
 | 21 | StreamableHttp | — | стандартный Streamable HTTP `/api/v2/mcp` (только при `--transport v2`) |
 | 22 | CapitalAllocation | — | аллокация капитала: статус, боты (set/add/get/clear), настройки, кластеризация/HRP расчёт и результат |
 | 23 | CapitalAllocationCycle | — | полный цикл: аллокация → сохранение в файл → перезапуск в тестер → создание робота → загрузка аллокации → проверка объёмов |
-| 24 | ConfigTabPair | `-testerlight` | конфигурация Pair-вкладки через `bot_get/set_config_tab_pair`: схема, `create_pair`=max+1, round-trip, дедуп, негативы, тексты V1=V2 |
+| 24 | ConfigTabPair | `-testerlight` | конфигурация Pair-вкладки через `bot_get/set_config_tab_pair`: схема, `create_pair`=max+1, round-trip, дедуп, негативы, тексты V1=V2 + live-фаза (2 проверки): OsData-скачивание BTCUSDT/ETHUSDT Min1 с BinanceData (data.binance.vision, без ключей) и прогон тестера на скачанных данных с реальной парой (`correlation_last`≠0). Моменты: tester-`set_name` передаётся без префикса `Set_` (его дописывает `SetNewSet`); очистка/создание сета — только в режиме `data`; бумаги источника появляются после connect. Факт 26.11.2026 (`GC-m24-live-v14`): 22/23; скачка OsData PASS (BTCUSDT/ETHUSDT 5761+5761 Min1); `pair_live_pair_run` FAIL — в headless `-testerlight` свечная серия плечей пары не стартует (Message38), разрыв проводки `GetConnectors`/`SubscribeCandles` в `BotTabPair`; детали — `CONTEXT_PAIRS_AND_FUTURES.md` |
 
 ## 5. Как запускать
 
@@ -86,11 +86,11 @@ dotnet run -- [--port 6500] [--api-key ...] [--timeout 60] [--no-wait] [--transp
 - **Полный прогон всех 24 модулей — около 5–6 минут** (пример: `Total: 196/196 passed in 338.6s`).
   Основное время — перезапуск OsEngine перед каждым модулем, а не сами проверки.
 - Отдельный модуль (`--module Name` или номер) — обычно **10–60 секунд** (перезапуск + вызовы).
-- «Тяжёлые» по времени модули: `Data` (скачивание свечей), `Tester` / `Optimizer` (прогон), `SSE` (ожидание стрима).
+- «Тяжёлые» по времени модули: `Data` (скачивание свечей), `Tester` / `Optimizer` (прогон), `SSE` (ожидание стрима), `ConfigTabPair` live-фаза (скачивание OsData с BinanceData ~4 мин + прогон).
 
 ## 7. Что на выходе
 
-Полный набор проверок: **V2 — 256** (из них 10 — модуль `StreamableHttp`, 21 — `ConfigTabPair`), **V1 — 247**.
+Полный набор проверок: **V2 — 258** (из них 10 — модуль `StreamableHttp`, 23 — `ConfigTabPair`), **V1 — 247** (V1-подмножество `ConfigTabPair` не пересчитано; live-проверки V1 будут включены после прогона `--transport v1`).
 
 Во время прогона — построчно:
 
