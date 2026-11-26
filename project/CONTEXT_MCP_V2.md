@@ -145,6 +145,8 @@
 | `bot_set_config_tab_screener` | Настроить вкладку `BotTabScreener` |
 | `bot_get_config_tab_index` | Конфигурация вкладки `BotTabIndex` (формула, глубина расчёта, авто-формула) |
 | `bot_set_config_tab_index` | Настроить вкладку `BotTabIndex` |
+| `bot_get_config_tab_pair` | Конфигурация вкладки `BotTabPair`: стандарт вкладки и все пары (`pair_num`, `pair_name`, `security_key`, флаги `events_is_on`/`emulator_is_on`, поля ног с префиксами `sec1_`/`sec2_`) |
+| `bot_set_config_tab_pair` | Настроить пару `BotTabPair` (частичное обновление). Адресат — `pair_num` или `create_pair=true`; без адреса поля идут в стандарт вкладки и каскадируются на пары. Ограничения: на оптимизаторе настройки не сохраняются, `events_is_on=false` запрещён для Tester, смена полей данных перезапускает подписку только вне reconnect-троттла |
 | `bot_get_position_support` | Настройки сопровождения позиции (`BotManualControl`) для вкладки |
 | `bot_set_position_support` | Установить сопровождение позиции |
 | `bot_grid_get` | Сетки вкладки `Simple` |
