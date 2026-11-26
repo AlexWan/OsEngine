@@ -269,6 +269,10 @@ namespace OsEngine.Market.Servers.QscalpMarketDepth
         {
             try
             {
+                // Repeat GetSecurities (AServer.ReloadSecurities) must not append the whole
+                // set again: without this Clear the list grew by a full payload per reload (PR1 pattern, BUG-0672)
+                _securities.Clear();
+
                 HashSet<string>.Enumerator secList = uniqueSecurities.GetEnumerator();
 
                 while (secList.MoveNext())
