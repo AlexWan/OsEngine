@@ -2354,11 +2354,22 @@ namespace OsEngine.Market.Servers
         }
         private List<Security> _securities = new List<Security>();
 
-        // Единый замок на загрузку и на мерж SecurityEvent: коннекторы рейзят SecurityEvent
-        // синхронно из GetSecurities, два раздельных замка дали бы взаимоблокировку на вложенном
-        // рейзе; Monitor реентерабелен по треду. Замок по ключу словаря не спасает — рвётся
-        // список _securities (Insert/Add под сдвигом), а не ключ.
+        // Два замка со строгим порядком владения: загрузка-вход (_securitiesLoadLock) -> внутренние
+        // замки коннектора -> мерж (_securitiesMergeLock). Один замок (у 77d51805e) давал ABBA:
+        // коннекторы рейзят SecurityEvent транзитивно из-под СВОЕГО лока (TInvestServer
+        // _getSecuritiesLocker :769/:775 -> SendCurrentSecurities :963) — ReloadSecurities держит
+        // движковый замок и ждёт коннекторный, а тред Connect self-call (:2817, без входа через
+        // AServer) держит коннекторный и ждёт движковый; RateGate.WaitToProceed() = Timeout.Infinite
+        // парит Prime-тред навсегда. Теперь мерж берёт только _securitiesMergeLock и никогда не
+        // вызывает коннектор — мерж всегда во внутреннем замке, обратного ребра нет, цикл невозможен.
+        // Замок по ключу словаря не спасал бы: рвётся список _securities (Insert/Add под сдвигом).
         private readonly object _securitiesLoadLock = new object();
+
+        /// <summary>
+        /// Замок тела мержа SecurityEvent и состояния _securities/_securitiesDictionary.
+        /// Порядок владения — см. комментарий над _securitiesLoadLock.
+        /// </summary>
+        private readonly object _securitiesMergeLock = new object();
 
         /// <summary>
         /// Request securities from server again.
@@ -2457,7 +2468,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                lock (_securitiesLoadLock)
+                lock (_securitiesMergeLock)
                 {
                     if (securities == null
                         || securities.Count == 0)
