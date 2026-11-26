@@ -806,13 +806,13 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
             #region 6 WebSocket creation
 
-            private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+            private List<WebSocketDeflate> _webSocketPublic = new List<WebSocketDeflate>();
 
             // Все отправки публичного сокета идут под этим локом (SendPublic): конкурентные отправки
             // в ClientWebSocket бросают InvalidOperationException, порядок UNSUB->SUB нужен recovery-паре
             private readonly object _publicSendLock = new object();
 
-            private WebSocket _webSocketPrivate;
+            private WebSocketDeflate _webSocketPrivate;
 
             private readonly string _webSocketPrivateUrl = "wss://fstream.xt.com/ws/user";
 
@@ -835,11 +835,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private WebSocket CreateNewPublicSocket()
+            private WebSocketDeflate CreateNewPublicSocket()
             {
                 try
                 {
-                    WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+                    WebSocketDeflate webSocketPublicNew = new WebSocketDeflate(_webSocketPublicUrl);
 
                     if (_myProxy != null)
                     {
@@ -851,7 +851,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                     webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                     webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                    webSocketPublicNew.ConnectAsync();
+                    webSocketPublicNew.ConnectAsync(TimeSpan.FromSeconds(30));
 
                     return webSocketPublicNew;
                 }
@@ -871,7 +871,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
+                    _webSocketPrivate = new WebSocketDeflate(_webSocketPrivateUrl);
 
                     if (_myProxy != null)
                     {
@@ -883,7 +883,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                    _webSocketPrivate.ConnectAsync();
+                    _webSocketPrivate.ConnectAsync(TimeSpan.FromSeconds(30));
                 }
                 catch (Exception exception)
                 {
@@ -899,7 +899,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
                             webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
@@ -961,7 +961,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    WebSocket webSocketPublic = _webSocketPublic[0];
+                    WebSocketDeflate webSocketPublic = _webSocketPublic[0];
 
                     if (webSocketPublic == null
                         || webSocketPublic?.ReadyState != WebSocketState.Open)
@@ -999,6 +999,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
+                    else
+                    {
+                        // 0680: закрытие при уже Disconnect раньше молчало — так же молчал и отказ сервера в handshake
+                        SendLogMessage($"{this.GetType().Name} WebSocket Public closed while Disconnect. Code: {e?.Code} Reason: {e?.Reason}", LogMessageType.System);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1012,6 +1017,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        // 0680: ошибка при Disconnect не терялась только на бумаге — отказ в handshake пропадал совсем
+                        SendLogMessage($"{this.GetType().Name} WebSocket Public error while Disconnect. {e?.Exception?.ToString()}", LogMessageType.Error);
                         return;
                     }
 
@@ -1095,6 +1102,8 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        // 0680: здесь сутки не было видно 426 «permessage-deflate is required» от приватного канала
+                        SendLogMessage($"{this.GetType().Name} WebSocket Private error while Disconnect. {e?.Exception?.ToString()}", LogMessageType.Error);
                         return;
                     }
 
@@ -1169,6 +1178,11 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
+                    else
+                    {
+                        // 0680: то же, что для публичного: закрытие в состоянии Disconnect должно быть видно
+                        SendLogMessage($"{this.GetType().Name} WebSocket Private closed while Disconnect. Code: {e?.Code} Reason: {e?.Reason}", LogMessageType.System);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1211,7 +1225,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
 
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             if (webSocketPublic != null
                                 && webSocketPublic?.ReadyState == WebSocketState.Open)
@@ -1283,14 +1297,14 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                         return;
                     }
 
-                    WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+                    WebSocketDeflate webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                     if (webSocketPublic.ReadyState == WebSocketState.Open
                         && _subscribedSecurities.Count != 0
                         && _subscribedSecurities.Count % 50 == 0)
                     {
                         // creating a new socket
-                        WebSocket newSocket = CreateNewPublicSocket();
+                        WebSocketDeflate newSocket = CreateNewPublicSocket();
 
                         DateTime timeEnd = DateTime.Now.AddSeconds(10);
 
@@ -1332,7 +1346,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             try
                             {
@@ -1866,7 +1880,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
 
                 // то же правило выбора сокета, что у Subscribe(): читатель не знает, с какого сокета пришёл кадр
-                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+                WebSocketDeflate webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic == null
                     || webSocketPublic.ReadyState != WebSocketState.Open)
@@ -1897,7 +1911,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private void SendPublic(WebSocket webSocket, string message)
+            private void SendPublic(WebSocketDeflate webSocket, string message)
             {
                 try
                 {
@@ -1919,7 +1933,7 @@ namespace OsEngine.Market.Servers.XT.XTFutures
                 }
             }
 
-            private bool TrySendPublic(WebSocket webSocket, string message)
+            private bool TrySendPublic(WebSocketDeflate webSocket, string message)
             {
                 // Q2 (решение ОдБ r7): только для некритичных мест (ping карусели): висючий send блокирует
                 // convoy, ждать его дольше 2 с вреднее пропуска цикла. Subscribe/Unsubscribe остаются
