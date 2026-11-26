@@ -740,8 +740,8 @@ namespace OsEngine.Market.Servers.TInvest
         // FIX-0472 (R1/R4 + U-03): бюджет стримов по тарифу. Снимок пишется ОДНИМ блоком под
         // _tariffSnapshotLock по успешному ответу; -1 = тариф неизвестен (только до первого
         // успешного ответа — при сбоях перевода остаётся последний снимок, не unknown).
-        // All-агрегаты — по всем записям StreamLimits (консервативно:
-        // LimitAll = минимальный Limit записи, OpenAll = сумма Open)
+        // All-агрегаты — по всем записям StreamLimits, только диагностика (BUG-0678:
+        // FormatMdBudget); в формулу бюджета не входят: тариф построчный (LimitAll = мин. Limit, OpenAll = сумма Open)
         private static readonly object _tariffSnapshotLock = new object();
         private int _tariffMdStreamLimit = -1;
         private int _tariffMdStreamOpen = 0;
@@ -2638,9 +2638,11 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         /// <summary>
-        /// FIX-0472 (1.2): свободные слоты MD-стримов с учётом токенного бюджета брокера.
-        /// Формула с ДВОЙНЫМ запасом: -1 внутри min (общий лимит на все сервисы) и ещё -1 на
-        /// переподключение; +3 — фиксированные не-MD стримы коннектора (портфель/позиции/ордера).
+        /// FIX-0472 (1.2): свободные слоты MD-стримов по токенному бюджету брокера.
+        /// BUG-0678: бюджет построчный по MarketDataStreamService — лимиты брокера действуют по
+        /// строке сервиса, MD-стрим занимает только свою MD-линию; кросс-строчный агрегат
+        /// (бывш. R4: min по всем Limit минус ΣOpen) запирал гейт на общем токене при свободной
+        /// MD-линии. Формула: limitMd − 1 (запас на переподключение) − max(openMd, локальные+3).
         /// На минимальном тарифе бюджет схлопывается в 0 — консервативно, в polling (M-B8).
         /// Перевызв тарифа при возрасте &gt; 2 минут (R1); тариф неизвестен — только локальная сторона.
         /// </summary>
@@ -2656,26 +2658,44 @@ namespace OsEngine.Market.Servers.TInvest
             // U-03: снимок читается целиком под тем же локом — согласованная пара (тариф, кэп)
             int limitMd;
             int openMd;
+            int localFree;
+            lock (_tariffSnapshotLock)
+            {
+                limitMd = _tariffMdStreamLimit;
+                openMd = _tariffMdStreamOpen;
+                localFree = Math.Max(0, _maxMarketDataStreams - localCount);
+            }
+
+            // BUG-0678: MD-строки в тарифе нет -> limitMd = -1; прежнее условие limitAll <= 0
+            // им поглощается и из формулы вышло (построчная модель)
+            if (limitMd <= 0)
+                return localFree;
+
+            // BUG-0678: -1 — запас на переподключение; +3 — slack-резерв: свои портфель/позиции/ордера
+            // брокер считает по OTHER строкам StreamLimits и в MD-линию не входят, резерв чисто страховочный.
+            // Open может быть накопительным (поле 26.11: ночные Open>Limit) — перелёт покрывает R5-детектор 80001.
+            int serverFree = Math.Max(0, limitMd - 1 - Math.Max(openMd, localCount + 3));
+
+            return Math.Min(serverFree, localFree);
+        }
+
+        // BUG-0678: слагаемые бюджета для диагностики отказа в polling. Читает снимок под
+        // _tariffSnapshotLock; GetUserLimits() НЕ вызывает — частота логов равна частоте подписок
+        private string FormatMdBudget()
+        {
+            int limitMd;
+            int openMd;
             int limitAll;
             int openAll;
-            int localFree;
+            int localCount = _marketDataStreams == null ? 0 : _marketDataStreams.Count;
             lock (_tariffSnapshotLock)
             {
                 limitMd = _tariffMdStreamLimit;
                 openMd = _tariffMdStreamOpen;
                 limitAll = _tariffStreamLimitAll;
                 openAll = _tariffStreamOpenAll;
-                localFree = Math.Max(0, _maxMarketDataStreams - localCount);
             }
-
-            if (limitMd <= 0 || limitAll <= 0)
-                return localFree;
-
-            int serverFree = Math.Max(0,
-                Math.Min(limitMd, limitAll - 1)
-                - 1 - Math.Max(Math.Max(openMd, openAll), localCount + 3));
-
-            return Math.Min(serverFree, localFree);
+            return $"MD {openMd}/{limitMd}, sum Open {openAll}, tightest Limit {limitAll}, local {localCount}";
         }
 
         private static X509Certificate2[] LoadTInvestCertificates()
@@ -3701,7 +3721,7 @@ namespace OsEngine.Market.Servers.TInvest
                     else
                     {
                         _useStreamForMarketData = false;
-                        SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
+                        SendLogMessage("Switching to polling mode for new market data subscriptions. Budget: " + FormatMdBudget(), LogMessageType.System);
                         TryAddToPollSubscribed(security);
                         return;
                     }
@@ -3744,7 +3764,7 @@ namespace OsEngine.Market.Servers.TInvest
                     else
                     {
                         _useStreamForMarketData = false;
-                        SendLogMessage("Switching to polling mode for new market data subscriptions.", LogMessageType.System);
+                        SendLogMessage("Switching to polling mode for new market data subscriptions. Budget: " + FormatMdBudget(), LogMessageType.System);
                         TryAddToPollSubscribed(security);
                         return;
                     }
