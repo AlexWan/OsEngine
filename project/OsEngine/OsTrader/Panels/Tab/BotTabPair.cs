@@ -126,11 +126,18 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void Clear()
         {
-            // After Delete() the tab is dead: Delete() has nulled Pairs and wiped the legs, so there is nothing to clear.
-            for (int i = 0; Pairs != null && i < Pairs.Count; i++)
+            // Snapshot under the locker, loop over the snapshot (bug-0695): indexed reads of the live
+            // Pairs field raced with the UI mutators of this class. Null list is tolerated (gate from
+            // bug-0696 kept): after Delete() the tab is dead, Pairs is nulled and the loop is skipped.
+            PairToTrade[] snapshot;
+            lock (_pairsLock)
             {
-                Pairs[i].Tab1.Clear();
-                Pairs[i].Tab2.Clear();
+                snapshot = Pairs == null ? null : Pairs.ToArray();
+            }
+            for (int i = 0; snapshot != null && i < snapshot.Length; i++)
+            {
+                snapshot[i].Tab1.Clear();
+                snapshot[i].Tab2.Clear();
             }
         }
 
@@ -194,10 +201,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Pairs[i].LogMessageEvent -= SendNewLogMessage;
                 }
 
-                if (Pairs != null)
+                lock (_pairsLock)
                 {
-                    Pairs.Clear();
-                    Pairs = null;
+                    if (Pairs != null)
+                    {
+                        Pairs.Clear();
+                        Pairs = null;
+                    }
                 }
 
                 if (_grid != null)
@@ -505,6 +515,30 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<PairToTrade> Pairs = new List<PairToTrade>();
 
+        // Single locker for every Pairs mutation in this class and for GetPairsSnapshot():
+        // the public field is mutated from the UI thread and snapshot-read by tester workers (bug-0695)
+        private readonly object _pairsLock = new object();
+
+        /// <summary>
+        /// Thread-consistent copy of the pairs for reading from background threads
+        /// </summary>
+        public PairToTrade[] GetPairsSnapshot()
+        {
+            // Why: List.ToArray() reads _size twice (array allocation, then length for Array.Copy),
+            // a concurrent UI Add between the reads throws ArgumentException (bug-0695). The snapshot
+            // is taken under the same _pairsLock as the leaf mutators here, so readers see one whole
+            // list state. null when the field is reset by Delete() (tab removal in progress)
+            lock (_pairsLock)
+            {
+                List<PairToTrade> pairs = Pairs;
+                if (pairs == null)
+                {
+                    return null;
+                }
+                return pairs.ToArray();
+            }
+        }
+
         /// <summary>
         /// Create a new trading pair
         /// </summary>
@@ -546,7 +580,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 pair.EventsIsOn = _eventsIsOn;
                 pair.Save();
 
-                Pairs.Add(pair);
+                lock (_pairsLock)
+                {
+                    Pairs.Add(pair);
+                }
 
                 SavePairNames();
 
@@ -620,7 +657,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                         Pairs[i].LogMessageEvent -= SendNewLogMessage;
                         Pairs[i].CandlesInPairSyncFinishedEvent -= Pair_CandlesInPairSyncFinishedEvent;
                         Pairs[i].Delete();
-                        Pairs.RemoveAt(i);
+                        lock (_pairsLock)
+                        {
+                            Pairs.RemoveAt(i);
+                        }
                         SavePairNames();
 
                         if (needToRepaint)
@@ -709,7 +749,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newPair.CointegrationChangeEvent += Pair_CointegrationChangeEvent;
                         newPair.LogMessageEvent += SendNewLogMessage;
                         newPair.CandlesInPairSyncFinishedEvent += Pair_CandlesInPairSyncFinishedEvent;
-                        Pairs.Add(newPair);
+                        lock (_pairsLock)
+                        {
+                            Pairs.Add(newPair);
+                        }
                     }
 
                     reader.Close();

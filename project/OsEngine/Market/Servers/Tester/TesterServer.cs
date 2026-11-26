@@ -6362,17 +6362,17 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
-                    List<PairToTrade> pairs = currentTabs[i2].Pairs;
+                    // snapshot before iterating: GetPairsSnapshot() takes the tab's pairs locker, so this
+                    // is serialized with the UI mutators (CreatePair/DeletePair/Delete) and a concurrent
+                    // Add can no longer tear it (bug-0695); null = tab deleted by Delete()
+                    PairToTrade[] pairsArray = currentTabs[i2].GetPairsSnapshot();
 
-                    if (pairs == null)
+                    if (pairsArray == null)
                     {
                         // tab deleted on the real removal path (BotPanel.Delete -> Delete(), tab still in the list
                         // snapshot until removed). BotTabPair.Delete() sets Pairs = null; skip, other tabs keep syncing
                         continue;
                     }
-
-                    // snapshot before iterating: Delete() calls Pairs.Clear() on the UI thread concurrently
-                    PairToTrade[] pairsArray = pairs.ToArray();
 
                     for (int i3 = 0; i3 < pairsArray.Length; i3++)
                     {
@@ -6380,11 +6380,10 @@ namespace OsEngine.Market.Servers.Tester
 
                         if (pair == null)
                         {
-                            // net10 ToArray() = new T[_size] then Array.Copy, two reads of _size. A Clear() between
-                            // them zeroes _items slots and leaves null cells in the snapshot. Mutator profile on
-                            // the removal path is clear-only (Delete() never Adds to Pairs), so null is the torn
-                            // form here. A concurrent Add (UI CreatePair in the same window) grows the source and
-                            // Array.Copy throws ArgumentException - documented residual, not covered by this guard
+                            // kept as a cheap defence: the snapshot now comes from GetPairsSnapshot() under
+                            // the tab's pairs locker, serialized with every UI mutator, so the torn null cell
+                            // (net10 ToArray two _size reads + Clear) can no longer be produced on this path.
+                            // A direct write to the public Pairs field outside the locker would reopen it
                             continue;
                         }
 
