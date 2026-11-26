@@ -175,9 +175,8 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 || (proxyUri.Port == uri.Port
                     && string.Equals(proxyUri.Host, uri.Host, StringComparison.OrdinalIgnoreCase));
 
-            if (direct == false
-                && proxyUri.Scheme != Uri.UriSchemeHttp
-                && proxyUri.Scheme != Uri.UriSchemeHttps)
+            // shortcut: CONNECT говорим в открытую, поэтому только http-прокси. https-прокси требует TLS до CONNECT
+            if (direct == false && proxyUri.Scheme != Uri.UriSchemeHttp)
             {
                 throw new NotSupportedException($"XT WebSocket: proxy scheme '{proxyUri.Scheme}' is not supported, only HTTP CONNECT");
             }
@@ -221,8 +220,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         }
 
         /// <summary>
-        /// Туннель HTTP CONNECT. shortcut: поддерживается только http/https прокси; для остальных схем
-        /// соединение не открывается вовсе, а не идёт напрямую. Поддержка SOCKS — по запросу.
+        /// Туннель HTTP CONNECT поверх уже открытого сокета до прокси.
         /// </summary>
         private async Task<Stream> OpenProxyTunnelAsync(Uri proxyUri, Uri uri, int targetPort, Stream stream, CancellationToken token)
         {
@@ -828,6 +826,12 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 {
                     await Task.Delay(_keepAliveStepMs, token);
 
+                    // закрытый сокет некому держать живым: пинг в него — это лишняя OnError после штатного close
+                    if (ReadyState != WebSocketState.Open)
+                    {
+                        return;
+                    }
+
                     long idleMs = (DateTime.UtcNow.Ticks - Interlocked.Read(ref _lastIncomingTicks)) / TimeSpan.TicksPerMillisecond;
 
                     if (idleMs > _keepAliveDeadMs)
@@ -973,6 +977,19 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
+                // close уходит ДО отмены: читатель при отмене сам ставит Closed, и кадр уже не отправить
+                if (ReadyState == WebSocketState.Open)
+                {
+                    try
+                    {
+                        SendFrame(_opcodeClose, new byte[0], true);
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is ObjectDisposedException || ex is SocketException)
+                    {
+                        // транспорт уже мёртв — подтверждение close не отправить
+                    }
+                }
+
                 lock (_stateLocker)
                 {
                     if (_cts != null)
@@ -990,18 +1007,6 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     catch (Exception ex) when (ex is AggregateException || ex is OperationCanceledException)
                     {
                         // закрытие идемпотентное: читатель мог умереть по сети
-                    }
-                }
-
-                if (ReadyState == WebSocketState.Open)
-                {
-                    try
-                    {
-                        SendFrame(_opcodeClose, new byte[0], true);
-                    }
-                    catch (Exception ex) when (ex is IOException || ex is ObjectDisposedException || ex is SocketException)
-                    {
-                        // транспорт уже мёртв — подтверждение close не отправить
                     }
                 }
             }
