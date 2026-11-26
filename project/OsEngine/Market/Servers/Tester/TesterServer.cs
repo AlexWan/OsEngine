@@ -4202,12 +4202,27 @@ namespace OsEngine.Market.Servers.Tester
 
             // cut strictly the .txt literal so that names with dots are not mangled (BTC.USDT)
             // срезаем строго литерал .txt, чтобы не калечить имена с точками (BTC.USDT)
-            if (requested.EndsWith(".txt", StringComparison.Ordinal) && requested.Length > 4)
+            string trimmed = TrimLegacyTxt(requested);
+            if (trimmed != requested)
             {
-                return _securities.Find(s => s.Name == requested.Substring(0, requested.Length - 4));
+                return _securities.Find(s => s.Name == trimmed);
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Cut of the legacy .txt suffix from a configured security name (bug-0687). Strictly the literal, names with dots (BTC.USDT) stay intact
+        /// Срез легаси-хвоста .txt у имени бумаги из конфига (bug-0687). Строго литерал, имена с точками (BTC.USDT) не трогает
+        /// </summary>
+        private static string TrimLegacyTxt(string name)
+        {
+            if (name != null && name.Length > 4 && name.EndsWith(".txt", StringComparison.Ordinal))
+            {
+                return name.Substring(0, name.Length - 4);
+            }
+
+            return name;
         }
 
         private void _candleManager_CandleUpdateEvent(CandleSeries series)
@@ -6449,7 +6464,8 @@ namespace OsEngine.Market.Servers.Tester
 
             for (int i = 0; i < SecuritiesTester.Count; i++)
             {
-                if (namesSecurity.Find(name => name == SecuritiesTester[i].Security.Name) == null)
+                // tab configs may keep the .txt suffix while registrations are clean (bug-0687), see TrimLegacyTxt
+                if (namesSecurity.Find(name => TrimLegacyTxt(name) == SecuritiesTester[i].Security.Name) == null)
                 {
                     SecuritiesTester[i].IsActive = false;
                 }
