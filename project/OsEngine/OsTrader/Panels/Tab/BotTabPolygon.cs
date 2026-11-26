@@ -129,7 +129,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void Clear()
         {
-            for (int i = 0; i < Sequences.Count; i++)
+            for (int i = 0; Sequences != null && i < Sequences.Count; i++)
             {
                 Sequences[i].Tab1.Clear();
                 Sequences[i].Tab2.Clear();

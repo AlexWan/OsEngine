@@ -126,7 +126,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void Clear()
         {
-            for (int i = 0; i < Pairs.Count; i++)
+            // After Delete() the tab is dead: Delete() has nulled Pairs and wiped the legs, so there is nothing to clear.
+            for (int i = 0; Pairs != null && i < Pairs.Count; i++)
             {
                 Pairs[i].Tab1.Clear();
                 Pairs[i].Tab2.Clear();
