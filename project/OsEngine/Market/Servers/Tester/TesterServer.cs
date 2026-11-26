@@ -6298,9 +6298,12 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
-                    if (currentTabs[i2].Security != null)
+                    // Name comes from the connector's configured security (may be not resolved yet at test start)
+                    ConnectorCandles connector = currentTabs[i2].Connector;
+
+                    if (connector != null && !string.IsNullOrWhiteSpace(connector.SecurityName))
                     {
-                        namesSecurity.Add(currentTabs[i2].Security.Name);
+                        namesSecurity.Add(connector.SecurityName);
                     }
                 }
             }
@@ -6317,13 +6320,18 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         PairToTrade pair = pairs[i3];
 
-                        if (pair.Tab1.Security != null)
+                        // Leg names come from the connectors' configured securities
+                        // (leg Security may be not resolved yet at the moment of synchronisation)
+                        ConnectorCandles leg1 = pair.Tab1.Connector;
+                        ConnectorCandles leg2 = pair.Tab2.Connector;
+
+                        if (leg1 != null && !string.IsNullOrWhiteSpace(leg1.SecurityName))
                         {
-                            namesSecurity.Add(pair.Tab1.Security.Name);
+                            namesSecurity.Add(leg1.SecurityName);
                         }
-                        if (pair.Tab2.Security != null)
+                        if (leg2 != null && !string.IsNullOrWhiteSpace(leg2.SecurityName))
                         {
-                            namesSecurity.Add(pair.Tab2.Security.Name);
+                            namesSecurity.Add(leg2.SecurityName);
                         }
                     }
                 }
