@@ -200,7 +200,7 @@
 | `optimizer_filters_get` / `optimizer_filters_set` | Фильтры отсева между фазами |
 | `optimizer_params_get` / `optimizer_params_set` / `optimizer_params_reset` | Пространство параметров. Для числовых параметров `value` эквивалентно колонке «По умолчанию» грида оптимизатора. `step_type` (`Absolute`/`Percent`) применим к `Int` и `Decimal` |
 | `optimizer_get_pass_count` | Предполагаемое число прогонов |
-| `optimizer_get_threads` / `optimizer_set_threads` | Число потоков оптимизации (1..50) |
+| `optimizer_get_threads` / `optimizer_set_threads` | Число потоков оптимизации (1..256) |
 | `optimizer_bot_tab_get_config` / `optimizer_bot_tab_set_config` | Вкладки робота оптимизации (Simple: бумага+ТФ; Screener: `securities`+ТФ) |
 | `optimizer_start` / `optimizer_stop` | Запуск (ошибки готовности списком) / остановка |
 | `optimizer_get_status` | `is_running`, прогресс, оценка времени |

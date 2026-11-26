@@ -460,13 +460,13 @@ namespace OsEngine.MCP.Modules
                 new McpTool
                 {
                     Name = "optimizer_set_threads",
-                    Description = "Set the number of optimization threads (1..50)",
+                    Description = "Set the number of optimization threads (1..256)",
                     InputSchema = new
                     {
                         type = "object",
                         properties = new
                         {
-                            threads_count = new { type = "integer", description = "1..50" }
+                            threads_count = new { type = "integer", description = "1..256" }
                         },
                         required = new[] { "threads_count" }
                     }
@@ -2219,14 +2219,16 @@ namespace OsEngine.MCP.Modules
 
         private object SetThreads(JsonElement parameters)
         {
+            // FEATURE-0139 (AC9): единая граница OptimizerMaster.MaxThreadsCount и единый
+            // предикат; поведение «вне диапазона — ArgumentException» сохранено
             if (parameters.ValueKind != JsonValueKind.Object
                 || !parameters.TryGetProperty("threads_count", out JsonElement threadsElement)
                 || threadsElement.ValueKind != JsonValueKind.Number
                 || !threadsElement.TryGetInt32(out int threadsCount)
-                || threadsCount < 1
-                || threadsCount > 50)
+                || !OptimizerMaster.IsValidThreadsCount(threadsCount))
             {
-                throw new ArgumentException("threads_count is required and must be in range 1..50");
+                throw new ArgumentException(
+                    "threads_count is required and must be in range 1.." + OptimizerMaster.MaxThreadsCount);
             }
 
             OptimizerMaster master = GetMasterRequired();

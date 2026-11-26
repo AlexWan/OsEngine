@@ -189,6 +189,9 @@ namespace OsEngine.OsOptimizer
                     // FEATURE-0089: строка 26 — таймаут зависшего прогона; аддитивно в конец
                     writer.WriteLine(_hangingTestTimeoutSeconds);
                 });
+
+                // FEATURE-0139 (AC7): файл перезаписан целиком — строка 1 точно валидна
+                ThreadsCountFileNeedsRepair = false;
             }
             catch (Exception error)
             {
@@ -210,7 +213,19 @@ namespace OsEngine.OsOptimizer
             {
                 using (StreamReader reader = new StreamReader(@"Engine\OptimizerSettings.txt"))
                 {
-                    _threadsCount = Convert.ToInt32(reader.ReadLine());
+                    // FEATURE-0139 (AC7): строка 1 валидируется; побита/нет строки/вне 1..256 —
+                    // дефолт 1, флаг починки (первый Save() перепишет строку), сообщение в журнал.
+                    // Раньше Convert.ToInt32 давал 0/исключение и ловушку ThreadsCount=0
+                    string threadsLine = reader.ReadLine();
+                    if (!TryParseThreadsCount(threadsLine, out _threadsCount))
+                    {
+                        _threadsCount = 1;
+                        ThreadsCountFileNeedsRepair = true;
+                        SendLogMessage(OsLocalization.ConvertToLocString(
+                            @"Eng:OptimizerSettings.txt contains an invalid threads count. Default 1 is used" +
+                            @"_Ru:В файле настроек испорчено число потоков (threads). Применён дефолт 1_"),
+                            LogMessageType.Error);
+                    }
                     _strategyName = reader.ReadLine();
                     _startDeposit = reader.ReadLine().ToDecimal();
                     _filterProfitValue = reader.ReadLine().ToDecimal();
@@ -429,11 +444,43 @@ namespace OsEngine.OsOptimizer
             }
         }
 
+        /// <summary>FEATURE-0139: единая верхняя граница числа потоков для UI, сеттера и MCP</summary>
+        public const int MaxThreadsCount = 256;
+
+        public static bool IsValidThreadsCount(int value)
+        {
+            return value >= 1 && value <= MaxThreadsCount;
+        }
+
+        /// <summary>FEATURE-0139 (AC2): разбор ручного ввода — trim, int по InvariantCulture, диапазон 1..256</summary>
+        public static bool TryParseThreadsCount(string text, out int value)
+        {
+            value = 0;
+            return int.TryParse((text ?? string.Empty).Trim(), NumberStyles.None,
+                CultureInfo.InvariantCulture, out value)
+                && IsValidThreadsCount(value);
+        }
+
+        /// <summary>FEATURE-0139 (AC7): в существующем OptimizerSettings.txt строка 1 побита или вне
+        /// диапазона — применён дефолт 1; первый Save() чинит файл и снимает флаг</summary>
+        public bool ThreadsCountFileNeedsRepair { get; private set; }
+
         public int ThreadsCount
         {
             get { return _threadsCount; }
             set
             {
+                // FEATURE-0139 (AC6): вне 1..MaxThreadsCount — отказ без присваивания, Save() и
+                // события, чтобы отклонённая запись не испортила файл и не сбросила ввод в UI
+                if (!IsValidThreadsCount(value))
+                {
+                    SendLogMessage(OsLocalization.ConvertToLocString(
+                        @"Eng:Invalid threads count. Valid range is 1.." + MaxThreadsCount +
+                        @"_Ru:Недопустимое число потоков. Допустимый диапазон 1.." + MaxThreadsCount + @"_"),
+                        LogMessageType.Error);
+                    return;
+                }
+
                 _threadsCount = value;
                 Save();
 
