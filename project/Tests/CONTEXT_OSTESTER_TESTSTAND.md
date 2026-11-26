@@ -135,6 +135,12 @@
 
 ### 4.9. BotTabPair (Pair)
 
+- **4.9.0.** Эксперимент B (26.11.2026, вне стенда, драйвер `GC-m24-liveui-B`/`-B2`, логи в
+  `Artifacts\Tests\FEATURE-0141\stands\`): живой прогон пары `BotTabPair` в UI `-tester` на фича-бинаре
+  5af758ad5 с рабочим MCP-set и `Regime=On` — подписка плечей не поднялась, та же Message38 (12:53:54),
+  `sources` без плечей, `tester_start` отвергнут (regime→Pause, progress 0). Разрыв движковый
+  (не headless-артефакт), см. `CONTEXT_PAIRS_AND_FUTURES.md`.
+
 - **4.9.1.** Фикстуры `Engine\*.txt` поднимают пару 7 (SBER|VTBR, GAZP|TATN); `bot_get_config_tab_pair`
   не падает при незагруженных плечах (`FixtureBootstrap`).
 - **4.9.2.** Живой MCP-set до `tester_start`: режимы, Contract, `correlation_look_back`, `events_is_on`

@@ -126,7 +126,7 @@ if (pair.SideCointegrationValue != pair.LastEntryCointegrationSide) {
 1) робот вне `Regime=On` — плечи не подписываются, тестер прерывается «на инструменты сервера не подписан ни один бот»; включайте режим до `tester_start`;
 2) у Tester не задан период (`date_from`/`date_to` в `tester_data_set_config`) — прогон гаснет мгновенно по `TimeNow > TimeEnd`;
 3) конфигурация пары после `tester_start` не потребляется — свечные серии стартуют на `TestingStartEvent`, настраивать до старта.
-Ограничение headless `-testerlight`: коннекторы свечей плечей `BotTabPair` не поднимают серию даже с фикстурами `ConnectorPrime`/`TimeFrameBuilder`/`PairsSettings` (прогоны v7–v13, 26.11.2026) — парный прогон через MCP требует UI-режима Tester или проводки `GetConnectors`/`SubscribeCandles` для плечей в ядре движка.
+Движковый разрыв подписки плечей (26.11.2026): коннекторы свечей плечей `BotTabPair` не поднимают серию даже с фикстурами `ConnectorPrime`/`TimeFrameBuilder`/`PairsSettings` — воспроизведён и в `-testerlight` (прогоны v7–v14), и в UI `-tester` (эксперимент B, 26.11.2026 12:42: Message38 «на инструменты сервера не подписан ни один бот», `sources` без плечей, `tester_start` отвергнут, regime→Pause). Парный прогон через MCP заблокирован до проводки `GetConnectors`/`SubscribeCandles` для плечей в ядре движка; решение о правке ядра — за Владельцем.
 
 **Стратегии по типу корреляции:**
 
