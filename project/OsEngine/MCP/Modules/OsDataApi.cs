@@ -449,7 +449,13 @@ namespace OsEngine.MCP.Modules
                 DateTime dateFrom = ParseDateTime(parameters, "date_from");
                 DateTime dateTo = ParseDateTime(parameters, "date_to");
 
-                if (!Enum.TryParse<ServerType>(sourceName, true, out ServerType source))
+                // одиночное определённое имя: Enum.TryParse молча сворачивает списки через запятую и числовые строки
+                string serverTypeName = sourceName.Trim();
+
+                if (!(char.IsLetter(serverTypeName[0]) || serverTypeName[0] == '_')
+                    || serverTypeName.Contains(',')
+                    || !Enum.TryParse<ServerType>(serverTypeName, true, out ServerType source)
+                    || !Enum.IsDefined(typeof(ServerType), source))
                 {
                     return new McpJsonRpcError
                     {

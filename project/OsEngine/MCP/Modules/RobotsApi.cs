@@ -1863,7 +1863,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("server_type", out JsonElement serverTypeElement)
                 && serverTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<ServerType>(serverTypeElement.GetString(), true, out ServerType serverType))
+                && TryParseSingleServerType(serverTypeElement.GetString(), out ServerType serverType))
             {
                 connector.ServerType = serverType;
             }
@@ -2090,7 +2090,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("server_type", out JsonElement serverTypeElement)
                 && serverTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<ServerType>(serverTypeElement.GetString(), true, out ServerType serverType))
+                && TryParseSingleServerType(serverTypeElement.GetString(), out ServerType serverType))
             {
                 screener.ServerType = serverType;
                 needReload = true;
@@ -3190,6 +3190,25 @@ namespace OsEngine.MCP.Modules
             }
         }
 
+        // Одиночное определённое имя ServerType: Enum.TryParse молча сворачивает списки через запятую и принимает числовые строки
+        private static bool TryParseSingleServerType(string typeName, out ServerType serverType)
+        {
+            serverType = default;
+
+            if (string.IsNullOrWhiteSpace(typeName))
+            {
+                return false;
+            }
+
+            typeName = typeName.Trim(); // обрамляющие пробелы толерантны и раньше
+
+            // Имена enum начинаются с буквы или '_'; цифра/знак = числовая строка, которую TryParse молча принимает
+            return (char.IsLetter(typeName[0]) || typeName[0] == '_')
+                && !typeName.Contains(',')
+                && Enum.TryParse(typeName, true, out serverType)
+                && Enum.IsDefined(typeof(ServerType), serverType);
+        }
+
         #endregion
 
         #region Positions
@@ -3806,7 +3825,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("server_type", out JsonElement serverTypeElement)
                 && serverTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<ServerType>(serverTypeElement.GetString(), true, out ServerType serverType))
+                && TryParseSingleServerType(serverTypeElement.GetString(), out ServerType serverType))
             {
                 creator.ServerType = serverType;
                 needReload = true;

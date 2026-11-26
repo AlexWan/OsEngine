@@ -397,14 +397,21 @@ namespace OsEngine.MCP.Modules
                 throw new ArgumentException("Parameter 'type' cannot be empty");
             }
 
-            try
+            typeName = typeName.Trim(); // Enum.TryParse сам толерантен к обрамляющим пробелам — сохраняем
+
+            // Имена enum начинаются с буквы или '_'; цифра/знак = числовая строка, которую TryParse молча принимает
+            if (!(char.IsLetter(typeName[0]) || typeName[0] == '_') || typeName.Contains(','))
             {
-                return (ServerType)Enum.Parse(typeof(ServerType), typeName, true);
+                throw new ArgumentException($"Parameter 'type' must be a single server type, got '{typeName}'");
             }
-            catch
+
+            if (!Enum.TryParse<ServerType>(typeName, true, out ServerType serverType)
+                || !Enum.IsDefined(typeof(ServerType), serverType))
             {
                 throw new ArgumentException($"Unknown server type '{typeName}'");
             }
+
+            return serverType;
         }
 
         private void SendLog(string message, LogMessageType type)

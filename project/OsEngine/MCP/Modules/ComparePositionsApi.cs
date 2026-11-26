@@ -433,8 +433,19 @@ namespace OsEngine.MCP.Modules
             }
 
             if (!parameters.TryGetProperty("server_type", out JsonElement typeElement)
-                || typeElement.ValueKind != JsonValueKind.String
-                || !Enum.TryParse<ServerType>(typeElement.GetString(), true, out ServerType serverType))
+                || typeElement.ValueKind != JsonValueKind.String)
+            {
+                throw new ArgumentException("server_type is required and must be a valid server type");
+            }
+
+            // одиночное определённое имя: Enum.TryParse молча сворачивает списки через запятую и числовые строки
+            string serverTypeName = typeElement.GetString().Trim();
+
+            if (string.IsNullOrEmpty(serverTypeName)
+                || !(char.IsLetter(serverTypeName[0]) || serverTypeName[0] == '_')
+                || serverTypeName.Contains(',')
+                || !Enum.TryParse<ServerType>(serverTypeName, true, out ServerType serverType)
+                || !Enum.IsDefined(typeof(ServerType), serverType))
             {
                 throw new ArgumentException("server_type is required and must be a valid server type");
             }
