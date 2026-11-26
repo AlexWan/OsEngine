@@ -722,6 +722,19 @@ namespace OsEngine.Entity.WebSocketOsEngine
                 }
             }
 
+            // allow-list по RFC 6455: трактуем только известные опкоды, reserved-диапазоны (0x3-0x7, 0xB-0xF) — отказ
+            bool isKnownOpcode = frame.Opcode == _opcodeContinue
+                || frame.Opcode == _opcodeText
+                || frame.Opcode == _opcodeBinary
+                || frame.Opcode == _opcodeClose
+                || frame.Opcode == _opcodePing
+                || frame.Opcode == _opcodePong;
+
+            if (isKnownOpcode == false)
+            {
+                throw new WebSocketException($"XT WebSocket: opcode {frame.Opcode} is not allowed");
+            }
+
             bool isControl = frame.Opcode >= _opcodeClose;
 
             if (isControl)
@@ -740,16 +753,6 @@ namespace OsEngine.Entity.WebSocketOsEngine
             if (length > _maxBytes)
             {
                 throw new WebSocketException($"XT WebSocket: frame of {length} bytes exceeds the limit");
-            }
-
-            if (frame.Opcode >= 0x3 && frame.Opcode <= 0x7)
-            {
-                throw new WebSocketException($"XT WebSocket: unknown opcode {frame.Opcode}");
-            }
-
-            if (frame.Opcode == 0xB || frame.Opcode == 0xC || frame.Opcode == 0xF)
-            {
-                throw new WebSocketException($"XT WebSocket: reserved opcode {frame.Opcode}");
             }
 
             frame.Payload = new byte[length];
