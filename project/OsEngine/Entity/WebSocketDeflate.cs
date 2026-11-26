@@ -499,6 +499,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             MemoryStream message = null;
             bool messageCompressed = false;
+            int messageOpcode = -1;
 
             try
             {
@@ -573,6 +574,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
                         message = new MemoryStream();
                         messageCompressed = frame.Rsv1;
+                        messageOpcode = frame.Opcode;
                     }
 
                     if (message.Length + frame.Payload.Length > _maxBytes)
@@ -591,10 +593,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
                         ? Inflate(message.GetBuffer(), (int)message.Length)
                         : message.ToArray();
 
+                    int deliveredOpcode = messageOpcode;
+
                     message.Dispose();
                     message = null;
+                    messageOpcode = -1;
 
-                    await DeliverAsync(inflated, frame.Opcode == _opcodeText, token);
+                    await DeliverAsync(inflated, deliveredOpcode == _opcodeText, token);
                 }
             }
             catch (OperationCanceledException)
@@ -765,20 +770,13 @@ namespace OsEngine.Entity.WebSocketOsEngine
         }
 
         /// <summary>
-        /// RFC 7692: входящее сообщение — сырой DEFLATE с хвостовым маркером 00 00 FF FF.
-        /// Маркер снимается только с хвоста собранного сообщения, внутри он часть потока DEFLATE.
+        /// RFC 7692: входящее сообщение — сырой DEFLATE, оканчивающийся маркером 00 00 FF FF.
+        /// Маркер не вырезается: для DEFLATE-декодера это пустой stored-блок, он читается на месте.
+        /// Вырезать его можно было бы только с хвоста, поэтому вырезания нет вовсе — так маркер
+        /// внутри потока (sync flush посреди сообщения) гарантированно не трогается.
         /// </summary>
         private static byte[] Inflate(byte[] payload, int length)
         {
-            if (length >= 4
-                && payload[length - 4] == 0x00
-                && payload[length - 3] == 0x00
-                && payload[length - 2] == 0xFF
-                && payload[length - 1] == 0xFF)
-            {
-                length -= 4;
-            }
-
             using (MemoryStream compressed = new MemoryStream(payload, 0, length, false))
             using (DeflateStream deflate = new DeflateStream(compressed, CompressionMode.Decompress))
             using (MemoryStream result = new MemoryStream())
@@ -795,7 +793,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     }
                     catch (InvalidDataException)
                     {
-                        // сырой поток обрывается на sync-flush без финального блока — это конец сообщения, а не порча
+                        // поток обрывается на sync-flush без финального блока DEFLATE — это конец сообщения
                         break;
                     }
 
@@ -810,6 +808,12 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     }
 
                     result.Write(buffer, 0, read);
+                }
+
+                if (result.Length == 0 && length > 4)
+                {
+                    // декодер не дал ничего на заметном входе — выдавать пустоту вместо ошибки нельзя
+                    throw new WebSocketException("XT WebSocket: permessage-deflate payload did not inflate");
                 }
 
                 return result.ToArray();
