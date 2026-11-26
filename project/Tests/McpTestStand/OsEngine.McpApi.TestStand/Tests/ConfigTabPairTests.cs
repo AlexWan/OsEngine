@@ -1010,7 +1010,7 @@ namespace OsEngine.McpApi.TestStand.Tests
                     return;
                 }
 
-                bool legsVisible = SourcesHavePair(Quiet("bot_get_sources", new { bot_id = LiveBot }), LiveSec1, LiveSec2);
+                bool legsVisible = SourcesHavePair(Quiet("bot_get_sources", new { bot_id = LiveBot }), liveTab, LiveSec1, LiveSec2);
 
                 bool finished = StartTestAndWait(1200);
 
@@ -1025,11 +1025,11 @@ namespace OsEngine.McpApi.TestStand.Tests
 
                 if (finished && legsVisible && correlation != 0)
                 {
-                    _context.RecordPass(Module, method, $"прогон testerlight на OsData-данных {LiveSec1}/{LiveSec2} {LiveTimeFrame}: A-5 sources непустые, correlation_last={correlation:F4} (CorrelationChangeEvent атрибутирован паре), trades={trades}");
+                    _context.RecordPass(Module, method, $"прогон testerlight на OsData-данных {LiveSec1}/{LiveSec2} {LiveTimeFrame}: A-5 Pair-source зарегистрирован, correlation_last={correlation:F4} (CorrelationChangeEvent атрибутирован паре), trades={trades}");
                 }
                 else
                 {
-                    _context.RecordFail(Module, method, $"finished={finished}, sources legs={legsVisible}, correlation_last={correlation}, trades={trades}");
+                    _context.RecordFail(Module, method, $"finished={finished}, sources pair_source={legsVisible}, correlation_last={correlation}, trades={trades}");
                 }
             }
             catch (Exception error)
@@ -1372,7 +1372,14 @@ namespace OsEngine.McpApi.TestStand.Tests
             return -1;
         }
 
-        private static bool SourcesHavePair(string sourcesResponse, string sec1, string sec2)
+        /// <summary>
+        /// A-5 in the actual bot_get_sources shape: RobotsApi.AddSources&lt;T&gt; (master) emits only
+        /// {type, name} for every tab type — the "securities" field never existed in the response
+        /// (fact reported to the orchestrator, 26.11.2026). So the check asserts a registered
+        /// source of type=Pair with the live tab name. If the backend ever starts emitting
+        /// "securities", both legs are verified there as before (forward-compatible).
+        /// </summary>
+        private static bool SourcesHavePair(string sourcesResponse, string tabName, string sec1, string sec2)
         {
             if (!TryParseInner(GetInner(sourcesResponse), out JsonElement root))
             {
@@ -1391,19 +1398,24 @@ namespace OsEngine.McpApi.TestStand.Tests
                     continue;
                 }
 
-                if (!source.TryGetProperty("securities", out JsonElement list) || list.ValueKind != JsonValueKind.Array)
+                if (source.TryGetProperty("securities", out JsonElement list) && list.ValueKind == JsonValueKind.Array)
                 {
+                    foreach (JsonElement item in list.EnumerateArray())
+                    {
+                        string text = item.GetRawText();
+
+                        if (text.Contains(sec1) && text.Contains(sec2))
+                        {
+                            return true;
+                        }
+                    }
+
                     continue;
                 }
 
-                foreach (JsonElement item in list.EnumerateArray())
+                if (GetPropString(source, "name") == tabName)
                 {
-                    string text = item.GetRawText();
-
-                    if (text.Contains(sec1) && text.Contains(sec2))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
