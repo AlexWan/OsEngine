@@ -140,6 +140,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_isDeleted)
+                {   // повторный вызов идемпотентен: состояние уже снято первым Delete
+                    return;
+                }
                 _isDeleted = true;
 
                 try
