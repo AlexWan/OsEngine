@@ -6316,9 +6316,29 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     List<PairToTrade> pairs = currentTabs[i2].Pairs;
 
-                    for (int i3 = 0; i3 < pairs.Count; i3++)
+                    if (pairs == null)
                     {
-                        PairToTrade pair = pairs[i3];
+                        // tab deleted on the real removal path (BotPanel.Delete -> Delete(), tab still in the list
+                        // snapshot until removed). BotTabPair.Delete() sets Pairs = null; skip, other tabs keep syncing
+                        continue;
+                    }
+
+                    // snapshot before iterating: Delete() calls Pairs.Clear() on the UI thread concurrently
+                    PairToTrade[] pairsArray = pairs.ToArray();
+
+                    for (int i3 = 0; i3 < pairsArray.Length; i3++)
+                    {
+                        PairToTrade pair = pairsArray[i3];
+
+                        if (pair == null)
+                        {
+                            // net10 ToArray() = new T[_size] then Array.Copy, two reads of _size. A Clear() between
+                            // them zeroes _items slots and leaves null cells in the snapshot. Mutator profile on
+                            // the removal path is clear-only (Delete() never Adds to Pairs), so null is the torn
+                            // form here. A concurrent Add (UI CreatePair in the same window) grows the source and
+                            // Array.Copy throws ArgumentException - documented residual, not covered by this guard
+                            continue;
+                        }
 
                         // Leg names come from the connectors' configured securities
                         // (leg Security may be not resolved yet at the moment of synchronisation)
