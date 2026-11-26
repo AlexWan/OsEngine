@@ -16,7 +16,9 @@ namespace OsEngine.McpApi.TestStand.Tests
     /// на живой сессии (-testerlight): tools/list и схема set, ключ pair_num и
     /// create_pair=max+1 (не Count), round-trip всех полей с pair-level флагами,
     /// негативы без изменения состояния, отказ events_is_on=false на Tester,
-    /// симметрия текстов ошибок V1/V2 (не default-роут), регресс-пин реестра.
+    /// симметрия текстов ошибок V1/V2 (не default-роут), регресс-пин реестра,
+    /// live-фаза: скачка данных через OsData (BinanceData, без ключей) -> прогон testerlight
+    /// -> непустые sources и ненулевой correlation_last живой пары (гейт владельца 25.11).
     /// </summary>
     public class ConfigTabPairTests
     {
@@ -56,6 +58,8 @@ namespace OsEngine.McpApi.TestStand.Tests
             TestNegativeCreatePairEventsFalseRejected();
             TestV1V2ErrorTextEqual();
             TestRegistryRegression();
+            TestLiveDataDownload();
+            TestLivePairAndRun();
             TestCleanup();
         }
 
@@ -701,6 +705,742 @@ namespace OsEngine.McpApi.TestStand.Tests
 
         #endregion
 
+        #region Live data (OsData -> tester)
+
+        // Гейт владельца 25.11: модуль сам качает данные через OsData и прогоняет тестер.
+        // BinanceData (data.binance.vision) — безключевой архивный источник: MOEX ISS и
+        // invest-public-api с машины стенда блокируются SEC_E_UNTRUSTED_ROOT (нет Russian Trusted Root CA).
+        private const string LiveSet = "Set_M24PairData";
+        private const string LiveServerType = "BinanceData";
+        private const string LiveSec1 = "BTCUSDT";
+        private const string LiveSec2 = "ETHUSDT";
+        private const string LiveTimeFrame = "Min1";
+        private const string LiveDateFrom = "2026-10-01";
+        private const string LiveDateTo = "2026-10-05";
+        private const string LiveBot = "pair_live_mcp";
+
+        /// <summary>
+        /// Шаг 1 live-фазы: терминал без light-флага, terminal_open_mode(data), набор OsData
+        /// Min1 на короткое окно через BinanceData, ожидание фактической загрузки свечей.
+        /// </summary>
+        private void TestLiveDataDownload()
+        {
+            const string method = "pair_live_osdata_download";
+
+            try
+            {
+                // data-tools живут в полном терминале в режиме data — рестарт без light-флага.
+                _context.RestartOsEngine(string.Empty);
+
+                Call("terminal_open_mode", new { mode = "data" });
+
+                if (!WaitOsDataMode(60))
+                {
+                    _context.RecordFail(Module, method, "OsData mode is not open after terminal_open_mode(data)");
+                    return;
+                }
+
+                // data-tools доступны только в режиме data — чистка осадка прошлых прогонов здесь.
+                Quiet("data_set_off", new { name = LiveSet });
+                Quiet("data_delete_set", new { name = LiveSet });
+
+                string activate = Call("server_management_activate", new { type = LiveServerType });
+                string sourceName = FirstInstanceName(activate);
+
+                if (sourceName.Length == 0)
+                {
+                    sourceName = LiveServerType;
+                }
+
+                Quiet("server_instance_connect", new { type = LiveServerType });
+                // Securities of the source appear only after connect + subscribe (DataTests pattern).
+                if (!WaitServerSecurities(180))
+                {
+                    _context.RecordFail(Module, method, "source "+LiveServerType+" connected, but its securities did not appear within 180 seconds");
+                    return;
+                }
+
+                string created = Call("data_create_set", new
+                {
+                    name = LiveSet,
+                    source = LiveServerType,
+                    source_name = sourceName,
+                    timeframes = new[] { LiveTimeFrame },
+                    date_from = LiveDateFrom,
+                    date_to = LiveDateTo
+                });
+
+                if (IsError(created))
+                {
+                    _context.RecordFail(Module, method, "data_create_set: " + Trim(ErrorText(created), 160));
+                    return;
+                }
+
+                string added = Call("data_set_securities_add", new
+                {
+                    name = LiveSet,
+                    securities = new object[] { new { name = LiveSec1 }, new { name = LiveSec2 } }
+                });
+
+                if (IsError(added))
+                {
+                    _context.RecordFail(Module, method, "data_set_securities_add: " + Trim(ErrorText(added), 160));
+                    return;
+                }
+
+                Call("data_set_on", new { name = LiveSet });
+
+                bool ok1 = WaitForSecurityLoaded(LiveSec1, 900, out string detail1, out int count1);
+                bool ok2 = WaitForSecurityLoaded(LiveSec2, 900, out string detail2, out int count2);
+
+                Quiet("data_set_off", new { name = LiveSet });
+
+                if (ok1 && ok2 && count1 > 0 && count2 > 0)
+                {
+                    _context.RecordPass(Module, method, $"{LiveSet} через {LiveServerType} ({LiveDateFrom}..{LiveDateTo} {LiveTimeFrame}): {LiveSec1}={count1}, {LiveSec2}={count2} свечей");
+                }
+                else
+                {
+                    _context.RecordFail(Module, method, detail1 + " | " + detail2);
+                }
+            }
+            catch (Exception error)
+            {
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        /// <summary>
+        /// Шаг 2 live-фазы: testerlight на скачанных данных — пара BTCUSDT/ETHUSDT через
+        /// bot_set_config_tab_pair, A-5 sources до старта, прогон с fast-forward,
+        /// ненулевой correlation_last = подписка потока дошла до вложенных табов пары.
+        /// </summary>
+        private void TestLivePairAndRun()
+        {
+            const string method = "pair_live_pair_run";
+
+            try
+            {
+                // Бот-операции — в testerlight: в пустом режиме Robot master не поднимается
+                // («Open a mode that supports robots»). Рестарт после запекания фикстур — ниже.
+                _context.RestartOsEngine("-testerlight");
+
+                // Живая фаза — отдельный чистый робот: у фикстурного pair_mcp легаси-пары SBER/LKOH,
+                // которых нет в наборе, и тестер блокирует прогон на битом роботе.
+                DeleteBotQuietly(LiveBot);
+
+                // Robot master поднимается асинхронно после рестарта — тот же retry, что в фикстуре.
+                string createLive = Call("bot_create", new { strategy_name = "PairCorrelationTrader", name = LiveBot });
+                DateTime liveMasterDeadline = DateTime.Now.AddSeconds(40);
+
+                while (IsError(createLive) && ErrorText(createLive).Contains("Robot master is not available")
+                    && DateTime.Now < liveMasterDeadline)
+                {
+                    System.Threading.Thread.Sleep(2000);
+                    createLive = Call("bot_create", new { strategy_name = "PairCorrelationTrader", name = LiveBot });
+                }
+
+                if (IsError(createLive))
+                {
+                    _context.RecordFail(Module, method, "bot_create " + LiveBot + ": " + Trim(ErrorText(createLive), 160));
+                    return;
+                }
+
+                string liveTab = WaitLivePairTab(60);
+
+                if (liveTab == null)
+                {
+                    _context.RecordFail(Module, method, "у робота " + LiveBot + " не появилась Pair-вкладка за 60 секунд");
+                    return;
+                }
+
+                // После рестарта нумерация пар может смещаться — живой пару ищем по security_key.
+                string key = LiveSec1 + "_|_" + LiveSec2;
+                int livePairNum = -1;
+
+                if (TryParseInner(GetInner(Quiet("bot_get_config_tab_pair", new { bot_id = LiveBot, tab_name = liveTab })), out JsonElement current))
+                {
+                    livePairNum = FindPairNumBySecurityKey(current, key);
+                }
+
+                if (livePairNum < 0)
+                {
+                    string live = Set(new
+                    {
+                        bot_id = LiveBot,
+                        tab_name = liveTab,
+                        create_pair = true,
+                        sec1_server_type = "Tester",
+                        sec1_server_full_name = "Tester",
+                        sec1_portfolio_name = "GodMode",
+                        sec1_security_name = LiveSec1,
+                        sec1_security_class = "TestClass",
+                        sec1_time_frame = LiveTimeFrame,
+                        sec2_server_type = "Tester",
+                        sec2_server_full_name = "Tester",
+                        sec2_portfolio_name = "GodMode",
+                        sec2_security_name = LiveSec2,
+                        sec2_security_class = "TestClass",
+                        sec2_time_frame = LiveTimeFrame,
+                        sec1_trade_regime = "Market",
+                        sec2_trade_regime = "Market",
+                        events_is_on = true,
+                        emulator_is_on = true
+                    });
+
+                    if (!TryParseInner(GetInner(live), out JsonElement createdRoot))
+                    {
+                        _context.RecordFail(Module, method, "set live-пары: " + Trim(ErrorText(live), 160));
+                        return;
+                    }
+
+                    livePairNum = FindPairNumBySecurityKey(createdRoot, key);
+                }
+
+                if (livePairNum < 0)
+                {
+                    _context.RecordFail(Module, method, $"живая пара {key} не найдена во вкладке");
+                    return;
+                }
+
+                // Робот обязан быть в regime=On, иначе коннекторы легасей не подписываются и
+                // тестер завершается с «ни один бот не подписан» (Message38).
+                string regime = Call("bot_set_params", new
+                {
+                    bot_id = LiveBot,
+                    parameters = new Dictionary<string, object> { { "Regime", "On" } }
+                });
+
+                if (IsError(regime))
+                {
+                    _context.RecordFail(Module, method, "bot_set_params Regime: " + Trim(ErrorText(regime), 160));
+                    return;
+                }
+
+                // Рецепт G-A/G-B-стендов: ConnectorCandles подписывается только когда сконструирован
+                // с непустым SecurityName — так грузятся коннекторы на старте движка с диска.
+                // Runtime-конфигурация пары живёт в памяти и умирает с kill рестарта, тестер
+                // прерывается Message38. Запекаем пару и плечи в фикстуры и перезапускаем движок.
+                string livePairName = null;
+
+                if (TryParseInner(GetInner(Get("bot_get_config_tab_pair", new { bot_id = LiveBot, tab_name = liveTab })), out JsonElement beforeRestart))
+                {
+                    livePairName = GetPairNameByNum(beforeRestart, livePairNum);
+                }
+
+                if (livePairName == null)
+                {
+                    _context.RecordFail(Module, method, $"у пары num={livePairNum} нет pair_name, фикстуры не запечь");
+                    return;
+                }
+
+                WriteLivePairFixtures(liveTab, livePairName, livePairNum);
+
+                _context.RestartOsEngine("-testerlight");
+
+                // После рестарта MCP-сокет поднимается раньше TesterServer — ждём его,
+                // иначе первый же set падает с «Tester server is not available».
+                DateTime testerDeadline = DateTime.Now.AddSeconds(120);
+                bool testerReady = false;
+
+                while (DateTime.Now < testerDeadline && !testerReady)
+                {
+                    string probe = Quiet("tester_get_status", new { });
+                    testerReady = !IsError(probe);
+
+                    if (!testerReady)
+                    {
+                        System.Threading.Thread.Sleep(2000);
+                    }
+                }
+
+                if (!testerReady)
+                {
+                    _context.RecordFail(Module, method, "Tester server не поднялся за 120 секунд после рестарта");
+                    return;
+                }
+
+                // Регим возвращаем после рестарта: состояние InEnabled в файл не пишется,
+                // без On робот не стартует на TestingStartEvent и не считает корреляцию.
+                Quiet("bot_set_params", new
+                {
+                    bot_id = LiveBot,
+                    parameters = new Dictionary<string, object> { { "Regime", "On" } }
+                });
+
+                // Нейтральные настройки тестера, как в OsTester-стенде, — прогон предсказуем.
+                Quiet("tester_portfolio_set_config", new { start_portfolio = 1000000m, portfolio_calculation_enabled = false });
+                Quiet("tester_execution_set_config", new { slippage_to_simple_order = 0, slippage_to_stop_order = 0, order_execution_type = "Touch", non_trade_periods = new object[0] });
+
+                // SetNewSet prepends the "Set_" folder prefix, so the tester wants the bare name.
+                string testerSetName = LiveSet.StartsWith("Set_") ? LiveSet.Substring(4) : LiveSet;
+
+                // Даты обязательны: без периода тестер не крутит данные (TimeNow > TimeEnd сразу).
+                string setData = Call("tester_data_set_config", new
+                {
+                    set_name = testerSetName,
+                    type_tester_data = "Candle",
+                    date_from = LiveDateFrom,
+                    date_to = LiveDateTo
+                });
+
+                if (IsError(setData))
+                {
+                    _context.RecordFail(Module, method, "tester_data_set_config: " + Trim(ErrorText(setData), 160));
+                    return;
+                }
+
+                if (!WaitTesterSecurities(2, 180))
+                {
+                    _context.RecordFail(Module, method, "тестер не отдал бумаги набора в течение 180 секунд");
+                    return;
+                }
+
+                // Даём движку восстановить робота с вкладки-файлов и коннекторам — подписаться на Tester.
+                System.Threading.Thread.Sleep(15000);
+
+                if (TryParseInner(GetInner(Quiet("bot_get_config_tab_pair", new { bot_id = LiveBot, tab_name = liveTab })), out JsonElement restored))
+                {
+                    livePairNum = FindPairNumBySecurityKey(restored, key);
+                }
+
+                if (livePairNum < 0)
+                {
+                    _context.RecordFail(Module, method, "живая пара " + key + " не видна во вкладке после рестарта (фикстуры не загружены)");
+                    return;
+                }
+
+                bool legsVisible = SourcesHavePair(Quiet("bot_get_sources", new { bot_id = LiveBot }), LiveSec1, LiveSec2);
+
+                bool finished = StartTestAndWait(1200);
+
+                double correlation = 0;
+
+                if (finished && TryParseInner(GetInner(Get("bot_get_config_tab_pair", new { bot_id = LiveBot, tab_name = liveTab })), out JsonElement after))
+                {
+                    correlation = GetPairDouble(after, livePairNum, "correlation_last");
+                }
+
+                int trades = ExtractTrades(Quiet("tester_get_report", new { }));
+
+                if (finished && legsVisible && correlation != 0)
+                {
+                    _context.RecordPass(Module, method, $"прогон testerlight на OsData-данных {LiveSec1}/{LiveSec2} {LiveTimeFrame}: A-5 sources непустые, correlation_last={correlation:F4} (CorrelationChangeEvent атрибутирован паре), trades={trades}");
+                }
+                else
+                {
+                    _context.RecordFail(Module, method, $"finished={finished}, sources legs={legsVisible}, correlation_last={correlation}, trades={trades}");
+                }
+            }
+            catch (Exception error)
+            {
+                _context.RecordFail(Module, method, error.Message);
+            }
+        }
+
+        private bool WaitOsDataMode(int timeoutSeconds)
+        {
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+
+            while (DateTime.Now < deadline)
+            {
+                string response = Quiet("data_get_sets", new { });
+
+                // Режим закрыт -> inner {code, message}; открыт -> массив сетов.
+                if (TryParseInner(GetInner(response), out JsonElement root) && root.ValueKind == JsonValueKind.Array)
+                {
+                    return true;
+                }
+
+                System.Threading.Thread.Sleep(500);
+            }
+
+            return false;
+        }
+
+        /// <summary>Polls server_instance_get_securities until the live source reports securities.</summary>
+        private bool WaitServerSecurities(int timeoutSeconds)
+        {
+            DateTime start = DateTime.Now;
+
+            while ((DateTime.Now - start).TotalSeconds < timeoutSeconds)
+            {
+                string response = Quiet("server_instance_get_securities", new { type = LiveServerType });
+
+                if (!IsError(response))
+                {
+                    JsonElement root;
+
+                    if (TryParseInner(GetInner(response), out root)
+                        && root.TryGetProperty("count", out JsonElement count)
+                        && count.GetInt32() > 0)
+                    {
+                        return true;
+                    }
+                }
+
+                System.Threading.Thread.Sleep(3000);
+            }
+
+            return false;
+        }
+
+        private static string FirstInstanceName(string activateResponse)
+        {
+            try
+            {
+                using (JsonDocument doc = JsonDocument.Parse(GetInner(activateResponse)))
+                {
+                    JsonElement root = doc.RootElement;
+
+                    if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+                    {
+                        return GetPropString(root[0], "name");
+                    }
+
+                    if (root.ValueKind == JsonValueKind.Object)
+                    {
+                        return GetPropString(root, "source_name").Length > 0 ? GetPropString(root, "source_name") : GetPropString(root, "name");
+                    }
+                }
+            }
+            catch
+            {
+                // activation may answer non-JSON when already active — caller falls back to the type name
+            }
+
+            return string.Empty;
+        }
+
+        private bool WaitForSecurityLoaded(string security, int timeoutSeconds, out string detail, out int count)
+        {
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+            detail = security + ": нет статуса";
+            count = 0;
+
+            while (DateTime.Now < deadline)
+            {
+                string response = Quiet("data_get_security_status", new { name = LiveSet, security = security, timeframe = LiveTimeFrame });
+
+                if (TryParseInner(GetInner(response), out JsonElement status))
+                {
+                    count = TryProp(status, "objects_count", out JsonElement objects) && objects.ValueKind == JsonValueKind.Number
+                        ? objects.GetInt32()
+                        : 0;
+
+                    string state = GetPropString(status, "status");
+                    double percent = TryProp(status, "percent_load", out JsonElement percentElement) && percentElement.ValueKind == JsonValueKind.Number
+                        ? percentElement.GetDouble()
+                        : 0;
+
+                    detail = $"{security}: status={state}, objects={count}, percent={percent:F1}";
+
+                    if (state == "Error")
+                    {
+                        return false;
+                    }
+
+                    if (count > 0 && (state == "None" || percent >= 100))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    detail = security + ": " + Trim(ErrorText(response), 120);
+                }
+
+                System.Threading.Thread.Sleep(2000);
+            }
+
+            return false;
+        }
+
+        private bool WaitTesterSecurities(int minCount, int timeoutSeconds)
+        {
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+
+            while (DateTime.Now < deadline)
+            {
+                string response = Quiet("tester_get_securities", new { });
+
+                if (TryParseInner(GetInner(response), out JsonElement root)
+                    && root.TryGetProperty("count", out JsonElement countElement)
+                    && countElement.ValueKind == JsonValueKind.Number
+                    && countElement.GetInt32() >= minCount)
+                {
+                    return true;
+                }
+
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            return false;
+        }
+
+        /// <summary>First Pair-type tab name of the live robot, or null on timeout.</summary>
+        private string WaitLivePairTab(int timeoutSeconds)
+        {
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+
+            while (DateTime.Now < deadline)
+            {
+                if (TryParseInner(GetInner(Quiet("bot_get_sources", new { bot_id = LiveBot })), out JsonElement root)
+                    && root.TryGetProperty("sources", out JsonElement sources)
+                    && sources.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement source in sources.EnumerateArray())
+                    {
+                        if (GetPropString(source, "type") == "Pair")
+                        {
+                            string name = GetPropString(source, "name");
+
+                            if (name.Length > 0)
+                            {
+                                return name;
+                            }
+                        }
+                    }
+                }
+
+                System.Threading.Thread.Sleep(1500);
+            }
+
+            return null;
+        }
+
+        private bool WaitBotTab(int timeoutSeconds)
+        {
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+
+            while (DateTime.Now < deadline)
+            {
+                string state = Quiet("bot_get_config_tab_pair", new { bot_id = Bot, tab_name = Tab });
+
+                if (!IsError(state))
+                {
+                    return true;
+                }
+
+                Quiet("bot_create", new { strategy_name = "PairCorrelationTrader", name = Bot });
+                System.Threading.Thread.Sleep(1500);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Запуск теста с подтверждением fast-forward (tester_start не гарантирует FF сам).
+        /// </summary>
+        private bool StartTestAndWait(int timeoutSeconds)
+        {
+            DateTime startDeadline = DateTime.Now.AddSeconds(120);
+            bool playing = false;
+
+            while (DateTime.Now < startDeadline && !playing)
+            {
+                string response = Quiet("tester_start", new { fast_forward = true });
+
+                if (TryParseInner(GetInner(response), out JsonElement status))
+                {
+                    playing = GetPropString(status, "regime") == "Play";
+                }
+
+                if (!playing)
+                {
+                    System.Threading.Thread.Sleep(2000);
+                }
+            }
+
+            if (!playing)
+            {
+                return false;
+            }
+
+            DateTime deadline = DateTime.Now.AddSeconds(timeoutSeconds);
+
+            while (DateTime.Now < deadline)
+            {
+                string response = Quiet("tester_get_status", new { });
+
+                if (TryParseInner(GetInner(response), out JsonElement status))
+                {
+                    string regime = GetPropString(status, "regime");
+                    bool fastForward = TryProp(status, "fast_forward", out JsonElement ff) && ff.ValueKind == JsonValueKind.True;
+                    double progress = TryProp(status, "progress_percent", out JsonElement progressElement) && progressElement.ValueKind == JsonValueKind.Number
+                        ? progressElement.GetDouble()
+                        : 0;
+
+                    if (regime == "NotActive" || progress >= 100)
+                    {
+                        return true;
+                    }
+
+                    if (regime == "Play" && !fastForward)
+                    {
+                        Quiet("tester_fast_forward", new { });
+                    }
+                }
+
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Запекает live-пару в фикстуры по рецепту G-A/G-B: на старте движка вкладка грузит
+        /// пару, у плечевых коннекторов SecurityName непустой уже в конструкторе — они
+        /// подписываются сами (нет Message38 на tester_start). Формат — рабочий файл G-B
+        /// и фикстура этого модуля; пары-легенды SBER/LKOH фикстурного робота не затрагиваются.
+        /// </summary>
+        private void WriteLivePairFixtures(string liveTab, string pairName, int pairNum)
+        {
+            string engine = EngineDirectory();
+            Directory.CreateDirectory(engine);
+
+            File.WriteAllLines(Path.Combine(engine, liveTab + "StandartPairsSettings.txt"), new[]
+            {
+                "0", "7", "0", "7", "50", "1", "50", "No",
+                "Percent", "Currency", "Percent", "Currency",
+                "True", "False",
+                "Market", "Market",
+                "True", "True"
+            });
+
+            File.WriteAllLines(Path.Combine(engine, liveTab + "PairsNamesToLoad.txt"), new[] { pairName });
+
+            File.WriteAllLines(Path.Combine(engine, pairName + "PairsSettings.txt"), new[]
+            {
+                pairNum.ToString(), "0", "7", "0", "7", "50", "1", "50",
+                "Percent", "Currency", "Percent", "Currency",
+                "Market", "Market", "No", "True", "True", "True"
+            });
+
+            // Leg tab = pair name + "1"/"2" (BotTabPair: Tab1 = new BotTabSimple(name + 1)).
+            WriteLiveLegFixture(engine, pairName + "1", LiveSec1);
+            WriteLiveLegFixture(engine, pairName + "2", LiveSec2);
+        }
+
+        private static void WriteLiveLegFixture(string engine, string legTab, string security)
+        {
+            File.WriteAllLines(Path.Combine(engine, legTab + "ConnectorPrime.txt"), new[]
+            {
+                "GodMode", "False", security, "Tester", "TestClass", "True", "Tester"
+            });
+
+            File.WriteAllLines(Path.Combine(engine, legTab + "TimeFrameBuilder.txt"), new[]
+            {
+                LiveTimeFrame, "False", "Tick", "Simple",
+                "TimeFrame#" + LiveTimeFrame + "$NonTradingCandles#False", "False", "0,2"
+            });
+        }
+
+        /// <summary>Достаёт pair_name из ответа bot_get_config_tab_pair по pair_num.</summary>
+        private static string GetPairNameByNum(JsonElement root, int pairNum)
+        {
+            if (TryProp(root, "pairs", out JsonElement pairs) && pairs.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement pair in pairs.EnumerateArray())
+                {
+                    if (TryProp(pair, "pair_num", out JsonElement num) && num.ValueKind == JsonValueKind.Number
+                        && num.GetInt32() == pairNum)
+                    {
+                        return RawFieldString(pair, "pair_name");
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static int FindPairNumBySecurityKey(JsonElement root, string securityKey)
+        {
+            if (TryProp(root, "pairs", out JsonElement pairs) && pairs.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement pair in pairs.EnumerateArray())
+                {
+                    if (RawFieldString(pair, "security_key") == securityKey
+                        && TryProp(pair, "pair_num", out JsonElement num)
+                        && num.ValueKind == JsonValueKind.Number)
+                    {
+                        return num.GetInt32();
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool SourcesHavePair(string sourcesResponse, string sec1, string sec2)
+        {
+            if (!TryParseInner(GetInner(sourcesResponse), out JsonElement root))
+            {
+                return false;
+            }
+
+            if (!root.TryGetProperty("sources", out JsonElement sources) || sources.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            foreach (JsonElement source in sources.EnumerateArray())
+            {
+                if (GetPropString(source, "type") != "Pair")
+                {
+                    continue;
+                }
+
+                if (!source.TryGetProperty("securities", out JsonElement list) || list.ValueKind != JsonValueKind.Array)
+                {
+                    continue;
+                }
+
+                foreach (JsonElement item in list.EnumerateArray())
+                {
+                    string text = item.GetRawText();
+
+                    if (text.Contains(sec1) && text.Contains(sec2))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static double GetPairDouble(JsonElement root, int pairNum, string field)
+        {
+            JsonElement pair = GetPairNode(root, pairNum);
+
+            return pair.ValueKind != JsonValueKind.Undefined
+                && TryProp(pair, field, out JsonElement value)
+                && value.ValueKind == JsonValueKind.Number
+                ? value.GetDouble()
+                : 0;
+        }
+
+        private static int ExtractTrades(string reportResponse)
+        {
+            if (!TryParseInner(GetInner(reportResponse), out JsonElement root))
+            {
+                return -1;
+            }
+
+            if (root.TryGetProperty("statistics_full", out JsonElement stats)
+                && stats.ValueKind == JsonValueKind.Object
+                && stats.TryGetProperty("trades", out JsonElement trades)
+                && trades.ValueKind == JsonValueKind.Number)
+            {
+                return trades.GetInt32();
+            }
+
+            return 0;
+        }
+
+        #endregion
+
         #region Helpers
 
         // Engine-настройки живёт рядом с запускаемым OsEngine.exe, а не рядом со стендом
@@ -731,9 +1471,34 @@ namespace OsEngine.McpApi.TestStand.Tests
 
         private void DeleteBotQuietly()
         {
+            DeleteBotQuietly(Bot);
+            DeleteBotQuietly(LiveBot);
+        }
+
+        /// <summary>
+        /// bot_delete одним выстрелом теряет гонку с поднимающимся Robot master: робот
+        /// переживает рестарт движка (файл в Engine\Robots) и крадёт create «already exists».
+        /// Поэтому удаляем до фактического исчезновения из bot_get_list.
+        /// </summary>
+        private void DeleteBotQuietly(string botName)
+        {
             try
             {
-                Quiet("bot_delete", new { bot_id = Bot });
+                DateTime deadline = DateTime.Now.AddSeconds(40);
+
+                while (DateTime.Now < deadline)
+                {
+                    string response = Quiet("bot_delete", new { bot_id = botName });
+
+                    if (!IsError(response) || response.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return;
+                    }
+
+                    System.Threading.Thread.Sleep(2000);
+                }
+
+                Console.WriteLine($"  [Pair] bot_delete {botName}: не удалось удалить за 40 с");
             }
             catch (Exception error)
             {
