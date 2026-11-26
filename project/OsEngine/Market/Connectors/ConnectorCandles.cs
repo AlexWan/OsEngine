@@ -96,7 +96,8 @@ namespace OsEngine.Market.Connectors
 
                     PortfolioName = reader.ReadLine();
                     EmulatorIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _securityName = reader.ReadLine();
+                    // bug-0687: config saved before the fix carries the legacy .txt suffix
+                    _securityName = TrimLegacyTxt(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out ServerType);
                     _securityClass = reader.ReadLine();
 
@@ -479,6 +480,11 @@ namespace OsEngine.Market.Connectors
             get { return _securityName; }
             set
             {
+                // bug-0687: tester/optimizer registration and all receiving gates live without the extension,
+                // a legacy .txt config name silently drops every order and trade event.
+                // Та же строгая семантика, что у TesterServer.TrimLegacyTxt
+                value = TrimLegacyTxt(value);
+
                 if (value != _securityName)
                 {
                     _securityName = value;
@@ -488,6 +494,22 @@ namespace OsEngine.Market.Connectors
             }
         }
         private string _securityName;
+
+        /// <summary>
+        /// Cut of the legacy .txt suffix from a configured security name (bug-0687). Strictly the literal, names with dots (BTC.USDT) stay intact
+        /// Срез легаси-хвоста .txt у имени бумаги из конфига (bug-0687). Строго литерал, имена с точками (BTC.USDT) не трогает
+        /// </summary>
+        private static string TrimLegacyTxt(string name)
+        {
+            if (name != null
+                && name.Length > 4
+                && name.EndsWith(".txt", StringComparison.Ordinal))
+            {
+                return name.Substring(0, name.Length - 4);
+            }
+
+            return name;
+        }
 
         /// <summary>
         /// connector's security class
