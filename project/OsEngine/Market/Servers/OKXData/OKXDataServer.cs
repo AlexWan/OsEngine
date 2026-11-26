@@ -182,7 +182,7 @@ namespace OsEngine.Market.Servers.OKXData
                         ? response.ErrorMessage
                         : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
 
-                    SendLogMessage($"GetFuturesSecurities - {response.Content}. Error: {err}. Url: {_baseUrl}/api/v5/public/instruments?instType=FUTURES", LogMessageType.Error);
+                    SendLogMessage($"GetFuturesSecurities - {response.Content}. Error: {err}. Url: {_baseUrl}/api/v5/public/instruments?instType=SWAP", LogMessageType.Error);
                 }
 
                 SecurityRespOkxData securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityRespOkxData());
