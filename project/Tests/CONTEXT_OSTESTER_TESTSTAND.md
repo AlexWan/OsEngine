@@ -133,13 +133,33 @@
 
 - **4.8.1.** Все 8 разделов отчёта присутствуют, `robot_results` и `positions` валидны.
 
+### 4.9. BotTabPair (Pair)
+
+- **4.9.0.** Эксперимент B (26.11.2026, вне стенда, драйвер `GC-m24-liveui-B`/`-B2`, логи в
+  `Artifacts\Tests\FEATURE-0141\stands\`): живой прогон пары `BotTabPair` в UI `-tester` на фича-бинаре
+  5af758ad5 с рабочим MCP-set и `Regime=On` — подписка плечей не поднялась, та же Message38 (12:53:54),
+  `sources` без плечей, `tester_start` отвергнут (regime→Pause, progress 0). Разрыв движковый
+  (не headless-артефакт), см. `CONTEXT_PAIRS_AND_FUTURES.md`.
+
+- **4.9.1.** Фикстуры `Engine\*.txt` поднимают пару 7 (SBER|VTBR, GAZP|TATN); `bot_get_config_tab_pair`
+  не падает при незагруженных плечах (`FixtureBootstrap`).
+- **4.9.2.** Живой MCP-set до `tester_start`: режимы, Contract, `correlation_look_back`, `events_is_on`
+  на обоих плечах, `Regime=On` (`McpSet`).
+- **4.9.3.** A-5: до `tester_start` `sources` обеих пар непустые (`SourcesBeforeStart`).
+- **4.9.4.** После рестарта портфель Tester форсирован в GodMode у всех плеч (`GodModeForced`);
+  `get` после рестарта стабилен (`RestartStable`).
+- **4.9.5.** Прогон на TesterSBER+Tester10Liq: `trades > 0` (`RunTrades`), `CorrelationChangeEvent`
+  атрибутирован каждой паре (`CorrelationEventsPerPair`), журнал пары непустой (`JournalNonEmpty`).
+- **4.9.6.** A-7 ловушка пустого потока: фикстура `events_is_on=false` даёт тройку нулей
+  (свечи/события/журнал) при `trades=0` — маркер `EMPTY-STREAM-TRAP` (`NegativeD4`).
+
 ## 5. Как запускать
 
 ```bash
 dotnet run -- [--module/-m NAME] [--set TesterSBER] [--port 6500] [--api-key KEY] [--timeout 60] [--no-wait] [--transport v1|v2]
 ```
 
-- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 8 модулей разом.
+- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 9 модулей разом.
 - `--set` — имя сета данных (по умолчанию `TesterSBER`).
 - `--port` / `--api-key` — MCP OsEngine (по умолчанию `6500` / `osengine-mcp-default-key`).
 - `--timeout` — таймаут ожидания MCP после запуска OsEngine (сек).

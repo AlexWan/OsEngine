@@ -164,6 +164,9 @@ namespace OsEngine.OsTester.TestStand
             // 8. Отчёты.
             RunModule(context, 8, "Report", () => new ReportTests(context).RunAll());
 
+            // 9. BotTabPair — настройка пары через MCP (FEATURE-0141).
+            RunModule(context, 9, "Pair", () => new PairTests(context).RunAll());
+
             if (_moduleFilter.Length > 0 && _matchedModules == 0)
             {
                 Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");

@@ -39,12 +39,18 @@ cd Tests/McpTestStand/OsEngine.McpApi.TestStand/bin/Debug/net10.0
 #  6 ServerInstance, 7 SSE, 8 Errors, 9 WikiRobots, 10 WikiIndicators,
 #  11 WikiSecurities, 12 WikiDividends, 13 Data, 14 Tester, 15 Terminal,
 #  16 SystemLoad, 17 ComparePositions, 18 Proxy, 19 Optimizer, 20 Encryption,
-#  21 StreamableHttp, 22 CapitalAllocation, 23 CapitalAllocationCycle)
+#  21 StreamableHttp, 22 CapitalAllocation, 23 CapitalAllocationCycle,
+#  24 ConfigTabPair)
 ./OsEngine.McpApi.TestStand.exe --module Tester
 ./OsEngine.McpApi.TestStand.exe --module 5,6
 ```
 
-Цель стенда: **235/235 passed** (`--transport v2`) и **226/226 passed** (`--transport v1`).
+Цель стенда: **258/258 passed** (`--transport v2`) и **247/247 passed** (`--transport v1`;
+V1-подмножество `ConfigTabPair` после добавления модуля 24 не пересчитано).
+Известный текущий дефицит (26.11.2026): `ConfigTabPair/pair_live_pair_run` FAIL — разрыв
+движковый: свечная серия плечей пары не стартует и в `-testerlight` (прогоны v7–v14),
+и в UI `-tester` (эксперимент B, 26.11.2026 12:42, Message38, `sources` без плечей);
+детали — `CONTEXT_MCP_TESTSTAND.md`, модуль 24, и `CONTEXT_PAIRS_AND_FUTURES.md`.
 
 **Важно:** тестовый стенд MCP API (`OsEngine.McpApi.TestStand.exe`) запускать только с **явного разрешения пользователя**.
 

@@ -128,13 +128,24 @@
 - **4.12.4.** QuerySort — `optimizer_query_report_db`: сортировка по метрике (`sort_by` + `order`), `limit`, фильтр по `faze_type`; в ответе `returned`, `reports_count`, `fazes_count`.
 - **4.12.5.** ListFiltersCleanup — `optimizer_list_report_db { robot, date_from, date_to }`: `robot` (точное совпадение) и `date_from`/`date_to` (по `saved_at`, `yyyy-MM-dd`) фильтруют список; `optimizer_db_cleanup { before_date }` удаляет прогоны раньше даты (возвращает `cleaned`).
 
+### 4.13. BotTabPair (Pair)
+
+- **4.13.1.** Фаза `-testerlight`: `bot_create` + `bot_set_config_tab_pair` (`create_pair`, пары 0/1) —
+  живой MCP-set не молчит, файлы конфигурации пары записаны (`LiveMcpSet`).
+- **4.13.2.** Фаза `-optimizer`: сет Tester10Liq, бот `PairCorrelationTrader` не молчит — series ≥ 1,
+  ≥1 `CorrelationChangeEvent`, отчёт непустой; null-серии дают FAIL, не SKIP (`SeriesNotSilent`, `PairTraded`).
+- **4.13.3.** На `-optimizer` `bot_set_config_tab_pair` отвергается (`Robot master is not available`) —
+  обещание «оптимизатор не конфигурирует» (`RejectedOnOptimizer`).
+- **4.13.4.** Оптимизатор не персистит файлы пары: после прогона и отвергнутого `set` содержимое всех
+  файлов пары совпадает со снапшотом после MCP-set (`NotPersistedByOptimizer`).
+
 ## 5. Как запускать
 
 ```bash
 dotnet run --project project\Tests\OptimizerTestStand\OsEngine.Optimizer.TestStand -- [--module/-m NAME] [--set TesterSBER] [--port 6500] [--api-key KEY] [--timeout 60] [--no-wait] [--transport v1|v2]
 ```
 
-- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 12 модулей разом.
+- `--module/-m` — фильтр модулей (имя или номер, через запятую). Без флага — все 13 модулей разом.
 - `--set` — имя сета данных (по умолчанию `TesterSBER`).
 - `--port` / `--api-key` — MCP OsEngine (по умолчанию `6500` / `osengine-mcp-default-key`).
 - `--timeout` — таймаут ожидания MCP после запуска OsEngine (сек).

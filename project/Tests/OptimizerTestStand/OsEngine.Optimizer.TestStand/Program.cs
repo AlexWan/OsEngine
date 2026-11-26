@@ -176,6 +176,9 @@ namespace OsEngine.Optimizer.TestStand
             // 12. БД результатов (SQLite).
             RunModule(context, 12, "Db", () => new DbTests(context).RunAll());
 
+            // 13. BotTabPair в оптимизаторе (FEATURE-0141).
+            RunModule(context, 13, "Pair", () => new PairTests(context).RunAll());
+
             if (_moduleFilter.Length > 0 && _matchedModules == 0)
             {
                 Console.WriteLine($"No modules matched filter '{_moduleFilter}'. Available modules:");
