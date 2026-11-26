@@ -739,6 +739,15 @@ namespace OsEngine.Market.Servers.Bybit
 
         private List<Security> _securities;
 
+        // reload не должен дописывать в список дубли — это бесконечная память; ключ тройной
+        // (NameId|Name|NameClass), как матчит слияние бумаг в AServer
+        private readonly HashSet<string> _knownSecurityKeys = new HashSet<string>();
+
+        private static string SecurityKey(Security security)
+        {
+            return security.NameId + "|" + security.Name + "|" + security.NameClass;
+        }
+
         private void LoadInstrumentsForCategory(Category category)
         {
             Dictionary<string, object> parametrs = new Dictionary<string, object>();
@@ -793,6 +802,15 @@ namespace OsEngine.Market.Servers.Bybit
                     _securities = new List<Security>();
                 }
 
+                // набор ключей перестраивается от текущего списка на каждом входе: он переживает
+                // re-байнд OrderBy ниже, а повторная загрузка не должна добавлять дубли
+                _knownSecurityKeys.Clear();
+
+                for (int i = 0; i < _securities.Count; i++)
+                {
+                    _knownSecurityKeys.Add(SecurityKey(_securities[i]));
+                }
+
                 LoadInstrumentsForCategory(Category.spot);
                 LoadInstrumentsForCategory(Category.linear);
                 LoadInstrumentsForCategory(Category.inverse);
@@ -816,6 +834,8 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 _volumeDecimalsBySecurity = volumeDecimals;
+
+                SendLogMessage($"Securities loaded count. Total: {_securities.Count}", LogMessageType.System);
 
                 SecurityEvent?.Invoke(_securities);
             }
@@ -984,7 +1004,10 @@ namespace OsEngine.Market.Servers.Bybit
                         security.Exchange = ServerType.Bybit.ToString();
                         security.Lot = 1;
 
-                        _securities.Add(security);
+                        if (_knownSecurityKeys.Add(SecurityKey(security)))
+                        {
+                            _securities.Add(security);
+                        }
                     }
                 }
             }
