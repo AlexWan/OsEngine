@@ -547,9 +547,19 @@ namespace OsEngine.Market.Servers.MFD
                 RestRequest requestRest = new(Method.GET);
                 RestClient client = new(url);
 
-                string responseMessage = client.Execute(requestRest).Content;
+                IRestResponse response = client.Execute(requestRest);
 
-                return responseMessage;
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; без этой ветки отказ молча проглатывается
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("GetStringRequest error. Url: " + url + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                    return null;
+                }
+
+                return response.Content;
             }
             catch (Exception error)
             {

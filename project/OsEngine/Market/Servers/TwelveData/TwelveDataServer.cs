@@ -141,7 +141,12 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage("Connection can be open. TwelveData. Error request", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Connection can be open. TwelveData. Error request. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                     Disconnect();
                 }
             }
@@ -340,7 +345,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -404,7 +413,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -463,7 +476,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"EtfsSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -522,7 +539,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"StockIndiaSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"StockIndiaSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -581,7 +602,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"ForexSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"ForexSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -640,7 +665,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"StockUsaSecurities request error: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"StockUsaSecurities request error: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -721,7 +750,11 @@ namespace OsEngine.Market.Servers.TwelveData
                 }
                 else
                 {
-                    SendLogMessage($"Candle error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Candle error. Code: {response.StatusCode} || msg: {response.Content}. Error: {err}. Url: {_baseUrl}", LogMessageType.Error);
                     return null;
                 }
 
@@ -880,6 +913,16 @@ namespace OsEngine.Market.Servers.TwelveData
 
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 IRestResponse response = client.Execute(requestRest);
+
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; до разбора Content, иначе отказ уходит в ветку «Candle history error» без причины
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("RequestCandleHistory error. Url: " + _baseUrl + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                    return null;
+                }
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {

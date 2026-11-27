@@ -173,7 +173,13 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Token request error", LogMessageType.Error);
+                    // RestSharp.Execute не бросает сетевые сбои, а кладёт их в ErrorMessage/ErrorException — иначе в логе нет причины отказа
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    // секрет: endPoint содержит refresh-токен (ServerParameterPassword), в лог — только хост+путь без query
+                    SendLogMessage($"Token request error. Status: {response.StatusCode}. Error: {err}. Url: {_oauthApiHost}/refresh?token=***", LogMessageType.Error);
                     return false;
                 }
             }
@@ -340,7 +346,11 @@ namespace OsEngine.Market.Servers.Alor
                     }
                     else
                     {
-                        SendLogMessage("Securities request error. Status: " + response.StatusCode, LogMessageType.Error);
+                        string err = response.ErrorException == null
+                            ? response.ErrorMessage
+                            : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                        SendLogMessage($"Securities request error. Status: {response.StatusCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
                     }
 
                     return;
@@ -727,8 +737,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Portfolio request error. Status: "
-                        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Portfolio request error. Status: {response.StatusCode}. {namePrefix}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -809,8 +822,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Positions request error. Status: "
-                        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Positions request error. Status: {response.StatusCode}. {namePrefix}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1022,7 +1038,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Candles request error. Status: " + response.StatusCode, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Candles request error. Status: {response.StatusCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1162,7 +1182,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Trades request error. Status: " + response.StatusCode, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Trades request error. Status: {response.StatusCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2600,8 +2624,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Order Fail. Status: {response.StatusCode}. {order.SecurityNameCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
 
                     if (response.Content != null)
                     {
@@ -2764,8 +2791,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Change price order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Change price order Fail. Status: {response.StatusCode}. {order.SecurityNameCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
 
                     if (response.Content != null)
                     {
@@ -2862,8 +2892,11 @@ namespace OsEngine.Market.Servers.Alor
 
                     if (state == OrderStateType.None)
                     {
-                        SendLogMessage("Order cancel request error. Status: "
-                            + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
+                        string err = response.ErrorException == null
+                            ? response.ErrorMessage
+                            : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                        SendLogMessage($"Order cancel request error. Status: {response.StatusCode}. {order.SecurityClassCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
 
                         if (response.Content != null)
                         {
@@ -3140,7 +3173,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Get all orders request error. Status: {response.StatusCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
 
                     if (response.Content != null)
                     {
@@ -3233,7 +3270,11 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
+                    string err = response.ErrorException == null
+                        ? response.ErrorMessage
+                        : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                    SendLogMessage($"Get all orders request error. Status: {response.StatusCode}. Error: {err}. Url: {endPoint}", LogMessageType.Error);
 
                     if (response.Content != null)
                     {

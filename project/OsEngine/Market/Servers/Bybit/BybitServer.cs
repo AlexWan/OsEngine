@@ -5260,6 +5260,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                 IRestResponse response = client.Execute(request);
 
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; коллеры читают Content вслепую
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("CreatePrivateQuery error. Url: " + RestUrl + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                }
+
                 return response;
 
                 //if (response.StatusCode == HttpStatusCode.OK)
@@ -5315,6 +5324,15 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 IRestResponse response = client.Execute(requestRest);
+
+                // bug-0663: RestSharp не бросает сетевые/TLS-ошибки, они в ответе; коллеры читают Content вслепую
+                if (response.ResponseStatus != ResponseStatus.Completed || response.ErrorException != null)
+                {
+                    SendLogMessage("CreatePublicQuery error. Url: " + RestUrl + ". ResponseStatus: "
+                        + response.ResponseStatus + ". StatusCode: " + response.StatusCode + ". Error: "
+                        + (response.ErrorException != null ? response.ErrorException.ToString() : response.ErrorMessage),
+                        LogMessageType.Error);
+                }
 
                 return response;
 
@@ -5413,7 +5431,11 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                     else
                     {
-                        SendLogMessage($"GetServerTime>.Code:{response.StatusCode}, Message:{response.Content}", LogMessageType.Error);
+                        string err = response.ErrorException == null
+                            ? response.ErrorMessage
+                            : response.ErrorException.GetType().Name + ": " + response.ErrorException.Message;
+
+                        SendLogMessage($"GetServerTime>.Code:{response.StatusCode}, Message:{response.Content}. Error: {err}. Url: {RestUrl}", LogMessageType.Error);
                     }
                 }
                 catch (Exception ex)
