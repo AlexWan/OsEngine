@@ -102,6 +102,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            _isDeleted = true;  // tab deleted; late saves must not recreate its settings files
+
             if (_ui != null)
             {
                 _ui.Close();
@@ -586,6 +588,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Save()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 if (_isLoaded)
@@ -682,6 +689,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         bool _isLoaded = false;
+
+        private bool _isDeleted = false;
 
         /// <summary>
         /// one of the sources has been removed
@@ -2279,6 +2288,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private string _botUniqName;
 
+        private bool _isDeleted = false;
+
         /// <summary>
         /// program that created the source
         /// </summary>
@@ -2332,6 +2343,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void Save()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
@@ -2365,11 +2381,20 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            _isDeleted = true;
+
             if (_startProgram != StartProgram.IsOsOptimizer)
             {
-                if (!File.Exists(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt"))
+                try
                 {
-                    return;
+                    if (File.Exists(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt"))
+                    {
+                        File.Delete(@"Engine\" + _botUniqName + @"IndexAutoFormulaSettings.txt");
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignore
                 }
             }
 
@@ -2624,6 +2649,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld)
         {
+            if (_isDeleted)
+            {
+                return false;
+            }
+
             if (_regime == IndexAutoFormulaBuilderRegime.Off)
             {
                 return false;
