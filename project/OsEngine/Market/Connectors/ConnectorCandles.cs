@@ -167,6 +167,9 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void Delete()
         {
+            // late Save() after Delete() must not recreate ConnectorPrime.txt
+            _canSave = false;
+
             if (_ui != null)
             {
                 _ui.Close();

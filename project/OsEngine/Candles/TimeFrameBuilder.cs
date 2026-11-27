@@ -158,6 +158,9 @@ namespace OsEngine.Entity
 
         public void Delete()
         {
+            // late Save() after Delete() must not recreate TimeFrameBuilder.txt
+            _canSave = false;
+
             try
             {
                 if (File.Exists(@"Engine\" + _name + @"TimeFrameBuilder.txt"))
