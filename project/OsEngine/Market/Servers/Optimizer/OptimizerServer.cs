@@ -2293,15 +2293,18 @@ namespace OsEngine.Market.Servers.Optimizer
                 return null;
             }
 
-            for (int i = 0; i < _securities.Count; i++)
+            Security security = _securities.Find(s => s.Name == securityName);
+
+            // legacy tester tab configs may store the registered name with .txt (bug-0687), mirror of TesterServer.FindRegisteredSecurity
+            if (security == null
+                && securityName != null
+                && securityName.EndsWith(".txt", StringComparison.Ordinal)
+                && securityName.Length > 4)
             {
-                if (_securities[i].Name == securityName)
-                {
-                    return _securities[i];
-                }
+                security = _securities.Find(s => s.Name == securityName.Substring(0, securityName.Length - 4));
             }
 
-            return null;
+            return security;
 
             //return _securities.Find(security => security.Name == name);
         }
@@ -2368,15 +2371,15 @@ namespace OsEngine.Market.Servers.Optimizer
                     return null;
                 }
 
-                Security security = null;
+                Security security = _securities.Find(s => s.Name == securityName);
 
-                for (int i = 0; i < _securities.Count; i++)
+                // legacy tester tab configs may store the registered name with .txt (bug-0687), mirror of GetSecurityForName above
+                if (security == null
+                    && securityName != null
+                    && securityName.EndsWith(".txt", StringComparison.Ordinal)
+                    && securityName.Length > 4)
                 {
-                    if (_securities[i].Name == securityName)
-                    {
-                        security = _securities[i];
-                        break;
-                    }
+                    security = _securities.Find(s => s.Name == securityName.Substring(0, securityName.Length - 4));
                 }
 
                 if (security == null)
