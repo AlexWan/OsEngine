@@ -417,6 +417,31 @@ namespace OsEngine.MCP.Modules
             };
         }
 
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
         private object SetHierarchicalRiskParitySettings(JsonElement parameters)
         {
             CapitalAllocationMaster master = GetMaster();
@@ -428,21 +453,21 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("linkage", out JsonElement linkageElement)
                 && linkageElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse(linkageElement.GetString(), true, out LinkageMethod linkage))
+                && TryParseSingleEnumName<LinkageMethod>(linkageElement.GetString(), true, out LinkageMethod linkage))
             {
                 master.LinkageMethod = linkage;
             }
 
             if (parameters.TryGetProperty("covariance", out JsonElement covarianceElement)
                 && covarianceElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse(covarianceElement.GetString(), true, out CovarianceMethod covariance))
+                && TryParseSingleEnumName<CovarianceMethod>(covarianceElement.GetString(), true, out CovarianceMethod covariance))
             {
                 master.CovarianceMethod = covariance;
             }
 
             if (parameters.TryGetProperty("correlation", out JsonElement correlationElement)
                 && correlationElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse(correlationElement.GetString(), true, out CorrelationType correlation))
+                && TryParseSingleEnumName<CorrelationType>(correlationElement.GetString(), true, out CorrelationType correlation))
             {
                 master.CorrelationType = correlation;
             }

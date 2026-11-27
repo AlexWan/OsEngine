@@ -152,7 +152,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("memoryCleanerRegime", out JsonElement memoryCleanerRegime)
                 && memoryCleanerRegime.ValueKind == JsonValueKind.String
-                && Enum.TryParse<MemoryCleanerRegime>(memoryCleanerRegime.GetString(), out MemoryCleanerRegime regime))
+                && TryParseSingleEnumName<MemoryCleanerRegime>(memoryCleanerRegime.GetString(), false, out MemoryCleanerRegime regime))
             {
                 PrimeSettingsMaster.MemoryCleanerRegime = regime;
             }
@@ -162,6 +162,31 @@ namespace OsEngine.MCP.Modules
                 success = true,
                 settings = McpPrimeSettings.FromCurrent()
             };
+        }
+
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
         }
 
         public List<McpTool> GetTools()

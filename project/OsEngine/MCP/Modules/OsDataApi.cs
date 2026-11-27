@@ -675,8 +675,16 @@ namespace OsEngine.MCP.Modules
                     {
                         string regimeStr = regimeElement.GetString();
 
-                        if (!Enum.TryParse<DataSetState>(regimeStr, true, out DataSetState regime))
+                        if (!TryParseSingleEnumName<DataSetState>(regimeStr, true, out DataSetState regime))
                         {
+                            // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                            string trimmedRegime = (regimeStr ?? string.Empty).Trim();
+
+                            if (trimmedRegime.Length > 0 && (!char.IsLetter(trimmedRegime[0]) || trimmedRegime.Contains(',')))
+                            {
+                                throw new ArgumentException($"Parameter 'regime' must be a single DataSetState value, got '{regimeStr}'");
+                            }
+
                             throw new ArgumentException($"Unknown regime '{regimeStr}'");
                         }
 
@@ -1147,6 +1155,31 @@ namespace OsEngine.MCP.Modules
             public bool MarketDepthHistory;
         }
 
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
         private ParsedTimeFrames ParseTimeFrames(JsonElement parameters, string propertyName)
         {
             if (parameters.ValueKind != JsonValueKind.Object
@@ -1187,8 +1220,16 @@ namespace OsEngine.MCP.Modules
                     continue;
                 }
 
-                if (!Enum.TryParse<TimeFrame>(timeFrameName, true, out TimeFrame timeFrame))
+                if (!TryParseSingleEnumName<TimeFrame>(timeFrameName, true, out TimeFrame timeFrame))
                 {
+                    // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                    string trimmedTimeFrame = (timeFrameName ?? string.Empty).Trim();
+
+                    if (trimmedTimeFrame.Length > 0 && (!char.IsLetter(trimmedTimeFrame[0]) || trimmedTimeFrame.Contains(',')))
+                    {
+                        throw new ArgumentException($"Parameter 'timeframes' must be a single timeframe value, got '{timeFrameName}'");
+                    }
+
                     throw new ArgumentException($"Unknown timeframe '{timeFrameName}'");
                 }
 
@@ -1428,8 +1469,20 @@ namespace OsEngine.MCP.Modules
                 {
                     timeFrame = TimeFrame.MarketDepth;
                 }
-                else if (!Enum.TryParse<TimeFrame>(timeFrameName, true, out timeFrame))
+                else if (!TryParseSingleEnumName<TimeFrame>(timeFrameName, true, out timeFrame))
                 {
+                    // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                    string trimmedTimeFrame = (timeFrameName ?? string.Empty).Trim();
+
+                    if (trimmedTimeFrame.Length > 0 && (!char.IsLetter(trimmedTimeFrame[0]) || trimmedTimeFrame.Contains(',')))
+                    {
+                        return new McpJsonRpcError
+                        {
+                            Code = -32602,
+                            Message = $"Parameter 'timeframe' must be a single timeframe value, got '{timeFrameName}'"
+                        };
+                    }
+
                     return new McpJsonRpcError
                     {
                         Code = -32602,
