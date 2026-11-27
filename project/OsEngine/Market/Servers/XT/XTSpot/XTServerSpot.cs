@@ -752,7 +752,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                     }
 
-                    _webSocketPublic.Add(CreateNewPublicSocket());
+                    WebSocket webSocket = CreateNewPublicSocket();
+
+                    // null = creation failed (already logged); must not enter the list: teardown and subscribers NRE on it (bug-0723)
+                    if (webSocket == null)
+                    {
+                        return;
+                    }
+
+                    _webSocketPublic.Add(webSocket);
                 }
                 catch (Exception ex)
                 {
@@ -825,6 +833,12 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
                             WebSocket webSocketPublic = _webSocketPublic[i];
+
+                            // defensive: a null element must not abort unsubscribe of the remaining sockets (bug-0723)
+                            if (webSocketPublic == null)
+                            {
+                                continue;
+                            }
 
                             webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
                             webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
