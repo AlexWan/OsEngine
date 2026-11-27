@@ -278,6 +278,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SaveStandartSettings()
         {
+            if (_isDeleted)
+            {
+                return; // tab was deleted; late save must not recreate its settings file
+            }
+
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
                 return;
@@ -566,6 +571,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SaveSequencesNames()
         {
+            if (_isDeleted)
+            {
+                return; // tab was deleted; late save must not recreate its settings file
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"PolygonsNamesToLoad.txt", false))
@@ -1805,6 +1815,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public int PairNum;
 
+        private bool _isDeleted = false;
+
         /// <summary>
         /// Download the settings
         /// </summary>
@@ -1851,6 +1863,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Save()
         {
+            if (_isDeleted)
+            {
+                return; // sequence was deleted; late save must not recreate its settings file
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"PolygonSettings.txt", false))
@@ -1889,6 +1906,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                _isDeleted = true;
+
                 if (File.Exists(@"Engine\" + Name + @"PolygonSettings.txt"))
                 {
                     File.Delete(@"Engine\" + Name + @"PolygonSettings.txt");
