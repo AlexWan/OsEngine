@@ -447,6 +447,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void SaveTabs()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerTabSet.txt", false))
@@ -619,6 +624,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SaveSettings()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             if (_isLoadingSettings)
             {
                 // LoadSettings assigns CandleCreateMethodType, whose setter saves: that would rewrite the file it is
@@ -664,6 +674,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Load settings
         /// </summary>
         private bool _isLoadingSettings;
+
+        private bool _isDeleted;
 
         public void LoadSettings()
         {
@@ -767,6 +779,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            // tab deleted; late saves must not recreate its settings files
+            _isDeleted = true;
+
             if (_ui != null)
             {
                 _ui.Close();
@@ -804,6 +819,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (File.Exists(@"Engine\" + TabName + @"ScreenerIndicators.txt"))
                 {
                     File.Delete(@"Engine\" + TabName + @"ScreenerIndicators.txt");
+                }
+
+                if (File.Exists(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt");
                 }
             }
             catch
@@ -2583,6 +2603,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void SaveIndicators()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerIndicators.txt", false))
@@ -3174,6 +3199,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void SaveMarketDepthIndicators()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerMarketDepthIndicators.txt", false))
