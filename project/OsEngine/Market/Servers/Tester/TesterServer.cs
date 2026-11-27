@@ -6363,8 +6363,8 @@ namespace OsEngine.Market.Servers.Tester
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
                     // snapshot before iterating: GetPairsSnapshot() takes the tab's pairs locker, so this
-                    // is serialized with the UI mutators (CreatePair/DeletePair/Delete) and a concurrent
-                    // Add can no longer tear it (bug-0695); null = tab deleted by Delete()
+                    // is serialized with the external mutators (UI or tester-init, CreatePair/DeletePair/
+                    // Delete) and a concurrent Add can no longer tear it; null = tab deleted by Delete()
                     PairToTrade[] pairsArray = currentTabs[i2].GetPairsSnapshot();
 
                     if (pairsArray == null)
@@ -6381,7 +6381,7 @@ namespace OsEngine.Market.Servers.Tester
                         if (pair == null)
                         {
                             // kept as a cheap defence: the snapshot now comes from GetPairsSnapshot() under
-                            // the tab's pairs locker, serialized with every UI mutator, so the torn null cell
+                            // the tab's pairs locker, serialized with every external mutator, so the torn null cell
                             // (net10 ToArray two _size reads + Clear) can no longer be produced on this path.
                             // A direct write to the public Pairs field outside the locker would reopen it
                             continue;

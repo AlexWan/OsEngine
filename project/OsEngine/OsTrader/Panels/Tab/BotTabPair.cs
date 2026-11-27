@@ -515,8 +515,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<PairToTrade> Pairs = new List<PairToTrade>();
 
-        // Single locker for every Pairs mutation in this class and for GetPairsSnapshot():
-        // the public field is mutated from the UI thread and snapshot-read by tester workers (bug-0695)
+        // Single locker for every structural Pairs mutation and for GetPairsSnapshot(): in-place
+        // leg swaps (RePaintGrid) and UI-only DeleteAllPairs run outside it; field UI-mutated, tester-read
         private readonly object _pairsLock = new object();
 
         /// <summary>
