@@ -212,6 +212,10 @@ namespace OsEngine.Market.Servers.TInvest
                 {
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
+                        // BUG-0690: единый чоук-поинт сброса троттл-записи — после любого дисконнекта первая
+                        // строка новой потери печатается (покрывает суточный цикл треда, дисконнект при потере order-state и внешние дисконнекты)
+                        _lastStreamLostName = null;
+
                         Thread.Sleep(1000);
                         continue;
                     }
@@ -322,9 +326,19 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
-                        SendLogMessage(
-                            "Stream is lost. ConnectionCheckThread(). stream = "
-                            + lostStreamName, LogMessageType.System);
+                        // BUG-0690: троттл по имени не чаще раза в 60 с (повтор на 2-й секунде не несёт
+                        // диагностики; в поле это дал 538 строк за эпизод). Ограничение: при мигании двух
+                        // имён каждые 2 с теоретически возможен alternating-спам (каждый отчёт сбивает таймер
+                        // другого) — недостижим при детерминированном обходе стримов: потеря возвращается одна
+                        if (ShouldReportStreamLost(lostStreamName, utcTime, _lastStreamLostNoticeUtc, _lastStreamLostName))
+                        {
+                            _lastStreamLostNoticeUtc = utcTime;
+                            _lastStreamLostName = lostStreamName;
+
+                            SendLogMessage(
+                                "Stream is lost. ConnectionCheckThread(). stream = "
+                                + lostStreamName, LogMessageType.System);
+                        }
 
                         if (lostStreamName == "Order state data stream")
                         {
@@ -755,6 +769,20 @@ namespace OsEngine.Market.Servers.TInvest
 
         // FIX-0472: троттл System-уведомлений пропуска/раслипанию (не чаще одного в минуту)
         private DateTime _lastFix472NoticeUtc = DateTime.MinValue;
+
+        // BUG-0690: троттл-запись строки «Stream is lost». Тред один (ConnectionCheckThread) — локи не нужны;
+        // имя сбрасывается единым чоук-поинтом в гейте статуса, чтобы первая строка новой потери печаталась
+        private DateTime _lastStreamLostNoticeUtc = DateTime.MinValue;
+
+        private string _lastStreamLostName;
+
+        // BUG-0690: предикат троттла строки «Stream is lost». Строгое «>» важно: ровно 60 с — ещё тишина.
+        // Обычное сравнение строк null-safe: оба null — имена равны
+        private static bool ShouldReportStreamLost(string lostStreamName, DateTime utcTime, DateTime lastNoticeUtc, string lastStreamLostName)
+        {
+            return lostStreamName != lastStreamLostName
+                || utcTime - lastNoticeUtc > TimeSpan.FromSeconds(60);
+        }
 
         // единый deadline для unary-вызовов: на мёртвом канале вызов обязан упасть
         // за секунды (DeadlineExceeded), а не висеть до TCP-таймаута
