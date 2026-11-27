@@ -202,13 +202,33 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
+                // First two steps run before the early exit below: the 3s watcher must not
+                // write the journal of a deleted controller on its next cycle, in Tester too
+                _needToSave = false;
+
+                // mirror of registration (:88-90): unregister from the static watcher
+                if (_startProgram != StartProgram.IsOsOptimizer)
+                {
+                    for (int i = 0; i < ControllersToCheck.Count; i++)
+                    {
+                        if (ControllersToCheck[i] == null)
+                        {
+                            continue;
+                        }
+                        if (ControllersToCheck[i]._name == _name)
+                        {
+                            ControllersToCheck.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+
                 if (_startProgram == StartProgram.IsOsOptimizer
                     || _startProgram == StartProgram.IsTester)
                 {
                     return;
                 }
 
-                _needToSave = false;
                 string dealControllerPath = @"Engine\" + _name + @"DealController.txt";
 
                 if (File.Exists(dealControllerPath))
@@ -250,24 +270,6 @@ namespace OsEngine.Journal.Internal
                     _gridCloseDeal.CellClick += _gridCloseDeal_CellClick;
                     _gridCloseDeal.DataError -= _gridOpenDeal_DataError;
                     _gridCloseDeal = null;
-                }
-
-                if (_startProgram != StartProgram.IsOsOptimizer)
-                {
-                    for (int i = 0; i < ControllersToCheck.Count; i++)
-                    {
-                        if (ControllersToCheck[i] == null)
-                        {
-                            ControllersToCheck.RemoveAt(i);
-                            i--;
-                            continue;
-                        }
-                        if (ControllersToCheck[i]._name == _name)
-                        {
-                            ControllersToCheck.RemoveAt(i);
-                            return;
-                        }
-                    }
                 }
             }
             catch (Exception error)

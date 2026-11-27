@@ -215,6 +215,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _positionViewer.Delete();
                 }
 
+                if (StandardManualControl != null)
+                {
+                    StandardManualControl.Delete();
+                    StandardManualControl = null;
+                }
+
+                if (_uiList != null)
+                {
+                    // Close open pair windows. Snapshot first: Close() raises Ui_Closed synchronously
+                    // and that handler removes the element from _uiList.
+                    BotTabPairUi[] uis = _uiList.ToArray();
+                    for (int i = 0; i < uis.Length; i++)
+                    {
+                        uis[i].Close();
+                    }
+                }
+
                 if (TabDeletedEvent != null)
                 {
                     TabDeletedEvent();
@@ -380,6 +397,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SaveStandartSettings()
         {
+            // tab was deleted; late save must not recreate its settings file
+            if (_isDeleted)
+            {
+                return;
+            }
+
             if (StartProgram == StartProgram.IsOsOptimizer)
             {
                 return;
@@ -628,6 +651,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void SavePairNames()
         {
+            // tab was deleted; late save must not recreate its settings file
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"PairsNamesToLoad.txt", false))
@@ -2401,6 +2430,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Save()
         {
+            // pair was deleted; late save must not recreate its settings file
+            if (_isDeleted)
+            {
+                return;
+            }
+
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"PairsSettings.txt", false))
@@ -2435,10 +2470,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Flag indicating whether the pair has been deleted or not. true - deleted
+        /// </summary>
+        private bool _isDeleted;
+
+        /// <summary>
         /// Delete the pair 
         /// </summary>
         public void Delete()
         {
+            // set before teardown: late Save() must not recreate PairsSettings.txt even if teardown aborts
+            _isDeleted = true;
+
             try
             {
                 if (File.Exists(@"Engine\" + Name + @"PairsSettings.txt"))
