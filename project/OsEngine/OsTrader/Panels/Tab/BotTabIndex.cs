@@ -105,6 +105,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            if (_isDeleted)
+            {   // повторный вызов идемпотентен: состояние уже снято первым Delete
+                return;
+            }
             _isDeleted = true;  // tab deleted; late saves must not recreate its settings files
 
             if (_ui != null)
