@@ -4538,6 +4538,8 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                // bug-0176 follow-up: stream-only reconnects keep ServerStatus Connect, so the reset on status change is not reached. This event is the standard "connection restored, re-check orders" signal (BUG-0631)
+                ResetCancelSuppressionAfterReconnect();
                 _ordersHub.ForceCheckOrdersAfterReconnect();
             }
             catch
