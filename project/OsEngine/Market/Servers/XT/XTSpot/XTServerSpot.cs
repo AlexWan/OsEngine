@@ -735,7 +735,20 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private List<WebSocketDeflate> _webSocketPublic = new List<WebSocketDeflate>();
 
-            private WebSocketDeflate _webSocketPrivate;
+            // bug-0686: политика по эндпоинтам XT. /public эхит permessage-deflate С ФЛАГАМИ
+            // (server_no_context_takeover) — мигрирован на WebSocketDeflate (:736 и ниже).
+            // /private эхит ГОЛЫЙ "permessage-deflate" без флагов (RUN_FACTS tr432) — под
+            // current-компонент не годится: без server_no_context_takeover он fail-closed
+            // бросает (WebSocketDeflate.cs:355), а принимать context-takeover ему нечем
+            // (пословный inflate). Поэтому приват остаётся на wrapper WebSocketOsEngine:
+            // оффер Sec-WebSocket-Extensions не шлёт вовсе → 101 без ext (= поведение базы,
+            // рабочее сегодня; принуждение deflate с 2026-12-10 08:00 UTC подтверждено
+            // документацией XT только для /public).
+            // ТРИГГЕР пересмотра: 426 / guard-лог «WebSocket Private error while Disconnect»
+            // с отказом handshake на /private после 10.12 → follow-up-баг: stateful inflate
+            // (вариант A) с live-характеризацией flush-режима XT + проба A-lite (оффер с
+            // явными флагами server_no_context_takeover;client_no_context_takeover).
+            private WebSocket _webSocketPrivate;
 
             private string _webSocketPrivateUrl = "wss://stream.xt.com/private";
 
@@ -796,7 +809,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    _webSocketPrivate = new WebSocketDeflate(_webSocketPrivateUrl);
+                    // bug-0686: wrapper, не WebSocketDeflate — см. why-коммент у поля
+                    // _webSocketPrivate (bare-эхо XT /private без no_context → fail-closed :355)
+                    _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
 
                     //if (_myProxy != null)
                     //{
