@@ -353,6 +353,31 @@ namespace OsEngine.MCP.Modules
             return server;
         }
 
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
         #region Data configuration
 
         private object GetAvailableSets()
@@ -431,7 +456,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("source_type", out JsonElement sourceTypeElement)
                 && sourceTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TesterSourceDataType>(sourceTypeElement.GetString(), true, out TesterSourceDataType sourceType))
+                && TryParseSingleEnumName<TesterSourceDataType>(sourceTypeElement.GetString(), true, out TesterSourceDataType sourceType))
             {
                 server.SourceDataType = sourceType;
             }
@@ -458,7 +483,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("type_tester_data", out JsonElement typeTesterDataElement)
                 && typeTesterDataElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TesterDataType>(typeTesterDataElement.GetString(), true, out TesterDataType typeTesterData))
+                && TryParseSingleEnumName<TesterDataType>(typeTesterDataElement.GetString(), true, out TesterDataType typeTesterData))
             {
                 server.TypeTesterData = typeTesterData;
             }
@@ -572,7 +597,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("order_execution_type", out JsonElement orderExecutionTypeElement)
                 && orderExecutionTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<OrderExecutionType>(orderExecutionTypeElement.GetString(), true, out OrderExecutionType orderExecutionType))
+                && TryParseSingleEnumName<OrderExecutionType>(orderExecutionTypeElement.GetString(), true, out OrderExecutionType orderExecutionType))
             {
                 server.OrderExecutionType = orderExecutionType;
             }

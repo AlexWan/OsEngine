@@ -748,7 +748,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("source_type", out JsonElement sourceTypeElement)
                 && sourceTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TesterSourceDataType>(sourceTypeElement.GetString(), true, out TesterSourceDataType sourceType))
+                && TryParseSingleEnumName<TesterSourceDataType>(sourceTypeElement.GetString(), true, out TesterSourceDataType sourceType))
             {
                 storage.SourceDataType = sourceType;
             }
@@ -768,7 +768,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("type_tester_data", out JsonElement typeElement)
                 && typeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TesterDataType>(typeElement.GetString(), true, out TesterDataType typeTesterData))
+                && TryParseSingleEnumName<TesterDataType>(typeElement.GetString(), true, out TesterDataType typeTesterData))
             {
                 storage.TypeTesterData = typeTesterData;
             }
@@ -1159,7 +1159,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("time_frame", out JsonElement timeFrameElement)
                 && timeFrameElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
+                && TryParseSingleEnumName<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
             {
                 tab.Connector.TimeFrame = timeFrame;
                 changed = true;
@@ -1220,7 +1220,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("time_frame", out JsonElement timeFrameElement)
                 && timeFrameElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
+                && TryParseSingleEnumName<TimeFrame>(timeFrameElement.GetString(), true, out TimeFrame timeFrame))
             {
                 screener.TimeFrame = timeFrame;
                 needReload = true;
@@ -1388,7 +1388,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("commission_type", out JsonElement commissionTypeElement)
                 && commissionTypeElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
+                && TryParseSingleEnumName<CommissionType>(commissionTypeElement.GetString(), true, out CommissionType commissionType))
             {
                 master.CommissionType = commissionType;
             }
@@ -1402,7 +1402,7 @@ namespace OsEngine.MCP.Modules
 
             if (parameters.TryGetProperty("order_execution_type", out JsonElement executionElement)
                 && executionElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<OrderExecutionType>(executionElement.GetString(), true, out OrderExecutionType executionType))
+                && TryParseSingleEnumName<OrderExecutionType>(executionElement.GetString(), true, out OrderExecutionType executionType))
             {
                 master.OrderExecutionType = executionType;
             }
@@ -1622,11 +1622,36 @@ namespace OsEngine.MCP.Modules
             }
         }
 
-        private void ApplyEnumField<TEnum>(JsonElement parameters, string name, Action<TEnum> apply) where TEnum : struct
+        /// <summary>
+        /// bug-0679 (BUG-0677): одиночное имя enum на MCP-границе. Enum.TryParse сворачивает списки
+        /// через запятую побитово и принимает числовые строки независимо от [Flags] — отвергаем;
+        /// остаётся только определённое имя. Обрамляющие пробелы допустимы. Копии хелпера по MCP-
+        /// модулям текстово идентичны (R2).
+        /// </summary>
+        private static bool TryParseSingleEnumName<T>(string s, bool ignoreCase, out T value) where T : struct, Enum
+        {
+            value = default(T);
+
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
+            string name = s.Trim();
+
+            if (!char.IsLetter(name[0]) || name.Contains(','))
+            {
+                return false;
+            }
+
+            return Enum.TryParse(name, ignoreCase, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
+        private void ApplyEnumField<TEnum>(JsonElement parameters, string name, Action<TEnum> apply) where TEnum : struct, Enum
         {
             if (parameters.TryGetProperty(name, out JsonElement element)
                 && element.ValueKind == JsonValueKind.String
-                && Enum.TryParse<TEnum>(element.GetString(), true, out TEnum value))
+                && TryParseSingleEnumName<TEnum>(element.GetString(), true, out TEnum value))
             {
                 apply(value);
             }
@@ -2038,9 +2063,19 @@ namespace OsEngine.MCP.Modules
                 if (item.TryGetProperty("step_type", out JsonElement stepTypeElement)
                     && stepTypeElement.ValueKind == JsonValueKind.String)
                 {
-                    if (!Enum.TryParse<StrategyParameterStepType>(stepTypeElement.GetString(), true, out StrategyParameterStepType stepType))
+                    string stepTypeStr = stepTypeElement.GetString();
+
+                    if (!TryParseSingleEnumName<StrategyParameterStepType>(stepTypeStr, true, out StrategyParameterStepType stepType))
                     {
-                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeElement.GetString()}'. Expected: Absolute, Percent");
+                        // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                        string trimmedStepType = (stepTypeStr ?? string.Empty).Trim();
+
+                        if (trimmedStepType.Length > 0 && (!char.IsLetter(trimmedStepType[0]) || trimmedStepType.Contains(',')))
+                        {
+                            throw new ArgumentException($"Parameter 'step_type' must be a single StrategyParameterStepType value, got '{stepTypeStr}'");
+                        }
+
+                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeStr}'. Expected: Absolute, Percent");
                     }
 
                     save[6] = stepType.ToString();
@@ -2101,9 +2136,19 @@ namespace OsEngine.MCP.Modules
                 if (item.TryGetProperty("step_type", out JsonElement stepTypeElement)
                     && stepTypeElement.ValueKind == JsonValueKind.String)
                 {
-                    if (!Enum.TryParse<StrategyParameterStepType>(stepTypeElement.GetString(), true, out StrategyParameterStepType stepType))
+                    string stepTypeStr = stepTypeElement.GetString();
+
+                    if (!TryParseSingleEnumName<StrategyParameterStepType>(stepTypeStr, true, out StrategyParameterStepType stepType))
                     {
-                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeElement.GetString()}'. Expected: Absolute, Percent");
+                        // bug-0679 R4: число или список через запятую — новый различимый текст, неизвестное имя — старый
+                        string trimmedStepType = (stepTypeStr ?? string.Empty).Trim();
+
+                        if (trimmedStepType.Length > 0 && (!char.IsLetter(trimmedStepType[0]) || trimmedStepType.Contains(',')))
+                        {
+                            throw new ArgumentException($"Parameter 'step_type' must be a single StrategyParameterStepType value, got '{stepTypeStr}'");
+                        }
+
+                        throw new ArgumentException($"Parameter '{parameter.Name}': unknown step_type '{stepTypeStr}'. Expected: Absolute, Percent");
                     }
 
                     save[6] = stepType.ToString();
@@ -2431,7 +2476,7 @@ namespace OsEngine.MCP.Modules
             if (parameters.ValueKind == JsonValueKind.Object
                 && parameters.TryGetProperty("sort_type", out JsonElement sortElement)
                 && sortElement.ValueKind == JsonValueKind.String
-                && Enum.TryParse<SortBotsType>(sortElement.GetString(), true, out SortBotsType parsedSort))
+                && TryParseSingleEnumName<SortBotsType>(sortElement.GetString(), true, out SortBotsType parsedSort))
             {
                 sortType = parsedSort;
             }
