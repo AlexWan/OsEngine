@@ -884,7 +884,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < tabs.Count; i++)
                 {
-                    journals.Add(tabs[i].GetJournal());
+                    Journal.Journal journal = tabs[i].GetJournal();
+                    // A tab deleted by the worker after the snapshot has no journal. A null in this list breaks every consumer that enumerates it
+                    if (journal != null)
+                    {
+                        journals.Add(journal);
+                    }
                 }
 
                 return journals;
@@ -1852,7 +1857,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
 
                 List<Journal.Journal> journals = new List<Journal.Journal>();
-                journals.Add(tab.GetJournal());
+                Journal.Journal journal = tab.GetJournal();
+                // Tab deleted by the worker after it was captured: keep null out of the journal window payload
+                if (journal != null)
+                {
+                    journals.Add(journal);
+                }
 
                 BotPanelJournal botPanel = new BotPanelJournal();
                 botPanel.BotName = tab.TabName;
@@ -2002,7 +2012,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (Tabs[i] != null)
                     {
                         Journal.Journal journal = Tabs[i].GetJournal();
-                        journals.Add(journal);
+                        // A tab deleted by the worker after it was captured has no journal: a null here reaches the viewer worker unguarded
+                        if (journal != null)
+                        {
+                            journals.Add(journal);
+                        }
                     }
                 }
 

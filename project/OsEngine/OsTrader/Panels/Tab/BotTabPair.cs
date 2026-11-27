@@ -275,8 +275,17 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < Pairs.Count; i++)
                 {
-                    journals.Add(Pairs[i].Tab1.GetJournal());
-                    journals.Add(Pairs[i].Tab2.GetJournal());
+                    // A leg deleted in parallel has no journal (Delete() nulls it). A null in this list breaks every consumer that enumerates it
+                    Journal.Journal journal1 = Pairs[i].Tab1.GetJournal();
+                    if (journal1 != null)
+                    {
+                        journals.Add(journal1);
+                    }
+                    Journal.Journal journal2 = Pairs[i].Tab2.GetJournal();
+                    if (journal2 != null)
+                    {
+                        journals.Add(journal2);
+                    }
                 }
 
                 return journals;
@@ -1511,13 +1520,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (curPair.Tab1 != null)
                     {
+                        // A leg deleted in parallel has no journal: a null here reaches the viewer worker unguarded
                         Journal.Journal journal = curPair.Tab1.GetJournal();
-                        journals.Add(journal);
+                        if (journal != null)
+                        {
+                            journals.Add(journal);
+                        }
                     }
                     if (curPair.Tab2 != null)
                     {
                         Journal.Journal journal = curPair.Tab2.GetJournal();
-                        journals.Add(journal);
+                        if (journal != null)
+                        {
+                            journals.Add(journal);
+                        }
                     }
                 }
 

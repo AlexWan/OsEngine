@@ -518,11 +518,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
-                List<Journal.Journal> journals = new List<Journal.Journal>();
+                // A pair deleted in parallel has no journals: BotTabPair.Delete() does not close this window.
+                // One payload slot per leg, so an absent journal must abort, not shift Tab2 into the Tab1 panel
+                Journal.Journal journal1 = _pair.Tab1.GetJournal();
+                Journal.Journal journal2 = _pair.Tab2.GetJournal();
+                if (journal1 == null || journal2 == null)
+                {
+                    ServerMaster.SendNewLogMessage("Pair journal is not available: the pair was deleted", LogMessageType.Error);
+                    return;
+                }
 
-                journals.Add(_pair.Tab1.GetJournal());
-                journals.Add(_pair.Tab2.GetJournal());
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
 
                 BotPanelJournal botPanel = new BotPanelJournal();
                 botPanel.BotName = _pair.Name + " sec1 " + _pair.Tab1.Connector.SecurityName;
@@ -531,7 +537,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabJournal botTabJournal = new BotTabJournal();
                 botTabJournal.TabNum = 1;
-                botTabJournal.Journal = journals[0];
+                botTabJournal.Journal = journal1;
 
                 botPanel._Tabs.Add(botTabJournal);
                 panelsJournal.Add(botPanel);
@@ -544,7 +550,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 botTabJournal = new BotTabJournal();
                 botTabJournal.TabNum = 1;
-                botTabJournal.Journal = journals[1];
+                botTabJournal.Journal = journal2;
 
                 botPanel._Tabs.Add(botTabJournal);
                 panelsJournal.Add(botPanel);

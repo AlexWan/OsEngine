@@ -1366,7 +1366,12 @@ namespace OsEngine.Market
 
                             if (tabToSave != null)
                             {
-                                tabToSave.GetJournal().Save();
+                                Journal.Journal journal = tabToSave.GetJournal();
+                                // Tab deleted in parallel: an NRE here would skip the order-table cleanup and repaint below
+                                if (journal != null)
+                                {
+                                    journal.Save();
+                                }
                             }
                         }
 
