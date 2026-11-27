@@ -237,9 +237,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < Sequences.Count; i++)
                 {
-                    journals.Add(Sequences[i].Tab1.GetJournal());
-                    journals.Add(Sequences[i].Tab2.GetJournal());
-                    journals.Add(Sequences[i].Tab3.GetJournal());
+                    // A leg deleted in parallel has no journal (Delete() nulls it). A null in this list breaks every consumer that enumerates it
+                    Journal.Journal journal1 = Sequences[i].Tab1.GetJournal();
+                    if (journal1 != null)
+                    {
+                        journals.Add(journal1);
+                    }
+                    Journal.Journal journal2 = Sequences[i].Tab2.GetJournal();
+                    if (journal2 != null)
+                    {
+                        journals.Add(journal2);
+                    }
+                    Journal.Journal journal3 = Sequences[i].Tab3.GetJournal();
+                    if (journal3 != null)
+                    {
+                        journals.Add(journal3);
+                    }
                 }
 
                 return journals;

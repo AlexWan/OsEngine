@@ -150,6 +150,12 @@ namespace OsEngine.OsTrader.RiskManager
         {
             try
             {
+                // A null here silently disables the drawdown alarm: CheckJournals aborts before the comparison
+                if (newJournal == null)
+                {
+                    return;
+                }
+
                 if (_journals == null)
                 {
                     _journals = new List<Journal.Journal>();

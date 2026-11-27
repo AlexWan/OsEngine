@@ -310,9 +310,15 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; i < tabsSimple.Count; i++)
             {
+                Journal.Journal journal = tabsSimple[i].GetJournal();
+                // A tab deleted in parallel has no journal, it is not reported
+                if (journal == null)
+                {
+                    continue;
+                }
                 OptimizerReportTab tab = new OptimizerReportTab();
                 List<Position> positions =
-                    tabsSimple[i].GetJournal().AllPosition.FindAll(
+                    journal.AllPosition.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.ClosingFail);
 
                 for (int j = 0; j < positions.Count; j++)

@@ -333,7 +333,13 @@ namespace OsEngine.OsTrader.Panels
 
                 if (tab.TabType == BotTabType.Simple)
                 {
-                    journals.Add(((BotTabSimple)tab).GetJournal());
+                    Journal.Journal journal = ((BotTabSimple)tab).GetJournal();
+                    // A tab deleted in parallel has no journal. A null in this list breaks every
+                    // consumer that enumerates it (RiskManager, tester/optimizer status, GPV)
+                    if (journal != null)
+                    {
+                        journals.Add(journal);
+                    }
                 }
                 else if (tab.TabType == BotTabType.Screener)
                 {
