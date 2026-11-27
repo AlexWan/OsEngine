@@ -321,17 +321,60 @@ namespace OsEngine.OsTrader.Panels.Tab
         private HorizontalVolume _horizontalVolume;
 
         /// <summary>
+        /// Tab is already deleted; Delete must stay idempotent (BUG-0696)
+        /// </summary>
+        private bool _isDeleted = false;
+
+        /// <summary>
         /// Remove tab and all child structures
         /// </summary>
         public void Delete()
         {
-            _chartMaster.Delete();
-            _horizontalVolume.Delete();
-            CandleConnector.Delete();
-
-            if(TabDeletedEvent != null)
+            if (_isDeleted)
             {
-                TabDeletedEvent();
+                return;
+            }
+            _isDeleted = true;
+
+            // BUG-0696: per-step guards — a throw in chartMaster.Delete must not leave
+            // CandleConnector subscribed (event-storm into a dead chart)
+            try
+            {
+                _chartMaster.Delete();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            try
+            {
+                _horizontalVolume.Delete();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            try
+            {
+                CandleConnector.Delete();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            try
+            {
+                if (TabDeletedEvent != null)
+                {
+                    TabDeletedEvent();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -340,6 +383,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Clear()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             _horizontalVolume.Clear();
             _chartMaster.Clear();
         }
@@ -368,6 +416,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void StopPaint()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             _chartMaster.StopPaint();
         }
 
@@ -376,6 +429,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary> 
         public void StartPaint(WindowsFormsHost host, Rectangle rectangle)
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             _chartMaster.StartPaint(host, rectangle);
         }
 

@@ -111,36 +111,87 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             _isDeleted = true;  // tab deleted; late saves must not recreate its settings files
 
-            if (_ui != null)
+            // BUG-0696 (OdTS A2): per-step guards (BotTabCluster pattern) — one failing step
+            // must not leave the rest un-torn-down (missed TabDeletedEvent = zombie subscribers)
+            try
             {
-                _ui.Close();
+                if (_ui != null)
+                {
+                    _ui.Close();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            _chartMaster.Delete();
-            _chartMaster = null;
-
-            if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
+            try
             {
-                File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
+                _chartMaster.Delete();
+                _chartMaster = null;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            try
+            {
+                if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
+                {
+                    File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
             for (int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
-                Tabs[i].Delete();
+                try
+                {
+                    Tabs[i].Delete();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
 
-            AutoFormulaBuilder.Delete();
-            AutoFormulaBuilder.LogMessageEvent -= SendNewLogMessage;
-            AutoFormulaBuilder = null;
-
-            if (TabDeletedEvent != null)
+            try
             {
-                TabDeletedEvent();
+                AutoFormulaBuilder.Delete();
+                AutoFormulaBuilder.LogMessageEvent -= SendNewLogMessage;
+                AutoFormulaBuilder = null;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
 
-            if(UiSecuritiesSelection != null)
+            try
             {
-                UiSecuritiesSelection.Close();
+                if (TabDeletedEvent != null)
+                {
+                    TabDeletedEvent();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+            try
+            {
+                if (UiSecuritiesSelection != null)
+                {
+                    UiSecuritiesSelection.Close();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -450,7 +501,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary> 
         public void StartPaint(Grid grid, WindowsFormsHost host, Rectangle rectangle)
         {
-            _chartMaster.StartPaint(grid, host, rectangle);
+            if (_chartMaster != null)
+            {
+                _chartMaster.StartPaint(grid, host, rectangle);
+            }
         }
 
         /// <summary>
@@ -458,7 +512,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void StopPaint()
         {
-            _chartMaster.StopPaint();
+            if (_chartMaster != null)
+            {
+                _chartMaster.StopPaint();
+            }
         }
 
         /// <summary>
@@ -823,6 +880,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public void RebuildHard()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             _normalizeCandles.Clear();
             AutoFormulaBuilder.RebuildHard();
 
@@ -834,9 +896,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void FullRecalculateIndex()
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             _valuesToFormula = new List<ValueSave>();
             Candles = new List<Candle>();
-            _chartMaster.Clear();
+
+            // capture into local: a concurrent Delete may null the field between check and deref (BUG-0696)
+            ChartCandleMaster chartMaster = _chartMaster;
+            if (chartMaster != null)
+            {
+                chartMaster.Clear();
+            }
 
             if (_startProgram == StartProgram.IsOsTrader)
             {
@@ -889,14 +962,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
                     }
 
-                    _chartMaster.SetCandles(Candles);
+                    if (chartMaster != null)
+                    {
+                        chartMaster.SetCandles(Candles);
+                    }
 
                     if (_startProgram == StartProgram.IsOsTrader)
                     {
                         Thread.Sleep(1000);
                     }
 
-                    _chartMaster.SetCandles(Candles);
+                    if (chartMaster != null)
+                    {
+                        chartMaster.SetCandles(Candles);
+                    }
 
                     if (SpreadChangeEvent != null && EventsIsOn == true)
                     {
@@ -938,6 +1017,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void BotTabIndex_NewCandlesChangeEvent(List<Candle> candles)
         {
+            if (_isDeleted)
+            {
+                return;
+            }
+
             if (candles == null || candles.Count == 0)
             {
                 return;
