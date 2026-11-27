@@ -255,6 +255,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                // Tab deleted: nothing to enumerate, skip silently without a false ERROR from the catch below (teardown race with periodic journal polls)
+                if (_isDeleted)
+                {
+                    return null;
+                }
+
                 List<Journal.Journal> journals = new List<Journal.Journal>();
 
                 for (int i = 0; i < Pairs.Count; i++)
