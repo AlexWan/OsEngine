@@ -94,7 +94,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void Clear()
         {
             _valuesToFormula = new List<ValueSave>();
-            _chartMaster.Clear();
+            if (_chartMaster != null)
+            {
+                _chartMaster.Clear();
+            }
         }
 
         /// <summary>
