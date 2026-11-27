@@ -594,6 +594,12 @@ namespace OsEngine.Robots.Helpers
                 Portfolio portfolio = taxBot.TabsSimple[0].Portfolio;
                 BotManualControl manualPositionSupport = taxBot.TabsSimple[0].ManualPositionSupport;
                 Journal.Journal journal = taxBot.TabsSimple[0].GetJournal();
+                // Tab deleted in parallel: no journal. Logging and skipping keeps the NRE out of the candle handler
+                if (journal == null)
+                {
+                    SendNewLogMessage("Tax bot journal is deleted. Tax deal skipped", Logging.LogMessageType.Error);
+                    return;
+                }
 
                 PositionCreator _dealCreator = new PositionCreator();
 
