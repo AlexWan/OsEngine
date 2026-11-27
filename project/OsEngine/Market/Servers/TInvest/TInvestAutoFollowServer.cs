@@ -1643,8 +1643,7 @@ namespace OsEngine.Market.Servers.TInvest
                             Task writeTradeTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchTradeRequest);
                             if (writeTradeTask.Wait(_streamWaitTimeout) == false)
                             {
-                                ObserveTaskFault(writeTradeTask);
-                                streamWrapper.IsConnected = false;
+                                AbandonDataStreamWrite(streamWrapper, writeTradeTask);
                                 return false;
                             }
                             _rateGateSubscribe.WaitToProceed();
@@ -1657,8 +1656,7 @@ namespace OsEngine.Market.Servers.TInvest
                             Task writeOrderBookTask = streamWrapper.StreamClient.RequestStream.WriteAsync(batchOrderBookRequest);
                             if (writeOrderBookTask.Wait(_streamWaitTimeout) == false)
                             {
-                                ObserveTaskFault(writeOrderBookTask);
-                                streamWrapper.IsConnected = false;
+                                AbandonDataStreamWrite(streamWrapper, writeOrderBookTask);
                                 return false;
                             }
                         }
@@ -1667,6 +1665,9 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch
             {
+                // bug-0679: ПОЛНЫЙ helper — молчаливый return false при живом IsConnected
+                // давал зомби-обёртку с брошенной записью внутри
+                AbandonDataStreamWrite(streamWrapper, null);
                 return false;
             }
 
@@ -1687,6 +1688,50 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }, TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        // bug-0679: единый helper «безопасно бросить запись» (текстово-идентичная копия в
+        // TInvestServer). Брошенная по Wait-таймауту запись остаётся in-flight
+        // в Grpc.Net.Client, следующая запись на тот же вызов мгновенно падает
+        // «Can't write the message because the previous write is in progress». Снимает
+        // коллизионный guard только Dispose вызова — обрываем сразу, БЕЗ CompleteAsync и
+        // БЕЗ ожидания ReadingTask (иначе до +10с под локом). writeTask == null на catch-
+        // сайтах вне области видимости задачи (коллизия прилетает исключением из Wait).
+        private void AbandonDataStreamWrite(MarketDataStreamWrapper streamWrapper, Task writeTask)
+        {
+            if (streamWrapper == null)
+            {
+                return;
+            }
+
+            // самый внешний лок на всех сайтах; Monitor ре-энтрабелен (ТЗ п.1a)
+            lock (_marketDataStreamLocker)
+            {
+                if (writeTask != null)
+                {
+                    ObserveTaskFault(writeTask);
+                }
+
+                // ПЕРВЫМ делом null: гейд выбора обёртки и FirstOrDefault немедленно
+                // перестают видеть мёртвый клиент
+                AsyncDuplexStreamingCall<MarketDataRequest, MarketDataResponse> oldClient = streamWrapper.StreamClient;
+                streamWrapper.StreamClient = null;
+
+                if (oldClient != null)
+                {
+                    try
+                    {
+                        oldClient.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        // ошибка Dispose не подменяет исходное исключение сайта вызова
+                        SendLogMessage("Error disposing abandoned market data stream " + streamWrapper.Name + ": " + ex.Message, LogMessageType.System);
+                    }
+                }
+
+                streamWrapper.IsConnected = false;
+            }
         }
 
         #endregion
@@ -1739,7 +1784,13 @@ namespace OsEngine.Market.Servers.TInvest
                                 LastMessageTime = DateTime.UtcNow,
                             };
                             _marketDataStreams.Add(streamWrapperCommon);
-                            TryReconnectDataStream(streamWrapperCommon);
+                            // bug-0679 (правка C): helper@1668 вскрыл проигнорированный bool —
+                            // без проверки запись ниже пошла бы на null-клиент
+                            if (TryReconnectDataStream(streamWrapperCommon) == false)
+                            {
+                                SendLogMessage("Autofollow. Failed to (re)connect market data stream " + streamWrapperCommon.Name, LogMessageType.Error);
+                                return;
+                            }
                             SendLogMessage("Autofollow. Created market data stream " + streamWrapperCommon.Name, LogMessageType.System);
                         }
                         else
@@ -1767,7 +1818,12 @@ namespace OsEngine.Market.Servers.TInvest
                                 LastMessageTime = DateTime.UtcNow,
                             };
                             _marketDataStreams.Add(streamWrapperMarketDepth);
-                            TryReconnectDataStream(streamWrapperMarketDepth);
+                            // bug-0679 (правка C): проверка результата реконнекта, см. Common выше
+                            if (TryReconnectDataStream(streamWrapperMarketDepth) == false)
+                            {
+                                SendLogMessage("Autofollow. Failed to (re)connect market data stream " + streamWrapperMarketDepth.Name, LogMessageType.Error);
+                                return;
+                            }
                             SendLogMessage("Autofollow. Created market data stream " + streamWrapperMarketDepth.Name, LogMessageType.System);
                         }
                         else
@@ -1799,14 +1855,14 @@ namespace OsEngine.Market.Servers.TInvest
                         Task writeTradesTask = streamWrapperCommon.StreamClient.RequestStream.WriteAsync(tradeRequest);
                         if (writeTradesTask.Wait(_streamWaitTimeout) == false)
                         {
-                            ObserveTaskFault(writeTradesTask);
+                            AbandonDataStreamWrite(streamWrapperCommon, writeTradesTask);
                             throw new TimeoutException("Market data stream write timeout");
                         }
                     }
                     catch
                     {
                         // мёртвый стрим не должен выбираться до реакции читателя
-                        streamWrapperCommon.IsConnected = false;
+                        AbandonDataStreamWrite(streamWrapperCommon, null);
                         throw;
                     }
 
@@ -1831,7 +1887,7 @@ namespace OsEngine.Market.Servers.TInvest
                         Task writeMdTask = streamWrapperMarketDepth.StreamClient.RequestStream.WriteAsync(orderBookRequest);
                         if (writeMdTask.Wait(_streamWaitTimeout) == false)
                         {
-                            ObserveTaskFault(writeMdTask);
+                            AbandonDataStreamWrite(streamWrapperMarketDepth, writeMdTask);
                             throw new TimeoutException("Market data stream write timeout");
                         }
                     }
@@ -1839,7 +1895,7 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         // откатываем тиковую подписку — иначе реконнект
                         // воскресит её сиротой (в map запись не попадёт)
-                        streamWrapperMarketDepth.IsConnected = false;
+                        AbandonDataStreamWrite(streamWrapperMarketDepth, null);
                         streamWrapperCommon.Subscriptions.Remove(tradeRequest);
 
                         throw;
@@ -1926,15 +1982,14 @@ namespace OsEngine.Market.Servers.TInvest
 
                                     if (writeTask.Wait(_streamWaitTimeout) == false)
                                     {
-                                        ObserveTaskFault(writeTask);
-                                        stream.IsConnected = false;
+                                        AbandonDataStreamWrite(stream, writeTask);
                                     }
                                 }
                                 catch (Exception ex)
                                 {
                                     // тайм-аут-семантика: стрим в труп, цикл продолжается —
                                     // гарантированно доходим до RemoveAt
-                                    stream.IsConnected = false;
+                                    AbandonDataStreamWrite(stream, null);
                                     SendLogMessage("Autofollow. Unsubscribe write failed " + stream.Name + " " + ex.ToString(), LogMessageType.Error);
                                 }
                             }
