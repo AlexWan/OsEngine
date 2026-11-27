@@ -1243,6 +1243,13 @@ namespace OsEngine.Market.AutoFollow
 
             for (int i = 0; i < Robots.Count; i++)
             {
+                if (allRobots != null && allRobots.Contains(Robots[i]) == false)
+                {
+                    Robots.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
                 bool isInArray = false;
 
                 for (int j = 0; j < robotsNames.Count; j++)

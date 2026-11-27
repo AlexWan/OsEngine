@@ -585,17 +585,22 @@ namespace OsEngine.OsTrader.Panels
                 {
                     BotTabPair pair = (BotTabPair)tab;
 
-                    for (int j = 0; j < pair.Pairs.Count; j++)
+                    List<PairToTrade> pairs = pair.Pairs;
+
+                    if (pairs != null)
                     {
-                        if (pair.Pairs[j].Tab1.Portfolio != null)
+                        for (int j = 0; j < pairs.Count; j++)
                         {
-                            portfolio = pair.Pairs[j].Tab1.Portfolio;
-                            break;
-                        }
-                        if (pair.Pairs[j].Tab2.Portfolio != null)
-                        {
-                            portfolio = pair.Pairs[j].Tab2.Portfolio;
-                            break;
+                            if (pairs[j].Tab1.Portfolio != null)
+                            {
+                                portfolio = pairs[j].Tab1.Portfolio;
+                                break;
+                            }
+                            if (pairs[j].Tab2.Portfolio != null)
+                            {
+                                portfolio = pairs[j].Tab2.Portfolio;
+                                break;
+                            }
                         }
                     }
 
