@@ -138,14 +138,34 @@ namespace OsEngine.OsTrader.Panels
 
                 for (int i = 0; i < tabsSnapshot.Count; i++)
                 {
-                    tabsSnapshot[i].Clear();
+                    // BUG-0696: one failing tab must not leave the rest uncleaned
+                    try
+                    {
+                        tabsSnapshot[i].Clear();
+                    }
+                    catch (Exception error)
+                    {
+                        SendNewLogMessage("BotPanel " + NameStrategyUniq + " Clear failed on tab[" + i + "] "
+                            + tabsSnapshot[i].TabType + " " + tabsSnapshot[i].TabName + ": " + error.ToString(),
+                            LogMessageType.Error);
+                    }
                 }
-
-                Log?.Clear();
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            finally
+            {
+                try
+                {
+                    Log?.Clear();
+                }
+                catch (Exception error)
+                {
+                    // BUG-0696 (OdTS A3): Clear() must not throw outward from finally
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
             }
         }
 
@@ -186,14 +206,52 @@ namespace OsEngine.OsTrader.Panels
 
                 for (int i = 0; i < tabsSnapshot.Count; i++)
                 {
-                    tabsSnapshot[i].StopPaint();
-                    tabsSnapshot[i].Clear();
-                    tabsSnapshot[i].Delete();
-                    tabsSnapshot[i].LogMessageEvent -= SendNewLogMessage;
-
-                    if (tabsSnapshot[i].TabType == BotTabType.Screener)
+                    // BUG-0696: three phase guards per tab — a throw in one phase must not
+                    // skip the next phases of this same tab (zombie tab, 0693 fallout)
+                    try
                     {
-                        ((BotTabScreener)tabsSnapshot[i]).NewTabCreateEvent -= BotPanel_NewTabCreateEvent;
+                        try
+                        {
+                            tabsSnapshot[i].StopPaint();
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage("BotPanel " + NameStrategyUniq + " Delete StopPaint failed on tab[" + i + "] "
+                                + tabsSnapshot[i].TabType + " " + tabsSnapshot[i].TabName + ": " + error.ToString(),
+                                LogMessageType.Error);
+                        }
+
+                        try
+                        {
+                            tabsSnapshot[i].Clear();
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage("BotPanel " + NameStrategyUniq + " Delete Clear failed on tab[" + i + "] "
+                                + tabsSnapshot[i].TabType + " " + tabsSnapshot[i].TabName + ": " + error.ToString(),
+                                LogMessageType.Error);
+                        }
+
+                        try
+                        {
+                            tabsSnapshot[i].Delete();
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage("BotPanel " + NameStrategyUniq + " Delete Delete failed on tab[" + i + "] "
+                                + tabsSnapshot[i].TabType + " " + tabsSnapshot[i].TabName + ": " + error.ToString(),
+                                LogMessageType.Error);
+                        }
+                    }
+                    finally
+                    {
+                        // unsubscription in finally: it runs even when a phase threw
+                        tabsSnapshot[i].LogMessageEvent -= SendNewLogMessage;
+
+                        if (tabsSnapshot[i].TabType == BotTabType.Screener)
+                        {
+                            ((BotTabScreener)tabsSnapshot[i]).NewTabCreateEvent -= BotPanel_NewTabCreateEvent;
+                        }
                     }
                 }
 
@@ -207,32 +265,56 @@ namespace OsEngine.OsTrader.Panels
                     _botTabs = null;
                 }
 
-                if (ParamGuiSettings != null)
+                // BUG-0696: guard on the WHOLE block — a throw in File.Delete must not
+                // skip Log.Delete below (unsubscribe + null go first, order kept)
+                try
                 {
-                    ParamGuiSettings.LogMessageEvent -= SendNewLogMessage;
-                    ParamGuiSettings = null;
-
-                    if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+                    if (ParamGuiSettings != null)
                     {
-                        File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
+                        ParamGuiSettings.LogMessageEvent -= SendNewLogMessage;
+                        ParamGuiSettings = null;
+
+                        if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+                        {
+                            File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
+                        }
                     }
                 }
-
-                if (Log != null)
+                catch (Exception error)
                 {
-                    Log.Delete();
-                    Log = null;
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 }
 
-                if (Parameters != null)
+                try
                 {
-                    for (int i = 0; i < Parameters.Count; i++)
+                    if (Log != null)
                     {
-                        Parameters[i].ValueChange -= Parameter_ValueChange;
+                        Log.Delete();
                     }
-                    Parameters.Clear();
-                    Parameters = null;
                 }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                Log = null;
+
+                try
+                {
+                    if (Parameters != null)
+                    {
+                        for (int i = 0; i < Parameters.Count; i++)
+                        {
+                            Parameters[i].ValueChange -= Parameter_ValueChange;
+                        }
+
+                        Parameters.Clear();
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+                Parameters = null;
 
                 if (_tabBotTab != null)
                 {
