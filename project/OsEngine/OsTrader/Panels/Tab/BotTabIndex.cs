@@ -111,6 +111,18 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             _isDeleted = true;  // tab deleted; late saves must not recreate its settings files
 
+            // Settings files are removed before any teardown call below: each of them can
+            // throw, and a tab deleted halfway must not leave its files (or live writers) behind
+            if (AutoFormulaBuilder != null)
+            {
+                AutoFormulaBuilder.Delete();
+            }
+
+            if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
+            {
+                File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
+            }
+
             if (_ui != null)
             {
                 _ui.Close();
@@ -119,17 +131,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartMaster.Delete();
             _chartMaster = null;
 
-            if (File.Exists(@"Engine\" + TabName + @"SpreadSet.txt"))
-            {
-                File.Delete(@"Engine\" + TabName + @"SpreadSet.txt");
-            }
-
             for (int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
                 Tabs[i].Delete();
             }
 
-            AutoFormulaBuilder.Delete();
             AutoFormulaBuilder.LogMessageEvent -= SendNewLogMessage;
             AutoFormulaBuilder = null;
 
