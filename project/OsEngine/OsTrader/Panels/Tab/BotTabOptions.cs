@@ -1800,7 +1800,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 foreach (var tab in _simpleTabs.Values)
                 {
-                    journals.Add(tab.GetJournal());
+                    // Prevention: tab deleted in parallel returns null journal (BotTabSimple.Delete); skip it
+                    Journal.Journal journal = tab.GetJournal();
+                    if (journal != null)
+                    {
+                        journals.Add(journal);
+                    }
                 }
 
                 return journals;
@@ -1864,7 +1869,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (tab != null)
                     {
-                        journals.Add(tab.GetJournal());
+                        Journal.Journal journal = tab.GetJournal();
+                        // Tab deleted in parallel (OnSecuritiesChanged deletes after unlock): null must not enter the GPV feed
+                        if (journal != null)
+                        {
+                            journals.Add(journal);
+                        }
                     }
                 }
 

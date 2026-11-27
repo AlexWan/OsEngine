@@ -2996,6 +2996,12 @@ namespace OsEngine.Market.Servers.Optimizer
                 Portfolio portfolio = tab.Portfolio;
                 BotManualControl manualPositionSupport = tab.ManualPositionSupport;
                 Journal.Journal journal = tab.GetJournal();
+                // Tab deleted in parallel: the gate stands above CreatePosition to leave no half-made dividend position
+                if (journal == null)
+                {
+                    SendLogMessage($"CreateDividendPosition for {position.SecurityName}: journal is deleted. Dividend skipped", LogMessageType.Error);
+                    return;
+                }
 
                 PositionCreator dealCreator = new PositionCreator();
                 OrderTypeTime orderTypeTime = manualPositionSupport.OrderTypeTime;
@@ -3480,6 +3486,12 @@ namespace OsEngine.Market.Servers.Optimizer
                 Portfolio portfolio = tab.Portfolio;
                 BotManualControl manualPositionSupport = tab.ManualPositionSupport;
                 Journal.Journal journal = tab.GetJournal();
+                // Tab deleted in parallel: the gate stands above CreatePosition to leave no half-made charge position
+                if (journal == null)
+                {
+                    SendLogMessage("CreateChargePosition: journal is deleted. Charge skipped", LogMessageType.Error);
+                    return;
+                }
 
                 PositionCreator dealCreator = new PositionCreator();
 
