@@ -948,9 +948,9 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
 
-                    if (_securities.Count > 0)
+                    if (_securitiesWorking.Count > 0)
                     {
-                        SendLogMessage(OsLocalization.Market.Label287 + " " + _securities.Count, LogMessageType.System);
+                        SendLogMessage(OsLocalization.Market.Label287 + " " + _securitiesWorking.Count, LogMessageType.System);
 
                         SendCurrentSecurities();
 
@@ -982,7 +982,10 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void SendCurrentSecurities()
         {
-            // снимок списка: дальше по коду в _securities продолжают добавляться бумаги
+            // публикация замороженного снимка рабочего списка: торговые читатели видят только целиком опубликованные списки (BUG-0261)
+            _securities = new List<Security>(_securitiesWorking);
+
+            // снимок списка: события движку получают отдельную копию, потребители не мутируют публикацию
             List<Security> snapshot = new List<Security>(_securities);
 
             if (snapshot.Count > 0
@@ -1037,9 +1040,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.State = SecurityStateType.Activ;
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1119,9 +1122,9 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.PlacementPrice = GetValue(item.PlacementPrice);
                     newSecurity.AciValue = GetValue(item.AciValue);
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1185,9 +1188,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.State = SecurityStateType.Activ;
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1243,9 +1246,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.State = SecurityStateType.Activ;
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1309,9 +1312,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.State = SecurityStateType.Activ;
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1399,9 +1402,9 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.State = SecurityStateType.Activ;
 
-                    if (_securities.Find(s => s.NameId == newSecurity.NameId) == null)
+                    if (_securitiesWorking.Find(s => s.NameId == newSecurity.NameId) == null)
                     {
-                        _securities.Add(newSecurity);
+                        _securitiesWorking.Add(newSecurity);
                     }
 
                     Security outSec = null;
@@ -1475,7 +1478,7 @@ namespace OsEngine.Market.Servers.TInvest
                     newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
-                    _securities.Add(newSecurity);
+                    _securitiesWorking.Add(newSecurity);
                     _securitiesDictionary.Add(newSecurity.NameId, newSecurity);
                 }
             }
@@ -1485,7 +1488,10 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        private List<Security> _securities = new List<Security>();
+        private volatile List<Security> _securities = new List<Security>();
+
+        // рабочий список писателя: Add под _getSecuritiesLocker; читатели-трейды видят только замороженные публикации в _securities (BUG-0261)
+        private List<Security> _securitiesWorking = new List<Security>();
 
         private Dictionary<string, Security> _securitiesDictionary = new Dictionary<string, Security>();
 
