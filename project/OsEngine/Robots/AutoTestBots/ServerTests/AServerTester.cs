@@ -1509,7 +1509,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
         List<AServerTester> _testers = new List<AServerTester>();
 
-        private string _testerLocker = "testerLocker";
+        private readonly object _testerLocker = new object();
 
         private void Tester_TestEndEvent(AServerTester serverTest)
         {

@@ -111,7 +111,7 @@ namespace OsEngine.Market.Proxy
 
         public List<ProxyOsa> Proxies = new List<ProxyOsa>();
 
-        private string _getProxyLocker = "getProxyLocker";
+        private readonly object _getProxyLocker = new object();
 
         public WebProxy GetProxyAutoRegime(ServerType serverType, string serverName)
         {

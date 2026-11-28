@@ -18,7 +18,7 @@ namespace OsEngine.Indicators
             Cache = new List<AindicatorCache>();
         }
 
-        private static string _cacheLocker = "_cacheLocker";
+        private static readonly object _cacheLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         public static bool IsOn = false;
 

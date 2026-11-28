@@ -163,7 +163,7 @@ namespace OsEngine.OsTrader.ServerAvailability
 
         private static ServerAvailabilityUi _ui;
 
-        private static string _lockListIpConnectors = "lockListIpConnectors";
+        private static readonly object _lockListIpConnectors = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         #endregion
 

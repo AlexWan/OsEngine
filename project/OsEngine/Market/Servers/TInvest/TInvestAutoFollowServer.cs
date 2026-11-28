@@ -346,7 +346,7 @@ namespace OsEngine.Market.Servers.TInvest
         // активные ордера-сигналы: ключ = signalId / stopSignalId
         private Dictionary<string, Order> _activeSignalOrders = new Dictionary<string, Order>();
 
-        private string _signalOrdersLocker = "_signalOrdersLockerTInvestAutoFollow";
+        private readonly object _signalOrdersLocker = new object();
 
         // срок жизни стоп-сигналов (UTC): ключ = stopSignalId.
         // Нужен, чтобы отличить истечение сигнала от исполнения —
@@ -383,7 +383,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private Dictionary<int, List<MyTrade>> _recentTrades = new Dictionary<int, List<MyTrade>>();
 
-        private string _completedOrdersLocker = "_completedOrdersLockerTInvestAutoFollow";
+        private readonly object _completedOrdersLocker = new object();
 
         private bool _activeSignalsRestored = false;
 
@@ -394,18 +394,18 @@ namespace OsEngine.Market.Servers.TInvest
         // последние рыночные цены из gRPC-потока, нужны для определения типа отложенного сигнала
         private Dictionary<string, decimal> _lastMarketPrices = new Dictionary<string, decimal>();
 
-        private string _lastPricesLocker = "_lastPricesLockerTInvestAutoFollow";
+        private readonly object _lastPricesLocker = new object();
 
         // время последнего стакана по бумаге (МСК, ключ — uid): биржа может прислать
         // время не новее предыдущего — сдвигаем на тик, чтобы время было монотонным
         private Dictionary<string, DateTime> _lastMdTimeBySecurity = new Dictionary<string, DateTime>();
 
-        private string _mdTimeLocker = "_mdTimeLockerTInvestAutoFollow";
+        private readonly object _mdTimeLocker = new object();
 
         // лимитные заявки, ожидающие цену триггера локально (API автоследования лимиток не имеет)
         private List<Order> _pendingLimitOrders = new List<Order>();
 
-        private string _pendingLimitsLocker = "_pendingLimitsLockerTInvestAutoFollow";
+        private readonly object _pendingLimitsLocker = new object();
 
         // ордера, ждущие отправки сигналом брокеру: свежие маркет/стоп-ордера
         // из SendOrder и сработавшие локальные лимитки (очередь 1 сигнал в 18 сек)
@@ -416,7 +416,7 @@ namespace OsEngine.Market.Servers.TInvest
         // Локальная отмена в этом состоянии невозможна — сигнал уже на пути
         private Dictionary<int, Order> _sendingOrders = new Dictionary<int, Order>();
 
-        private string _sendingOrdersLocker = "_sendingOrdersLockerTInvestAutoFollow";
+        private readonly object _sendingOrdersLocker = new object();
 
         // первое чтение позиций после подключения: в этот момент ValueBegin = ValueCurrent
         // (входящий объём замораживается и дальше не трогается)
@@ -426,7 +426,7 @@ namespace OsEngine.Market.Servers.TInvest
         // uid бумаги → short разрешён. Нужны для warning'а при продаже сверх позиции
         private Dictionary<string, bool> _shortEnabledByNameId = new Dictionary<string, bool>();
 
-        private string _shortFlagsLocker = "_shortFlagsLockerTInvestAutoFollow";
+        private readonly object _shortFlagsLocker = new object();
 
         #endregion
 
@@ -434,7 +434,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private RateGate _rateGateRest = new RateGate(5, TimeSpan.FromSeconds(1));
 
-        private string _getSecuritiesLocker = "_getSecuritiesLockerTInvestAutoFollow";
+        private readonly object _getSecuritiesLocker = new object();
 
         public void GetSecurities()
         {
@@ -761,7 +761,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
-        private string _portfoliosLocker = "_portfoliosLockerTInvestAutoFollow";
+        private readonly object _portfoliosLocker = new object();
 
         public void GetPortfolios()
         {
@@ -1701,7 +1701,7 @@ namespace OsEngine.Market.Servers.TInvest
         private ConcurrentDictionary<string, MarketDataStreamWrapper> _securityStreamMap =
             new ConcurrentDictionary<string, MarketDataStreamWrapper>();
 
-        private string _marketDataStreamLocker = "_marketDataStreamLockerTInvestAutoFollow";
+        private readonly object _marketDataStreamLocker = new object();
 
         private static readonly TimeSpan _streamWaitTimeout = TimeSpan.FromSeconds(5);
 

@@ -1213,7 +1213,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private readonly string _wsHost = "wss://api.alor.ru/ws";
 
-        private string _socketLocker = "webSocketLockerAlor";
+        private readonly object _socketLocker = new object();
 
         private string GetGuid()
         {
@@ -1329,7 +1329,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private bool _socketPortfolioIsActive;
 
-        private string _activationLocker = "activationLocker";
+        private readonly object _activationLocker = new object();
 
         private void CheckActivationSockets()
         {
@@ -2508,10 +2508,10 @@ namespace OsEngine.Market.Servers.Alor
 
         private List<Order> _sendOrders = new List<Order>();
 
-        private string _sendOrdersArrayLocker = "alorSendOrdersArrayLocker";
+        private readonly object _sendOrdersArrayLocker = new object();
 
         private List<Order> _spreadOrders = new List<Order>();
-        private string _spreadOrdersLocker = "_spreadOrdersLocker";
+        private readonly object _spreadOrdersLocker = new object();
 
         public void SendOrder(Order order)
         {
@@ -2692,7 +2692,7 @@ namespace OsEngine.Market.Servers.Alor
 
         List<AlorChangePriceOrder> _changePriceOrders = new List<AlorChangePriceOrder>();
 
-        private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
+        private readonly object _changePriceOrdersArrayLocker = new object();
 
         /// <summary>
         /// Order price change
@@ -2782,7 +2782,7 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         List<string> _cancelOrderNums = new List<string>();
-        private string _cancelOrderNumsLocker = "_cancelOrderNumsLocker";
+        private readonly object _cancelOrderNumsLocker = new object();
 
         public bool CancelOrder(Order order)
         {

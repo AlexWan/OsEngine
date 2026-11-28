@@ -606,13 +606,13 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         #region 6 Sockets creation
 
-        private string _socketLockerHistoricalReplay = "socketLockerMoexFixFastCurrencyHistoricalReplay";
-        private string _socketLockerInstruments = "socketLockerMoexFixFastCurrencyInstruments";
-        private string _socketLockerTradesSnapshots = "socketLockerMoexFixFastCurrencyTradeSnapshots";
-        private string _socketLockerTradesIncremental = "socketLockerMoexFixFastCurrencyTradesIncremental";
-        private string _socketLockerOrdersSnapshots = "socketLockerMoexFixFastCurrencyOrdersSnapshots";
-        private string _socketLockerOrdersIncremental = "socketLockerMoexFixFastCurrencyOrdersIncremental";
-        private string _socketLockerFXMFIXTrade = "_socketLockerFXMFIXTradeCurrency";
+        private readonly object _socketLockerHistoricalReplay = new object();
+        private readonly object _socketLockerInstruments = new object();
+        private readonly object _socketLockerTradesSnapshots = new object();
+        private readonly object _socketLockerTradesIncremental = new object();
+        private readonly object _socketLockerOrdersSnapshots = new object();
+        private readonly object _socketLockerOrdersIncremental = new object();
+        private readonly object _socketLockerFXMFIXTrade = new object();
         private TcpClient _fxMFIXTradeTcpClient;
         private NetworkStream _fxMFIXTradeStream;
         private MessageConstructor _fxMFIXTradeMessages;
@@ -3315,16 +3315,16 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         #region 11 Log
 
-        private string _logLockTrade = "locker for trades stream ";
+        private readonly object _logLockTrade = new object();
         private StreamWriter _logFileTrades = new StreamWriter($"Engine\\Log\\FAST_Trades_{DateTime.Now:dd-MM-yyyy}.txt");
 
-        private string _logLockOrder = "locker for orders stream";
+        private readonly object _logLockOrder = new object();
         private StreamWriter _logFileOrders = new StreamWriter($"Engine\\Log\\FAST_Orders_{DateTime.Now:dd-MM-yyyy}.txt");
 
-        private string _logLockMFIX = "locker for incoming FIX";
+        private readonly object _logLockMFIX = new object();
         private StreamWriter _logFXMFIXMsg = new StreamWriter($"Engine\\Log\\IncomingMFIX_{DateTime.Now:dd-MM-yyyy}.txt", true);
 
-        private string _logLockRecover = "locker for Recover";
+        private readonly object _logLockRecover = new object();
         private StreamWriter _logFileRecover = new StreamWriter($"Engine\\Log\\DataRecoveryLog_{DateTime.Now:dd-MM-yyyy}.txt");
 
         private void WriteLogTrades(string message)

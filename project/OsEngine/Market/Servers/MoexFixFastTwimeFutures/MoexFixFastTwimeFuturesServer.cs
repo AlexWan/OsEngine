@@ -776,13 +776,13 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         #region 6 Sockets creation
 
-        private string _socketLockerHistoricalReplay = "socketLockerFastTwimeHistoricalReplay";
-        private string _socketLockerInstruments = "socketLockerFastTwimeInstruments";
-        private string _socketLockerTradesSnapshots = "socketLockerFastTwimeTradeSnapshots";
-        private string _socketLockerTradesIncremental = "socketLockerFastTwimeTradesIncremental";
-        private string _socketLockerOrdersSnapshots = "socketLockerFastTwimeOrdersSnapshots";
-        private string _socketLockerOrdersIncremental = "socketLockerFastTwimeOrdersIncremental";
-        private string _socketLockerTrading = "_socketLockerFIXTradeFastTwime";
+        private readonly object _socketLockerHistoricalReplay = new object();
+        private readonly object _socketLockerInstruments = new object();
+        private readonly object _socketLockerTradesSnapshots = new object();
+        private readonly object _socketLockerTradesIncremental = new object();
+        private readonly object _socketLockerOrdersSnapshots = new object();
+        private readonly object _socketLockerOrdersIncremental = new object();
+        private readonly object _socketLockerTrading = new object();
 
         private TcpClient _fixTradeTcpClient;
         private NetworkStream _fixTradeStream;
@@ -4548,16 +4548,16 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         #region 11 Log
 
-        private string _logLockTrade = "locker for trades stream ";
+        private readonly object _logLockTrade = new object();
         private StreamWriter _logFileTrades = new StreamWriter($"Engine\\Log\\MoexFixFastTwimeConnectorLogs\\FAST_Trades_{DateTime.Now:dd-MM-yyyy}.txt");
 
-        private string _logLockOrder = "locker for orders stream";
+        private readonly object _logLockOrder = new object();
         private StreamWriter _logFileOrders = new StreamWriter($"Engine\\Log\\MoexFixFastTwimeConnectorLogs\\FAST_Orders_{DateTime.Now:dd-MM-yyyy}.txt");
 
-        private string _logLockTrading = "locker for incoming trade messages";
+        private readonly object _logLockTrading = new object();
         private StreamWriter _logTradingMsg = new StreamWriter($"Engine\\Log\\MoexFixFastTwimeConnectorLogs\\TradingServerLog_{DateTime.Now:dd-MM-yyyy}.txt", false, Encoding.UTF8);
 
-        private string _logLockRecover = "locker for Recover";
+        private readonly object _logLockRecover = new object();
         private StreamWriter _logFileRecover = new StreamWriter($"Engine\\Log\\MoexFixFastTwimeConnectorLogs\\DataRecoveryLog_{DateTime.Now:dd-MM-yyyy}.txt");
 
         private void WriteLogTrades(string message)

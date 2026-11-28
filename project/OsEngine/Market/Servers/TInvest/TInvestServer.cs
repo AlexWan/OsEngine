@@ -730,13 +730,13 @@ namespace OsEngine.Market.Servers.TInvest
 
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
 
-        private string _orderNumbersLocker = "_orderNumbersLocker";
+        private readonly object _orderNumbersLocker = new object();
 
         private ConcurrentDictionary<string, decimal> _orderPrices = new ConcurrentDictionary<string, decimal>();
 
         private List<Order> _activeStopOrders = new List<Order>();
 
-        private string _stopOrdersLocker = "_stopOrdersLocker";
+        private readonly object _stopOrdersLocker = new object();
 
         private Dictionary<string, int> _stopOrderNumbers = new Dictionary<string, int>();
 
@@ -794,7 +794,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
 
-        private string _getSecuritiesLocker = "_getSecuritiesLocker";
+        private readonly object _getSecuritiesLocker = new object();
 
         public void GetSecurities()
         {
@@ -3334,7 +3334,7 @@ namespace OsEngine.Market.Servers.TInvest
         private DateTime _lastPositionsDataTime = DateTime.MinValue;
         private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
-        private string _marketDataStreamLocker = "_marketDataStreamLocker";
+        private readonly object _marketDataStreamLocker = new object();
 
         private static readonly TimeSpan _streamWaitTimeout = TimeSpan.FromSeconds(5);
 
@@ -6356,11 +6356,11 @@ namespace OsEngine.Market.Servers.TInvest
         #region 9 Trade
 
         private RateGate _rateGateOrders = new RateGate(98, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
-        private string _rageGateOrdersLocker = "_rageGateOrdersLocker";
+        private readonly object _rageGateOrdersLocker = new object();
 
         // Метод postOrder: лимит 300 запр/мин. Держим 290 с запасом
         private RateGate _rateGatePostOrders = new RateGate(290, TimeSpan.FromMinutes(1));
-        private string _rageGatePostOrdersLocker = "_rageGatePostOrdersLocker";
+        private readonly object _rageGatePostOrdersLocker = new object();
 
         // Сервис стоп-ордеров: лимит 50 запр/мин суммарно по всем методам и счетам. Держим 45 с запасом
         private RateGate _rateGateStopOrders = new RateGate(45, TimeSpan.FromMinutes(1));
@@ -6914,12 +6914,12 @@ namespace OsEngine.Market.Servers.TInvest
 
         List<string> _cancelOrderNums = new List<string>();
 
-        private string _cancelOrdersLocker = "_cancelOrdersLocker";
+        private readonly object _cancelOrdersLocker = new object();
 
         // BUG-0123: подтверждения однозначного «Order not found» от брокера по NumberMarket
         private Dictionary<string, int> _orderNotFoundConfirms = new Dictionary<string, int>();
 
-        private string _orderNotFoundConfirmsLocker = "_orderNotFoundConfirmsLocker";
+        private readonly object _orderNotFoundConfirmsLocker = new object();
 
         public bool CancelOrder(Order order)
         {

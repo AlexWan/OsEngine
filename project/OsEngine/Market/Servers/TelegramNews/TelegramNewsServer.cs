@@ -633,8 +633,8 @@ namespace OsEngine.Market.Servers.TelegramNews
         private ConcurrentDictionary<string, (ChatBase, string, bool)> _trackedChats = new ConcurrentDictionary<string, (ChatBase, string, bool)>();
         private Dictionary<long, DateTime> _timeChannelsSponsorMsg = new Dictionary<long, DateTime>();
         private ConcurrentQueue<Message> _messagesToRead = new ConcurrentQueue<Message>();
-        private string _sponsorMsgLocker = "_sponsorMsgLocker";
-        private string _clientLocker = "_clientLocker";
+        private readonly object _sponsorMsgLocker = new object();
+        private readonly object _clientLocker = new object();
         private TaskCompletionSource<string> _authInputTcs;
 
         #endregion

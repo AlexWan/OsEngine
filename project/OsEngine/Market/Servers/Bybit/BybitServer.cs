@@ -427,7 +427,7 @@ namespace OsEngine.Market.Servers.Bybit
         // бесшовный реконнект одиночных сокетов: умерший сокет пересоздаётся без рестарта коннектора (паттерн BCS/TInvest)
         private bool _reconnectAllowed = false;
 
-        private string _seamlessReconnectLocker = "_seamlessReconnectLocker";
+        private readonly object _seamlessReconnectLocker = new object();
 
         private DateTime _lastPrivateReconnectTime = DateTime.MinValue;
 
@@ -1513,7 +1513,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private RateGate _rateGateGetCandleHistory = new RateGate(1, TimeSpan.FromMilliseconds(80));
 
-        private string _rateGateGetCandleHistoryLocker = "_rateGateGetCandleHistoryLocker";
+        private readonly object _rateGateGetCandleHistoryLocker = new object();
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -5365,7 +5365,7 @@ namespace OsEngine.Market.Servers.Bybit
             return res;
         }
 
-        private string _lockerServerTime = "lockerServerTime";
+        private readonly object _lockerServerTime = new object();
 
         public string GetServerTime()
         {

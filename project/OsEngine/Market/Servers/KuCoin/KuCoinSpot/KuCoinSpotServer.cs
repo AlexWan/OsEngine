@@ -592,7 +592,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private string _webSocketPublicUrl = "wss://ws-api-spot.kucoin.com/?token=xxx&[connectId=xxxxx]";
 
-        private string _socketLocker = "webSocketLockerKuCoin";
+        private readonly object _socketLocker = new object();
 
         private void CreatePublicWebSocketConnect()
         {

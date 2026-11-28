@@ -638,7 +638,7 @@ namespace OsEngine.Market.Servers.AE
 
         #region 6 WebSocket creation
 
-        private string _socketLocker = "webSocketLockerAE";
+        private readonly object _socketLocker = new object();
 
         private static long _messageId = 0;
         private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
@@ -746,7 +746,7 @@ namespace OsEngine.Market.Servers.AE
 
         private bool _socketDataIsActive;
 
-        private string _activationLocker = "activationLocker";
+        private readonly object _activationLocker = new object();
 
         private void CheckActivationSockets()
         {

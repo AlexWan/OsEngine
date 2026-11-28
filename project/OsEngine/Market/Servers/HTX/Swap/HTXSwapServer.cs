@@ -1232,7 +1232,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsHtxSwap";
+        private readonly object _lockerCheckActivateionSockets = new object();
 
         private void CheckActivationSockets()
         {

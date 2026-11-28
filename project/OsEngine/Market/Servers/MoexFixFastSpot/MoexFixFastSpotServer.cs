@@ -389,12 +389,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         #region 6 Socket creation
 
-        private string _socketLockerHistoricalReplay = "socketLockerMoexFixFastSpotHistoricalReplay";
-        private string _socketLockerInstruments = "socketLockerMoexFixFastSpotInstruments";
-        private string _socketLockerTradesSnapshots = "socketLockerMoexFixFastSpotTradeSnapshots";
-        private string _socketLockerTradesIncremental = "socketLockerMoexFixFastSpotTradesIncremental";
-        private string _socketLockerOrdersSnapshots = "socketLockerMoexFixFastSpotOrdersSnapshots";
-        private string _socketLockerOrdersIncremental = "socketLockerMoexFixFastSpotOrdersIncremental";
+        private readonly object _socketLockerHistoricalReplay = new object();
+        private readonly object _socketLockerInstruments = new object();
+        private readonly object _socketLockerTradesSnapshots = new object();
+        private readonly object _socketLockerTradesIncremental = new object();
+        private readonly object _socketLockerOrdersSnapshots = new object();
+        private readonly object _socketLockerOrdersIncremental = new object();
         
         private void CreateSocketConnections()
         {
@@ -1648,7 +1648,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
         }       
 
-        private string _ordersIncrementalLocker = "OrdersIncrementalLocker";
+        private readonly object _ordersIncrementalLocker = new object();
         private Dictionary<long, OpenFAST.Message> _ordersIncremental = new Dictionary<long, OpenFAST.Message>();
         // накапливаем все сообщения из снэпшотов 
         private Dictionary<long, OpenFAST.Message> _tradesIncremental = new Dictionary<long, OpenFAST.Message>();
@@ -3831,7 +3831,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         #region 11 Log
 
-        private string _logLock = "locker for stream writer";
+        private readonly object _logLock = new object();
         private StreamWriter _logFile = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log.txt");
         private StreamWriter _logFileXOrders = new StreamWriter("Engine\\Log\\FIXFAST_Multicast_UDP-log-XOrders.txt");
 

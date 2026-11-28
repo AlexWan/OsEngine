@@ -450,7 +450,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public List<PolygonToTrade> Sequences = new List<PolygonToTrade>();
 
-        private string _pairsLocker = "pairsLocker";
+        private readonly object _pairsLocker = new object();
 
         /// <summary>
         /// Method sorting array of sequences by profitability

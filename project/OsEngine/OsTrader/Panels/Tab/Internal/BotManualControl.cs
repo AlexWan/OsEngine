@@ -34,9 +34,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// </summary>
         public static List<BotManualControl> TabsToCheck = new List<BotManualControl>();
 
-        private static string _tabsAddLocker = "tabsLocker";
+        private static readonly object _tabsAddLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
-        private static string _activatorLocker = "activatorLocker";
+        private static readonly object _activatorLocker = new object();  // bug-0654: static field guards static state, monitor must be process-wide
 
         /// <summary>
         /// Activate stream to view deals
