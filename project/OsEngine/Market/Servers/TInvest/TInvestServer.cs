@@ -794,7 +794,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
 
-        private string _getSecuritiesLocker = "_getSecuritiesLocker";
+        // Монитор на строковом литерале интернируется CLR: один замок на все инстансы TInvest в процессе
+        private readonly object _getSecuritiesLocker = new object();
 
         public void GetSecurities()
         {
