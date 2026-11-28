@@ -733,8 +733,21 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #region 6 WebSocket creation
 
-            private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+            private List<WebSocketDeflate> _webSocketPublic = new List<WebSocketDeflate>();
 
+            // bug-0686: политика по эндпоинтам XT. /public эхит permessage-deflate С ФЛАГАМИ
+            // (server_no_context_takeover) — мигрирован на WebSocketDeflate (:736 и ниже).
+            // /private эхит ГОЛЫЙ "permessage-deflate" без флагов (RUN_FACTS tr432) — под
+            // current-компонент не годится: без server_no_context_takeover он fail-closed
+            // бросает (WebSocketDeflate.cs:355), а принимать context-takeover ему нечем
+            // (пословный inflate). Поэтому приват остаётся на wrapper WebSocketOsEngine:
+            // оффер Sec-WebSocket-Extensions не шлёт вовсе → 101 без ext (= поведение базы,
+            // рабочее сегодня; принуждение deflate с 2026-12-10 08:00 UTC подтверждено
+            // документацией XT только для /public).
+            // ТРИГГЕР пересмотра: 426 / guard-лог «WebSocket Private error while Disconnect»
+            // с отказом handshake на /private после 10.12 → follow-up-баг: stateful inflate
+            // (вариант A) с live-характеризацией flush-режима XT + проба A-lite (оффер с
+            // явными флагами server_no_context_takeover;client_no_context_takeover).
             private WebSocket _webSocketPrivate;
 
             private string _webSocketPrivateUrl = "wss://stream.xt.com/private";
@@ -760,11 +773,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            private WebSocket CreateNewPublicSocket()
+            private WebSocketDeflate CreateNewPublicSocket()
             {
                 try
                 {
-                    WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+                    WebSocketDeflate webSocketPublicNew = new WebSocketDeflate(_webSocketPublicUrl);
 
                     //if (_myProxy != null)
                     //{
@@ -776,7 +789,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
                     webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
                     webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
-                    webSocketPublicNew.ConnectAsync();
+                    webSocketPublicNew.ConnectAsync(TimeSpan.FromSeconds(30));
 
                     return webSocketPublicNew;
                 }
@@ -796,6 +809,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
+                    // bug-0686: wrapper, не WebSocketDeflate — см. why-коммент у поля
+                    // _webSocketPrivate (bare-эхо XT /private без no_context → fail-closed :355)
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
 
                     //if (_myProxy != null)
@@ -808,7 +823,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError += _webSocketPrivate_OnError;
-                    _webSocketPrivate.ConnectAsync();
+                    _webSocketPrivate.ConnectAsync(TimeSpan.FromSeconds(30));
                 }
                 catch (Exception exception)
                 {
@@ -824,7 +839,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
                             webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
@@ -886,7 +901,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    WebSocket webSocketPublic = _webSocketPublic[0];
+                    WebSocketDeflate webSocketPublic = _webSocketPublic[0];
 
                     if (webSocketPublic == null
                         || webSocketPublic?.ReadyState != WebSocketState.Open)
@@ -924,6 +939,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
+                    else
+                    {
+                        // 0680: закрытие при уже Disconnect раньше молчало — так же молчал и отказ сервера в handshake
+                        SendLogMessage($"{this.GetType().Name} WebSocket Public closed while Disconnect. Code: {e?.Code} Reason: {e?.Reason}", LogMessageType.System);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -937,6 +957,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        // 0680: ошибка при Disconnect не терялась только на бумаге — отказ в handshake пропадал совсем
+                        SendLogMessage($"{this.GetType().Name} WebSocket Public error while Disconnect. {e?.Exception?.ToString()}", LogMessageType.Error);
                         return;
                     }
 
@@ -1015,6 +1037,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
+                        // 0680: здесь сутки не было видно 426 «permessage-deflate is required» от приватного канала
+                        SendLogMessage($"{this.GetType().Name} WebSocket Private error while Disconnect. {e?.Exception?.ToString()}", LogMessageType.Error);
                         return;
                     }
 
@@ -1089,6 +1113,11 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent?.Invoke();
                     }
+                    else
+                    {
+                        // 0680: то же, что для публичного: закрытие в состоянии Disconnect должно быть видно
+                        SendLogMessage($"{this.GetType().Name} WebSocket Private closed while Disconnect. Code: {e?.Code} Reason: {e?.Reason}", LogMessageType.System);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1131,7 +1160,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             if (webSocketPublic != null
                                 && webSocketPublic?.ReadyState == WebSocketState.Open)
@@ -1196,14 +1225,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         return;
                     }
 
-                    WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+                    WebSocketDeflate webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                     if (webSocketPublic.ReadyState == WebSocketState.Open
                         && _subscribedSecurities.Count != 0
                         && _subscribedSecurities.Count % 50 == 0)
                     {
                         // creating a new socket
-                        WebSocket newSocket = CreateNewPublicSocket();
+                        WebSocketDeflate newSocket = CreateNewPublicSocket();
 
                         DateTime timeEnd = DateTime.Now.AddSeconds(10);
 
@@ -1246,7 +1275,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         for (int i = 0; i < _webSocketPublic.Count; i++)
                         {
-                            WebSocket webSocketPublic = _webSocketPublic[i];
+                            WebSocketDeflate webSocketPublic = _webSocketPublic[i];
 
                             try
                             {
